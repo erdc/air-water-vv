@@ -26,5 +26,5 @@ test consists of a single directory including
 
 # Contributors
 
-- @cekees, @mfarthin, @malej, @bakhtyar, @ahmadia, @IdoAkkerman
+- Chris Kees, Matthew Farthing, Matt Malej, Roham Bakhtyar, Aron Ahmadia, Ido Akkerman
 
