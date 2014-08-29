@@ -63,3 +63,4 @@ if useSuperlu:
 
 linear_solver_options_prefix = 'rdls_'
 
+auxiliaryVariables=[lineGauges_phi]
