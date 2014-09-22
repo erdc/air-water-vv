@@ -21,7 +21,7 @@ else:
     stepController = RDLS.PsiTC
     runCFL=1.0
     psitc['nStepsForce']=3
-    psitc['nStepsMax']=25
+    psitc['nStepsMax']=50
     psitc['reduceRatio']=2.0
     psitc['startRatio']=1.0
     rtol_res[0] = 0.0
