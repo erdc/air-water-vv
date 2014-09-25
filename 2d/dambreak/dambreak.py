@@ -8,6 +8,8 @@ from proteus.Profiling import logEvent
 #Refinement = 20#45min on a single core for spaceOrder=1, useHex=False
 Refinement = 15#45min on a single core for spaceOrder=1, useHex=False
 genMesh=True
+movingDomain=False
+applyRedistancing=True
 useOldPETSc=False
 useSuperlu=False#True
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
@@ -61,9 +63,11 @@ elif spaceOrder == 2:
 #L = (0.584,0.350)
 L = (0.584,0.584)
 he = L[0]/float(4*Refinement-1)
-he*=0.5
 #he*=0.5
 #he*=0.5
+#he*=0.5
+#he*=0.5
+weak_bc_penalty_constant = 100.0
 nLevels = 1
 #parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
 parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
@@ -81,30 +85,46 @@ else:
         nnx=4*Refinement
         nny=2*Refinement
     else:
+        x_l=0.1*L[0]
+        x_r=0.9*L[0]
+        y_t=0.9*L[1]
+        y_b=0.8*L[1]
         vertices=[[0.0,0.0],#0
                   [L[0],0.0],#1
                   [L[0],L[1]],#2
-                  [0.0,L[1]]]#3
+                  [0.0,L[1]],#3
+                  [x_l,y_b],#4
+                  [x_l,y_t],#5
+                  [x_r,y_t],#6
+                  [x_r,y_b]]#7
         vertexFlags=[boundaryTags['bottom'],
                      boundaryTags['bottom'],
                      boundaryTags['top'],
-                     boundaryTags['top']]
+                     boundaryTags['top'],
+                     boundaryTags['bottom'],boundaryTags['bottom'],boundaryTags['bottom'],boundaryTags['bottom']]
         segments=[[0,1],
                   [1,2],
                   [2,3],
-                  [3,0]]
+                  [3,0],
+                  [4,5],
+                  [5,6],
+                  [6,7],
+                  [7,4]]
         segmentFlags=[boundaryTags['bottom'],
                       boundaryTags['right'],
                       boundaryTags['top'],
-                      boundaryTags['left']]
+                      boundaryTags['left'],
+                      boundaryTags['bottom'],boundaryTags['bottom'],boundaryTags['bottom'],boundaryTags['bottom']]
         regions=[[0.5*L[0],0.5*L[1]]]
         regionFlags=[1]
+        holes=[[0.5*(x_l+x_r),0.5*(y_b+y_t)]]
         domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
                                                       vertexFlags=vertexFlags,
                                                       segments=segments,
                                                       segmentFlags=segmentFlags,
                                                       regions=regions,
-                                                      regionFlags=regionFlags)
+                                                      regionFlags=regionFlags,
+                                                      holes=holes)
         #go ahead and add a boundary tags member 
         domain.boundaryTags = boundaryTags
         domain.writePoly("mesh")
@@ -140,7 +160,7 @@ if useMetrics:
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
@@ -177,13 +197,13 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-8,0.01*he**2)
-vof_nl_atol_res = max(1.0e-8,0.01*he**2)
-ls_nl_atol_res = max(1.0e-8,0.01*he**2)
+ns_nl_atol_res = max(1.0e-8,0.001*he**2)
+vof_nl_atol_res = max(1.0e-8,0.001*he**2)
+ls_nl_atol_res = max(1.0e-8,0.001*he**2)
 rd_nl_atol_res = max(1.0e-8,0.01*he)
-mcorr_nl_atol_res = max(1.0e-8,0.01*he**2)
-kappa_nl_atol_res = max(1.0e-8,0.01*he**2)
-dissipation_nl_atol_res = max(1.0e-8,0.01*he**2)
+mcorr_nl_atol_res = max(1.0e-8,0.001*he**2)
+kappa_nl_atol_res = max(1.0e-8,0.001*he**2)
+dissipation_nl_atol_res = max(1.0e-8,0.001*he**2)
 
 #turbulence
 ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega

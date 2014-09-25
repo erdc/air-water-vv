@@ -1,6 +1,6 @@
--rans2p_ksp_type bcgsl -rans2p_pc_type asm -rans2p_pc_asm_type basic -rans2p_sub_ksp_type preonly -rans2p_sub_pc_factor_mat_solver_package superlu
+-rans2p_ksp_type fgmres -rans2p_pc_type asm   -rans2p_pc_asm_type   basic -rans2p_sub_ksp_type preonly -rans2p_sub_pc_factor_mat_solver_package superlu
 -ncls_ksp_type   fgmres -ncls_pc_type   hypre -ncls_pc_hypre_type   boomeramg
 -vof_ksp_type    fgmres -vof_pc_type    hypre -vof_pc_hypre_type    boomeramg
--rdls_ksp_type   fgmres -rdls_pc_type   hypre -vof_pc_hypre_type    boomeramg
+-rdls_ksp_type   fgmres -rdls_pc_type   hypre -rdls_pc_hypre_type   boomeramg
 -mcorr_ksp_type  cg     -mcorr_pc_type  hypre -mcorr_pc_hypre_type  boomeramg
 -log_summary
