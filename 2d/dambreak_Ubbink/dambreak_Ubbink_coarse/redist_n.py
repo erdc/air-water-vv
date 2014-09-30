@@ -1,6 +1,6 @@
 from proteus import *
 from redist_p import *
-from dambreak_Colagrossi_fine import *
+from dambreak_Ubbink_coarse import *
 
 nl_atol_res = rd_nl_atol_res
 tolFac = 0.0
@@ -21,7 +21,7 @@ else:
     stepController = RDLS.PsiTC
     runCFL=1.0
     psitc['nStepsForce']=3
-    psitc['nStepsMax']=50
+    psitc['nStepsMax']=25
     psitc['reduceRatio']=2.0
     psitc['startRatio']=1.0
     rtol_res[0] = 0.0

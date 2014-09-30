@@ -1,0 +1,22 @@
+#!/bin/bash
+#PBS -A ERDCV00898R40
+#PBS -l walltime=001:00:00
+#PBS -l select=4:ncpus=32:mpiprocs=32
+#PBS -q debug
+#PBS -N colagrossi
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+source /opt/modules/default/etc/modules.sh
+#source /lustre/shared/projects/proteus/garnet.gnu.sh
+export  PATH=${HOME}/proteus/garnet.gnu/bin:${PATH}
+export  LD_LIBRARY_PATH=${HOME}/proteus/garnet.gnu/lib:${LD_LIBRARY_PATH}
+module unload PrgEnv-pgi  
+module load   PrgEnv-gnu
+module unload cray-libsci 
+module load acml
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/dambreak_Colagrossi_fine.$PBS_JOBID
+aprun -n 128  parun dambreak_Colagrossi_fine_so.py -m -p -l 7 -v -O petsc.options.superlu_dist -D $WORKDIR/dambreak_Colagrossi_fine.$PBS_JOBID

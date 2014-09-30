@@ -6,7 +6,7 @@ from proteus.Profiling import logEvent
    
 #  Discretization -- input options  
 
-Refinement = 64 
+Refinement = 12
 genMesh=True
 useOldPETSc=False
 useSuperlu=False#True
@@ -59,7 +59,13 @@ elif spaceOrder == 2:
     
 # Domain and mesh
 #L = (0.584,0.350)
-L = (3.22 , 1.8)
+L = (0.584 , 0.584)
+obst_portions = (0.024,0.048) #(width,height)
+obst_x_start = 0.292 # start x coordinate of the obstacle; caution to be in the domain's range
+obst_x_end = obst_x_start + obst_portions[0] # end x coordinate of the obstacle; caution to be in the domain's range
+obst = (obst_x_start,obst_portions[1],obst_x_end) #coordinates of the obstacle to be used to define the boundary
+
+
 he = L[0]/float(4*Refinement-1)
 #he*=0.5
 #he*=0.5
@@ -86,8 +92,6 @@ class PointGauges(AV_base):
         self.model=model
         self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
         self.vertices = model.levelModelList[-1].mesh.nodeArray
-        #self.choose_dt=model.levelModelList[-1].timeIntegration.choose_dt
-        self.tt=model.levelModelList[-1].timeIntegration.t
         self.p = model.levelModelList[-1].u[0].dof
         self.u = model.levelModelList[-1].u[1].dof
         self.v = model.levelModelList[-1].u[2].dof
@@ -101,7 +105,7 @@ class PointGauges(AV_base):
             if vnMask.any():
                 if not self.files.has_key(name):
                     self.files[name] = open(name+'.txt','w')
-                self.files[name].write('%22.16e %22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (self.tt,self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]))
+                self.files[name].write('%22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]))
 
 class LineGauges(AV_base):
     def  __init__(self,gaugeEndpoints={'pressure_1':((0.5,0.5,0.0),(0.5,1.8,0.0))},linePoints=10):
@@ -124,7 +128,6 @@ class LineGauges(AV_base):
         self.model=model
         self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
         self.vertices = model.levelModelList[-1].mesh.nodeArray
-        self.tt=model.levelModelList[-1].timeIntegration.t
         self.p = model.levelModelList[-1].u[0].dof
         self.u = model.levelModelList[-1].u[1].dof
         self.v = model.levelModelList[-1].u[2].dof
@@ -139,10 +142,10 @@ class LineGauges(AV_base):
                 if not self.files.has_key(name):
                     self.files[name] = open(name+'.txt','w')
                 for x,y,p,u,v in zip(self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]):
-                    self.files[name].write('%22.16e %22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (self.tt,x,y,p,u,v))
+                    self.files[name].write('%22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (x,y,p,u,v))
 
 class LineGauges_phi(AV_base):
-    def  __init__(self,gaugeEndpoints={'pressure_1':((0.5,0.5,0.0),(0.5,1.8,0.0))},linePoints=10):
+    def  __init__(self,gaugeEndpoints={'pressure_1':((0.5,0.5,0.0),(0.5,1.8,0.0))},linePoints=10): 
         import numpy as  np
         AV_base.__init__(self)
         self.endpoints=gaugeEndpoints
@@ -162,7 +165,6 @@ class LineGauges_phi(AV_base):
         self.model=model
         self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
         self.vertices = model.levelModelList[-1].mesh.nodeArray
-        self.tt= model.levelModelList[-1].timeIntegration.t
         self.phi = model.levelModelList[-1].u[0].dof
         return self
     def attachAuxiliaryVariables(self,avDict):
@@ -175,10 +177,10 @@ class LineGauges_phi(AV_base):
                 if not self.files.has_key(name):
                     self.files[name] = open(name+'_phi.txt','w')
                 for x,y,phi in zip(self.vertices[vnMask,0],self.vertices[vnMask,1],self.phi[vnMask]):
-                    self.files[name].write('%22.16e %22.16e %22.16e %22.16e\n' % (self.tt,x,y,phi))
+                    self.files[name].write('%22.16e %22.16e %22.16e\n' % (x,y,phi))
 
-pointGauges = PointGauges(gaugeLocations={'pointGauge_pressure':(3.22,0.160,0.0)})
-lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825':((0.495,0.0,0.0),(0.495,1.8,0.0))},linePoints=20)
+pointGauges = PointGauges(gaugeLocations={'pointGauge_pressure':(0.293,0.05,0.0)})
+lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825':((0.4,0.0,0.0),(0.4,0.58,0.0))},linePoints=20)
 #'lineGauge_x/H=1.653':((0.99,0.0,0.0),(0.99,1.8,0.0))
 lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
 
@@ -196,22 +198,48 @@ else:
         nny=2*Refinement
     else:
         vertices=[[0.0,0.0],#0
-                  [L[0],0.0],#1
-                  [L[0],L[1]],#2
-                  [0.0,L[1]]]#3
+                  [obst[0],0.0], #1
+                  [obst[0],obst[1]], #2  
+                  [obst[2],obst[1]], #3
+                  [obst[2],0.0],#4 
+                  [L[0],0.0],#5
+                  [L[0],L[1]],#6
+                  [0.0,L[1]]] #7
+             
+
         vertexFlags=[boundaryTags['bottom'],
                      boundaryTags['bottom'],
+                     boundaryTags['bottom'],
+                     boundaryTags['bottom'],
+                     boundaryTags['bottom'],
+                     boundaryTags['bottom'], 
                      boundaryTags['top'],
                      boundaryTags['top']]
+                   
+
+
         segments=[[0,1],
                   [1,2],
                   [2,3],
-                  [3,0]]
+                  [3,4],
+                  [4,5],
+                  [5,6],
+                  [6,7],
+                  [7,0]]
+                  
+
         segmentFlags=[boundaryTags['bottom'],
+                      boundaryTags['bottom'],
+                      boundaryTags['bottom'], 
+                      boundaryTags['bottom'],
+                      boundaryTags['bottom'],
                       boundaryTags['right'],
                       boundaryTags['top'],
                       boundaryTags['left']]
-        regions=[[1.2 ,0.6]]
+
+ 
+
+        regions=[[0.146 ,0.292]]
         regionFlags=[1]
         for gaugeName,gaugeCoordinates in pointGauges.locations.iteritems():
             vertices.append(gaugeCoordinates)
@@ -235,7 +263,7 @@ else:
 
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=3.0
+T=0.8
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.001)
 runCFL=0.33
@@ -298,13 +326,13 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-8,0.001*he**2)
-vof_nl_atol_res = max(1.0e-8,0.001*he**2)
-ls_nl_atol_res = max(1.0e-8,0.001*he**2)
-rd_nl_atol_res = max(1.0e-8,0.001*he)
-mcorr_nl_atol_res = max(1.0e-8,0.001*he**2)
-kappa_nl_atol_res = max(1.0e-8,0.001*he**2)
-dissipation_nl_atol_res = max(1.0e-8,0.001*he**2)
+ns_nl_atol_res = max(1.0e-8,0.01*he**2)
+vof_nl_atol_res = max(1.0e-8,0.01*he**2)
+ls_nl_atol_res = max(1.0e-8,0.01*he**2)
+rd_nl_atol_res = max(1.0e-8,0.01*he)
+mcorr_nl_atol_res = max(1.0e-8,0.01*he**2)
+kappa_nl_atol_res = max(1.0e-8,0.01*he**2)
+dissipation_nl_atol_res = max(1.0e-8,0.01*he**2)
 
 #turbulence
 ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -327,8 +355,8 @@ sigma_01 = 0.0
 g = [0.0,-9.8]
 
 # Initial condition
-waterLine_x = 1.2
-waterLine_z = 0.6
+waterLine_x =0.146
+waterLine_z = 0.292
 
 def signedDistance(x):
     phi_x = x[0]-waterLine_x
