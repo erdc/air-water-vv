@@ -2,19 +2,20 @@ from proteus import *
 from redist_p import *
 from dambreak import *
 
-nl_atol_res = rd_nl_atol_res
 tolFac = 0.0
-linTolFac = 0.0001
-l_atol_res = 0.0001*rd_nl_atol_res
-useEisenstatWalker = True
+nl_atol_res = rd_nl_atol_res
+
+linTolFac = 0.01
+l_atol_res = 0.01*rd_nl_atol_res
+useEisenstatWalker = False
 
 if redist_Newton:
     timeIntegration = NoIntegration
     stepController = Newton_controller
     maxNonlinearIts = 50
     maxLineSearches = 0
-    nonlinearSolverConvergenceTest = 'r'
-    levelNonlinearSolverConvergenceTest = 'r'
+    nonlinearSolverConvergenceTest = 'rits'
+    levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'r-true'
 else:
     timeIntegration = BackwardEuler_cfl

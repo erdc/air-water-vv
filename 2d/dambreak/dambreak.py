@@ -6,7 +6,7 @@ from proteus.Profiling import logEvent
    
 #  Discretization -- input options  
 #Refinement = 20#45min on a single core for spaceOrder=1, useHex=False
-Refinement = 18#45min on a single core for spaceOrder=1, useHex=False
+Refinement = 20#45min on a single core for spaceOrder=1, useHex=False
 genMesh=True
 movingDomain=False
 applyRedistancing=True
@@ -137,7 +137,7 @@ logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.po
 T=2.0
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.1*he)
-runCFL=0.33
+runCFL=0.1
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
@@ -154,12 +154,12 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.5
+    rd_shockCapturingFactor  = 0.25
     rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
+    epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
+    epsFact_consrv_diffusion = 0.1
     redist_Newton = True
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True#False
@@ -170,18 +170,18 @@ if useMetrics:
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.0
 else:
-    ns_shockCapturingFactor  = 0.25
+    ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.25
+    ls_shockCapturingFactor  = 0.9
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = 0.9
     vof_lag_shockCapturing = True
     vof_sc_uref  = 1.0
     vof_sc_beta  = 1.0
-    rd_shockCapturingFactor  = 0.5
+    rd_shockCapturingFactor  = 0.9
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
@@ -200,13 +200,13 @@ else:
 ns_nl_atol_res = max(1.0e-8,0.001*he**2)
 vof_nl_atol_res = max(1.0e-8,0.001*he**2)
 ls_nl_atol_res = max(1.0e-8,0.001*he**2)
-rd_nl_atol_res = max(1.0e-8,0.009*he)
+rd_nl_atol_res = max(1.0e-8,0.005*he)
 mcorr_nl_atol_res = max(1.0e-8,0.001*he**2)
 kappa_nl_atol_res = max(1.0e-8,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-8,0.001*he**2)
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:

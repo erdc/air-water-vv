@@ -55,10 +55,10 @@ levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest             = 'r-true'
 
 tolFac = 0.0
-linTolFac = 0.0001
-l_atol_res = 0.0001*vof_nl_atol_res
+linTolFac = 0.01
+l_atol_res = 0.01*vof_nl_atol_res
 nl_atol_res = ns_nl_atol_res
-useEisenstatWalker = True
+useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}

@@ -49,9 +49,11 @@ levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest         = 'r-true'
 
 tolFac = 0.0
-linTolFac = tolFac
-l_atol_res = 0.1*ls_nl_atol_res
 nl_atol_res = ls_nl_atol_res
+
+linTolFac = 0.001
+l_atol_res = 0.001*ls_nl_atol_res
+
 useEisenstatWalker = False
 
 maxNonlinearIts = 50
