@@ -12,10 +12,12 @@ if useRANS >= 1:
     Closure_0_model = 5; Closure_1_model=6
     if useOnlyVF:
         Closure_0_model=2; Closure_1_model=3
+    if movingDomain:
+        Closure_0_model += 1; Closure_1_model += 1
 else:
     Closure_0_model = None
     Closure_1_model = None
-        
+
 coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    sigma=0.0,
                                    rho_0 = rho_0,
@@ -31,11 +33,13 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    epsFact_density=epsFact_density,
                                    stokes=False,
                                    useVF=useVF,
-				   useRBLES=useRBLES,
-				   useMetrics=useMetrics,
+                                   useRBLES=useRBLES,
+                                   useMetrics=useMetrics,
                                    eb_adjoint_sigma=1.0,
+                                   eb_penalty_constant=weak_bc_penalty_constant,
                                    forceStrongDirichlet=ns_forceStrongDirichlet,
-                                   turbulenceClosureModel=ns_closure)
+                                   turbulenceClosureModel=ns_closure,
+                                   movingDomain=movingDomain)
 
 def getDBC_p(x,flag):
     if flag == boundaryTags['top']:# or x[2] >= L[2] - 1.0e-12:
@@ -53,9 +57,7 @@ def getDBC_v(x,flag):
     
 def getDBC_w(x,flag):
     return None
-    #if flag == boundaryTags['top'] or x[2] >= L[2] - 1.0e-12:
-    #    return lambda x,t: 0.0
-    
+
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
                        2:getDBC_v,
