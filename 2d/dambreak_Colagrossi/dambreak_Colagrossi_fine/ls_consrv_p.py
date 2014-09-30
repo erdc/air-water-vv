@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from dambreak import *
+from dambreak_Colagrossi_fine import *
 from proteus.mprans import MCorr
 
 LevelModelType = MCorr.LevelModel

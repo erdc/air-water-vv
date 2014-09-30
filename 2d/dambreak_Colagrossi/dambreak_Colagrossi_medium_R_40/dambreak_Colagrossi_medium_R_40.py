@@ -5,8 +5,8 @@ from proteus.default_n import *
 from proteus.Profiling import logEvent
    
 #  Discretization -- input options  
-#Refinement = 20#45min on a single core for spaceOrder=1, useHex=False
-Refinement = 8#45min on a single core for spaceOrder=1, useHex=False
+
+Refinement = 40  
 genMesh=True
 useOldPETSc=False
 useSuperlu=False#True
@@ -86,6 +86,8 @@ class PointGauges(AV_base):
         self.model=model
         self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
         self.vertices = model.levelModelList[-1].mesh.nodeArray
+        #self.choose_dt=model.levelModelList[-1].timeIntegration.choose_dt
+        self.tt=model.levelModelList[-1].timeIntegration.t
         self.p = model.levelModelList[-1].u[0].dof
         self.u = model.levelModelList[-1].u[1].dof
         self.v = model.levelModelList[-1].u[2].dof
@@ -99,7 +101,7 @@ class PointGauges(AV_base):
             if vnMask.any():
                 if not self.files.has_key(name):
                     self.files[name] = open(name+'.txt','w')
-                self.files[name].write('%22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]))
+                self.files[name].write('%22.16e %22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (self.tt,self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]))
 
 class LineGauges(AV_base):
     def  __init__(self,gaugeEndpoints={'pressure_1':((0.5,0.5,0.0),(0.5,1.8,0.0))},linePoints=10):
@@ -122,6 +124,7 @@ class LineGauges(AV_base):
         self.model=model
         self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
         self.vertices = model.levelModelList[-1].mesh.nodeArray
+        self.tt=model.levelModelList[-1].timeIntegration.t
         self.p = model.levelModelList[-1].u[0].dof
         self.u = model.levelModelList[-1].u[1].dof
         self.v = model.levelModelList[-1].u[2].dof
@@ -136,7 +139,7 @@ class LineGauges(AV_base):
                 if not self.files.has_key(name):
                     self.files[name] = open(name+'.txt','w')
                 for x,y,p,u,v in zip(self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]):
-                    self.files[name].write('%22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (x,y,p,u,v))
+                    self.files[name].write('%22.16e %22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (self.tt,x,y,p,u,v))
 
 class LineGauges_phi(AV_base):
     def  __init__(self,gaugeEndpoints={'pressure_1':((0.5,0.5,0.0),(0.5,1.8,0.0))},linePoints=10):
@@ -159,6 +162,7 @@ class LineGauges_phi(AV_base):
         self.model=model
         self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
         self.vertices = model.levelModelList[-1].mesh.nodeArray
+        self.tt= model.levelModelList[-1].timeIntegration.t
         self.phi = model.levelModelList[-1].u[0].dof
         return self
     def attachAuxiliaryVariables(self,avDict):
@@ -171,11 +175,13 @@ class LineGauges_phi(AV_base):
                 if not self.files.has_key(name):
                     self.files[name] = open(name+'_phi.txt','w')
                 for x,y,phi in zip(self.vertices[vnMask,0],self.vertices[vnMask,1],self.phi[vnMask]):
-                    self.files[name].write('%22.16e %22.16e %22.16e\n' % (x,y,phi))
+                    self.files[name].write('%22.16e %22.16e %22.16e %22.16e\n' % (self.tt,x,y,phi))
 
-pointGauges = PointGauges(gaugeLocations={'pointGauge_a':(0.5,0.5,0.0)})
-lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_a':((1.0,0.0,0.0),(1.0,1.8,0.0))},linePoints=20)
+pointGauges = PointGauges(gaugeLocations={'pointGauge_pressure':(3.22,0.160,0.0)})
+lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825':((0.495,0.0,0.0),(0.495,1.8,0.0))},linePoints=20)
+#'lineGauge_x/H=1.653':((0.99,0.0,0.0),(0.99,1.8,0.0))
 lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
+
 
 if useHex:   
     nnx=4*Refinement+1
@@ -229,7 +235,7 @@ else:
 
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=1.0
+T=3.0
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.001)
 runCFL=0.33
@@ -321,8 +327,8 @@ sigma_01 = 0.0
 g = [0.0,-9.8]
 
 # Initial condition
-waterLine_x = 0.6
-waterLine_z = 1.2
+waterLine_x = 1.2
+waterLine_z = 0.6
 
 def signedDistance(x):
     phi_x = x[0]-waterLine_x

@@ -1,7 +1,7 @@
 from proteus import *
 from proteus.default_p import *
 from math import *
-from dambreak import *
+from dambreak_Colagrossi_coarse import *
 from proteus.mprans import RDLS
 """
 The redistancing equation in the sloshbox test problem.

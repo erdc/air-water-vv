@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from dambreak import *
+from dambreak_Colagrossi_medium import *
 from proteus.mprans import RANS2P
 
 LevelModelType = RANS2P.LevelModel

@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from dambreak import *
+from dambreak_Colagrossi_medium_R_40 import *
 from proteus.mprans import Dissipation
 
 LevelModelType = Dissipation.LevelModel

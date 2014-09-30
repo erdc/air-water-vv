@@ -1,6 +1,6 @@
 from proteus import *
 from redist_p import *
-from dambreak import *
+from dambreak_Colagrossi_fine import *
 
 nl_atol_res = rd_nl_atol_res
 tolFac = 0.0
