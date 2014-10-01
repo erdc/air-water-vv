@@ -69,8 +69,7 @@ nLevels = 1
 parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 
-structured=False  
-#structured=True # Trying out a structured mesh
+structured=False
 
 class PointGauges(AV_base):
     def  __init__(self,gaugeLocations={'pressure_1':(0.5,0.5,0.0)}):
@@ -186,12 +185,13 @@ lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
 if useHex:   
     nnx=4*Refinement+1
     nny=2*Refinement+1
-    hex=True    
+    hex=True
     domain = Domain.RectangularDomain(L)
 else:
     boundaries=['left','right','bottom','top','front','back']
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     if structured:
+        domain = Domain.RectangularDomain(L)
         nnx=4*Refinement
         nny=2*Refinement
     else:
@@ -232,8 +232,7 @@ else:
         domain.writePLY("mesh")
         domain.writeAsymptote("mesh")
         triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
-
-logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
+        logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
 T=3.0
 dt_fixed = 0.01
