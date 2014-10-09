@@ -14,4 +14,4 @@ module load proteus/0.9.0/
 cd $PBS_O_WORKDIR
 
 export NCPUS="48"
-mpirun -n $NCPUS  parun dambreak_Colagrossi_fine_so.py -m -p -l 7 -v -O /apps/proteus/0.9.0/proteus-mprans/benchmarks/inputTemplates/petsc.options.superlu_dist -D dambreak_Colagrossi_fine.$PBS_JOBID
+mpirun -n $NCPUS  parun dambreak_Colagrossi_fine_so.py -m -p -l 7 -v -O /apps/proteus/0.9.0/proteus-mprans/benchmarks/inputTemplates/petsc.options.superlu_dist | tee dambreak_Colagrossi_fine.$PBS_JOBID
