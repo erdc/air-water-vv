@@ -194,13 +194,13 @@ if useHex:
     hex=True    
     domain = Domain.RectangularDomain(L)
 else:
-    boundaries=['left','right','bottom','top','front','back']
-    boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     if structured:
         nnx=4*Refinement
         nny=2*Refinement
         domain = Domain.RectangularDomain(L)
     else:
+        boundaries=['left','right','bottom','top','front','back']
+        boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
         vertices=[[0.0,0.0],#0
                   [obst[0],0.0], #1
                   [obst[0],obst[1]], #2  
@@ -270,11 +270,11 @@ else:
 T=5.0
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.001)
-runCFL=0.33
+runCFL=1.0
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = False#True
+ns_forceStrongDirichlet = True
 if useMetrics:
     ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
@@ -292,7 +292,7 @@ if useMetrics:
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
+    epsFact_consrv_diffusion = 0.1
     redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
@@ -330,16 +330,16 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-8,0.01*he**2)
-vof_nl_atol_res = max(1.0e-8,0.01*he**2)
-ls_nl_atol_res = max(1.0e-8,0.01*he**2)
-rd_nl_atol_res = max(1.0e-8,0.01*he)
-mcorr_nl_atol_res = max(1.0e-8,0.01*he**2)
-kappa_nl_atol_res = max(1.0e-8,0.01*he**2)
-dissipation_nl_atol_res = max(1.0e-8,0.01*he**2)
+ns_nl_atol_res = max(1.0e-8,0.001*he**2)
+vof_nl_atol_res = max(1.0e-8,0.001*he**2)
+ls_nl_atol_res = max(1.0e-8,0.001*he**2)
+rd_nl_atol_res = max(1.0e-8,0.005*he)
+mcorr_nl_atol_res = max(1.0e-8,0.001*he**2)
+kappa_nl_atol_res = max(1.0e-8,0.001*he**2)
+dissipation_nl_atol_res = max(1.0e-8,0.001*he**2)
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
@@ -380,8 +380,9 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 outflowHeight=-L[1]
 def outflowPressure(x,t):
-    p_L = L[1]*rho_1*g[1]
-    phi_L = L[1] - outflowHeight
-    phi = x[1] - outflowHeight
-    return p_L -g[1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
-                                                         -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))
+    return (L[1]-x[1])*rho_1*abs(g[1])
+    #p_L = L[1]*rho_1*g[1]
+    #phi_L = L[1] - outflowHeight
+    #phi = x[1] - outflowHeight
+    #return p_L -g[1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
+    #                                                     -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))

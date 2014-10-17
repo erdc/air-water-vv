@@ -63,6 +63,11 @@ dirichletConditions = {0:getDBC_p,
 def getAFBC_p(x,flag):
     if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
+    if flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return lambda x,t: -0.047
+        else:
+            return lambda x,t: 0.0
 
 def getAFBC_u(x,flag):
     if flag == boundaryTags['bottom']:
@@ -75,7 +80,7 @@ def getAFBC_v(x,flag):
 def getDFBC_u(x,flag):
     if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
         return lambda x,t: 0.0
-
+    
 def getDFBC_v(x,flag):
     if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
