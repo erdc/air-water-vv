@@ -189,13 +189,14 @@ if useHex:
     hex=True    
     domain = Domain.RectangularDomain(L)
 else:
-    boundaries=['left','right','bottom','top','front','back']
-    boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     if structured:
         nnx=4*Refinement
         nny=2*Refinement
         domain = Domain.RectangularDomain(L)
+        boundaryTags = domain.boundaryTags
     else:
+        boundaries=['left','right','bottom','top','front','back']
+        boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
         vertices=[[0.0,0.0],#0
                   [L[0],0.0],#1
                   [L[0],L[1]],#2

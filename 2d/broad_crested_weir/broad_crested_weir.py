@@ -276,24 +276,24 @@ nDTout = int(round(T/dt_fixed))
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
 if useMetrics:
-    ns_shockCapturingFactor  = 0.9
+    ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
+    ls_shockCapturingFactor  = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.9
+    ls_sc_beta  = 1.0
+    vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.9
+    vof_sc_beta = 1.0
+    rd_shockCapturingFactor  = 0.25
     rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
+    epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
+    epsFact_consrv_diffusion = 1.0
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
@@ -339,7 +339,7 @@ kappa_nl_atol_res = max(1.0e-8,0.01*he**2)
 dissipation_nl_atol_res = max(1.0e-8,0.01*he**2)
 
 #turbulence
-ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
@@ -375,4 +375,13 @@ def signedDistance(x):
             return phi_x
         else:
             return sqrt(phi_x**2 + phi_z**2)
+from proteus.ctransportCoefficients import smoothedHeaviside
+from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
+outflowHeight=-L[1]
+def outflowPressure(x,t):
+    p_L = L[1]*rho_1*g[1]
+    phi_L = L[1] - outflowHeight
+    phi = x[1] - outflowHeight
+    return p_L -g[1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
+                                                         -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))
