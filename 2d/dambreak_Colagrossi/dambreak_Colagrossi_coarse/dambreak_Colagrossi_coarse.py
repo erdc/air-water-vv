@@ -5,9 +5,11 @@ from proteus.default_n import *
 from proteus.Profiling import logEvent
 
 #  Discretization -- input options  
-
-Refinement = 16  
+#Refinement = 20#45min on a single core for spaceOrder=1, useHex=False
+Refinement = 16
 genMesh=True
+movingDomain=False
+applyRedistancing=True
 useOldPETSc=False
 useSuperlu=False#True
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
@@ -64,11 +66,12 @@ he = L[0]/float(4*Refinement-1)
 #he*=0.5
 #he*=0.5
 #he*=0.5
+#he*=0.5
+weak_bc_penalty_constant = 100.0
 nLevels = 1
 #parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
 parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
-
 structured=False
 
 class PointGauges(AV_base):
@@ -158,8 +161,9 @@ class PointGauges(AV_base):
 
         for location, l_d in self.locations.iteritems():
             l_d['nearest_node'] = self.findNearestNode(location)
-            for field in l_d['fields']:
-                self.measured_quantities[field].append((location, l_d['nearest_node']))
+            if l_d['nearest_node'] is not None:
+                for field in l_d['fields']:
+                    self.measured_quantities[field].append((location, l_d['nearest_node']))
 
         num_owned_nodes = model.levelModelList[-1].mesh.nNodes_global
 
@@ -179,14 +183,14 @@ class PointGauges(AV_base):
             self.field_ids.append(field_id)
             # dofs are a list in same order as fields as well
             dofs = self.model.levelModelList[-1].u[field_id].dof
-            dofsVec = PETSc.Vec().createWithArray(dofs)
+            dofsVec = PETSc.Vec().createWithArray(dofs, comm=PETSc.COMM_SELF)
             self.dofsVecs.append(dofsVec)
 
 
         for field, m in zip(self.measured_fields, self.m):
             for quantity_id, quantity in enumerate(self.measured_quantities[field]):
                 self.buildQuantityRow(m, quantity_id, quantity)
-            gaugesVec = PETSc.Vec().create()
+            gaugesVec = PETSc.Vec().create(comm=PETSc.COMM_SELF)
             gaugesVec.setSizes(len(self.measured_quantities[field]))
             gaugesVec.setUp()
             self.gaugesVecs.append(gaugesVec)
@@ -354,6 +358,7 @@ else:
                       boundaryTags['left']]
         regions=[[1.2 ,0.6]]
         regionFlags=[1]
+
 #        for gaugeName,gaugeCoordinates in pointGauges.locations.iteritems():
 #            vertices.append(gaugeCoordinates)
 #            vertexFlags.append(pointGauges.flags[gaugeName])
@@ -385,29 +390,29 @@ nDTout = int(round(T/dt_fixed))
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
 if useMetrics:
-    ns_shockCapturingFactor  = 0.9
+    ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
+    ls_shockCapturingFactor  = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.9
+    ls_sc_beta  = 1.0
+    vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.9
+    vof_sc_beta = 1.0
+    rd_shockCapturingFactor  = 0.25
     rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
+    epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
-    kappa_shockCapturingFactor = 0.1
+    epsFact_consrv_diffusion = 0.1
+    redist_Newton = True
+    kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
     kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.1
+    dissipation_shockCapturingFactor = 0.25
     dissipation_lag_shockCapturing = True#False
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.0
@@ -428,7 +433,7 @@ else:
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
+    epsFact_consrv_diffusion = 1.0
     redist_Newton = False
     kappa_shockCapturingFactor = 0.9
     kappa_lag_shockCapturing = True#False
@@ -439,13 +444,13 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-8,0.01*he**2)
-vof_nl_atol_res = max(1.0e-8,0.01*he**2)
-ls_nl_atol_res = max(1.0e-8,0.01*he**2)
-rd_nl_atol_res = max(1.0e-8,0.01*he)
-mcorr_nl_atol_res = max(1.0e-8,0.01*he**2)
-kappa_nl_atol_res = max(1.0e-8,0.01*he**2)
-dissipation_nl_atol_res = max(1.0e-8,0.01*he**2)
+ns_nl_atol_res = max(1.0e-8,0.001*he**2)
+vof_nl_atol_res = max(1.0e-8,0.001*he**2)
+ls_nl_atol_res = max(1.0e-8,0.001*he**2)
+rd_nl_atol_res = max(1.0e-8,0.005*he)
+mcorr_nl_atol_res = max(1.0e-8,0.001*he**2)
+kappa_nl_atol_res = max(1.0e-8,0.001*he**2)
+dissipation_nl_atol_res = max(1.0e-8,0.001*he**2)
 
 #turbulence
 ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
