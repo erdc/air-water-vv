@@ -1,8 +1,10 @@
 #!/bin/bash
 #PBS -A ERDCV00898R40
-#PBS -l walltime=003:00:00
-#PBS -l select=2:ncpus=32:mpiprocs=32
-#PBS -q standard
+#PBS -l select=128:ncpus=32:mpiprocs=32
+#PBS -l walltime=008:00:00
+#PBS -q R1108846
+##PBS -l walltime=008:00:00
+##PBS -q R1108846
 #PBS -N ubbink3df
 #PBS -j oe
 #PBS -l application=proteus
@@ -11,6 +13,12 @@
 #PBS -M cekees@gmail.com
 source /opt/modules/default/etc/modules.sh
 source /lustre/shared/projects/proteus/garnet.gnu.sh
+#export  PATH=${HOME}/proteus/garnet.gnu/bin:${PATH}
+#export  LD_LIBRARY_PATH=${HOME}/proteus/garnet.gnu/lib:${LD_LIBRARY_PATH}
+#module unload PrgEnv-pgi  
+#module load   PrgEnv-gnu
+#module unload cray-libsci 
+#module load acml
 cd $PBS_O_WORKDIR
-mkdir $WORKDIR/dambreak2D.$PBS_JOBID
-aprun -n 64  parun dambreak_Ubbink_fine_so.py -l 5 -v -O ../../../inputTemplates/petsc.options.superlu_dist -D $WORKDIR/dambreak2D.$PBS_JOBID
+mkdir $WORKDIR/ubbink3df.$PBS_JOBID
+aprun -n 4096  parun dambreak_Ubbink_fine_so.py -F -l 5 -v -O petsc.options.asm -D $WORKDIR/ubbink3df.$PBS_JOBID

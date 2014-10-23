@@ -7,7 +7,7 @@ from proteus.Profiling import logEvent
 #  Discretization -- input options  
 
 Refinement = 48
-genMesh=True
+genMesh=False#True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
@@ -69,7 +69,7 @@ obst = (obst_x_start,obst_portions[1],obst_x_end) #coordinates of the obstacle t
 
 
 he = L[0]/float(4*Refinement-1)
-#he*=0.5
+he*=0.5
 #he*=0.5
 #he*=0.5
 nLevels = 1
@@ -290,7 +290,7 @@ logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.po
 T=0.8
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.1*he)
-runCFL=0.33
+runCFL=0.99
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
@@ -307,7 +307,7 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.25
+    rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density

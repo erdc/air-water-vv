@@ -5,9 +5,11 @@ from proteus.default_n import *
 from proteus.Profiling import logEvent
    
 #  Discretization -- input options  
-
-Refinement = 64 
+#Refinement = 20#45min on a single core for spaceOrder=1, useHex=False
+Refinement = 64
 genMesh=True
+movingDomain=False
+applyRedistancing=True
 useOldPETSc=False
 useSuperlu=False#True
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
@@ -64,125 +66,13 @@ he = L[0]/float(4*Refinement-1)
 #he*=0.5
 #he*=0.5
 #he*=0.5
+#he*=0.5
+weak_bc_penalty_constant = 100.0
 nLevels = 1
 #parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
 parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
-
 structured=False  
-#structured=True # Trying out a structured mesh
-
-class PointGauges(AV_base):
-    def  __init__(self,gaugeLocations={'pressure_1':(0.5,0.5,0.0)}):
-        AV_base.__init__(self)
-        self.locations=gaugeLocations
-        self.flags={}
-        self.files={}#will be opened  later
-        pointFlag=100
-        for name,point in self.locations.iteritems():
-            self.flags[name] = pointFlag
-            pointFlag += 1
-    def attachModel(self,model,ar):
-        self.model=model
-        self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
-        self.vertices = model.levelModelList[-1].mesh.nodeArray
-        #self.choose_dt=model.levelModelList[-1].timeIntegration.choose_dt
-        self.tt=model.levelModelList[-1].timeIntegration.t
-        self.p = model.levelModelList[-1].u[0].dof
-        self.u = model.levelModelList[-1].u[1].dof
-        self.v = model.levelModelList[-1].u[2].dof
-        return self
-    def attachAuxiliaryVariables(self,avDict):
-        return self    
-    def calculate(self):
-        import numpy as  np
-        for name,flag  in self.flags.iteritems():
-            vnMask = self.vertexFlags == flag
-            if vnMask.any():
-                if not self.files.has_key(name):
-                    self.files[name] = open(name+'.txt','w')
-                self.files[name].write('%22.16e %22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (self.tt,self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]))
-
-class LineGauges(AV_base):
-    def  __init__(self,gaugeEndpoints={'pressure_1':((0.5,0.5,0.0),(0.5,1.8,0.0))},linePoints=10):
-        import numpy as  np
-        AV_base.__init__(self)
-        self.endpoints=gaugeEndpoints
-        self.flags={}
-        self.linepoints={}
-        self.files={}#while open later
-        pointFlag=1000
-        for name,(pStart,pEnd) in self.endpoints.iteritems():
-            self.flags[name] = pointFlag
-            p0 = np.array(pStart)
-            direction = np.array(pEnd) - p0
-            self.linepoints[name]=[]
-            for scale in np.linspace(0.0,1.0,linePoints):
-                self.linepoints[name].append(p0 + scale*direction)
-            pointFlag += 1
-    def attachModel(self,model,ar):
-        self.model=model
-        self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
-        self.vertices = model.levelModelList[-1].mesh.nodeArray
-        self.tt=model.levelModelList[-1].timeIntegration.t
-        self.p = model.levelModelList[-1].u[0].dof
-        self.u = model.levelModelList[-1].u[1].dof
-        self.v = model.levelModelList[-1].u[2].dof
-        return self
-    def attachAuxiliaryVariables(self,avDict):
-        return self    
-    def calculate(self):
-        import numpy as  np
-        for name,flag  in self.flags.iteritems():
-            vnMask = self.vertexFlags == flag
-            if vnMask.any():
-                if not self.files.has_key(name):
-                    self.files[name] = open(name+'.txt','w')
-                for x,y,p,u,v in zip(self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]):
-                    self.files[name].write('%22.16e %22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (self.tt,x,y,p,u,v))
-
-class LineGauges_phi(AV_base):
-    def  __init__(self,gaugeEndpoints={'pressure_1':((0.5,0.5,0.0),(0.5,1.8,0.0))},linePoints=10):
-        import numpy as  np
-        AV_base.__init__(self)
-        self.endpoints=gaugeEndpoints
-        self.flags={}
-        self.linepoints={}
-        self.files={}#while open later
-        pointFlag=1000
-        for name,(pStart,pEnd) in self.endpoints.iteritems():
-            self.flags[name] = pointFlag
-            p0 = np.array(pStart)
-            direction = np.array(pEnd) - p0
-            self.linepoints[name]=[]
-            for scale in np.linspace(0.0,1.0,linePoints):
-                self.linepoints[name].append(p0 + scale*direction)
-            pointFlag += 1
-    def attachModel(self,model,ar):
-        self.model=model
-        self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
-        self.vertices = model.levelModelList[-1].mesh.nodeArray
-        self.tt= model.levelModelList[-1].timeIntegration.t
-        self.phi = model.levelModelList[-1].u[0].dof
-        return self
-    def attachAuxiliaryVariables(self,avDict):
-        return self    
-    def calculate(self):
-        import numpy as  np
-        for name,flag  in self.flags.iteritems():
-            vnMask = self.vertexFlags == flag
-            if vnMask.any():
-                if not self.files.has_key(name):
-                    self.files[name] = open(name+'_phi.txt','w')
-                for x,y,phi in zip(self.vertices[vnMask,0],self.vertices[vnMask,1],self.phi[vnMask]):
-                    self.files[name].write('%22.16e %22.16e %22.16e %22.16e\n' % (self.tt,x,y,phi))
-
-pointGauges = PointGauges(gaugeLocations={'pointGauge_pressure':(3.22,0.160,0.0)})
-lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825':((0.495,0.0,0.0),(0.495,1.8,0.0))},linePoints=20)
-#'lineGauge_x/H=1.653':((0.99,0.0,0.0),(0.99,1.8,0.0))
-lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
-
-
 if useHex:   
     nnx=4*Refinement+1
     nny=2*Refinement+1
@@ -213,13 +103,6 @@ else:
                       boundaryTags['left']]
         regions=[[1.2 ,0.6]]
         regionFlags=[1]
-        for gaugeName,gaugeCoordinates in pointGauges.locations.iteritems():
-            vertices.append(gaugeCoordinates)
-            vertexFlags.append(pointGauges.flags[gaugeName])
-        for gaugeName,gaugeLines in lineGauges.linepoints.iteritems():
-            for gaugeCoordinates in gaugeLines:
-                vertices.append(gaugeCoordinates)
-                vertexFlags.append(lineGauges.flags[gaugeName])
         domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
                                                       vertexFlags=vertexFlags,
                                                       segments=segments,
@@ -287,7 +170,7 @@ else:
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 0.1
+    epsFact_consrv_diffusion = 1.0
     redist_Newton = False
     kappa_shockCapturingFactor = 0.9
     kappa_lag_shockCapturing = True#False

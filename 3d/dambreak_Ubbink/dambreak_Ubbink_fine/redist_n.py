@@ -5,8 +5,8 @@ from dambreak_Ubbink_fine import *
 tolFac = 0.0
 nl_atol_res = rd_nl_atol_res
 
-linTolFac = 0.01
-l_atol_res = 0.01*rd_nl_atol_res
+linTolFac = 0.1
+l_atol_res = 0.1*rd_nl_atol_res
 useEisenstatWalker = False
 
 if redist_Newton:
