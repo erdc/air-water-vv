@@ -244,29 +244,29 @@ nDTout = int(round(T/dt_fixed))
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
 if useMetrics:
-    ns_shockCapturingFactor  = 0.9
+    ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
+    ls_shockCapturingFactor  = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.9
+    ls_sc_beta  = 1.0
+    vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.9
+    vof_sc_beta = 1.0
+    rd_shockCapturingFactor  = 0.25
     rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
+    epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
-    kappa_shockCapturingFactor = 0.1
+    redist_Newton = True
+    kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
     kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.1
+    dissipation_shockCapturingFactor = 0.25
     dissipation_lag_shockCapturing = True#False
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.0
@@ -287,7 +287,7 @@ else:
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
+    epsFact_consrv_diffusion = 0.1
     redist_Newton = False
     kappa_shockCapturingFactor = 0.9
     kappa_lag_shockCapturing = True#False
@@ -301,7 +301,7 @@ else:
 ns_nl_atol_res = max(1.0e-8,0.001*he**2)
 vof_nl_atol_res = max(1.0e-8,0.001*he**2)
 ls_nl_atol_res = max(1.0e-8,0.001*he**2)
-rd_nl_atol_res = max(1.0e-8,0.001*he)
+rd_nl_atol_res = max(1.0e-8,0.005*he)
 mcorr_nl_atol_res = max(1.0e-8,0.001*he**2)
 kappa_nl_atol_res = max(1.0e-8,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-8,0.001*he**2)
