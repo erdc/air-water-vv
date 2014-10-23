@@ -7,7 +7,7 @@ from proteus.Profiling import logEvent
 #  Discretization -- input options  
 
 #Refinement = 40  #he=0.022
-Refinement = 20  #he=0.044
+Refinement = 40  #he=0.044
 genMesh=True
 useOldPETSc=False
 useSuperlu=False#True
@@ -22,6 +22,7 @@ useOnlyVF = False
 useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
             # 2 -- K-Omega
+openTop = False
 # Input checks
 if spaceOrder not in [1,2]:
     print "INVALID: spaceOrder" + spaceOrder
@@ -68,9 +69,9 @@ obst_x_start = 2.0  # start x coordinate of the obstacle; caution to be in the d
 obst_x_end = obst_x_start + obst_portions[0] # end x coordinate of the obstacle; caution to be in the domain's range
 obst = (obst_x_start,obst_portions[1],obst_x_end) #coordinates of the obstacle to be used to define the boundary
 
-
+inflow_velocity = 0.047
 he = L[0]/float(4*Refinement-1)
-#he*=0.5
+he*=0.5
 #he*=0.5
 #he*=0.5
 nLevels = 1
@@ -267,14 +268,14 @@ else:
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=5.0
-dt_fixed = 0.01
+T=10.0
+dt_fixed = 0.1
 dt_init = min(0.1*dt_fixed,0.001)
 runCFL=1.0
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = True
+ns_forceStrongDirichlet = False
 if useMetrics:
     ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
@@ -292,7 +293,7 @@ if useMetrics:
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 0.1
+    epsFact_consrv_diffusion = 1.0
     redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False

@@ -10,12 +10,12 @@ l_atol_res = 0.001*rd_nl_atol_res
 if redist_Newton:
     timeIntegration = NoIntegration
     stepController = Newton_controller
-    maxNonlinearIts = 25
+    maxNonlinearIts = 50
     maxLineSearches = 0
-    nonlinearSolverConvergenceTest = 'r'
-    levelNonlinearSolverConvergenceTest = 'r'
+    nonlinearSolverConvergenceTest = 'rits'
+    levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'r-true'
-    useEisenstatWalker = True
+    useEisenstatWalker = False
 else:
     timeIntegration = BackwardEuler_cfl
     stepController = RDLS.PsiTC
