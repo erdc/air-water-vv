@@ -83,7 +83,7 @@ class PointGauges(AV_base):
 
         AV_base.__init__(self)
         self.gauges=gauges
-        self.measured_fields = set()
+        self.measuredFields = set()
 
         # build up dictionary of location information from gauges
         # dictionary of dictionaries, outer dictionary is keyed by location (3-tuple)
@@ -92,7 +92,7 @@ class PointGauges(AV_base):
         self.locations = {}
         for gauge in gauges:
             fields, locations = gauge
-            self.measured_fields.update(fields)
+            self.measuredFields.update(fields)
             for location in locations:
                 # initialize new dictionary of information at this location
                 if location not in self.locations:
@@ -105,40 +105,33 @@ class PointGauges(AV_base):
         self.activeTime = activeTime
         self.sampleRate = sampleRate
         self.fileName = fileName
-        self.file = open(self.fileName, 'w')
         self.flags={}
         self.files={}
-
+        self.outputWriterReady = False
 
     def findNearestNode(self, location):
         """Given a gauge location, attempts to locate the most suitable process for monitoring information about
         this location, as well as the node on the process closest to the location.
         """
-        from proteus import flcbdfWrappers
+
         from proteus import Comm
+        from mpi4py import MPI
         import numpy as np
 
-        comm = Comm.get()
-
+        # determine local nearest node distance
         node_distances = np.linalg.norm(self.vertices-location, axis=1)
         nearest_node = np.argmin(node_distances)
         nearest_node_distance = node_distances[nearest_node]
 
-        # mpi4py refactor will simplify the below code
-        global_min_distance = flcbdfWrappers.globalMin(nearest_node_distance)
-        if nearest_node_distance > global_min_distance:
-            tie_breaking_nearest_node_distance = nearest_node_distance + comm.size()
-        elif nearest_node_distance < global_min_distance:
-            raise FloatingPointError('Unexpected result in findNearestNode')
-        else: # resolve ties with rank
-            tie_breaking_nearest_node_distance = nearest_node_distance + comm.rank()
-        tie_breaking_global_min_distance = flcbdfWrappers.globalMin(tie_breaking_nearest_node_distance)
-        if tie_breaking_global_min_distance == tie_breaking_nearest_node_distance:
-            return nearest_node
-        else:
-            return None
+        # determine global nearest node
+        comm = Comm.get().comm.tompi4py()
+        global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+        if comm.rank != owning_proc:
+            nearest_node = None
 
-    def buildQuantityRow(self, m, quantity_id, quantity):
+        return owning_proc, nearest_node
+
+    def buildQuantityRow(self, field, m, quantity_id, quantity):
         """ Builds up gauge operator, currently just sets operator to use value of nearest node.
         TODO: get correct element from neighboring node and use element assembly coefficients
         """
@@ -147,34 +140,114 @@ class PointGauges(AV_base):
         m[quantity_id, node] = 1
 
 
-    def attachModel(self,model,ar):
+    def initOutputWriter(self):
+        """ Initialize communication strategy for collective output of gauge data.
+
+        On the root process in this communicator, create a map of quantity owners and the corresponding location in
+        their arrays.  This process is responsible for collecting gauge data and saving it to disk.
+
+        Gauge data is globally ordered by field, then by location id (as ordered by globalMeasuredQuantities)
+        """
+
         import numpy as np
-        from petsc4py import PETSc
+
+        numLocalQuantities = sum([len(self.measuredQuantities[field]) for field in self.measuredFields])
+        self.localQuantitiesBuf = np.zeros(numLocalQuantities)
+
+        if self.gaugeComm.rank != 0:
+            self.globalQuantitiesBuf = None
+        else:
+            self.quantityIDs = [0]*self.gaugeComm.size
+            for field in self.measuredFields:
+                for id in range(len(self.globalMeasuredQuantities[field])):
+                    location, owningProc = self.globalMeasuredQuantities[field][id]
+                    gaugeProc = self.globalGaugeRanks[owningProc]
+                    quantityID = self.quantityIDs[gaugeProc]
+                    self.quantityIDs[gaugeProc] += 1
+                    assert gaugeProc >= 0
+                    self.globalMeasuredQuantities[field][id] = location, gaugeProc, quantityID
+
+            numGlobalQuantities = sum([len(self.globalMeasuredQuantities[field]) for field in self.measuredFields])
+            self.globalQuantitiesBuf = np.zeros(numGlobalQuantities)
+
+            # determine mapping from global measured quantities to communication buffer
+            self.globalQuantitiesMap = np.zeros(numGlobalQuantities, dtype=np.int)
+            i = 0
+            for field in self.measuredFields:
+                for location, gaugeProc, quantityID in self.globalMeasuredQuantities[field]:
+                    self.globalQuantitiesMap[i] = sum(self.quantityIDs[:gaugeProc-1]) + quantityID
+                    assert self.globalQuantitiesMap[i] < numGlobalQuantities
+                    i += 1
+            self.file = open(self.fileName, 'w')
+
+            # a couple consistency checks
+            assert sum(self.quantityIDs) == numGlobalQuantities
+            assert all(quantityID > 0 for quantityID in self.quantityIDs)
+
+        self.outputWriterReady = True
+
+
+    def buildGaugeComm(self):
+        """ Create a communicator composed only of processes that own gauge quantities.
+
+        Collective over global communicator.  Builds a local communicator for collecting all gauge data.
+        This communicator contains only processes that will contain gauge data.
+        """
+        from proteus import Comm
+        comm = Comm.get().comm.tompi4py()
+
+        gaugeOwners = set()
+
+        for field in self.measuredFields:
+            for location, owningProc in self.globalMeasuredQuantities[field]:
+                gaugeOwners.update((owningProc,))
+
+        self.isGaugeOwner = comm.rank in gaugeOwners
+        gaugeComm = comm.Split(color=self.isGaugeOwner)
+        if self.isGaugeOwner:
+            self.gaugeComm = gaugeComm
+            gaugeRank = self.gaugeComm.rank
+        else:
+            self.gaugeComm = None
+            gaugeRank = -1
+        self.globalGaugeRanks = comm.gather(gaugeRank)
+
+
+    def identifyMeasuredQuantities(self):
+        """ build measured quantities, a list of fields
+        each field in turn contains a list of gauge locations and their accompanying nearest node
+        only local quantities are saved
+        """
         from collections import defaultdict
 
-        self.model=model
-        self.fieldNames = model.levelModelList[-1].coefficients.variableNames
-        self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
-        self.vertices = model.levelModelList[-1].mesh.nodeArray
-        self.measured_quantities = defaultdict(list)
-        self.m = {}
+        self.measuredQuantities = defaultdict(list)
+        self.globalMeasuredQuantities = defaultdict(list)
 
         for location, l_d in self.locations.iteritems():
-            l_d['nearest_node'] = self.findNearestNode(location)
-            if l_d['nearest_node'] is not None:
-                for field in l_d['fields']:
-                    self.measured_quantities[field].append((location, l_d['nearest_node']))
+            owningProc, nearestNode = self.findNearestNode(location)
+            l_d['nearest_node'] = nearestNode
+            for field in l_d['fields']:
+                self.globalMeasuredQuantities[field].append((location, owningProc))
+                if l_d['nearest_node'] is not None:
+                    self.measuredQuantities[field].append((location, l_d['nearest_node']))
 
-        num_owned_nodes = model.levelModelList[-1].mesh.nNodes_global
+
+    def buildGaugeOperators(self):
+        """ Build the linear algebra operators needed to compute the gauges.  The operators are all local
+        since the gauge measurements are calculated locally.
+        """
+        from petsc4py import PETSc
+
+        num_owned_nodes = self.model.levelModelList[-1].mesh.nNodes_global
 
         self.m = []
         self.field_ids = []
         self.dofsVecs = []
         self.gaugesVecs = []
 
-        for field in self.measured_fields:
+        for field in self.measuredFields:
             m = PETSc.Mat().create(PETSc.COMM_SELF)
-            m.setSizes([len(self.measured_quantities[field]), num_owned_nodes])
+            m.setSizes([len(self.measuredQuantities[field]), num_owned_nodes])
             m.setType('aij')
             m.setUp()
             # matrices are a list in same order as fields
@@ -187,25 +260,44 @@ class PointGauges(AV_base):
             self.dofsVecs.append(dofsVec)
 
 
-        for field, m in zip(self.measured_fields, self.m):
-            for quantity_id, quantity in enumerate(self.measured_quantities[field]):
-                self.buildQuantityRow(m, quantity_id, quantity)
+        for field, m in zip(self.measuredFields, self.m):
+            for quantity_id, quantity in enumerate(self.measuredQuantities[field]):
+                self.buildQuantityRow(field, m, quantity_id, quantity)
             gaugesVec = PETSc.Vec().create(comm=PETSc.COMM_SELF)
-            gaugesVec.setSizes(len(self.measured_quantities[field]))
+            gaugesVec.setSizes(len(self.measuredQuantities[field]))
             gaugesVec.setUp()
             self.gaugesVecs.append(gaugesVec)
 
         for m in self.m:
             m.assemble()
 
-        self.outputHeader()
-        # this is currently broken for initial time, need to fix initial model time
-        # or enforce that calculate is called as soon as possible
-        # after model time is set up
-        # time = self.get_time()
-        time = 0
-        self.outputRow(time)
-        self.last_output = time
+
+    def attachModel(self,model,ar):
+        import numpy as np
+        from petsc4py import PETSc
+        from collections import defaultdict
+
+        self.model=model
+        self.fieldNames = model.levelModelList[-1].coefficients.variableNames
+        self.vertexFlags = model.levelModelList[-1].mesh.nodeMaterialTypes
+        self.vertices = model.levelModelList[-1].mesh.nodeArray
+
+        self.m = {}
+
+        self.identifyMeasuredQuantities()
+        self.buildGaugeComm()
+
+        if self.isGaugeOwner:
+            self.initOutputWriter()
+            self.buildGaugeOperators()
+            self.outputHeader()
+            # this is currently broken for initial time, need to fix initial model time
+            # or enforce that calculate is called as soon as possible
+            # after model time is set up
+            # time = self.get_time()
+            time = 0
+            self.outputRow(time)
+            self.last_output = time
 
         return self
 
@@ -218,34 +310,53 @@ class PointGauges(AV_base):
 
     def outputHeader(self):
         """ Outputs a single header for a CSV style file to self.file"""
-        self.file.write("time ")
-        for field in self.measured_fields:
-            for quantity in self.measured_quantities[field]:
-                location, node = quantity
-                self.file.write(", %s [%22.16e %22.16e %22.16e]" % (field, location[0], location[1], location[2]))
-        self.file.write('\n')
+        import numpy as np
+
+        assert self.isGaugeOwner
+
+
+        if self.gaugeComm.rank == 0:
+            self.file.write("%10s" % ('time',))
+            for field in self.measuredFields:
+                for quantity in self.globalMeasuredQuantities[field]:
+                    location, gaugeProc, quantityID = quantity
+                    self.file.write(", %4s [%9.5g %9.5g %9.5g]" % (field, location[0], location[1], location[2]))
+            self.file.write('\n')
 
     def outputRow(self, time):
         """ Outputs a single row of currently calculated gauge data to self.file"""
-        self.file.write("%22.16e " % time)
-        for gaugesVec in self.gaugesVecs:
-            for quantity in gaugesVec.getArray():
-                self.file.write(", %22.16e" % (quantity,))
-        self.file.write('\n')
-        # disable this for better performance, but risk of data loss on crashes
-        self.file.flush()
+        import numpy as np
+
+        assert self.isGaugeOwner
+
+        self.localQuantitiesBuf = np.concatenate([gaugesVec.getArray() for gaugesVec in self.gaugesVecs])
+        self.gaugeComm.Gatherv(self.localQuantitiesBuf, self.globalQuantitiesBuf)
+
+        self.file.write("%10.4g" % time)
+
+        if self.gaugeComm.rank == 0:
+            for id in self.globalQuantitiesMap:
+                self.file.write(", %36.18g" % (self.globalQuantitiesBuf[id],))
+            self.file.write('\n')
+            # disable this for better performance, but risk of data loss on crashes
+            self.file.flush()
         self.last_output = time
+
 
     def calculate(self):
         """ Computes current gauge values, updates open output files
         """
 
+        if not self.isGaugeOwner:
+            return
+
         time = self.get_time()
 
         if self.activeTime[0] <= time <= self.activeTime[1] and time >= self.last_output + self.sampleRate:
-            for field, m, dofsVec, gaugesVec in zip(self.measured_fields, self.m, self.dofsVecs, self.gaugesVecs):
+            for field, m, dofsVec, gaugesVec in zip(self.measuredFields, self.m, self.dofsVecs, self.gaugesVecs):
                 m.mult(dofsVec, gaugesVec)
             self.outputRow(time)
+
 
 class LineGauges(AV_base):
     def  __init__(self,gaugeEndpoints={'pressure_1':((0.5,0.5,0.0),(0.5,1.8,0.0))},linePoints=10):
