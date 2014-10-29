@@ -11,7 +11,7 @@ genMesh=True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
-useSuperlu=False#True
+useSuperlu=True
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
 spaceOrder = 1
 useHex     = False
@@ -79,7 +79,7 @@ class PointGauges(AV_base):
                                 (('p',),    ((0.5, 0.5, 0),))),
                   activeTime = (0, 0.5),
                   sampleRate = 0,
-                  fileName = 'combined_gauge_0_0.5_sample_all.txt'):
+                  fileName = 'combined_gauge_0_0.5_sample_all.csv'):
 
         AV_base.__init__(self)
         self.gauges=gauges
@@ -332,11 +332,11 @@ class PointGauges(AV_base):
         self.localQuantitiesBuf = np.concatenate([gaugesVec.getArray() for gaugesVec in self.gaugesVecs])
         self.gaugeComm.Gatherv(self.localQuantitiesBuf, self.globalQuantitiesBuf)
 
-        self.file.write("%10.4g" % time)
+        self.file.write("%10.4e" % time)
 
         if self.gaugeComm.rank == 0:
             for id in self.globalQuantitiesMap:
-                self.file.write(", %36.18g" % (self.globalQuantitiesBuf[id],))
+                self.file.write(", %36.18e" % (self.globalQuantitiesBuf[id],))
             self.file.write('\n')
             # disable this for better performance, but risk of data loss on crashes
             self.file.flush()
@@ -492,9 +492,9 @@ else:
         triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=0.2
+T=0.01
 dt_fixed = 0.01
-dt_init = min(0.1*dt_fixed,0.001)
+dt_init = min(0.1*dt_fixed,0.0001)
 runCFL=0.33
 nDTout = int(round(T/dt_fixed))
 
