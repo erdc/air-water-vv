@@ -11,7 +11,7 @@ genMesh=True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
-useSuperlu=True
+useSuperlu=False
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
 spaceOrder = 1
 useHex     = False
@@ -129,6 +129,7 @@ class PointGauges(AV_base):
         if comm.rank != owning_proc:
             nearest_node = None
 
+        assert owning_proc is not None
         return owning_proc, nearest_node
 
     def buildQuantityRow(self, field, m, quantity_id, quantity):
@@ -210,7 +211,7 @@ class PointGauges(AV_base):
         else:
             self.gaugeComm = None
             gaugeRank = -1
-        self.globalGaugeRanks = comm.gather(gaugeRank)
+        self.globalGaugeRanks = comm.allgather(gaugeRank)
 
 
     def identifyMeasuredQuantities(self):
