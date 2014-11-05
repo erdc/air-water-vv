@@ -14,7 +14,7 @@ else:
 
 coefficients = VOF.Coefficients(LS_model=LS_model,V_model=0,RD_model=RD_model,ME_model=1,
                                 checkMass=False,useMetrics=useMetrics,
-                                epsFact=epsFact_vof,sc_uref=vof_sc_uref,sc_beta=vof_sc_beta,movingDomain=movingDomain)
+                                epsFact=epsFact_vof,sc_uref=vof_sc_uref,sc_beta=vof_sc_beta)
 
 def getDBC_vof(x,flag):
     if flag == boundaryTags['top']:# or x[2] >= L[2] - 1.0e-12:
