@@ -42,36 +42,35 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    movingDomain=movingDomain)
 
 def getDBC_p(x,flag):
-    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
+    if flag == boundaryTags['top']:
         return lambda x,t: 0.0
     
 def getDBC_u(x,flag):
-    #return None
-    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
+    if flag == boundaryTags['top']:
         return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
-    return None
+    if flag == boundaryTags['top']:
+        return lambda x,t: 0.0
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
                        2:getDBC_v}
 
 def getAFBC_p(x,flag):
-    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
+    if flag != boundaryTags['top']:
         return lambda x,t: 0.0
 
 def getAFBC_u(x,flag):
-    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
+    if flag != boundaryTags['top']:
         return lambda x,t: 0.0
 
 def getAFBC_v(x,flag):
-    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
+    if flag != boundaryTags['top']:
         return lambda x,t: 0.0
 
 def getDFBC_u(x,flag):
-    #return lambda x,t: 0.0
-    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
+    if flag != boundaryTags['top']:
         return lambda x,t: 0.0
     
 def getDFBC_v(x,flag):

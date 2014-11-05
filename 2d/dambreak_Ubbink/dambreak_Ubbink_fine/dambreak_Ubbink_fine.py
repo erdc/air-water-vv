@@ -151,26 +151,27 @@ else:
 T=0.8
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.001)
-runCFL=0.33
+runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
+backgroundDiffusionFactor=0.01
 if useMetrics:
-    ns_shockCapturingFactor  = 0.25
+    ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.25
+    ls_shockCapturingFactor  = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.25
+    rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
-    epsFact_density    = 3.0
+    epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 0.1
@@ -211,13 +212,13 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-8,0.001*he**2)
-vof_nl_atol_res = max(1.0e-8,0.001*he**2)
-ls_nl_atol_res = max(1.0e-8,0.001*he**2)
-rd_nl_atol_res = max(1.0e-8,0.005*he)
-mcorr_nl_atol_res = max(1.0e-8,0.001*he**2)
-kappa_nl_atol_res = max(1.0e-8,0.001*he**2)
-dissipation_nl_atol_res = max(1.0e-8,0.001*he**2)
+ns_nl_atol_res = max(1.0e-10,0.001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.001*he**2)
+ls_nl_atol_res = max(1.0e-10,0.001*he**2)
+rd_nl_atol_res = max(1.0e-10,0.005*he)
+mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
+kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
+dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
 #turbulence
 ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega

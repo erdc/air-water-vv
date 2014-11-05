@@ -121,7 +121,7 @@ logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.po
 T=3.0
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.001)
-runCFL=1.0
+runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
@@ -140,10 +140,10 @@ if useMetrics:
     vof_sc_beta = 1.0
     rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
-    epsFact_density    = 3.0
+    epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
+    epsFact_consrv_diffusion = 0.1
     redist_Newton = True
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True#False

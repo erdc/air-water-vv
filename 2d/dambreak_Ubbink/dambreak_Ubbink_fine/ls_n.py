@@ -45,9 +45,9 @@ if useSuperlu:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'ncls_'
-nonlinearSolverConvergenceTest = 'r'
-levelNonlinearSolverConvergenceTest = 'r'
-linearSolverConvergenceTest         = 'r-true'
+nonlinearSolverConvergenceTest = 'rits'
+levelNonlinearSolverConvergenceTest = 'rits'
+linearSolverConvergenceTest         = 'rits-true'
 
 tolFac = 0.0
 nl_atol_res = ls_nl_atol_res

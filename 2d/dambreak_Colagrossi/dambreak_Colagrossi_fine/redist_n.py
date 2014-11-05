@@ -3,6 +3,8 @@ from redist_p import *
 from dambreak_Colagrossi_fine import *
 
 tolFac = 0.0
+nl_atol_res = rd_nl_atol_res
+
 linTolFac = 0.01
 l_atol_res = 0.01*rd_nl_atol_res
 

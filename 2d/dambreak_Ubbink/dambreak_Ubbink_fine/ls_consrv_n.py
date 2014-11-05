@@ -36,7 +36,7 @@ if useSuperlu:
 linear_solver_options_prefix = 'mcorr_'
 nonlinearSolverConvergenceTest = 'rits'
 levelNonlinearSolverConvergenceTest = 'rits'
-linearSolverConvergenceTest  = 'r-true'
+linearSolverConvergenceTest  = 'rits-true'
 
 tolFac = 0.0
 linTolFac = 0.01
