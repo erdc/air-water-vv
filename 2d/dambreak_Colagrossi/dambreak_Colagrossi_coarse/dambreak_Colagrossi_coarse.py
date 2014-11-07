@@ -80,7 +80,7 @@ class PointGauges(AV_base):
                   activeTime = (0, 0.5),
                   sampleRate = 0,
                   fileName = 'combined_gauge_0_0.5_sample_all.csv'):
-
+	
         AV_base.__init__(self)
         self.gauges=gauges
         self.measuredFields = set()
@@ -105,6 +105,7 @@ class PointGauges(AV_base):
         self.activeTime = activeTime
         self.sampleRate = sampleRate
         self.fileName = fileName
+        self.file = open(self.fileName, 'w')
         self.flags={}
         self.files={}
         self.outputWriterReady = False
@@ -119,7 +120,14 @@ class PointGauges(AV_base):
         import numpy as np
 
         # determine local nearest node distance
-        node_distances = np.linalg.norm(self.vertices-location, axis=1)
+        if np.version.version == "1.7.1":
+        	nodes = self.vertices-location
+		npoints = len(nodes[:,0])
+		node_distances = np.zeros(npoints,float)
+		for kk in range(npoints):
+			node_distances[kk] = np.linalg.norm(nodes[kk,:])
+	else:
+        	node_distances = np.linalg.norm(self.vertices-location, axis=1)
         nearest_node = np.argmin(node_distances)
         nearest_node_distance = node_distances[nearest_node]
 
