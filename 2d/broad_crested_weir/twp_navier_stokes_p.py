@@ -89,7 +89,7 @@ def getAFBC_v(x,flag):
         return lambda x,t: 0.0
 
 def getDFBC_u(x,flag):
-    if flag == boundaryTags['top']:
+    if not openTop and flag == boundaryTags['top']:
         return lambda x,t: 0.0
     if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
         return lambda x,t: 0.0
@@ -98,8 +98,6 @@ def getDFBC_v(x,flag):
     if flag == boundaryTags['top']:
         return lambda x,t: 0.0
     if flag == boundaryTags['bottom']:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['right']:
         return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,

@@ -29,7 +29,7 @@ def getDBC_vof(x,flag):
 dirichletConditions = {0:getDBC_vof}
 
 def getAFBC_vof(x,flag):
-    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
+    if openTop and flag == boundaryTags['top']:
         return None
     elif flag == boundaryTags['left']: # and x[1] <= waterLine_z:
         return None
