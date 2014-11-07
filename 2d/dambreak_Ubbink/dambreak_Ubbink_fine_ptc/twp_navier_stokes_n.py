@@ -1,6 +1,6 @@
 from proteus import *
 from twp_navier_stokes_p import *
-from dambreak_Colagrossi_fine import *
+from dambreak_Ubbink_fine import *
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
@@ -53,7 +53,7 @@ if useSuperlu:
 linear_solver_options_prefix = 'rans2p_'
 nonlinearSolverConvergenceTest = 'rits'
 levelNonlinearSolverConvergenceTest = 'rits'
-linearSolverConvergenceTest             = 'r-true'
+linearSolverConvergenceTest             = 'rits-true'
 
 tolFac = 0.0
 linTolFac = 0.01

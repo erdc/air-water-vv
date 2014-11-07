@@ -27,12 +27,12 @@ else:
     psitc['startRatio']=1.0
     rtol_res[0] = 0.0
     atol_res[0] = rd_nl_atol_res
+    useEisenstatWalker = False
     maxNonlinearIts = 1
     maxLineSearches = 0
     nonlinearSolverConvergenceTest = 'rits'
     levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'rits-true'
-    useEisenstatWalker = False
 
 femSpaces = {0:basis}
        
@@ -64,4 +64,3 @@ if useSuperlu:
 
 linear_solver_options_prefix = 'rdls_'
 
-#auxiliaryVariables=[lineGauges_phi]
