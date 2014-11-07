@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from dambreak_Colagrossi_coarse import *
+from wavesloshing_laminar_unstruct_fine import *
 from proteus.mprans import NCLS
 
 LevelModelType = NCLS.LevelModel

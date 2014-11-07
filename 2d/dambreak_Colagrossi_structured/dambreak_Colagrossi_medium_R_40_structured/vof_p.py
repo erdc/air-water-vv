@@ -1,7 +1,7 @@
 from proteus import *
 from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
-from dambreak_Colagrossi_coarse import *
+from dambreak_Colagrossi_medium_R_40 import *
 from proteus.mprans import VOF
 
 LevelModelType = VOF.LevelModel
@@ -11,11 +11,10 @@ if useOnlyVF:
 else:
     RD_model = 3
     LS_model = 2
-
 coefficients = VOF.Coefficients(LS_model=LS_model,V_model=0,RD_model=RD_model,ME_model=1,
                                 checkMass=False,useMetrics=useMetrics,
                                 epsFact=epsFact_vof,sc_uref=vof_sc_uref,sc_beta=vof_sc_beta)
-
+ 
 def getDBC_vof(x,flag):
    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
        return lambda x,t: 1.0

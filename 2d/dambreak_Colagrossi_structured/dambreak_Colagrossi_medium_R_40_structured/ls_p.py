@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from dambreak_Colagrossi_coarse import *
+from dambreak_Colagrossi_medium_R_40 import *
 from proteus.mprans import NCLS
 
 LevelModelType = NCLS.LevelModel
