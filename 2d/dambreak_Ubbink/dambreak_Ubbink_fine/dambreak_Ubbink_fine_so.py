@@ -33,6 +33,3 @@ tnList = [0.0,dambreak_Ubbink_fine.dt_init]+[i*dambreak_Ubbink_fine.dt_fixed for
 info = open("TimeList.txt","w")
 
 
-for time in tnList:
-    info.write(str(time)+"\n")
-info.close()

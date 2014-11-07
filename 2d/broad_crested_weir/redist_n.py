@@ -2,20 +2,21 @@ from proteus import *
 from redist_p import *
 from broad_crested_weir import *
 
-nl_atol_res = rd_nl_atol_res
 tolFac = 0.0
-linTolFac = 0.0
-l_atol_res = 0.001*rd_nl_atol_res
+nl_atol_res = rd_nl_atol_res
+
+linTolFac = 0.01
+l_atol_res = 0.01*rd_nl_atol_res
 
 if redist_Newton:
     timeIntegration = NoIntegration
     stepController = Newton_controller
-    maxNonlinearIts = 25
+    maxNonlinearIts = 50
     maxLineSearches = 0
-    nonlinearSolverConvergenceTest = 'r'
-    levelNonlinearSolverConvergenceTest = 'r'
-    linearSolverConvergenceTest = 'r-true'
-    useEisenstatWalker = True
+    nonlinearSolverConvergenceTest = 'rits'
+    levelNonlinearSolverConvergenceTest = 'rits'
+    linearSolverConvergenceTest = 'rits-true'
+    useEisenstatWalker = False
 else:
     timeIntegration = BackwardEuler_cfl
     stepController = RDLS.PsiTC
@@ -31,7 +32,7 @@ else:
     maxLineSearches = 0
     nonlinearSolverConvergenceTest = 'rits'
     levelNonlinearSolverConvergenceTest = 'rits'
-    linearSolverConvergenceTest = 'r-true'
+    linearSolverConvergenceTest = 'rits-true'
 
 femSpaces = {0:basis}
        
