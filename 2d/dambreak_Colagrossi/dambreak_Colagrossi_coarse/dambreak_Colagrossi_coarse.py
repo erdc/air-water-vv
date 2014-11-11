@@ -329,7 +329,7 @@ class PointGauges(AV_base):
             for field in self.measuredFields:
                 for quantity in self.globalMeasuredQuantities[field]:
                     location, gaugeProc, quantityID = quantity
-                    self.file.write(", %4s [%9.5g %9.5g %9.5g]" % (field, location[0], location[1], location[2]))
+                    self.file.write(",%s,[%9.5g %9.5g %9.5g]" % (field, location[0], location[1], location[2]))
             self.file.write('\n')
 
     def outputRow(self, time):
