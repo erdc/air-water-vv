@@ -51,12 +51,13 @@ if useSuperlu:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'rans2p_'
-levelNonlinearSolverConvergenceTest = 'r'
+nonlinearSolverConvergenceTest = 'rits'
+levelNonlinearSolverConvergenceTest = 'rits'
 linearSolverConvergenceTest             = 'r-true'
 
 tolFac = 0.0
 linTolFac = 0.01
-l_atol_res = 0.01*vof_nl_atol_res
+l_atol_res = 0.01*ns_nl_atol_res
 nl_atol_res = ns_nl_atol_res
 useEisenstatWalker = False
 maxNonlinearIts = 50

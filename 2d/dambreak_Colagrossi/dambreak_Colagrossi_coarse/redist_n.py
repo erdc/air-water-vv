@@ -7,7 +7,6 @@ nl_atol_res = rd_nl_atol_res
 
 linTolFac = 0.01
 l_atol_res = 0.01*rd_nl_atol_res
-useEisenstatWalker = False
 
 if redist_Newton:
     timeIntegration = NoIntegration
@@ -17,6 +16,7 @@ if redist_Newton:
     nonlinearSolverConvergenceTest = 'rits'
     levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'r-true'
+    useEisenstatWalker = False
 else:
     timeIntegration = BackwardEuler_cfl
     stepController = RDLS.PsiTC
