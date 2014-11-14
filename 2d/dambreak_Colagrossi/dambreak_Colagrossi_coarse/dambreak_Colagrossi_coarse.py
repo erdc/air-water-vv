@@ -126,7 +126,7 @@ class PointGauges(AV_base):
 		node_distances = np.zeros(npoints,float)
 		for kk in range(npoints):
 			node_distances[kk] = np.linalg.norm(nodes[kk,:])
-	else:
+        else:
         	node_distances = np.linalg.norm(self.vertices-location, axis=1)
         nearest_node = np.argmin(node_distances)
         nearest_node_distance = node_distances[nearest_node]
@@ -144,10 +144,27 @@ class PointGauges(AV_base):
         """ Builds up gauge operator, currently just sets operator to use value of nearest node.
         TODO: get correct element from neighboring node and use element assembly coefficients
         """
-
         location, node = quantity
-        m[quantity_id, node] = 1
-
+        #get the FiniteElementFunciton object for this quantity
+        femFun = self.model.levelModelList[-1].u[quantity_id]
+        #get the mesh for this quantity
+        mesh = femFun.femSpace.mesh
+        #loop over the elements that contain this node
+        offDomain=True
+        for eOffset in range(mesh.nodeElementOffsets[node],mesh.nodeElementOffsets[node+1]):
+            eN = femFun.femSpace.mesh.nodeElementsArray[eOffset]
+            #evalute the inverse map for element eN
+            xi = femFun.femSpace.elementMaps.getInverseValue(eN,location)
+            #query whether xi lies within the reference element
+            if femFun.femSpace.elementMaps.referenceElement.onElement(xi):
+                for i,psi in enumerate(femFun.femSpace.referenceFiniteElement.localFunctionSpace.basis):
+                    m[quantity_id,femFun.femSpace.dofMap.l2g[eN,i]] = psi(xi)
+                offDomain=False
+                break
+        if offDomain:
+            #just use nearest node for now if  we're given a point outside the domain.
+            #the ideal thing would be to find the element with the nearsest face
+            m[quantity_id, node] = 1
 
     def initOutputWriter(self):
         """ Initialize communication strategy for collective output of gauge data.
@@ -501,7 +518,7 @@ else:
 
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=0.01
+T=3.0
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.001)
 runCFL=0.9
@@ -573,7 +590,7 @@ kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
 #turbulence
-ns_closure=1 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
