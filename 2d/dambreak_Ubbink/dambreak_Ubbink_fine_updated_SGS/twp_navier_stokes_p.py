@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from broad_crested_weir import *
+from dambreak_Ubbink_fine import *
 from proteus.mprans import RANS2P
 
 LevelModelType = RANS2P.LevelModel
@@ -12,10 +12,12 @@ if useRANS >= 1:
     Closure_0_model = 5; Closure_1_model=6
     if useOnlyVF:
         Closure_0_model=2; Closure_1_model=3
+    if movingDomain:
+        Closure_0_model += 1; Closure_1_model += 1
 else:
     Closure_0_model = None
     Closure_1_model = None
-        
+
 coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    sigma=0.0,
                                    rho_0 = rho_0,
@@ -31,74 +33,49 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    epsFact_density=epsFact_density,
                                    stokes=False,
                                    useVF=useVF,
-				   useRBLES=useRBLES,
-				   useMetrics=useMetrics,
+                                   useRBLES=useRBLES,
+                                   useMetrics=useMetrics,
                                    eb_adjoint_sigma=1.0,
+                                   eb_penalty_constant=weak_bc_penalty_constant,
                                    forceStrongDirichlet=ns_forceStrongDirichlet,
-                                   turbulenceClosureModel=ns_closure)
-
+                                   turbulenceClosureModel=ns_closure,
+                                   movingDomain=movingDomain)
 
 def getDBC_p(x,flag):
-    if openTop and flag == boundaryTags['top']:
-        return outflowPressure
-    if flag == boundaryTags['right']:
-        return outflowPressure
-
-def getDBC_u(x,flag):
-    if openTop and flag == boundaryTags['top']:
+    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
         return lambda x,t: 0.0
-    if flag == boundaryTags['left']:
-        if x[1] <= waterLine_z:
-            return lambda x,t: inflow_velocity
-        else:
-            return lambda x,t: 0.0
-    if flag == boundaryTags['right']:
+    
+def getDBC_u(x,flag):
+    #return None
+    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
         return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
-    if openTop and flag == boundaryTags['top']:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['left'] or flag == boundaryTags['right']:
-        return lambda x,t: 0.0
+    return None
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
                        2:getDBC_v}
 
 def getAFBC_p(x,flag):
-    if not openTop and flag == boundaryTags['top']:
+    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
         return lambda x,t: 0.0
-    if flag == boundaryTags['bottom']:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['left']:
-        if x[1] <= waterLine_z:
-            return lambda x,t: -inflow_velocity
-        else:
-            return lambda x,t: 0.0
 
 def getAFBC_u(x,flag):
-    if not openTop and flag == boundaryTags['top']:
+    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
         return lambda x,t: 0.0
-    if flag == boundaryTags['bottom']:
-        return lambda x,t: 0.0
-    
+
 def getAFBC_v(x,flag):
-    if not openTop and flag == boundaryTags['top']:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['bottom']:
+    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
         return lambda x,t: 0.0
 
 def getDFBC_u(x,flag):
-    if not openTop and flag == boundaryTags['top']:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
+    #return lambda x,t: 0.0
+    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
         return lambda x,t: 0.0
     
 def getDFBC_v(x,flag):
-    if flag == boundaryTags['top']:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['bottom']:
-        return lambda x,t: 0.0
+    return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,
                                     1:getAFBC_u,
@@ -122,7 +99,6 @@ class AtRest:
         pass
     def uOfXT(self,x,t):
         return 0.0
-
 
 initialConditions = {0:PerturbedSurface_p(waterLine_z),
                      1:AtRest(),

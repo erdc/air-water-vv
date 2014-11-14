@@ -7,7 +7,7 @@ from proteus.Profiling import logEvent
 #  Discretization -- input options  
 
 #Refinement = 40  #he=0.022
-Refinement = 20  #he=0.044
+Refinement = 40  #he=0.044
 genMesh=True
 useOldPETSc=False
 useSuperlu=False#True
@@ -22,6 +22,7 @@ useOnlyVF = False
 useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
             # 2 -- K-Omega
+openTop = True
 # Input checks
 if spaceOrder not in [1,2]:
     print "INVALID: spaceOrder" + spaceOrder
@@ -68,9 +69,9 @@ obst_x_start = 2.0  # start x coordinate of the obstacle; caution to be in the d
 obst_x_end = obst_x_start + obst_portions[0] # end x coordinate of the obstacle; caution to be in the domain's range
 obst = (obst_x_start,obst_portions[1],obst_x_end) #coordinates of the obstacle to be used to define the boundary
 
-
+inflow_velocity = 0.047
 he = L[0]/float(4*Refinement-1)
-#he*=0.5
+he*=0.5
 #he*=0.5
 #he*=0.5
 nLevels = 1
@@ -267,16 +268,16 @@ else:
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=5.0
-dt_fixed = 0.01
+T=10.0
+dt_fixed = 0.02
 dt_init = min(0.1*dt_fixed,0.001)
-runCFL=1.0
+runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = True
+ns_forceStrongDirichlet = False
 if useMetrics:
-    ns_shockCapturingFactor  = 0.25
+    ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
     ls_shockCapturingFactor  = 0.25
@@ -292,8 +293,8 @@ if useMetrics:
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 0.1
-    redist_Newton = True
+    epsFact_consrv_diffusion = 1.0
+    redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
@@ -330,16 +331,16 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-8,0.001*he**2)
-vof_nl_atol_res = max(1.0e-8,0.001*he**2)
-ls_nl_atol_res = max(1.0e-8,0.001*he**2)
-rd_nl_atol_res = max(1.0e-8,0.005*he)
-mcorr_nl_atol_res = max(1.0e-8,0.001*he**2)
-kappa_nl_atol_res = max(1.0e-8,0.001*he**2)
-dissipation_nl_atol_res = max(1.0e-8,0.001*he**2)
+ns_nl_atol_res = max(1.0e-10,0.001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.001*he**2)
+ls_nl_atol_res = max(1.0e-10,0.001*he**2)
+rd_nl_atol_res = max(1.0e-10,0.005*he)
+mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
+kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
+dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
 #turbulence
-ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:

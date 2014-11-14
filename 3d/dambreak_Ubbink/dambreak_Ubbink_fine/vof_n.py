@@ -1,3 +1,4 @@
+
 from proteus import *
 from dambreak_Ubbink_fine import *
 from vof_p import *
@@ -46,14 +47,15 @@ if useSuperlu:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'vof_'
-levelNonlinearSolverConvergenceTest = 'r'
-linearSolverConvergenceTest         = 'r-true'
+nonlinearSolverConvergenceTest = 'rits'
+levelNonlinearSolverConvergenceTest = 'rits'
+linearSolverConvergenceTest         = 'rits-true'
 
 tolFac      = 0.0
 nl_atol_res = vof_nl_atol_res
 
-linTolFac   = 0.001
-l_atol_res = 0.001*vof_nl_atol_res
+linTolFac   = 0.0
+l_atol_res = 0.1*vof_nl_atol_res
 
 useEisenstatWalker = False
 
