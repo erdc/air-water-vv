@@ -1,7 +1,7 @@
 from proteus import *
 from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
-from dambreak_Colagrossi_coarse import *
+from quiescent_water_test_gauges import *
 from proteus.mprans import VOF
 
 LevelModelType = VOF.LevelModel
