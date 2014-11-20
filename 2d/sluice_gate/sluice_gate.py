@@ -113,13 +113,17 @@ else:
                   [0.0,L[1]], #7
                   #Mesh points: 
                   [x_refine[0],0.0], # 8 
-                  [x_refine[0],L[1]], #9
+                  [x_refine[0],L[1]-2.0], #9
                   [x_refine[1],0.0], #10
-                  [x_refine[1],L[1]], #11
+                  [x_refine[1],L[1]-3.0], #11
                   [x_refine[2],0.0], #12
-                  [x_refine[2],L[1]], #13
+                  [x_refine[2],L[1]-3.0], #13
                   [x_refine[3],0.0], #14
-                  [x_refine[3],L[1]] #15
+                  [x_refine[3],L[1]-2.0], #15
+                  [obst[0],L[1]-3.0], #16
+                  [obst[2],L[1]-3.0], #17
+                  [obst[0],L[1]-2.0], #18
+                  [obst[2],L[1]-2.0] #19
                   ] 
              #
 
@@ -138,7 +142,11 @@ else:
                      boundaryTags['bottom'],
                      boundaryTags['top'],
                      boundaryTags['bottom'],
-                     boundaryTags['top']                        
+                     boundaryTags['top'],  
+                     boundaryTags['top'],  
+                     boundaryTags['top'],  
+                     boundaryTags['top'],  
+                     boundaryTags['top']    
                      ]
                    
 
@@ -149,20 +157,24 @@ else:
                   [12,14], #3
                   [14,1],#4
                   [1,2],#5
-                  [2,15],#6
-                  [15,13],#7
-                  [13,3],#8
-                  [3,4],#9
+                  [2,3],#6
+                  [3,19],#7
+                  [19,17],#8
+                  [17,4],#9
                   [4,5],#10
-                  [5,6],#11
-                  [6,11],#12
-                  [11,9],#13
-                  [9,7],#14 
+                  [5,16],#11
+                  [16,18],#12
+                  [18,6],#13
+                  [6,7],#14
                   [7,0],#15
                   [8,9],#16
-                  [10,11],#17
-                  [12,13],#18
-                  [14,15],#19
+                  [9,18],#17
+                  [19,15],#18
+                  [15,14],#19
+                  [10,11],#20
+                  [11,16],#21
+                  [17,13],#22
+                  [13,12]#23
                   ]
                   
 
@@ -173,15 +185,19 @@ else:
                       boundaryTags['bottom'],
                       boundaryTags['right'],
                       boundaryTags['top'],
-                      boundaryTags['top'],
-                      boundaryTags['top'],
+                      boundaryTags['gate_v'],
+                      boundaryTags['gate_v'],
                       boundaryTags['gate_v'],
                       boundaryTags['gate_h'],
                       boundaryTags['gate_v'],
-                      boundaryTags['top'],
-                      boundaryTags['top'],
+                      boundaryTags['gate_v'],
+                      boundaryTags['gate_v'],
                       boundaryTags['top'],
                       boundaryTags['left'],
+                      boundaryTags['empty'],
+                      boundaryTags['empty'],
+                      boundaryTags['empty'],
+                      boundaryTags['empty'],
                       boundaryTags['empty'],
                       boundaryTags['empty'],
                       boundaryTags['empty'],
@@ -314,7 +330,7 @@ sigma_01 = 0.0
 g = [0.0,-9.8]
 
 # Initial condition
-waterLine_x =obst_x_start+0.01
+waterLine_x =obst_x_start+0.05
 waterLine_z = 2.5
 
 def signedDistance(x):
