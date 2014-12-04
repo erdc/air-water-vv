@@ -18,18 +18,14 @@ coefficients = VOF.Coefficients(LS_model=LS_model,V_model=0,RD_model=RD_model,ME
 def getDBC_vof(x,flag):
    if flag == boundaryTags['top']:
        return lambda x,t: 1.0
-#   elif flag == boundaryTags['right']:
-#       return lambda x,t: 1.0
    elif flag == boundaryTags['left'] and x[1] > waterLine_z:
        return lambda x,t: 1.0
    elif flag == boundaryTags['left'] and x[1] <=  waterLine_z:
        return lambda x,t: 0.0
    elif flag == boundaryTags['right'] and x[1] > downstream_water_level:
        return lambda x,t: 1.0
-   elif flag == boundaryTags['left'] and x[1] <= downstream_water_level:
+   elif flag == boundaryTags['right'] and x[1] <= downstream_water_level:
        return lambda x,t: 0.0
-
-  
 
 dirichletConditions = {0:getDBC_vof}
 

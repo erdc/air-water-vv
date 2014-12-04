@@ -1,6 +1,6 @@
 from proteus import *
 from twp_navier_stokes_p import *
-from dambreak_Colagrossi_coarse import *
+from quiescent_water_test_gauges import *
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
@@ -51,13 +51,12 @@ if useSuperlu:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'rans2p_'
-nonlinearSolverConvergenceTest = 'rits'
-levelNonlinearSolverConvergenceTest = 'rits'
+levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest             = 'r-true'
 
 tolFac = 0.0
 linTolFac = 0.01
-l_atol_res = 0.01*ns_nl_atol_res
+l_atol_res = 0.01*vof_nl_atol_res
 nl_atol_res = ns_nl_atol_res
 useEisenstatWalker = False
 maxNonlinearIts = 50
