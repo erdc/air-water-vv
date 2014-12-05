@@ -1,6 +1,6 @@
 from proteus import *
 from redist_p import *
-from dambreak_Colagrossi_coarse import *
+from broad_crested_weir import *
 
 tolFac = 0.0
 nl_atol_res = rd_nl_atol_res
@@ -15,24 +15,24 @@ if redist_Newton:
     maxLineSearches = 0
     nonlinearSolverConvergenceTest = 'rits'
     levelNonlinearSolverConvergenceTest = 'rits'
-    linearSolverConvergenceTest = 'r-true'
+    linearSolverConvergenceTest = 'rits-true'
     useEisenstatWalker = False
 else:
     timeIntegration = BackwardEuler_cfl
     stepController = RDLS.PsiTC
-    runCFL=2.0
+    runCFL=1.0
     psitc['nStepsForce']=3
-    psitc['nStepsMax']=50
-    psitc['reduceRatio']=10.0
+    psitc['nStepsMax']=25
+    psitc['reduceRatio']=2.0
     psitc['startRatio']=1.0
     rtol_res[0] = 0.0
     atol_res[0] = rd_nl_atol_res
-    useEisenstatWalker = False#True
+    useEisenstatWalker = False
     maxNonlinearIts = 1
     maxLineSearches = 0
     nonlinearSolverConvergenceTest = 'rits'
     levelNonlinearSolverConvergenceTest = 'rits'
-    linearSolverConvergenceTest = 'r-true'
+    linearSolverConvergenceTest = 'rits-true'
 
 femSpaces = {0:basis}
        
@@ -64,3 +64,4 @@ if useSuperlu:
 
 linear_solver_options_prefix = 'rdls_'
 
+auxiliaryVariables=[lineGauges_phi]

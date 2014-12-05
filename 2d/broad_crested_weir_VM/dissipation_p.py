@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from dambreak_Colagrossi_fine import *
+from broad_crested_weir import *
 from proteus.mprans import Dissipation
 
 LevelModelType = Dissipation.LevelModel
@@ -14,17 +14,12 @@ else:
     LS_model = 2
     ME_model = 6
     kappa_model = 5
-if movingDomain:
-    kappa_model += 1
-    ME_model += 1
 #
 dissipation_model_flag = 1
 if useRANS == 2:
     dissipation_model_flag=2
-elif useRANS == 3:
-    dissipation_model_flag=3
 coefficients = Dissipation.Coefficients(V_model=0,ME_model=ME_model,LS_model=LS_model,RD_model=RD_model,kappa_model=kappa_model,
-                                  dissipation_model_flag=dissipation_model_flag,#1 -- K-epsilon, 2 -- K-omega 1998, 3 -- K-omega 1988
+                                  dissipation_model_flag=dissipation_model_flag,#1 -- K-epsilon, 2 -- K-omega
                                   useMetrics=useMetrics,
                                   rho_0=rho_0,nu_0=nu_0,
                                   rho_1=rho_1,nu_1=nu_1,
@@ -35,7 +30,7 @@ coefficients = Dissipation.Coefficients(V_model=0,ME_model=ME_model,LS_model=LS_
 
 
 dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*L[1])
-if useRANS >= 2:
+if useRANS == 2:
     dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
 def getDBC_dissipation(x,flag):
     if flag == boundaryTags['left']:

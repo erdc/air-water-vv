@@ -1,6 +1,6 @@
 from proteus import *
 from twp_navier_stokes_p import *
-from dambreak_Colagrossi_coarse import *
+from broad_crested_weir import *
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
@@ -53,14 +53,14 @@ if useSuperlu:
 linear_solver_options_prefix = 'rans2p_'
 nonlinearSolverConvergenceTest = 'rits'
 levelNonlinearSolverConvergenceTest = 'rits'
-linearSolverConvergenceTest             = 'r-true'
+linearSolverConvergenceTest             = 'rits-true'
 
 tolFac = 0.0
+nl_atol_res = ns_nl_atol_res
+
 linTolFac = 0.01
 l_atol_res = 0.01*ns_nl_atol_res
-nl_atol_res = ns_nl_atol_res
 useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
-auxiliaryVariables=[pointGauges,lineGauges]

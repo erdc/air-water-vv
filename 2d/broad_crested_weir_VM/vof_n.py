@@ -1,5 +1,5 @@
 from proteus import *
-from dambreak_Colagrossi_coarse import *
+from broad_crested_weir import *
 from vof_p import *
 
 if timeDiscretization=='vbdf':
@@ -46,16 +46,13 @@ if useSuperlu:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'vof_'
-nonlinearSolverConvergenceTest = 'rits'
-levelNonlinearSolverConvergenceTest = 'rits'
+levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest         = 'r-true'
 
 tolFac      = 0.0
-nl_atol_res = vof_nl_atol_res
-
 linTolFac   = 0.0
 l_atol_res = 0.1*vof_nl_atol_res
-
+nl_atol_res = vof_nl_atol_res
 useEisenstatWalker = False
 
 maxNonlinearIts = 50
