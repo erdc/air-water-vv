@@ -1,5 +1,5 @@
 from proteus import *
-from dambreak_Colagrossi_coarse import *
+from quiescent_water_test_gauges import *
 from ls_consrv_p import *
 
 timeIntegrator  = ForwardIntegrator
@@ -34,8 +34,6 @@ if useSuperlu:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'mcorr_'
-nonlinearSolverConvergenceTest  = 'rits'
-levelNonlinearSolverConvergenceTest  = 'rits'
 linearSolverConvergenceTest  = 'r-true'
 
 tolFac = 0.0

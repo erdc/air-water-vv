@@ -1,12 +1,13 @@
 from proteus import *
 from redist_p import *
-from dambreak_Colagrossi_coarse import *
+from quiescent_water_test_gauges import *
 
 tolFac = 0.0
 nl_atol_res = rd_nl_atol_res
 
 linTolFac = 0.01
 l_atol_res = 0.01*rd_nl_atol_res
+useEisenstatWalker = False
 
 if redist_Newton:
     timeIntegration = NoIntegration
@@ -16,7 +17,6 @@ if redist_Newton:
     nonlinearSolverConvergenceTest = 'rits'
     levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'r-true'
-    useEisenstatWalker = False
 else:
     timeIntegration = BackwardEuler_cfl
     stepController = RDLS.PsiTC
