@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -A ERDCV00898R40
-#PBS -l walltime=001:00:00
+#PBS -l walltime=004:00:00
 #PBS -l select=1:ncpus=32:mpiprocs=32
 #PBS -q standard
 #PBS -N scweir2d
