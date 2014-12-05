@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from broad_crested_weir import *
+from sharp_crested_weir import *
 from proteus.mprans import RANS2P
 
 LevelModelType = RANS2P.LevelModel
@@ -37,49 +37,83 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    forceStrongDirichlet=ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ns_closure)
 
+
 def getDBC_p(x,flag):
-    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
-        return lambda x,t: 0.0
-   
-    
+    if  flag == boundaryTags['top']:
+        return lambda x,t: 0.0        
+#    if openTop and flag == boundaryTags['top']:
+#        return outflowPressure
+    if flag == boundaryTags['right']:
+        return outflowPressure
+
 def getDBC_u(x,flag):
-    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['left']:#and x[1] <= waterLine_z:
-        return lambda x,t: 0.047
- 
-     
+    if  flag == boundaryTags['top']:
+            return lambda x,t: 0.0        
+#    if openTop and flag == boundaryTags['top']:
+#        return lambda x,t: 0.0
+    if flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return lambda x,t: inflow_velocity
+#        else:
+#            return lambda x,t: 0.0
+#    if flag == boundaryTags['right']:
+#        return lambda x,t: 0.0
+
 def getDBC_v(x,flag):
-    if flag == boundaryTags['left'] :
-        return lambda x,t: 0.0
-    #return None
+    if  flag ==  boundaryTags['left'] or boundaryTags['right']:
+            return lambda x,t: 0.0 
+#    if openTop and flag == boundaryTags['top']:
+#        return lambda x,t: 0.0
+#    if flag == boundaryTags['left'] or flag == boundaryTags['right']:
+#        return lambda x,t: 0.0       
+
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
                        2:getDBC_v}
 
 def getAFBC_p(x,flag):
-    if flag != boundaryTags['top']: # or x[1] < L[1] - 1.0e-12:
+#    if not openTop and flag == boundaryTags['top']:
+#        return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
-    
+    if flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return lambda x,t: -inflow_velocity
+#        else:
+#            return lambda x,t: 0.0
 
 def getAFBC_u(x,flag):
-   return None
-# if flag == boundaryTags['left'] and x[1] <= waterLine_z:
-#        return lambda x,t:-max(t,0.047)
- 
+#    if not openTop and flag == boundaryTags['top']:
+#        return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
+        return lambda x,t: 0.0
     
 def getAFBC_v(x,flag):
-    if flag != boundaryTags['top']: # or x[1] < L[1] - 1.0e-12:
+#    if not openTop and flag == boundaryTags['top']:
+#        return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
 
 def getDFBC_u(x,flag):
-    if flag != boundaryTags['top']: 
+    if flag == boundaryTags['top'] or  boundaryTags['right']:
         return lambda x,t: 0.0
-  
+    if flag == boundaryTags['left'] and ( x[1] >= waterLine_z):
+        return lambda x,t: 0.0
+#    if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
+#        return lambda x,t: 0.0
     
 def getDFBC_v(x,flag):
-    return lambda x,t: 0.0
+    if flag == boundaryTags['top'] or boundaryTags['right']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['left'] and ( x[1] >= waterLine_z):
+        return lambda x,t: 0.0
+
+#    if flag == boundaryTags['bottom']:
+#        return lambda x,t: 0.0
+#    if flag == boundaryTags['right']:
+#        return lambda x,t: 0.0
+
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,
                                     1:getAFBC_u,
@@ -103,11 +137,6 @@ class AtRest:
         pass
     def uOfXT(self,x,t):
         return 0.0
-
-#class uniformU:
- #   def uOfXT(self,x,t):
-  #      if x[0] <= 1.9 and x[1] <= 0.462:
-   #        return 0.047
 
 
 initialConditions = {0:PerturbedSurface_p(waterLine_z),
