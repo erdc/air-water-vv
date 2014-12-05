@@ -35,6 +35,8 @@ def getAFBC_vof(x,flag):
         return None
     elif flag == boundaryTags['right']:
         return None
+    elif flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
+        return lambda x,t: 0.0
     else:
         return lambda x,t: 0.0
 
