@@ -1,7 +1,7 @@
 from proteus import *
 from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
-from sluice_gate import *
+from sharp_crested_weir import *
 from proteus.mprans import VOF
 
 LevelModelType = VOF.LevelModel

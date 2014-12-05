@@ -1,7 +1,7 @@
 from proteus import *
 from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
-from sluice_gate import *
+from broad_crested_weir import *
 from proteus.mprans import VOF
 
 LevelModelType = VOF.LevelModel
@@ -18,8 +18,8 @@ coefficients = VOF.Coefficients(LS_model=LS_model,V_model=0,RD_model=RD_model,ME
 def getDBC_vof(x,flag):
    if flag == boundaryTags['top']:
        return lambda x,t: 1.0
-   elif flag == boundaryTags['right']:
-       return lambda x,t: 1.0
+#   elif flag == boundaryTags['right']:
+#       return lambda x,t: 1.0
    elif flag == boundaryTags['left'] and x[1] > waterLine_z:
        return lambda x,t: 1.0
    elif flag == boundaryTags['left'] and x[1] <=  waterLine_z:
@@ -29,14 +29,16 @@ def getDBC_vof(x,flag):
 dirichletConditions = {0:getDBC_vof}
 
 def getAFBC_vof(x,flag):
-    if flag == boundaryTags['top']:
-        return None
-    elif flag == boundaryTags['left']:
-        return None
-    elif flag == boundaryTags['right']:
-        return None
-    else:
+    if flag == boundaryTags['left']  and x[1] <= waterLine_z:
         return lambda x,t: 0.0
+#    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
+#        return None
+#    elif flag == boundaryTags['left']  and x[1] > waterLine_z:
+#        return lambda x,t: 1.0
+#    elif flag == boundaryTags['right']:
+#        return None
+#    else:
+#        return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions = {0:getAFBC_vof}
 diffusiveFluxBoundaryConditions = {0:{}}

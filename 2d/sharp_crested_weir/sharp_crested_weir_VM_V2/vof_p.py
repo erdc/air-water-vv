@@ -1,7 +1,7 @@
 from proteus import *
 from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
-from sluice_gate import *
+from sharp_crested_weir import *
 from proteus.mprans import VOF
 
 LevelModelType = VOF.LevelModel
@@ -29,7 +29,7 @@ def getDBC_vof(x,flag):
 dirichletConditions = {0:getDBC_vof}
 
 def getAFBC_vof(x,flag):
-    if flag == boundaryTags['top']:
+    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
         return None
     elif flag == boundaryTags['left']:
         return None
