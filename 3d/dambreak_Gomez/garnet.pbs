@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -A ERDCV00898R40
+#PBS -l walltime=001:00:00
+#PBS -l select=1:ncpus=32:mpiprocs=32
+#PBS -q debug
+#PBS -N gomez
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+cd $PBS_O_WORKDIR
+aprun -n 32  parun dambreak_Gomez_so.py -l 5 -O ../../inputTemplates/petsc.options.asm -D $WORKDIR/gomez.$PBS_JOBID
