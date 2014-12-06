@@ -52,7 +52,10 @@ def getDBC_u(x,flag):
             return lambda x,t: inflow_velocity
 
 def getDBC_v(x,flag):
-    if  flag ==  boundaryTags['left'] or boundaryTags['right']:
+    if flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return lambda x,t: inflow_velocity
+    if  flag ==  boundaryTags['right']:
             return lambda x,t: 0.0 
 
 dirichletConditions = {0:getDBC_p,
@@ -60,9 +63,7 @@ dirichletConditions = {0:getDBC_p,
                        2:getDBC_v}
 
 def getAFBC_p(x,flag):
-    if flag == boundaryTags['bottom']:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
+    if flag == boundaryTags['bottom'] or flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
         return lambda x,t: 0.0
     if flag == boundaryTags['left']:
         if x[1] <= waterLine_z:
@@ -71,35 +72,37 @@ def getAFBC_p(x,flag):
             return lambda x,t: 0.0
 
 def getAFBC_u(x,flag):
-    if flag == boundaryTags['bottom']:
+    if flag == boundaryTags['bottom'] or flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
         return lambda x,t: 0.0
-    if flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
-        return lambda x,t: 0.0
+    if flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return None
+        else:
+            return lambda x,t: 0.0
     
 def getAFBC_v(x,flag):
-    if flag == boundaryTags['bottom']:
+    if flag == boundaryTags['bottom'] or flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
         return lambda x,t: 0.0
-    if flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
-        return lambda x,t: 0.0
+    if flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return None
+        else:
+            return lambda x,t: 0.0
 
 def getDFBC_u(x,flag):
-    if flag == boundaryTags['top'] or  boundaryTags['right']:
+    if flag == boundaryTags['right']:
         return lambda x,t: 0.0
-    if flag == boundaryTags['left'] and ( x[1] >= waterLine_z):
+    if flag == boundaryTags['left'] and ( x[1] > waterLine_z):
         return lambda x,t: 0.0
-    if flag == boundaryTags['bottom']:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
+    if flag == boundaryTags['bottom'] or flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
         return lambda x,t: 0.0
     
 def getDFBC_v(x,flag):
-    if flag == boundaryTags['top'] or boundaryTags['right']:
+    if flag == boundaryTags['top']:
         return lambda x,t: 0.0
-    if flag == boundaryTags['left'] and ( x[1] >= waterLine_z):
+    if flag == boundaryTags['left'] and ( x[1] > waterLine_z):
         return lambda x,t: 0.0
-    if flag == boundaryTags['bottom']:
-        return lambda x,t: 0.0
-    if flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
+    if flag == boundaryTags['bottom'] or flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
         return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,

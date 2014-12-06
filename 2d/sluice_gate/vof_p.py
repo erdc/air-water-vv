@@ -20,11 +20,11 @@ def getDBC_vof(x,flag):
        return lambda x,t: 1.0
    elif flag == boundaryTags['right']:
        return lambda x,t: 1.0
-   elif flag == boundaryTags['left'] and x[1] > waterLine_z:
-       return lambda x,t: 1.0
-   elif flag == boundaryTags['left'] and x[1] <=  waterLine_z:
-       return lambda x,t: 0.0
-  
+   elif flag == boundaryTags['left']:
+       if x[1] <=  waterLine_z:
+           return lambda x,t: 0.0
+       else:
+           return lambda x,t: 1.0
 
 dirichletConditions = {0:getDBC_vof}
 
@@ -35,8 +35,6 @@ def getAFBC_vof(x,flag):
         return None
     elif flag == boundaryTags['right']:
         return None
-    elif flag == boundaryTags['gate_v'] or  flag == boundaryTags['gate_h']:
-        return lambda x,t: 0.0
     else:
         return lambda x,t: 0.0
 

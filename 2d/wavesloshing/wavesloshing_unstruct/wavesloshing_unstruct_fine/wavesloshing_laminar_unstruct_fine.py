@@ -237,9 +237,9 @@ else:
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
 T=10.0
-dt_fixed = 0.01
+dt_fixed = 0.05
 dt_init = min(0.1*dt_fixed,0.001)
-runCFL=0.33
+runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters

@@ -217,20 +217,21 @@ runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = False
+ns_forceStrongDirichlet = False#True
+backgroundDiffusionFactor=0.01
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.25
+    ls_shockCapturingFactor  = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.25
+    rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density

@@ -239,13 +239,14 @@ else:
 
 # Time stepping
 T=10.0
-dt_fixed = 0.02
+dt_fixed = 0.05
 dt_init = min(0.1*dt_fixed,0.001)
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False
+backgroundDiffusionFactor=0.01
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
