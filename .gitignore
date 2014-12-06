@@ -1,54 +1,38 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-env/
-bin/
-build/
-develop-eggs/
-dist/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.cache
-nosetests.xml
-coverage.xml
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# Rope
-.ropeproject
-
-# Django stuff:
+TimeList.txt
+*.o*
+*_prof_*
+*_init_prof*
+*_run_prof*
+*.csv
+*.pyc
+*.xmf
+*.h5
+*~
+data*txt
 *.log
-*.pot
-
-# Sphinx documentation
-docs/_build/
-
+*.out
+*.dat
+*.cmd
+*.ele
+*.face
+*.node
+*.bak
+*.log.*
+*.egg-info
+*.idea
+install_*
+config_*
+build/
+proteus/__init__.py
+proteus/__init__.pyc
+proteus/mprans/*.so
+proteus/mprans/*.cpp
+config.py
+darwin/
+linux2/
+garnet.gnu/
+Cygwin
+mesh*
+src/subsurfaceTransportFunctions.c
+hashdist/
+stack/
