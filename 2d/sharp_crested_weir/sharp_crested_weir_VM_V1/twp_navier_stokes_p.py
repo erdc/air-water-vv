@@ -39,81 +39,70 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
 
 
 def getDBC_p(x,flag):
-    if  flag == boundaryTags['top']:
-        return lambda x,t: 0.0        
-#    if openTop and flag == boundaryTags['top']:
-#        return outflowPressure
+    if flag == boundaryTags['top']:
+        return outflowPressure
     if flag == boundaryTags['right']:
         return outflowPressure
 
 def getDBC_u(x,flag):
     if  flag == boundaryTags['top']:
             return lambda x,t: 0.0        
-#    if openTop and flag == boundaryTags['top']:
-#        return lambda x,t: 0.0
     if flag == boundaryTags['left']:
         if x[1] <= waterLine_z:
             return lambda x,t: inflow_velocity
-#        else:
-#            return lambda x,t: 0.0
-#    if flag == boundaryTags['right']:
-#        return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
-    if  flag ==  boundaryTags['left'] or boundaryTags['right']:
+    if  flag ==  boundaryTags['left'] and x[1] <= waterLine_z:
             return lambda x,t: 0.0 
-#    if openTop and flag == boundaryTags['top']:
-#        return lambda x,t: 0.0
-#    if flag == boundaryTags['left'] or flag == boundaryTags['right']:
-#        return lambda x,t: 0.0       
-
+    if flag == boundaryTags['right']:
+        return lambda x,t: 0.0
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
                        2:getDBC_v}
 
 def getAFBC_p(x,flag):
-#    if not openTop and flag == boundaryTags['top']:
-#        return lambda x,t: 0.0
     if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
     if flag == boundaryTags['left']:
         if x[1] <= waterLine_z:
             return lambda x,t: -inflow_velocity
-#        else:
-#            return lambda x,t: 0.0
+        else:
+            return lambda x,t: 0.0
 
 def getAFBC_u(x,flag):
-#    if not openTop and flag == boundaryTags['top']:
-#        return lambda x,t: 0.0
     if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
+    if flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return None#Dirichlet BC
+        else:
+            return lambda x,t: 0.0
     
 def getAFBC_v(x,flag):
-#    if not openTop and flag == boundaryTags['top']:
-#        return lambda x,t: 0.0
     if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
-
+    if flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return None#Dirichlet BC
+        else:
+            return lambda x,t: 0.0
+    
 def getDFBC_u(x,flag):
-    if flag == boundaryTags['top'] or  boundaryTags['right']:
+    if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
-    if flag == boundaryTags['left'] and ( x[1] >= waterLine_z):
+    if flag == boundaryTags['right']:
         return lambda x,t: 0.0
-#    if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
-#        return lambda x,t: 0.0
+    if flag == boundaryTags['left'] and ( x[1] > waterLine_z):
+        return lambda x,t: 0.0
     
 def getDFBC_v(x,flag):
-    if flag == boundaryTags['top'] or boundaryTags['right']:
+    if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
-    if flag == boundaryTags['left'] and ( x[1] >= waterLine_z):
+    if flag == boundaryTags['top']:
         return lambda x,t: 0.0
-
-#    if flag == boundaryTags['bottom']:
-#        return lambda x,t: 0.0
-#    if flag == boundaryTags['right']:
-#        return lambda x,t: 0.0
-
+    if flag == boundaryTags['left'] and ( x[1] > waterLine_z):
+        return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,
                                     1:getAFBC_u,

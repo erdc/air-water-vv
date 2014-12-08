@@ -29,16 +29,14 @@ def getDBC_vof(x,flag):
 dirichletConditions = {0:getDBC_vof}
 
 def getAFBC_vof(x,flag):
-    if flag == boundaryTags['left']  and x[1] <= waterLine_z:
+    if flag == boundaryTags['top']:
+        return None
+    elif flag == boundaryTags['left']:
+        return None
+    elif flag == boundaryTags['right']:
+        return None
+    else:
         return lambda x,t: 0.0
-#    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
-#        return None
-#    elif flag == boundaryTags['left']  and x[1] > waterLine_z:
-#        return lambda x,t: 1.0
-#    elif flag == boundaryTags['right']:
-#        return None
-#    else:
-#        return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions = {0:getAFBC_vof}
 diffusiveFluxBoundaryConditions = {0:{}}
