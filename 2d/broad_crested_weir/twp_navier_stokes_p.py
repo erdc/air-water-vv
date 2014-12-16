@@ -47,6 +47,8 @@ def getDBC_p(x,flag):
 def getDBC_u(x,flag):
     if flag == boundaryTags['top']:
         return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
+        return lambda x,t: 0.0
     if flag == boundaryTags['left']:
         if x[1] <= waterLine_z:
             return lambda x,t: inflow_velocity
@@ -55,6 +57,8 @@ def getDBC_u(x,flag):
 
 def getDBC_v(x,flag):
     if flag == boundaryTags['left']: 
+        return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
     if flag == boundaryTags['right']:
         return lambda x,t: 0.0
