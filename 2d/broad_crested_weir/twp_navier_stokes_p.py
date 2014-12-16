@@ -1,7 +1,9 @@
+
 from proteus import *
 from proteus.default_p import *
 from broad_crested_weir import *
 from proteus.mprans import RANS2P
+import BC as BC 
 
 LevelModelType = RANS2P.LevelModel
 if useOnlyVF:
@@ -15,7 +17,7 @@ if useRANS >= 1:
 else:
     Closure_0_model = None
     Closure_1_model = None
-        
+       
 coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    sigma=0.0,
                                    rho_0 = rho_0,
@@ -38,26 +40,38 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    turbulenceClosureModel=ns_closure)
 
 
+setBC = BC.boundaryConditions()
+
 def getDBC_p(x,flag):
+    BCType = "pDirichlet"
+    if flag == boundaryTags['bottom']:
+       setBC.noSlip(BCType) 
     if flag == boundaryTags['top']:
         return outflowPressure
     if flag == boundaryTags['right']:
         return outflowPressure
 
 def getDBC_u(x,flag):
+    BCType = "uDirichlet"
     if flag == boundaryTags['top']:
         return lambda x,t: 0.0
     if flag == boundaryTags['left']:
         if x[1] <= waterLine_z:
             return lambda x,t: inflow_velocity
+    if flag == boundaryTags['bottom']:
+        setBC.noSlip(BCType) 
 
 
 
 def getDBC_v(x,flag):
+    BCType = "vDirichlet"
     if flag == boundaryTags['left']: 
         return lambda x,t: 0.0
     if flag == boundaryTags['right']:
         return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
+        setBC.noSlip(BCType) 
+
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
