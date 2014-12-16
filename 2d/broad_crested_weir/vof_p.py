@@ -16,7 +16,7 @@ coefficients = VOF.Coefficients(LS_model=LS_model,V_model=0,RD_model=RD_model,ME
                                 epsFact=epsFact_vof,sc_uref=vof_sc_uref,sc_beta=vof_sc_beta)
  
 def getDBC_vof(x,flag):
-   if openTop and flag == boundaryTags['top']:
+   if flag == boundaryTags['top']:
        return lambda x,t: 1.0
    elif flag == boundaryTags['right']:
        return lambda x,t: 1.0
