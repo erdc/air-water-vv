@@ -29,6 +29,7 @@ For more details, see runfiles or references.
 References
 --------------------------------
 
--Fritz HM and Hager WH (1998) Hydraulics of embankment weirs. Journal of Hydraulic Engineer 124(9), 963–971.
--Hager WH and Schwalt M (1994). Broad-crested weir. Journal of Irrigation and Drainage 120(1), 13–26.
+- Fritz HM and Hager WH (1998) Hydraulics of embankment weirs. Journal of Hydraulic Engineer 124(9), 963–971.
+
+- Hager WH and Schwalt M (1994). Broad-crested weir. Journal of Irrigation and Drainage 120(1), 13–26.
 
