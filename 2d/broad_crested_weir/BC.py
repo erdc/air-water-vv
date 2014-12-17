@@ -10,7 +10,7 @@ class boundaryConditions:
 
 # Basic boundary conditions
     def empty(self):
-        return lambda x,t: None    
+        return None    
     def constantValue(self,value):
         return lambda x,t: value
     def linear(self,a1,a0,i):
@@ -40,7 +40,7 @@ class boundaryConditions:
         BCType: Type of boundary condition 
         Returns Dirichlet and Advective conditions as zero, leaving the rest not defined
         """
-        self.BCTypeCheck(BCType)
+        self.BCTypeCheck(self,BCType)
         if (BCType is "uDirichlet") or (BCType is "vDirichlet") or (BCType is "wDirichlet") or ("Advective" in BCType):
             BC=self.constantValue(0.0)
             return BC
