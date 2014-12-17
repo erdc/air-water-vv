@@ -1,4 +1,4 @@
-Crump weir with modular flow conditions benchmark case
+Crump weir benchmark case
 ======================================================
 
 A crump weir is a typical hydraulic structure mainly used as a measurement device in open-channels
