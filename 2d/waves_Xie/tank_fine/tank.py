@@ -2,16 +2,15 @@ from math import *
 import proteus.MeshTools
 from proteus import Domain
 from proteus.default_n import *   
-from proteus.Profiling import logEvent
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 #wave generator
 windVelocity = (0.0,0.0)
-inflowHeightMean = 0.3
+inflowHeightMean = 0.45
 inflowVelocityMean = (0.0,0.0)
-period = 1.4
+period = 1.53
 omega = 2.0*math.pi/period
-waveheight = 0.087
+waveheight = 0.065
 amplitude = waveheight/ 2.0
 wavelength = 2.4
 k = 2.0*math.pi/wavelength
@@ -70,14 +69,15 @@ elif spaceOrder == 2:
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
     
 # Domain and mesh
-
+#L = (40.0,0.7)
 #for debugging, make the tank short
-L = (20.0,0.55)
-he = L[0]/100.0 #try this first
+L = (14.5,0.7)
+he = L[0]/100 #try this first
 he*=0.5
 he*=0.5
 he*=0.5
-he*=0.5 #2:33 on 32 cores
+he*=0.5#4:13 on 32 cores
+he*=0.5#26 hours on 64 cores
 weak_bc_penalty_constant = 100.0
 nLevels = 1
 #parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
@@ -97,21 +97,15 @@ else:
         nny=ceil(L[1]/he)+1
     else:
         vertices=[[0.0,0.0],#0
-                  [0.5*L[0],0.0],#1
-                  [0.65*L[0],0.27*L[1]],#2
-                  [0.658*L[0],0.43*L[1]],#3
-                  [0.663*L[0],0.43*L[1]],#4
-                  [0.666*L[0],0.3*L[1]],#5
-                  [L[0],0.91*L[1]],#6
-                  [L[0],L[1]],#7
-                  [0.0,L[1]]]#8
+                  [0.27*L[0],0.0],#1
+                  [L[0]*0.586, 0.214*L[1]],#2
+                  [L[0],0.214*L[1]],#3
+                  [L[0],L[1]],#4
+                  [0.0,L[1]]]#5
         vertexFlags=[boundaryTags['bottom'],
                      boundaryTags['bottom'],
                      boundaryTags['bottom'],
                      boundaryTags['bottom'],
-                     boundaryTags['bottom'],
-                     boundaryTags['bottom'],
-                     boundaryTags['top'],
                      boundaryTags['top'],
                      boundaryTags['top']]
         segments=[[0,1],
@@ -119,21 +113,15 @@ else:
                   [2,3],
                   [3,4],
                   [4,5],
-                  [5,6],
-                  [6,7],
-                  [7,8],
-                  [8,0]]
+                  [5,0]]
         segmentFlags=[boundaryTags['bottom'],
-                      boundaryTags['bottom'],
-                      boundaryTags['bottom'],
-                      boundaryTags['bottom'],
                       boundaryTags['bottom'],
                       boundaryTags['bottom'],
                       boundaryTags['right'],
                       boundaryTags['top'],
                       boundaryTags['left']]
-        regions=[ [ 0.8*L[0] , 0.5*L[1] ],
-                  [0.95*L[0] , 0.95*L[1] ] ]
+        regions= [[ 0.5*L[0] , 0.5*L[1] ],
+                  [0.95*L[0] , 0.9*L[1] ] ]
         regionFlags=[1,2]
         domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
                                                       vertexFlags=vertexFlags,
@@ -158,7 +146,6 @@ nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
-backgroundDiffusionFactor=0.01
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True

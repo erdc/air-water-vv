@@ -78,6 +78,7 @@ he*=0.5
 he*=0.5
 he*=0.5
 he*=0.5 #2:33 on 32 cores
+he*=0.5 #47 hours on 32 cores
 weak_bc_penalty_constant = 100.0
 nLevels = 1
 #parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
