@@ -11,7 +11,7 @@ vary from case to case. The weir has a height of P=1.0m and a small width of b=0
 A uniform velocity distribution from bottom to the free water level is imposed in the left wall 
 boundary condition. The top of the domain is left open and the right wall allows 
 the flow to leave the domain. 
-In the following figure a simple sketch of the structure is presented showing the main parameters.
+In the following figure, a simple sketch of the structure is presented showing the main parameters.
 
 .. figure:: ./SharpWeir.bmp
 
