@@ -11,8 +11,7 @@ The initail conditions of the simulation are shown in the following figure,
 
 where, a is the amplitude of the sloshing wave.
 
-This case tests the ability of PROTEUS to simulate the free-surface evolution.                       .
-For more details, see runfiles or references.
+This case tests the ability of PROTEUS to simulate the free-surface evolution. For more details, see runfiles or references.
 
 References
 --------------------------------
