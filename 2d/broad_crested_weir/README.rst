@@ -7,13 +7,13 @@ as a simple solid rectangular channel obstruction spanned over the whole width o
 the channel. Due to the sharp edge of the upper left side corner of the weir, flow 
 separation occurs at this location. 
 
-As the flow propagate mainly in 2 directions, a 2D computational domain was used for the simulation. 
+As the flow propagates mainly in 2 directions, a 2D computational domain was used for the simulation. 
 The height of the domain is equal to 0.7m and the length might vary from case to case. 
 The weir has a height of P=0.401m and a width of b=0.5m. 
-A uniform velocity distribution from bottom to free  water level is imposed in the left
+A uniform velocity distribution from bottom to free water level is imposed in the left
 wall boundary condition. The top of the domain is left open and the right wall of the 
 domain allows the flow to leave the domain.
-In the following figure a simple sketch of the structure is presented showing the main parameters.
+In the following figure, a simple sketch of the structure is presented showing the main parameters.
 
 .. figure:: ./BroadWeir.bmp
 

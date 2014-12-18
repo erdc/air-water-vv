@@ -4,8 +4,8 @@ Dambreak Collagrosi benchmark case
 The problem consists of a 0.60m x 1.20m (height x width) column of water, initially at rest, 
 that collapses under the action of gravity and impacts to a wall. 
 The computational domain is a rectangular box with a heigth of 1.80m and a width of 3.22m. 
-The top of the domain is left open, when the rest of the boundary patches act as NoSlip walls. 
-In the following figure a sketch of the dambreak initial conditions is shown.
+The top of the domain is left open, when the rest of the boundary patches act as no slip walls. 
+In the following figure, a sketch of the dambreak initial conditions is shown.
 
 .. figure:: ./dambreakColagrossi.bmp
 
