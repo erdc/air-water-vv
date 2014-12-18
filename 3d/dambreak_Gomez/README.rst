@@ -2,11 +2,11 @@ Dambreak Gomez benchmark case
 ================================
 
 The problem consists of a 0.4m  x 0.3m x 0.61 (dx x dz x dy) column of water, initially at rest. 
-Under the action of gravity the water column interacts with an obstacle and collapses to a wall. 
+Under the action of gravity, the water column interacts with an obstacle and collapses to a wall. 
 The computational domain is a 3D rectangular box with  dimensions 1.6m long x 0.61m x 0.75m high. 
-The obstacle has dimensions 0.12m x 0.12m, is placed on the tank' s base and reaches the top of the doamin.                   
-The top of the domain is left open, when the rest of the boundary patches act as NoSlip walls. 
-In the following figure a sketch of the dambreak initial conditions is shown. 
+The obstacle has dimensions 0.12m x 0.12m, it is placed on the tank' s bottom and reaches the top of the doamin.                   
+The top of the domain is left open, when the rest of the boundary patches act as no slio walls. 
+In the following figure, a sketch of the dambreak initial conditions is shown. 
 
 .. figure:: ./dambreakGomez.JPG
 
