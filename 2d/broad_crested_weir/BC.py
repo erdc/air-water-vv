@@ -13,8 +13,8 @@ class boundaryConditions:
         return None    
     def constantValue(self,value):
         return lambda x,t: value
-    def linear(self,a1,a0,i):
-        return lambda x,t: a1*x[i]+a0
+    def linear(self,a0,a1,i):
+        return lambda x,t: a0 + a1*x[i]
 
 
 
@@ -72,7 +72,8 @@ class boundaryConditions:
         v = float(U[1])
         w = float(U[2])
 # This is the normal velocity, based on the inwards boundary orientation -b_or
-        u_p = -U[:]*b_or[:]
+        u_p =u*b_or[0]+v*b_or[1]+w*b_or[2]
+        u_p = -u_p
         if x[vert_axis]<seaLevel:
             if BCType is "uDirichlet":
                 return self.constantValue(u)
@@ -109,12 +110,12 @@ class boundaryConditions:
         If the boundary is aligned with one of the main axes, sets the tangential velocity components to zero as well
         THIS CONDITION IS BEST USED FOR BOUNDARIES AND GRAVITY ALIGNED WITH ONE OF THE MAIN AXES
         """
-        self.BCTypeCheck(BCType)#
-        a1 = -rho*abs(g[vert_axis])
-        a2 = pRef + refLevel*rho*abs(g[vert_axis])
+        self.BCTypeCheck(BCType)
+        a0 = pRef - rho*g[vert_axis]*refLevel
+        a1 = rho*g[vert_axis]
 # This is the normal velocity, based on the boundary orientation
         if BCType is "pDirichlet":
-            return self.linear(a1,a2,vert_axis)
+            return self.linear(a0,a1,vert_axis)
         if (BCType is "uDirichlet") and( b_or[0]==0):
             return self.constantValue(0.)
         if (BCType is "vDirichlet") and (b_or[1]==0):
@@ -147,8 +148,8 @@ class boundaryConditions:
         self.BCTypeCheck(BCType)
         BC = self.hydrostaticPressureOutlet(BCType,rhoUp,g,refLevel,b_or,pRef,vert_axis)
         if BCType is "pDirichlet" and x[vert_axis]<seaLevel:
-            a1 = -rhoDown*abs(g[vert_axis])
-            a2 = pRef + (refLevel-seaLevel)*rhoUp*abs(g[vert_axis])
+            a0 = pRef - rhoUp*g[vert_axis]*(refLevel - seaLevel) - rhoDown*g[vert_axis]*seaLevel
+            a1 = rhoDown*g[vert_axis]
             return self.linear(a1,a2,vert_axis)
         else:
             return BC
