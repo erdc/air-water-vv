@@ -47,7 +47,7 @@ setBC = BC.boundaryConditions()
 def getDBC_p(x,flag):
     BCType = "pDirichlet"
     if flag == boundaryTags['top']:
-        return outflowPressure
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[0,1,0])
     if flag == boundaryTags['left']:
         return setBC.twoPhaseVelocityInlet(BCType,x,
                                      U=[inflow_velocity,0,0],
@@ -56,7 +56,7 @@ def getDBC_p(x,flag):
                                      )
                                      
     if flag == boundaryTags['right']:
-        return outflowPressure
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[1,0,0])
     if flag == boundaryTags['bottom']:
         return setBC.freeSlip(BCType)
 
@@ -64,7 +64,7 @@ def getDBC_p(x,flag):
 def getDBC_u(x,flag):
     BCType = "uDirichlet"
     if flag == boundaryTags['top']:
-        return lambda x,t: 0.0
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[0,1,0])
     if flag == boundaryTags['left']:
         return setBC.twoPhaseVelocityInlet(BCType,x,
                                      U=[inflow_velocity,0,0],
@@ -73,14 +73,14 @@ def getDBC_u(x,flag):
                                      )
                                      
     if flag == boundaryTags['right']:
-        return None
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[1,0,0])
     if flag == boundaryTags['bottom']:
         return setBC.freeSlip(BCType)
 
 def getDBC_v(x,flag):
     BCType = "vDirichlet"
     if flag == boundaryTags['top']:
-        return None
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[0,1,0])
     if flag == boundaryTags['left']:
         return setBC.twoPhaseVelocityInlet(BCType,x,
                                      U=[inflow_velocity,0,0],
@@ -88,7 +88,7 @@ def getDBC_v(x,flag):
                                      b_or=[1,0,0]
                                      )
     if flag == boundaryTags['right']:
-        return lambda x,t: 0.0
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[1,0,0])
     if flag == boundaryTags['bottom']:
         return setBC.freeSlip(BCType)
         
@@ -104,9 +104,9 @@ dirichletConditions = {0:getDBC_p,
 def getAFBC_p(x,flag):
     BCType = "pAdvective"
     if flag == boundaryTags['top']:
-        return None
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[0,1,0])
     if  flag == boundaryTags['right']:
-        return None
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[1,0,0])
     if flag == boundaryTags['left']:
         return setBC.twoPhaseVelocityInlet(BCType,x,
                                      U=[inflow_velocity,0,0],
@@ -123,9 +123,9 @@ def getAFBC_p(x,flag):
 def getAFBC_u(x,flag):
     BCType = "uAdvective"
     if flag == boundaryTags['top']:
-        return None
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[0,1,0])
     if  flag == boundaryTags['right']:
-        return None
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[1,0,0])
     if flag == boundaryTags['left']:
         return setBC.twoPhaseVelocityInlet(BCType,x,
                                      U=[inflow_velocity,0,0],
@@ -140,9 +140,9 @@ def getAFBC_u(x,flag):
 def getAFBC_v(x,flag):
     BCType = "vAdvective"
     if flag == boundaryTags['top']:
-        return None
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[0,1,0])
     if  flag == boundaryTags['right']:
-        return None
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[1,0,0])
     if flag == boundaryTags['left']:
         return setBC.twoPhaseVelocityInlet(BCType,x,
                                      U=[inflow_velocity,0,0],
@@ -158,16 +158,16 @@ def getAFBC_v(x,flag):
 
 def getDFBC_u(x,flag):
     BCType = "uDiffusive"    
-    if  flag == boundaryTags['top']:
-        return lambda x,t: 0.0
+    if flag == boundaryTags['top']:
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[0,1,0])
+    if  flag == boundaryTags['right']:
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[1,0,0])
     if flag == boundaryTags['left']:
         return setBC.twoPhaseVelocityInlet(BCType,x,
                                      U=[inflow_velocity,0,0],
                                      seaLevel=waterLine_z,
                                      b_or=[1,0,0]
                                      )
-    if  flag == boundaryTags['right']:
-        return lambda x,t: 0.0
     if flag == boundaryTags['bottom']:
         return setBC.freeSlip(BCType)
 
@@ -177,17 +177,16 @@ def getDFBC_u(x,flag):
     
 def getDFBC_v(x,flag):
     BCType = "vDiffusive"
-    if  flag == boundaryTags['top']:
-        return lambda x,t: 0.0
+    if flag == boundaryTags['top']:
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[0,1,0])
+    if  flag == boundaryTags['right']:
+        return setBC.hydrostaticPressureOutlet(BCType,rho_1,g,refLevel=L[1],b_or=[1,0,0])
     if flag == boundaryTags['left']:
         return setBC.twoPhaseVelocityInlet(BCType,x,
                                      U=[inflow_velocity,0,0],
                                      seaLevel=waterLine_z,
                                      b_or=[1,0,0]
                                      )
-
-    if  flag == boundaryTags['right']:
-        return lambda x,t: 0.0
     if flag == boundaryTags['bottom']:
         return setBC.freeSlip(BCType)
         
