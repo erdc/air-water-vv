@@ -27,12 +27,11 @@ class boundaryConditions:
         Returns Advective conditions as zero, leaving the rest not defined
         """
         self.BCTypeCheck(BCType)
-        if ("Advective" in BCType):
+        if ("Advective" in BCType) and ("vof" not in BCType):
             BC=self.constantValue(0.0)
-            return BC
-        else:
-            BC=self.empty()
-            return BC
+        return self.empty()
+
+
 
     def noSlip(self,BCType):
         """Imposes a noSlipCondition
@@ -43,10 +42,10 @@ class boundaryConditions:
         self.BCTypeCheck(self,BCType)
         if (BCType is "uDirichlet") or (BCType is "vDirichlet") or (BCType is "wDirichlet") or ("Advective" in BCType):
             BC=self.constantValue(0.0)
+            if "vof" in BCType:
+                BC = self.empty()
             return BC
-        else:
-            BC=self.empty()
-            return BC
+        return self.empty()
 #: U=0
     def twoPhaseVelocityInlet(self,BCType,x,U,seaLevel,b_or,vert_axis=1,air=1.0,water=0.0):
         """Imposes a velocity profile lower than the sea level and an open boundary for higher than the sealevel
@@ -83,7 +82,9 @@ class boundaryConditions:
                 return self.constantValue(w)
             if BCType is "pAdvective":
                 return self.constantValue(u_p)
-        elif x[vert_axis]>seaLevel:
+            if BCType is "vofDirichlet":
+                return self.constantValue(u_p)   
+        elif x[vert_axis]>=seaLevel:
             if (BCType is "uDirichlet") and( u==0.):
                 return self.constantValue(0.0)
             if (BCType is "vDirichlet") and (v==0.):
@@ -92,8 +93,7 @@ class boundaryConditions:
                 return self.constantValue(0.0)
             if "Diffusive" in BCType:
                 return self.constantValue(0.0)
-        else:
-            return self.empty()
+        return self.empty()
 
     def hydrostaticPressureOutlet(self,BCType,rho,g,refLevel,b_or,pRef=0.0,vert_axis=1):
         """Imposes a hydrostatic pressure profile and  open boundary conditions
@@ -123,9 +123,10 @@ class boundaryConditions:
         if (BCType is "wDirichlet") and (b_or[2]==0):
             return self.constantValue(0.)
         if "Diffusive" in BCType:
-            return self.constantValue(0.0)
-        else:
-            return self.empty()
+            return self.constantValue(0.0)        
+        if BCType is "vofDirichlet":
+            return self.constantValue(a_1)        
+        return self.empty()
                
 
     def hydrostaticPressureOutletWithDepth(self,BCType,x,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef=0.0,vert_axis=1):
@@ -150,9 +151,10 @@ class boundaryConditions:
         if BCType is "pDirichlet" and x[vert_axis]<seaLevel:
             a0 = pRef - rhoUp*g[vert_axis]*(refLevel - seaLevel) - rhoDown*g[vert_axis]*seaLevel
             a1 = rhoDown*g[vert_axis]
-            return self.linear(a1,a2,vert_axis)
-        else:
-            return BC
+            return self.linear(a0,a1,vert_axis)
+        if BCType is "vofDirichlet" and x[vert_axis]<seaLevel:
+            return self.constantValue(a_0)
+        return BC
     def forcedOutlet(self,BCType,x,U,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef=0.0,vert_axis=1):
         """Imposes a known velocit & pressure profile at the outflow
         Takes the following arguments
@@ -172,14 +174,12 @@ class boundaryConditions:
         """
         self.BCTypeCheck(BCType)
         BC1 = self.hydrostaticPressureOutletWithDepth(BCType,x,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef,vert_axis)
-        BC2 = self.twoPhaseVelocityInlet(BCType,x,-U,seaLevel,b_or,vert_axis,air,water)
+        BC2 = self.twoPhaseVelocityInlet(BCType,x,U,seaLevel,b_or,vert_axis,air,water)
         if "Dirichlet" in BCType:
-            if BCType is "pDirichlet":
-                return BC1
-            else:
+            if BCType is ("uDirichlet" or "vDirichlet" or "wDirichlet" or "vofDirichlet"):
                 return BC2
-        else:
-            return self.empty()
+        return BC1
+
             
 
                 
