@@ -1,8 +1,9 @@
+
 from proteus import *
 from proteus.default_p import *
 from broad_crested_weir import *
 from proteus.mprans import RANS2P
-from setBCfunction import *
+import BC as BC 
 
 LevelModelType = RANS2P.LevelModel
 if useOnlyVF:
@@ -39,49 +40,127 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    turbulenceClosureModel=ns_closure)
 
 
+setBC = BC.boundaryConditions()
 
 def getDBC_p(x,flag):
     BCType = "pDirichlet"
-    return createBoundaryCondition(x,flag,BCType)
+    if flag == boundaryTags['top']:
+        return outflowPressure
+    if flag == boundaryTags['left']:
+        return None
+    if flag == boundaryTags['right']:
+        return outflowPressure
+    if flag == boundaryTags['bottom']:
+        return setBC.freeSlip(BCType)
+
 
 def getDBC_u(x,flag):
     BCType = "uDirichlet"
-
+    if flag == boundaryTags['top']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return lambda x,t: inflow_velocity
+    if flag == boundaryTags['right']:
+        return None
+    if flag == boundaryTags['bottom']:
+        return setBC.freeSlip(BCType)
 
 def getDBC_v(x,flag):
     BCType = "vDirichlet"
-    return createBoundaryCondition(x,flag,BCType)
+    if flag == boundaryTags['top']:
+        return None
+    if flag == boundaryTags['left']: 
+        return lambda x,t: 0.0
+    if flag == boundaryTags['right']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
+        return setBC.freeSlip(BCType)
+        
+
+
+
+
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
                        2:getDBC_v}
 
 def getAFBC_p(x,flag):
-    BCType = "pAdvective"
-    return createBoundaryCondition(x,flag,BCType)
+    BCType = "uAdvective"
+    if flag == boundaryTags['top']:
+        return None
+    if  flag == boundaryTags['right']:
+        return None
+    if  flag == boundaryTags['left']:
+        if x[1] <= waterLine_z:
+            return lambda x,t: -inflow_velocity
+    if flag == boundaryTags['bottom']:
+        return setBC.freeSlip(BCType)
+
 
 
 
 
 def getAFBC_u(x,flag):
-    BCType = "uAdvective"
-    return createBoundaryCondition(x,flag,BCType)
+    BCType = "vAdvective"
+    if flag == boundaryTags['top']:
+        return None
+    if  flag == boundaryTags['right']:
+        return None
+    if  flag == boundaryTags['left']:
+        return None
+    if flag == boundaryTags['bottom']:
+        return setBC.freeSlip(BCType)
 
 
     
 def getAFBC_v(x,flag):
-    BCType = "vAdvective"
-    return createBoundaryCondition(x,flag,BCType)
+    BCType = "wAdvective"
+    if flag == boundaryTags['top']:
+        return None
+    if  flag == boundaryTags['right']:
+        return None
+    if  flag == boundaryTags['left']:
+        return None
+    if flag == boundaryTags['bottom']:
+        return setBC.freeSlip(BCType)
+
+
+
 
 
 def getDFBC_u(x,flag):
     BCType = "uDiffusive"    
-    return createBoundaryCondition(x,flag,BCType)
+    if  flag == boundaryTags['top']:
+        return lambda x,t: 0.0
+    if  flag == boundaryTags['left']:
+        if x[1] > waterLine_z:
+            return lambda x,t: 0.0
+    if  flag == boundaryTags['right']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
+        return setBC.freeSlip(BCType)
+
+
+
 
     
 def getDFBC_v(x,flag):
     BCType = "vDiffusive"
-    return createBoundaryCondition(x,flag,BCType)
+    if  flag == boundaryTags['top']:
+        return lambda x,t: 0.0
+    if  flag == boundaryTags['left']:
+        if x[1] > waterLine_z:
+            return lambda x,t: 0.0
+    if  flag == boundaryTags['right']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
+        return setBC.freeSlip(BCType)
+        
+
+
+
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,
                                     1:getAFBC_u,

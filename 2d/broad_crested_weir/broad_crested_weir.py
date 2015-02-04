@@ -1,3 +1,4 @@
+
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -202,6 +203,7 @@ else:
     else:
         boundaries=['left','right','bottom','top','front','back']
         boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
+
         vertices=[[0.0,0.0],#0
                   [obst[0],0.0], #1
                   [obst[0],obst[1]], #2  
