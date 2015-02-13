@@ -7,6 +7,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus import Gauges
 from proteus.Gauges import PointGauges
+import WaveTools
 #from proteus.Gauges import LineGauges
 
 
@@ -16,18 +17,27 @@ inflowHeightMean = 1.0
 inflowVelocityMean = (0.0,0.0)
 period = 1.94
 omega = 2.0*math.pi/period
-waveheight = 0.025
+waveheight = 0.1
 amplitude = waveheight/ 2.0
 wavelength = 5.0
 k = 2.0*math.pi/wavelength
-   
+
+waves = WaveTools.RandomWaves(Tp = 1.94,
+                              Hs = 0.1,
+                              d  = 1.0,
+                              fp = 1.0/1.94,
+                              bandFactor = 2.0,
+                              N = 101,
+                              mwl = 1.0,
+                              g = 9.8)#shouldn't mwl = d always?
+
 #  Discretization -- input options  
 genMesh=True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
 useSuperlu=False
-timeDiscretization='be'#'vbdf'#'be','flcbdf'
+timeDiscretization='be'#'be','vbdf','flcbdf'
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
@@ -149,34 +159,34 @@ else:
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=2*period
-dt_fixed = period/21.0
-dt_init = min(0.1*dt_fixed,0.001)
+T=20*period
+dt_fixed = T#2.0*0.5/20.0#T/2.0#period/21.0
+dt_init = min(0.1*dt_fixed,0.1)
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
-backgroundDiffusionFactor=0.01
+backgroundDiffusionFactor=0.0
 if useMetrics:
     ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.25
+    ls_shockCapturingFactor  = 0.35
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = 0.35
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.25
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
-    redist_Newton = False
+    epsFact_redistance = 1.5
+    epsFact_consrv_diffusion = 10.0
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
@@ -213,11 +223,11 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-10,0.001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.001*he**2)
-ls_nl_atol_res = max(1.0e-10,0.001*he**2)
+ns_nl_atol_res = max(1.0e-10,0.0001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.0001*he**2)
+ls_nl_atol_res = max(1.0e-10,0.0001*he**2)
 rd_nl_atol_res = max(1.0e-10,0.005*he)
-mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
+mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
@@ -271,14 +281,24 @@ sigma = omega - k*inflowVelocityMean[0]
 h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
 
 def waveHeight(x,t):
-    return inflowHeightMean + amplitude*cos(theta(x,t))
+    return inflowHeightMean + waves.eta(x[0],t)
 
 def waveVelocity_u(x,t):
-    return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
+    return waves.u(x[0],x[1],t)
 
 def waveVelocity_v(x,t):
-    return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
+    return waves.w(x[0],x[1],t)
 
+# def waveHeight(x,t):
+#     return inflowHeightMean + amplitude*cos(theta(x,t))
+ 
+# def waveVelocity_u(x,t):
+#     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
+
+# def waveVelocity_v(x,t):
+#     return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
+
+ 
 #solution variables
 
 def wavePhi(x,t):
@@ -305,6 +325,9 @@ outflowHeight=inflowHeightMean
 
 def outflowVF(x,t):
     return smoothedHeaviside(epsFact_consrv_heaviside*he,x[1] - outflowHeight)
+
+def outflowPhi(x,t):
+    return x[1] - outflowHeight
 
 def outflowPressure(x,t):
   if x[1]>inflowHeightMean:
