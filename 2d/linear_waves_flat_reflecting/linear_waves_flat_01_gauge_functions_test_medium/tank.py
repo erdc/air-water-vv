@@ -6,9 +6,8 @@ from proteus.Profiling import logEvent
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus import Gauges
-from proteus.Gauges import PointGauges
+from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 import WaveTools
-#from proteus.Gauges import LineGauges
 
 
 #wave generator
@@ -110,6 +109,15 @@ pointGauges = PointGauges(gauges=((('u','v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
                   sampleRate = 0,
                   fileName = 'combined_gauge_0_0.5_sample_all.txt')
 
+fields = ('vof',)
+
+lineColumnLeft  = ((0.01*L[0], 0, 0), (0.01*L[0], L[1], 0))
+lineColumnRight = ((0.99*L[0], 0, 0), (0.99*L[0], L[1], 0))
+columnLines = [lineColumnLeft,lineColumnRight]
+
+columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
+                                 fileName='column_gauge.csv')
+
 #lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_y=0':((0.0,0.0,0.0),(L[0],0.0,0.0))},linePoints=24)
 
 #lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
@@ -174,7 +182,7 @@ else:
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
         porosityTypes      = numpy.array([1.0,1.0,1.0])
-        dragAlphaTypes = numpy.array([0.0,10.0,0.0])
+        dragAlphaTypes = numpy.array([0.0,0.5/1.004e-6,0.0])
         dragBetaTypes = numpy.array([0.0,0.0,0.0])
     else:
         vertices=[[0.0,0.0],#0
@@ -214,7 +222,7 @@ else:
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=20*period
+T=40*period
 dt_fixed = T#2.0*0.5/20.0#T/2.0#period/21.0
 dt_init = min(0.1*dt_fixed,0.1)
 runCFL=0.9
@@ -344,14 +352,14 @@ def waveVelocity_u(x,t):
 def waveVelocity_v(x,t):
     return waves.w(x[0],x[1],t)
 
-# def waveHeight(x,t):
-#     return inflowHeightMean + amplitude*cos(theta(x,t))
+def waveHeight(x,t):
+     return inflowHeightMean + amplitude*cos(theta(x,t))
  
-# def waveVelocity_u(x,t):
-#     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
+def waveVelocity_u(x,t):
+     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
 
-# def waveVelocity_v(x,t):
-#     return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
+def waveVelocity_v(x,t):
+     return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
 
  
 #solution variables
@@ -369,7 +377,7 @@ def twpflowVelocity_u(x,t):
     return u
 
 def twpflowVelocity_v(x,t):
-    waterspeed = 0.0
+    waterspeed = waveVelocity_v(x,t)
     H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
     return H*windVelocity[1]+(1.0-H)*waterspeed
 
@@ -404,7 +412,6 @@ class RelaxationZoneWaveGenerator(AV_base):
     def __init__(self,usol,vsol,wsol,zoneCenter_x):
         self.u=usol;self.v=vsol;self.w=wsol;self.zoneCenter_x=zoneCenter_x
     def calculate(self):
-        print "updating velocity in relaxation zone-----------------------------------"
         for l,m in enumerate(self.model.levelModelList):
             for eN in range(m.coefficients.q_phi.shape[0]):
                 if m.mesh.elementMaterialTypes[eN] == 1:
@@ -414,7 +421,8 @@ class RelaxationZoneWaveGenerator(AV_base):
                         m.coefficients.q_phi_solid[eN,k] = self.zoneCenter_x - x[0]
                         m.coefficients.q_velocity_solid[eN,k,0] = self.u(x,t)
                         m.coefficients.q_velocity_solid[eN,k,1] = self.v(x,t)
+                        #print "phi_s,u_s,v_s",m.coefficients.q_phi_solid[eN,k],m.coefficients.q_velocity_solid[eN,k,0],m.coefficients.q_velocity_solid[eN,k,1]
                         #m.coefficients.q_velocity_solid[eN,k,2] = self.w(x,t)
 
 
-rzWaveGenerator = RelaxationZoneWaveGenerator(twpflowVelocity_u,twpflowVelocity_v,twpflowVelocity_w,xSponge/2.0)
+rzWaveGenerator = RelaxationZoneWaveGenerator(usol=twpflowVelocity_u,vsol=twpflowVelocity_v,wsol=twpflowVelocity_w,zoneCenter_x=xSponge/2.0)

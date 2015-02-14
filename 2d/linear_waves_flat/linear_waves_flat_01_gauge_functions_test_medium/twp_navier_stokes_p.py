@@ -50,10 +50,14 @@ def getDBC_p(x,flag):
 def getDBC_u(x,flag):
     if flag == boundaryTags['left']:
         return twpflowVelocity_u
+    elif flag == boundaryTags['right']:
+        return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
     if flag == boundaryTags['left']:
         return twpflowVelocity_v
+    elif flag == boundaryTags['right']:
+        return lambda x,t: 0.0
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,

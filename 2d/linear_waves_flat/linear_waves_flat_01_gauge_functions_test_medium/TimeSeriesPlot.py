@@ -65,9 +65,9 @@ for j in range (0,int(NumberOfProbes)):
   for i in range (1,int(n)):
     b[i-1,:]=D[i].split(',')
   b = numpy.array(b,dtype=float32)
-  p_PR=b[:,1]
-  u_PR=b[:,2]
-  v_PR=b[:,4]
+  p_PR=b[:,5]
+  u_PR=b[:,1]
+  v_PR=b[:,3]
   time_PR=b[:,0]
 
   y_theor=zeros(int(n),float)
@@ -79,7 +79,7 @@ for j in range (0,int(NumberOfProbes)):
 
   fig1 = figure()
   fig1.add_subplot(1,1,1)
-  plot(time_PR,p_PR,"k-",lw=1.5,label='p_GF')
+  plot(time_PR,p_PR,"k-+",lw=1.5,label='p_GF')
   plot(time,p,"bo",lw=1,label='p_PV')
   legend(bbox_to_anchor=[0.99,0.99],ncol=2,fontsize=13)
   ##xlim(80,90)
@@ -94,9 +94,9 @@ for j in range (0,int(NumberOfProbes)):
 
   fig2 = figure()
   fig2.add_subplot(1,1,1)
-  plot(time_PR,u_PR,"k-",lw=1.5,label='u_GF')
+  plot(time_PR,u_PR,"k-+",lw=1.5,label='u_GF')
   plot(time,u,"bo",lw=1,label='u_PV')
-  plot(time_PR,v_PR,"k-",color = '0.3',lw=1.5,label='v_GF')
+  plot(time_PR,v_PR,"k-+",color = '0.3',lw=1.5,label='v_GF')
   plot(time,v,"bo",lw=1,label='v_PV')
   legend(bbox_to_anchor=[0.99,0.99],ncol=2,fontsize=13)
   ylim(-0.03,0.06)
@@ -107,3 +107,9 @@ for j in range (0,int(NumberOfProbes)):
   ylabel(r"$velocity (m/s)$",fontsize=16)
   xlabel(r'$time (s)$', fontsize=16)
   savefig('probe_graph_vel' + str(j) +'.png',dpi=100)
+  dt_PR = time_PR[1:] - time_PR[:-1]
+  fix,(ax1,ax2) = subplots(2)
+  ax1.plot(time_PR,p_PR,label='dt_num')
+  ax2.plot(time_PR[1:],dt_PR,label='dt_num')
+  savefig('dt_graph.png',dpi=100)
+  
