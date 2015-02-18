@@ -16,13 +16,13 @@ inflowHeightMean = 1.0
 inflowVelocityMean = (0.0,0.0)
 period = 1.94
 omega = 2.0*math.pi/period
-waveheight = 0.1
+waveheight = 0.25
 amplitude = waveheight/ 2.0
 wavelength = 5.0
 k = 2.0*math.pi/wavelength
 
 waves = WaveTools.RandomWaves(Tp = 1.94,
-                              Hs = 0.1,
+                              Hs = 0.25,
                               d  = 1.0,
                               fp = 1.0/1.94,
                               bandFactor = 2.0,
@@ -88,13 +88,17 @@ elif spaceOrder == 2:
 #for debugging, make the tank short
 L = (6.0*float(wavelength),1.50)
 he = float(wavelength)/50
+#he*=0.5
 GenerationZoneLength = wavelength
 AbsorptionZoneLength= wavelength*2.0
 spongeLayer = True
 xSponge = L[0]/3.0#L[0] - 2.25
 xRelaxCenter = xSponge/2.0
-ySponge = 0.0#L[2] - L[2]/2.0
 epsFact_solid = xSponge/2.0
+#zone 2
+xSponge_2 = 2.0*L[0]/3.0#L[0] - 2.25
+xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
+epsFact_solid_2 = xSponge_2/2.0
 
 weak_bc_penalty_constant = 100.0
 nLevels = 1
@@ -140,33 +144,43 @@ else:
                   [L[0],L[1]],#2
                   [0.0,L[1]],#3
                   [xSponge,0.0],#4
-                  [xSponge,L[1]]]#5
+                  [xSponge,L[1]],#5
+                  [xSponge_2,0.0],#6
+                  [xSponge_2,L[1]]]#7
 
         vertexFlags=[boundaryTags['bottom'],
                      boundaryTags['bottom'],
                      boundaryTags['top'],  
                      boundaryTags['top'],  
                      boundaryTags['bottom'],  
+                     boundaryTags['top'],
+                     boundaryTags['bottom'],  
                      boundaryTags['top']]
         segments=[[0,4],
-                  [4,1],
+                  [4,6],
+                  [6,1],
                   [1,2],
-                  [2,5],
+                  [2,7],
+                  [7,5],
                   [5,3],  
                   [3,0],
                   [4,5],
-                  ]
+                  [6,7]]
         segmentFlags=[boundaryTags['bottom'],
+                      boundaryTags['bottom'],
                       boundaryTags['bottom'],
                       boundaryTags['right'],
                       boundaryTags['top'],
                       boundaryTags['top'],
+                      boundaryTags['top'],
                       boundaryTags['left'],
+                      0,
                       0]
-
-        regions=[ [ 0.5*xSponge, 0.5*L[1] ],
-                  [0.95*L[0] , 0.95*L[1] ] ]
-        regionFlags=[1,2]
+    
+        regions=[[xRelaxCenter, 0.5*L[1]],
+                 [xRelaxCenter_2, 0.5*L[1]],
+                 [0.5*L[0],0.5*L[1]]]
+        regionFlags=[1,2,3]
         domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
                                                       vertexFlags=vertexFlags,
                                                       segments=segments,
@@ -181,9 +195,15 @@ else:
         triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
-        porosityTypes      = numpy.array([1.0,1.0,1.0])
-        dragAlphaTypes = numpy.array([0.0,0.5/1.004e-6,0.0])
-        dragBetaTypes = numpy.array([0.0,0.0,0.0])
+        porosityTypes      = numpy.array([1.0,
+                                          1.0,
+                                          1.0,
+                                          1.0])
+        dragAlphaTypes = numpy.array([0.0,
+                                      0.5/1.004e-6,
+                                      0.5/1.004e-6,
+                                      0.0])
+        dragBetaTypes = numpy.array([0.0,0.0,0.0,0.0])
     else:
         vertices=[[0.0,0.0],#0
                   [L[0],0.0],#1
@@ -343,14 +363,14 @@ def z(x):
 sigma = omega - k*inflowVelocityMean[0]
 h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
 
-def waveHeight(x,t):
-    return inflowHeightMean + waves.eta(x[0],t)
+#def waveHeight(x,t):
+#    return inflowHeightMean + waves.eta(x[0],t)
 
-def waveVelocity_u(x,t):
-    return waves.u(x[0],x[1],t)
+#def waveVelocity_u(x,t):
+#    return waves.u(x[0],x[1],t)
 
-def waveVelocity_v(x,t):
-    return waves.w(x[0],x[1],t)
+#def waveVelocity_v(x,t):
+#    return waves.w(x[0],x[1],t)
 
 def waveHeight(x,t):
      return inflowHeightMean + amplitude*cos(theta(x,t))
@@ -408,21 +428,45 @@ def outflowPressure(x,t):
 def twpflowVelocity_w(x,t):
     return 0.0
 
+def zeroVel(x,t):
+    return 0.0
+
+from collections import  namedtuple
+
+RelaxationZone = namedtuple("RelaxationZone","center_x sign u v w")
+
 class RelaxationZoneWaveGenerator(AV_base):
-    def __init__(self,usol,vsol,wsol,zoneCenter_x):
-        self.u=usol;self.v=vsol;self.w=wsol;self.zoneCenter_x=zoneCenter_x
+    """ Prescribe a velocity penalty scaling in a material zone via a Darcy-Forchheimer penalty
+    
+    :param zones: A dictionary mapping integer material types to Zones, where a Zone is a named tuple
+    specifying the x coordinate of the zone center and the velocity components
+    """
+    def __init__(self,zones):
+        assert isinstance(zones,dict)
+        self.zones = zones
     def calculate(self):
         for l,m in enumerate(self.model.levelModelList):
             for eN in range(m.coefficients.q_phi.shape[0]):
-                if m.mesh.elementMaterialTypes[eN] == 1:
+                mType = m.mesh.elementMaterialTypes[eN]
+                if self.zones.has_key(mType):
                     for k in range(m.coefficients.q_phi.shape[1]):
                         t = m.timeIntegration.t
                         x = m.q['x'][eN,k]
-                        m.coefficients.q_phi_solid[eN,k] = self.zoneCenter_x - x[0]
-                        m.coefficients.q_velocity_solid[eN,k,0] = self.u(x,t)
-                        m.coefficients.q_velocity_solid[eN,k,1] = self.v(x,t)
-                        #print "phi_s,u_s,v_s",m.coefficients.q_phi_solid[eN,k],m.coefficients.q_velocity_solid[eN,k,0],m.coefficients.q_velocity_solid[eN,k,1]
-                        #m.coefficients.q_velocity_solid[eN,k,2] = self.w(x,t)
+                        m.coefficients.q_phi_solid[eN,k] = self.zones[mType].sign*(self.zones[mType].center_x - x[0])
+                        m.coefficients.q_velocity_solid[eN,k,0] = self.zones[mType].u(x,t)
+                        m.coefficients.q_velocity_solid[eN,k,1] = self.zones[mType].v(x,t)
+                        #m.coefficients.q_velocity_solid[eN,k,2] = self.zones[mType].w(x,t)
+        m.q['phi_solid'] = m.coefficients.q_phi_solid
+        m.q['velocity_solid'] = m.coefficients.q_velocity_solid
 
+rzWaveGenerator = RelaxationZoneWaveGenerator(zones={1:RelaxationZone(xRelaxCenter,
+                                                                      1.0,
+                                                                      twpflowVelocity_u,
+                                                                      twpflowVelocity_v,
+                                                                      twpflowVelocity_w),
+                                                    2:RelaxationZone(xRelaxCenter_2,
+                                                                     -1.0,
+                                                                     zeroVel,
+                                                                     zeroVel,
+                                                                     zeroVel)})
 
-rzWaveGenerator = RelaxationZoneWaveGenerator(usol=twpflowVelocity_u,vsol=twpflowVelocity_v,wsol=twpflowVelocity_w,zoneCenter_x=xSponge/2.0)
