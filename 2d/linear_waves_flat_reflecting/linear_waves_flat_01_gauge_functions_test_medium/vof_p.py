@@ -17,9 +17,9 @@ coefficients = VOF.Coefficients(LS_model=LS_model,V_model=0,RD_model=RD_model,ME
                                 epsFact=epsFact_vof,sc_uref=vof_sc_uref,sc_beta=vof_sc_beta,movingDomain=movingDomain)
 
 def getDBC_vof(x,flag):
-   if flag == boundaryTags['left']:
-       return waveVF
-   elif flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
+#   if flag == boundaryTags['left']:
+#       return waveVF
+   if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
        return lambda x,t: 1.0
 #   elif flag == boundaryTags['right']:
 #       return  outflowVF
@@ -27,9 +27,9 @@ def getDBC_vof(x,flag):
 dirichletConditions = {0:getDBC_vof}
 
 def getAFBC_vof(x,flag):
-    if flag == boundaryTags['left']:
-        return None
-    elif flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
+#    if flag == boundaryTags['left']:
+#        return None
+    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
         return None
  #   elif flag == boundaryTags['right']:
  #       return None

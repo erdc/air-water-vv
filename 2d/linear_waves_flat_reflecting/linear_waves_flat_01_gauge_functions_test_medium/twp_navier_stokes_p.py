@@ -92,24 +92,37 @@ dirichletConditions = {0:getDBC_p,
                        2:getDBC_v}
 
 def getAFBC_p(x,flag):
+    #no flow on left
     if flag == boundaryTags['left']:
-        return lambda x,t: -twpflowVelocity_u(x,t)
+        return lambda x,t: 0.0#-twpflowVelocity_u(x,t)
     elif flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
         return lambda x,t: 0.0
     
 def getAFBC_u(x,flag):
+    #no flow on left
+    if flag == boundaryTags['left']:
+        return lambda x,t: 0.0
     if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
         return lambda x,t: 0.0
     
 def getAFBC_v(x,flag):
+    #no flow on left
+    if flag == boundaryTags['left']:
+        return lambda x,t: 0.0
     if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
         return lambda x,t: 0.0
     
 def getDFBC_u(x,flag):
+    #no flow on left
+    if flag == boundaryTags['left']:
+        return lambda x,t: 0.0
     if flag != boundaryTags['left']:
         return lambda x,t: 0.0
     
 def getDFBC_v(x,flag):
+    #no flow on left
+    if flag == boundaryTags['left']:
+        return lambda x,t: 0.0
     if flag != boundaryTags['left']:
         return lambda x,t: 0.0
 
