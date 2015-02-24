@@ -417,7 +417,7 @@ class RelaxationZoneWaveGenerator(AV_base):
                     for k in range(m.coefficients.q_phi.shape[1]):
                         t = m.timeIntegration.t
                         x = m.q['x'][eN,k]
-                        m.coefficients.q_phi_solid[eN,k] = self.zoneCenter_x - x[0]
+                        m.coefficients.q_phi_solid[eN,k] = - self.zoneCenter_x + x[0]
                         m.coefficients.q_velocity_solid[eN,k,0] = self.u(x,t)
                         m.coefficients.q_velocity_solid[eN,k,1] = self.v(x,t)
                         #print "phi_s,u_s,v_s",m.coefficients.q_phi_solid[eN,k],m.coefficients.q_velocity_solid[eN,k,0],m.coefficients.q_velocity_solid[eN,k,1]
