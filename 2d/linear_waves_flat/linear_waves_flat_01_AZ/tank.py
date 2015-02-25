@@ -85,7 +85,7 @@ spongeLayer = True
 xSponge = L[0]-AbsorptionZoneLength
 xRelaxCenter = (L[0]+xSponge)/2.0
 ySponge = 0.0
-epsFact_solid = xSponge/2.0
+epsFact_solid = AbsorptionZoneLength/2.0
 
 weak_bc_penalty_constant = 100.0
 nLevels = 1
