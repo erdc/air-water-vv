@@ -76,14 +76,16 @@ def getDBC_p(x,flag):
 #        return outflowPressure
     
 def getDBC_u(x,flag):
-    if flag == boundaryTags['left']:
-        return twpflowVelocity_u
+    return None
+#    if flag == boundaryTags['left']:
+#        return twpflowVelocity_u
 #    elif flag == boundaryTags['right']:
 #        return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
-    if flag == boundaryTags['left']:
-        return twpflowVelocity_v
+    return None
+#    if flag == boundaryTags['left']:
+#        return twpflowVelocity_v
 #    elif flag == boundaryTags['right']:
 #        return lambda x,t: 0.0
 

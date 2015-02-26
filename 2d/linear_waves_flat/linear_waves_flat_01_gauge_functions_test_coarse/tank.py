@@ -1,7 +1,7 @@
+import math
 from math import *
 import proteus.MeshTools
-from proteus import Domain
-from proteus.default_n import *   
+from proteus import Domain,FemTools,Quadrature
 from proteus.Profiling import logEvent
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
@@ -56,24 +56,24 @@ nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,2)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,2)     	 
+	 basis=FemTools.C0_AffineLinearOnCubeWithNodalBasis
+         elementQuadrature = Quadrature.CubeGaussQuadrature(nd,2)
+         elementBoundaryQuadrature = Quadrature.CubeGaussQuadrature(nd-1,2)     	 
     else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3) 	    
+    	 basis=FemTools.C0_AffineLinearOnSimplexWithNodalBasis
+         elementQuadrature = Quadrature.SimplexGaussQuadrature(nd,3)
+         elementBoundaryQuadrature = Quadrature.SimplexGaussQuadrature(nd-1,3) 	    
 elif spaceOrder == 2:
     hFactor=0.5
     if useHex:    
-	basis=C0_AffineLagrangeOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)    
+        basis=FemTools.C0_AffineLagrangeOnCubeWithNodalBasis
+        elementQuadrature = Quadrature.CubeGaussQuadrature(nd,4)
+        elementBoundaryQuadrature = Quadrature.CubeGaussQuadrature(nd-1,4)    
     else:    
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis	
-        elementQuadrature = SimplexGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
-    
+        basis=FemTools.C0_AffineQuadraticOnSimplexWithNodalBasis	
+        elementQuadrature = Quadrature.SimplexGaussQuadrature(nd,4)
+        elementBoundaryQuadrature = Quadarture.SimplexGaussQuadrature(nd-1,4)
+
 # Domain and mesh
 
 #for debugging, make the tank short
