@@ -1,0 +1,201 @@
+Info    : Running 'gmsh U_Pipe.geo -v 10 -3 -o gmsh.mesh -format mesh -clscale 1' [Gmsh 2.8.2, 1 node, max. 1 thread]
+Info    : Started on Wed Feb 11 15:37:20 2015
+Info    : Reading 'U_Pipe.geo'...
+Info    : Reading 'U pipe.step'...
+      ...    Step File Reading : U pipe.step
+      ...    STEP File   Read    ... 
+Elapsed time: 0 Hours 0 Minutes 0.000594 Seconds 
+CPU user time: 0 seconds 
+CPU system time: 0 seconds 
+      ... Step File loaded  ... 
+Elapsed time: 0 Hours 0 Minutes 0.001295 Seconds 
+CPU user time: 0 seconds 
+CPU system time: 0 seconds 
+   316 records (entities,sub-lists,scopes), 777 parameters
+
+      ... Parameters prepared ... Elapsed time: 0 Hours 0 Minutes 0.006963 Seconds 
+CPU user time: 0.01 seconds 
+CPU system time: 0.02 seconds 
+      ...   Objets analysed  ... 
+Elapsed time: 0 Hours 0 Minutes 0.007823 Seconds 
+CPU user time: 0.01 seconds 
+CPU system time: 0.03 seconds 
+  STEP Loading done : 211 Entities
+Info    : Done reading 'U pipe.step'
+Info    : Creating topology from mesh...
+Info    : Removing duplicate mesh vertices...
+Info    : Found 0 duplicate vertices 
+Info    : No duplicate vertices found
+Info    : Done creating topology from mesh (0 s)
+Info    : Done reading 'U_Pipe.geo'
+Info    : Meshing 1D...
+Info    : Meshing curve 1 (Circle)
+Info    : Meshing curve 2 (BSpline)
+Info    : Meshing curve 3 (Circle)
+Info    : Meshing curve 4 (Circle)
+Info    : Meshing curve 5 (Circle)
+Info    : Meshing curve 6 (BSpline)
+Info    : Meshing curve 7 (Circle)
+Info    : Meshing curve 8 (BSpline)
+Info    : Done meshing 1D (0.002999 s)
+Info    : Meshing 2D...
+Info    : Meshing surface 1 (Unknown, Delaunay)
+Info    : 351 points that are duplicated for Delaunay meshing
+Info    : Meshing surface 2 (Plane, Delaunay)
+Info    : Writing voronoi and skeleton.pos
+Info    : Meshing surface 3 (Unknown, Delaunay)
+Info    : 351 points that are duplicated for Delaunay meshing
+Info    : Meshing surface 4 (Plane, Delaunay)
+Info    : Writing voronoi and skeleton.pos
+Info    : Meshing surface 5 (Unknown, Delaunay)
+Info    : 169 points that are duplicated for Delaunay meshing
+Info    : Done meshing 2D (7.2766 s)
+Info    : Meshing 3D...
+Info    : Meshing volume 1 (Delaunay)
+  Initializing memorypools.
+  Size of a point: 128 bytes.
+  Size of a tetrahedron: 96 (96) bytes.
+  Size of a shellface: 192 (192) bytes.
+Delaunizing vertices...
+  Sorting vertices by a bsp-tree.
+  Number of tree nodes: 76.
+  Maximum tree node size: 1687.
+  Maximum tree depth: 11.
+  Incrementally inserting vertices.
+Delaunay seconds:  3.05
+  Point sorting seconds:  0.01
+Creating surface mesh ...
+  54502 (81753) subfaces (segments).
+Surface mesh seconds:  0.21
+Recovering boundaries...
+  Flip link level = -1
+  Recovering segments.
+  81753 (0) segments are recovered (missing).
+  Recovering facets.
+  54502 (0) subfaces are recovered (missing).
+Boundary recovery seconds:  0.79
+  Segment recovery seconds:  0.49
+  Facet recovery seconds:  0.3
+Removing exterior tetrahedra ...
+Exterior tets removal seconds:  0.38
+Suppressing Steiner points ...
+Steiner suppression seconds:  0
+Recovering Delaunayness...
+  max_flipstarsize = 10.
+  max_fliplinklevel = 1.
+  Initial obj = 3.3285672881396797
+Delaunay recovery seconds:  0.39
+Optimizing mesh...
+  Removed 5336 bad tets.
+Optimization seconds:  0.37
+
+Writing nodes.
+Writing elements.
+Writing faces.
+Writing edges.
+
+Output seconds:  0.26
+Total running seconds:  5.45
+
+Statistics:
+
+  Input points: 27253
+  Input facets: 54502
+  Input segments: 81753
+  Input holes: 0
+  Input regions: 0
+
+  Mesh points: 27253
+  Mesh tetrahedra: 161379
+  Mesh faces: 350009
+  Mesh edges: 215882
+  Mesh boundary faces: 54502
+  Mesh boundary edges: 81753
+
+Mesh quality statistics:
+
+  Smallest volume:       2.0262e-10   |  Largest volume:       2.1683e-05
+  Shortest edge:          0.0054355   |  Longest edge:           0.076295
+  Smallest asp.ratio:        1.4634   |  Largest asp.ratio:        1455.1
+  Smallest facangle:         4.0924   |  Largest facangle:       169.6748
+  Smallest dihedral:       0.091202   |  Largest dihedral:       179.4484
+
+  Aspect ratio histogram:
+         < 1.5       :         1      |      6 - 10         :     28204
+     1.5 - 2         :        45      |     10 - 15         :     40497
+       2 - 2.5       :        64      |     15 - 25         :     23056
+     2.5 - 3         :        62      |     25 - 50         :     26088
+       3 - 4         :        83      |     50 - 100        :     22841
+       4 - 6         :       559      |    100 -            :     19879
+  (A tetrahedron's aspect ratio is its longest edge length divided by its
+    smallest side height)
+
+  Face angle histogram:
+      0 -  10 degrees:     66466      |     90 - 100 degrees:     24521
+     10 -  20 degrees:    162687      |    100 - 110 degrees:     28134
+     20 -  30 degrees:    142012      |    110 - 120 degrees:     34278
+     30 -  40 degrees:    101095      |    120 - 130 degrees:     39222
+     40 -  50 degrees:     86329      |    130 - 140 degrees:     50277
+     50 -  60 degrees:     87804      |    140 - 150 degrees:     59988
+     60 -  70 degrees:     68118      |    150 - 160 degrees:     28962
+     70 -  80 degrees:     40953      |    160 - 170 degrees:      3495
+     80 -  90 degrees:     25686      |    170 - 180 degrees:         0
+
+  Dihedral angle histogram:
+       0 -  5 degrees:    146808      |     80 - 110 degrees:     50235
+       5 - 10 degrees:    107926      |    110 - 120 degrees:     17735
+      10 - 20 degrees:    142889      |    120 - 130 degrees:     18957
+      20 - 30 degrees:     76316      |    130 - 140 degrees:     20781
+      30 - 40 degrees:     54388      |    140 - 150 degrees:     26507
+      40 - 50 degrees:     39460      |    150 - 160 degrees:     42160
+      50 - 60 degrees:     26586      |    160 - 170 degrees:     71517
+      60 - 70 degrees:     19217      |    170 - 175 degrees:     40532
+      70 - 80 degrees:     17130      |    175 - 180 degrees:     49130
+
+
+Info    : 27253 points 81753 edges and 54502 faces in the initial mesh
+Info    : Found region 1
+Info    : 27253 points created - Worst tet radius is 4.79322 (PTS removed 0 0)
+Info    : 32252 points created - Worst tet radius is 1.43926 (PTS removed 0 1)
+Info    : 37250 points created - Worst tet radius is 1.21657 (PTS removed 0 3)
+Info    : 42250 points created - Worst tet radius is 1.07577 (PTS removed 0 3)
+Info    : 3D point insertion terminated (46259 points created):
+Info    :  - 7 Delaunay cavities modified for star shapeness
+Info    :  - 3 points could not be inserted
+Info    :  - 199256 tetrahedra created in 4.05438 sec. (49145 tets/sec.)
+Info    : Done meshing 3D (12.1602 s)
+Info    : Optimizing 3D mesh...
+Info    : Optimizing volume 1
+Info    : Opti : START with  3.86733E-02 QBAD  3.16432E-03 QAVG  6.51768E-01
+Info    : Opti : 0.00 < QUAL < 0.10 :       701 elements
+Info    : Opti : 0.10 < QUAL < 0.20 :      1995 elements
+Info    : Opti : 0.20 < QUAL < 0.30 :      3647 elements
+Info    : Opti : 0.30 < QUAL < 0.40 :      5817 elements
+Info    : Opti : 0.40 < QUAL < 0.50 :     10915 elements
+Info    : Opti : 0.50 < QUAL < 0.60 :     33748 elements
+Info    : Opti : 0.60 < QUAL < 0.70 :     61637 elements
+Info    : Opti : 0.70 < QUAL < 0.80 :     57860 elements
+Info    : Opti : 0.80 < QUAL < 0.90 :     21378 elements
+Info    : Opti : 0.90 < QUAL < 1.00 :      1558 elements
+Info    : Opti : (15545,0,6842) =  3.86733E-02 QBAD  4.41075E-02 QAVG  6.85462E-01 (   1.126 sec)
+Info    : Opti : (17152,1,9077) =  3.86733E-02 QBAD  6.90022E-02 QAVG  6.87965E-01 (   1.627 sec)
+Info    : Opti : (17414,1,9981) =  3.86733E-02 QBAD  6.90022E-02 QAVG  6.88362E-01 (   2.022 sec)
+Info    : Opti : (17458,1,10459) =  3.86733E-02 QBAD  6.90022E-02 QAVG  6.88435E-01 (   2.431 sec)
+Info    : Opti : (17469,1,10799) =  3.86733E-02 QBAD  6.90022E-02 QAVG  6.88456E-01 (   2.815 sec)
+Info    : Opti : 1 illegal tets are still in the mesh
+Info    : Opti : 0.00 < QUAL < 0.10 :         1 elements
+Info    : Opti : 0.10 < QUAL < 0.20 :         1 elements
+Info    : Opti : 0.20 < QUAL < 0.30 :         9 elements
+Info    : Opti : 0.30 < QUAL < 0.40 :       128 elements
+Info    : Opti : 0.40 < QUAL < 0.50 :      2860 elements
+Info    : Opti : 0.50 < QUAL < 0.60 :     36427 elements
+Info    : Opti : 0.60 < QUAL < 0.70 :     62056 elements
+Info    : Opti : 0.70 < QUAL < 0.80 :     60426 elements
+Info    : Opti : 0.80 < QUAL < 0.90 :     24979 elements
+Info    : Opti : 0.90 < QUAL < 1.00 :      1890 elements
+Info    : Done optimizing 3D mesh (4.31934 s)
+Info    : 46343 vertices 244290 elements
+Info    : Writing 'gmsh.mesh'...
+Info    : Done writing 'gmsh.mesh'
+Info    : Stopped on Wed Feb 11 15:37:49 2015
+scale=1
