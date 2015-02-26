@@ -30,6 +30,13 @@ waves = WaveTools.RandomWaves(Tp = 1.94,
                               mwl = 1.0,
                               g = 9.8)#shouldn't mwl = d always?
 
+waves = WaveTools.MonochromaticWaves(period = 1.94,
+                                     waveHeight = 0.25,
+                                     seaLevel  = 1.0,
+                                     depth = 1.0,
+                                     meanVelocity = 0.0,
+                                     g = 9.8)
+
 #  Discretization -- input options  
 genMesh=True
 movingDomain=False
@@ -87,18 +94,18 @@ elif spaceOrder == 2:
 
 #for debugging, make the tank short
 L = (6.0*float(wavelength),1.50)
-he = float(wavelength)/50
+he = float(wavelength)/25
 #he*=0.5
 GenerationZoneLength = wavelength
 AbsorptionZoneLength= wavelength*2.0
 spongeLayer = True
 xSponge = L[0]/3.0#L[0] - 2.25
 xRelaxCenter = xSponge/2.0
-epsFact_solid = xSponge/2.0
+epsFact_solid = xSponge/4.0
 #zone 2
 xSponge_2 = 2.0*L[0]/3.0#L[0] - 2.25
 xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-epsFact_solid_2 = xSponge_2/2.0
+epsFact_solid_2 = (L[0]-xSponge_2)/4.0#not used yet
 
 weak_bc_penalty_constant = 100.0
 nLevels = 1
@@ -117,7 +124,9 @@ fields = ('vof',)
 
 lineColumnLeft  = ((0.01*L[0], 0, 0), (0.01*L[0], L[1], 0))
 lineColumnRight = ((0.99*L[0], 0, 0), (0.99*L[0], L[1], 0))
-columnLines = [lineColumnLeft,lineColumnRight]
+lineColumnLeftRelax  = ((xSponge,   0, 0), (xSponge  , L[1], 0))
+lineColumnRightRelax = ((xSponge_2, 0, 0), (xSponge_2, L[1], 0))
+columnLines = [lineColumnLeft,lineColumnLeftRelax,lineColumnRightRelax,lineColumnRight]
 
 columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
                                  fileName='column_gauge.csv')
@@ -363,23 +372,23 @@ def z(x):
 sigma = omega - k*inflowVelocityMean[0]
 h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
 
-#def waveHeight(x,t):
-#    return inflowHeightMean + waves.eta(x[0],t)
-
-#def waveVelocity_u(x,t):
-#    return waves.u(x[0],x[1],t)
-
-#def waveVelocity_v(x,t):
-#    return waves.w(x[0],x[1],t)
-
 def waveHeight(x,t):
-     return inflowHeightMean + amplitude*cos(theta(x,t))
- 
+    return inflowHeightMean + waves.eta(x[0],t)
+
 def waveVelocity_u(x,t):
-     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
+    return waves.u(x[0],x[1],t)
 
 def waveVelocity_v(x,t):
-     return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
+    return waves.w(x[0],x[1],t)
+
+#def waveHeight(x,t):
+#     return inflowHeightMean + amplitude*cos(theta(x,t))
+# 
+#def waveVelocity_u(x,t):
+#     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
+#
+#def waveVelocity_v(x,t):
+#     return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
 
  
 #solution variables
