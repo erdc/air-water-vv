@@ -7,7 +7,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus import Gauges
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
-import WaveTools
+from proteus import WaveTools
 
 
 #wave generator
