@@ -1,16 +1,20 @@
 from proteus import *
 from proteus.default_p import *
-from tank import *
+ct = Context.get()
 from proteus.mprans import RANS2P
+L = ct.L
+T = ct.T
+domain = ct.domain
+nd = ct.nd
 
 LevelModelType = RANS2P.LevelModel
-if useOnlyVF:
+if ct.useOnlyVF:
     LS_model = None
 else:
     LS_model = 2
-if useRANS >= 1:
+if ct.useRANS >= 1:
     Closure_0_model = 5; Closure_1_model=6
-    if useOnlyVF:
+    if ct.useOnlyVF:
         Closure_0_model=2; Closure_1_model=3
     if movingDomain:
         Closure_0_model += 1; Closure_1_model += 1
@@ -18,67 +22,67 @@ else:
     Closure_0_model = None
     Closure_1_model = None
 
-coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
+coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
-                                   rho_0 = rho_0,
-                                   nu_0 = nu_0,
-                                   rho_1 = rho_1,
-                                   nu_1 = nu_1,
-                                   g=g,
-                                   nd=nd,
+                                   rho_0 = ct.rho_0,
+                                   nu_0 = ct.nu_0,
+                                   rho_1 = ct.rho_1,
+                                   nu_1 = ct.nu_1,
+                                   g=ct.g,
+                                   nd=ct.nd,
                                    VF_model=1,
                                    LS_model=LS_model,
                                    Closure_0_model=Closure_0_model,
                                    Closure_1_model=Closure_1_model,
-                                   epsFact_density=epsFact_density,
+                                   epsFact_density=ct.epsFact_density,
                                    stokes=False,
-                                   useVF=useVF,
-                                   useRBLES=useRBLES,
-                                   useMetrics=useMetrics,
+                                   useVF=ct.useVF,
+                                   useRBLES=ct.useRBLES,
+                                   useMetrics=ct.useMetrics,
                                    eb_adjoint_sigma=1.0,
-                                   eb_penalty_constant=weak_bc_penalty_constant,
-                                   forceStrongDirichlet=ns_forceStrongDirichlet,
-                                   turbulenceClosureModel=ns_closure,
-                                   movingDomain=movingDomain)
+                                   eb_penalty_constant=ct.weak_bc_penalty_constant,
+                                   forceStrongDirichlet=ct.ns_forceStrongDirichlet,
+                                   turbulenceClosureModel=ct.ns_closure,
+                                   movingDomain=ct.movingDomain)
 
 def getDBC_p(x,flag):
-    if flag == boundaryTags['top']:
+    if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
-    elif flag == boundaryTags['right']:
-        return outflowPressure
+    elif flag == ct.boundaryTags['right']:
+        return ct.outflowPressure
     
 def getDBC_u(x,flag):
-    if flag == boundaryTags['left']:
-        return twpflowVelocity_u
+    if flag == ct.boundaryTags['left']:
+        return ct.twpflowVelocity_u
 
 def getDBC_v(x,flag):
-    if flag == boundaryTags['left']:
-        return twpflowVelocity_v
+    if flag == ct.boundaryTags['left']:
+        return ct.twpflowVelocity_v
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
                        2:getDBC_v}
 
 def getAFBC_p(x,flag):
-    if flag == boundaryTags['left']:
-        return lambda x,t: -twpflowVelocity_u(x,t)
-    elif flag == boundaryTags['bottom']:
+    if flag == ct.boundaryTags['left']:
+        return lambda x,t: -ct.twpflowVelocity_u(x,t)
+    elif flag == ct.boundaryTags['bottom']:
         return lambda x,t: 0.0
     
 def getAFBC_u(x,flag):
-    if flag == boundaryTags['bottom']:
+    if flag == ct.boundaryTags['bottom']:
         return lambda x,t: 0.0
     
 def getAFBC_v(x,flag):
-    if flag == boundaryTags['bottom']:
+    if flag == ct.boundaryTags['bottom']:
         return lambda x,t: 0.0
     
 def getDFBC_u(x,flag):
-    if flag != boundaryTags['left']:
+    if flag != ct.boundaryTags['left']:
         return lambda x,t: 0.0
     
 def getDFBC_v(x,flag):
-    if flag != boundaryTags['left']:
+    if flag != ct.boundaryTags['left']:
         return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,
@@ -93,10 +97,10 @@ class PerturbedSurface_p:
     def __init__(self,waterLevel):
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
-        if signedDistance(x) < 0:
-            return -(L[1] - self.waterLevel)*rho_1*g[1] - (self.waterLevel - x[1])*rho_0*g[1]
+        if ct.signedDistance(x) < 0:
+            return -(L[1] - self.waterLevel)*ct.rho_1*ct.g[1] - (self.waterLevel - x[1])*ct.rho_0*ct.g[1]
         else:
-            return -(L[1] - self.waterLevel)*rho_1*g[1]
+            return -(L[1] - self.waterLevel)*ct.rho_1*ct.g[1]
 
 class AtRest:
     def __init__(self):
@@ -104,6 +108,6 @@ class AtRest:
     def uOfXT(self,x,t):
         return 0.0
 
-initialConditions = {0:PerturbedSurface_p(waterLine_z),
+initialConditions = {0:PerturbedSurface_p(ct.waterLine_z),
                      1:AtRest(),
                      2:AtRest()}
