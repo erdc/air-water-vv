@@ -124,9 +124,10 @@ fields = ('vof',)
 
 lineColumnLeft  = ((0.01*L[0], 0, 0), (0.01*L[0], L[1], 0))
 lineColumnRight = ((0.99*L[0], 0, 0), (0.99*L[0], L[1], 0))
+lineColumnMidRelax  = ((xSponge/2.0,   0, 0), (xSponge/2.0  , L[1], 0))
 lineColumnLeftRelax  = ((xSponge,   0, 0), (xSponge  , L[1], 0))
 lineColumnRightRelax = ((xSponge_2, 0, 0), (xSponge_2, L[1], 0))
-columnLines = [lineColumnLeft,lineColumnLeftRelax,lineColumnRightRelax,lineColumnRight]
+columnLines = [lineColumnLeft,lineColumnMidRelax,lineColumnLeftRelax,lineColumnRightRelax,lineColumnRight]
 
 columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
                                  fileName='column_gauge.csv')
@@ -253,7 +254,7 @@ else:
 # Time stepping
 T=40*period
 dt_fixed = T#2.0*0.5/20.0#T/2.0#period/21.0
-dt_init = min(0.1*dt_fixed,0.1)
+dt_init = period/100.0
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
