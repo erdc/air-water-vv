@@ -18,7 +18,7 @@ coefficients = RDLS.Coefficients(applyRedistancing=applyRedistancing,
 
 def getDBC_rd(x,flag):
     pass
-    
+
 dirichletConditions     = {0:getDBC_rd}
 weakDirichletConditions = {0:RDLS.setZeroLSweakDirichletBCsSimple}
 

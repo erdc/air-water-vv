@@ -8,15 +8,19 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus import Gauges
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 from proteus import WaveTools
-
+#from proteus import Context
+#Context.declareOptions((
+#    (windVelocity, (0.0,0.0), "the velocity above  the free  surface"),
+#    ))
 
 #wave generator
+#windVelocity = Context.opts.windVelocity
 windVelocity = (0.0,0.0)
 inflowHeightMean = 1.0
 inflowVelocityMean = (0.0,0.0)
 period = 1.94
 omega = 2.0*math.pi/period
-waveheight = 0.25
+waveheight = 0.125
 amplitude = waveheight/ 2.0
 wavelength = 5.0
 k = 2.0*math.pi/wavelength
@@ -30,12 +34,12 @@ waves = WaveTools.RandomWaves(Tp = 1.94,
                               mwl = 1.0,
                               g = 9.8)#shouldn't mwl = d always?
 
-waves = WaveTools.MonochromaticWaves(period = 1.94,
-                                     waveHeight = 0.25,
-                                     seaLevel  = 1.0,
-                                     depth = 1.0,
-                                     meanVelocity = 0.0,
-                                     g = 9.8)
+#waves = WaveTools.MonochromaticWaves(period = 1.94,
+#                                     waveHeight = 0.25,
+#                                     seaLevel  = 1.0,
+#                                     depth = 1.0,
+#                                     meanVelocity = 0.0,
+#                                     g = 9.8)
 
 #  Discretization -- input options  
 genMesh=True
@@ -95,7 +99,7 @@ elif spaceOrder == 2:
 #for debugging, make the tank short
 L = (6.0*float(wavelength),1.50)
 he = float(wavelength)/25
-#he*=0.5
+he*=0.5
 GenerationZoneLength = wavelength
 AbsorptionZoneLength= wavelength*2.0
 spongeLayer = True
@@ -125,8 +129,10 @@ fields = ('vof',)
 lineColumnLeft  = ((0.01*L[0], 0, 0), (0.01*L[0], L[1], 0))
 lineColumnRight = ((0.99*L[0], 0, 0), (0.99*L[0], L[1], 0))
 lineColumnLeftRelax  = ((xSponge,   0, 0), (xSponge  , L[1], 0))
+lineColumnLeftMidRelax  = ((xRelaxCenter,   0, 0), (xRelaxCenter  , L[1], 0))
 lineColumnRightRelax = ((xSponge_2, 0, 0), (xSponge_2, L[1], 0))
-columnLines = [lineColumnLeft,lineColumnLeftRelax,lineColumnRightRelax,lineColumnRight]
+lineColumnRightMidRelax = ((xRelaxCenter_2, 0, 0), (xRelaxCenter_2, L[1], 0))
+columnLines = [lineColumnLeft,lineColumnLeftMidRelax,lineColumnLeftRelax,lineColumnRightRelax,lineColumnRightMidRelax,lineColumnRight]
 
 columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
                                  fileName='column_gauge.csv')
@@ -315,8 +321,8 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-10,0.0001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.0001*he**2)
+ns_nl_atol_res = max(1.0e-10,0.00001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.00001*he**2)
 ls_nl_atol_res = max(1.0e-10,0.0001*he**2)
 rd_nl_atol_res = max(1.0e-10,0.005*he)
 mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
@@ -381,14 +387,14 @@ def waveVelocity_u(x,t):
 def waveVelocity_v(x,t):
     return waves.w(x[0],x[1],t)
 
-#def waveHeight(x,t):
-#     return inflowHeightMean + amplitude*cos(theta(x,t))
-# 
-#def waveVelocity_u(x,t):
-#     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
-#
-#def waveVelocity_v(x,t):
-#     return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
+def waveHeight(x,t):
+     return inflowHeightMean + amplitude*cos(theta(x,t))
+ 
+def waveVelocity_u(x,t):
+     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
+
+def waveVelocity_v(x,t):
+     return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
 
  
 #solution variables
