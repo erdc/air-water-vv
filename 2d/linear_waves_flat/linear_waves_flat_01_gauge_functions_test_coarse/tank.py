@@ -8,17 +8,21 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus import Gauges
 from proteus.Gauges import PointGauges
 #from proteus.Gauges import LineGauges
-
-
+from proteus import Context
+opts=Context.declareAndGetInputOptions([
+    ("inflowHeightMean",1.0,"Free surface height at flume inflow"),
+    ("inflowVelocityMean",(0.0,0.0),"Velocity at flume inflow"),
+    ("wavelength",5.0,"Wavelength of generated waves"),
+    ("refinementLevel",1,"Set maximum element diameter to he/2**refinementLevel")])
 #wave generator
 windVelocity = (0.0,0.0)
-inflowHeightMean = 1.0
-inflowVelocityMean = (0.0,0.0)
+inflowHeightMean = opts.inflowHeightMean
+inflowVelocityMean = opts.inflowVelocityMean
 period = 1.94
 omega = 2.0*math.pi/period
 waveheight = 0.025
 amplitude = waveheight/ 2.0
-wavelength = 5.0
+wavelength = opts.wavelength
 k = 2.0*math.pi/wavelength
    
 #  Discretization -- input options  
@@ -79,6 +83,7 @@ elif spaceOrder == 2:
 #for debugging, make the tank short
 L = (6.0*float(wavelength),1.50)
 he = float(wavelength)/10
+he *= (0.5)**opts.refinementLevel
 GenerationZoneLength = wavelength
 AbsorptionZoneLength= wavelength*2.0
 
