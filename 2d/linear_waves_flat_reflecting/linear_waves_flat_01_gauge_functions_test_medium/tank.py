@@ -26,7 +26,7 @@ wavelength = 5.0
 k = 2.0*math.pi/wavelength
 
 waves = WaveTools.RandomWaves(Tp = 1.94,
-                              Hs = 0.25,
+                              Hs = waveheight,
                               d  = 1.0,
                               fp = 1.0/1.94,
                               bandFactor = 2.0,
@@ -34,12 +34,12 @@ waves = WaveTools.RandomWaves(Tp = 1.94,
                               mwl = 1.0,
                               g = 9.8)#shouldn't mwl = d always?
 
-#waves = WaveTools.MonochromaticWaves(period = 1.94,
-#                                     waveHeight = 0.25,
-#                                     seaLevel  = 1.0,
-#                                     depth = 1.0,
-#                                     meanVelocity = 0.0,
-#                                     g = 9.8)
+waves = WaveTools.MonochromaticWaves(period = 1.94,
+                                     waveHeight = waveheight,
+                                     seaLevel  = 1.0,
+                                     depth = 1.0,
+                                     meanVelocity = 0.0,
+                                     g = 9.8)
 
 #  Discretization -- input options  
 genMesh=True
