@@ -1,0 +1,19 @@
+extends: [namespace_package]
+dependencies:
+  build: [proteus, cython, numpy]
+  run: [proteus, numpy]
+
+sources:
+  - url: https://github.com/erdc-cm/proteus-mprans
+    key: git:fc5a90c2a50bb9716460876ad1ee91da598ff8f3
+
+profile_links:
+  - name: python_packages
+    mode: replace
+    link: 'lib/python{{pyver}}/site-packages/proteus/mprans'
+    dirs: true
+
+  - name: python_exclude
+    after: python_packages
+    before: everything
+    exclude: 'lib/python{{pyver}}/site-packages/**/*'
