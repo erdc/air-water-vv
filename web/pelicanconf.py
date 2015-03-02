@@ -26,6 +26,8 @@ LINKS = (('Pelican', 'http://getpelican.com/'),
 
 DEFAULT_PAGINATION = 10
 
+STATIC_PATHS = ['images',]
+
 THEME = '../stack.Darwin/share/pelican-bootstrap3'
 BOOTSTRAP_THEME = 'lumen'
 
