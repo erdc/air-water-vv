@@ -9,8 +9,8 @@ extends:
   - file: stack.yaml
 
   - name: hashstack
-    key: 'git:d03563364134b52ff9ccb1279eaf9197750c9522'
-    urls: ['https://github.com/hashdist/hashstack.git']
+    key: 'git:2e76f62151463c2b0ca9cd4ab2f9c8312a6191ad'
+    urls: ['/Users/aron/hashstack']
     file: osx.yaml
 
 # prefer homebrew-installed compilers
