@@ -27,6 +27,7 @@ LINKS = (('Pelican', 'http://getpelican.com/'),
 DEFAULT_PAGINATION = 10
 
 THEME = '../stack.Darwin/share/pelican-bootstrap3'
+BOOTSTRAP_THEME = 'lumen'
 
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
