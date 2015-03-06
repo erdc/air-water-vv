@@ -91,7 +91,7 @@ epsFact_solid = xSponge/2.0
 xSponge_2 = L[0]-AbsorptionZoneLength
 ySponge_3= L[1]-AbsorptionZoneLength
 xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-epsFact_solid_2 = (L[0]-AbsorptionZoneLength)/2.0
+epsFact_solid_2 = AbsorptionZoneLength/2.0
 
 nLevels = 1
 weak_bc_penalty_constant = 100.0
