@@ -105,11 +105,11 @@ AbsorptionZoneLength= wavelength*2.0
 spongeLayer = True
 xSponge = L[0]/3.0#L[0] - 2.25
 xRelaxCenter = xSponge/2.0
-epsFact_solid = xSponge/4.0
+epsFact_solid = xSponge/2.0
 #zone 2
 xSponge_2 = 2.0*L[0]/3.0#L[0] - 2.25
 xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-epsFact_solid_2 = (L[0]-xSponge_2)/4.0#not used yet
+epsFact_solid_2 = (L[0]-xSponge_2)/2.0
 
 weak_bc_penalty_constant = 100.0
 nLevels = 1
@@ -219,6 +219,7 @@ else:
                                       0.5/1.004e-6,
                                       0.0])
         dragBetaTypes = numpy.array([0.0,0.0,0.0,0.0])
+        epsFact_solidTypes = np.array([0.0,epsFact_solid,epsFact_solid_2,0.0])
     else:
         vertices=[[0.0,0.0],#0
                   [L[0],0.0],#1
