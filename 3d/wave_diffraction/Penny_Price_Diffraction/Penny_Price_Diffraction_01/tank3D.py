@@ -76,7 +76,7 @@ elif spaceOrder == 2:
 
     
 # Domain and mesh
-L = (float(5.0*wavelength), 30.0, 1.50)
+L = (float(6.0*wavelength), 30.0, 1.50)
 x1=2.0*wavelength
 x2=x1+0.01
 y1=2.0*wavelength
@@ -620,32 +620,32 @@ class RelaxationZoneWaveGenerator(AV_base):
         m.q['velocity_solid'] = m.coefficients.q_velocity_solid
 
 rzWaveGenerator = RelaxationZoneWaveGenerator(zones={1:RelaxationZone(phi_solid,
-                                                                      -1.0,
+                                                                      1.0,
                                                                       twpflowVelocity_u,
                                                                       twpflowVelocity_v,
                                                                       twpflowVelocity_w),
                                                     2:RelaxationZone(phi_solid,
-                                                                     1.0,
+                                                                     -1.0,
                                                                      zeroVel,
                                                                      zeroVel,
                                                                      zeroVel),
                                                     3:RelaxationZone(phi_solid,
-                                                                      -1.0,
+                                                                      1.0,
                                                                       twpflowVelocity_u,
                                                                       twpflowVelocity_v,
                                                                       twpflowVelocity_w),
                                                     4:RelaxationZone(phi_solid,
-                                                                     1.0,
+                                                                     -1.0,
                                                                      zeroVel,
                                                                      zeroVel,
                                                                      zeroVel),
                                                     5:RelaxationZone(phi_solid,
-                                                                     1.0,
+                                                                     -1.0,
                                                                      zeroVel,
                                                                      zeroVel,
                                                                      zeroVel),
                                                     6:RelaxationZone(phi_solid,
-                                                                     1.0,
+                                                                     -1.0,
                                                                      zeroVel,
                                                                      zeroVel,
                                                                      zeroVel)})
