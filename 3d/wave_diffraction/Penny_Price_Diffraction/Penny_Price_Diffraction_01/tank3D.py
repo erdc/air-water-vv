@@ -16,7 +16,7 @@ period = 1.94
 omega = 2.0*math.pi/period
 #waveheight = 0.10
 #amplitude = waveheight/ 2.0
-wavelength = 5.0
+wavelength =  5.0
 k = 2.0*math.pi/wavelength
  
 
@@ -73,6 +73,7 @@ elif spaceOrder == 2:
 	basis=C0_AffineQuadraticOnSimplexWithNodalBasis	
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
+
     
 # Domain and mesh
 L = (float(5.0*wavelength), 30.0, 1.50)
@@ -80,7 +81,7 @@ x1=2.0*wavelength
 x2=x1+0.01
 y1=2.0*wavelength
 
-he = wavelength/50
+he = wavelength/20
 
 GenerationZoneLength = wavelength*1.0
 AbsorptionZoneLength= wavelength*2.0
@@ -92,9 +93,10 @@ xRelaxCenter = xSponge/2.0
 epsFact_solid = xSponge/2.0
 #zone 2
 xSponge_2 = L[0]-AbsorptionZoneLength
-ySponge_3= L[1]-AbsorptionZoneLength
+ySponge_2= L[1]-AbsorptionZoneLength
 xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-epsFact_solid_2 = (L[0]-AbsorptionZoneLength)/2.0
+yRelaxCenter_2 = 0.5*(ySponge_2+L[1])
+epsFact_solid_2 = AbsorptionZoneLength/2.0
 
 nLevels = 1
 weak_bc_penalty_constant = 100.0
@@ -155,17 +157,20 @@ else:
                   [xSponge_2,0.0,0.0],#2 
                   [L[0],0.0,0.0],#3
                   [L[0],y1,0.0], #4
-                  [L[0],L[1],0.0],#5
-                  [xSponge_2,L[1],0.0],#6
-                  [x2,L[1],0.0],#7
-                  [x2,y1,0.0],#8
-                  [x1,y1,0.0],#9
-                  [x1,L[1],0.0],#10
-                  [xSponge,L[1],0.0],#11
-                  [0.0,L[1],0.0], #12
-                  [0.0,y1,0.0], #13
-                  [xSponge,y1,0.0], #14
-                  [xSponge_2,y1,0.0]]#15
+                  [L[0],ySponge_2,0.0],#5
+                  [L[0],L[1],0.0],#6
+                  [xSponge_2,L[1],0.0],#7
+                  [x2,L[1],0.0],#8
+                  [x2,ySponge_2,0.0],#9
+                  [x2,y1,0.0],#10
+                  [x1,y1,0.0],#11
+                  [x1,L[1],0.0],#12
+                  [xSponge,L[1],0.0],#13
+                  [0.0,L[1],0.0], #14
+                  [0.0,y1,0.0], #15
+                  [xSponge,y1,0.0], #16
+                  [xSponge_2,y1,0.0], #17
+                  [xSponge_2,ySponge_2,0.0]] #18
              
         vertexFlags=[]
         for i in range(0,int(len(vertices))):
@@ -188,23 +193,30 @@ else:
                   [10,11],
                   [11,12],
                   [12,13],
-                  [13,0],
-                  [1,14],
-                  [14,11],
                   [13,14],
-                  [14,9],
-                  [2,15],
-                  [15,6],
-                  [8,15],
-                  [15,4]]
+                  [14,15],
+                  [15,0],
+                  [1,16],
+                  [16,13],
+                  [15,16],
+                  [16,11],
+                  [2,17],
+                  [17,18],
+                  [18,7],                   
+                  [10,17],
+                  [17,4],
+                  [9,18],
+                  [18,5]]
                  
         segmentFlags=[boundaryTags['front'],
                      boundaryTags['front'],
                      boundaryTags['front'],                 
                      boundaryTags['right'],
                      boundaryTags['right'],
+                     boundaryTags['right'],
                      boundaryTags['back'],
                      boundaryTags['back'],
+                     boundaryTags['obst'],
                      boundaryTags['obst'],
                      boundaryTags['obst'],
                      boundaryTags['obst'],
@@ -212,6 +224,9 @@ else:
                      boundaryTags['back'],
                      boundaryTags['left'],
                      boundaryTags['left'],
+                     boundaryTags['empty'],
+                     boundaryTags['empty'],
+                     boundaryTags['empty'],
                      boundaryTags['empty'],
                      boundaryTags['empty'],
                      boundaryTags['empty'],
@@ -229,7 +244,7 @@ else:
             facets.append([[s[0],s[1],s[1]+int(len(vertices)/2),s[0]+int(len(vertices)/2)]])
             facetFlags.append(sF)
 
-        bf=[[0,1,14,13],[1,2,15,8,9,14],[2,3,4,15],[13,14,11,12],[14,9,10,11],[8,15,6,7],[15,4,5,6]]
+        bf=[[0,1,16,15],[1,2,17,10,11,16],[2,3,4,17],[15,16,13,14],[16,11,12,13],[10,17,18,9],[9,18,7,8],[17,4,5,18],[18,5,6,7]]
         tf=[]
  
         for i in range(0,int(len(bf))):
@@ -244,20 +259,23 @@ else:
         print facets
         print facetFlags
 
-        regions=[[xRelaxCenter, 0.01*L[1],0.0],
-                 [xRelaxCenter_2, 0.01*L[1], 0.0],
-                 [xRelaxCenter, 0.99*L[1],0.0],
-                 [xRelaxCenter_2, 0.99*L[1],0.0],
-                 [0.5*L[0],0.1*L[1], 0.0]]
-        regionFlags=[1,2,3,4,5]
+        regions=[[xRelaxCenter, 0.01,0.0],#1
+                 [xRelaxCenter_2, 0.01, 0.0],#2
+                 [xRelaxCenter, 0.99*L[1],0.0],#3
+                 [xRelaxCenter_2, y1+0.1,0.0],#4
+                 [xRelaxCenter_2, 0.99*L[1],0.0],#5
+                 [x2+0.01,yRelaxCenter_2,0.0],#6
+                 [x1,0.01, 0.0]]#7
+
+        regionFlags=[1,2,3,4,5,6,7]
 
         domain = Domain.PiecewiseLinearComplexDomain(vertices=vertices,
                                                      vertexFlags=vertexFlags,
                                                      facets=facets,
                                                      facetFlags=facetFlags,
                                                      regions=regions,
-                                                     regionFlags=regionFlags,
-                                                     )
+                                                     regionFlags=regionFlags)
+
         #go ahead and add a boundary tags member 
         domain.boundaryTags = boundaryTags
         domain.writePoly("mesh")
@@ -275,19 +293,28 @@ else:
                                           1.0,
                                           1.0,
                                           1.0,
+                                          1.0,
+                                          1.0,
+                                          1.0,
+                                          1.0,
                                           1.0])
-        dragAlphaTypes = numpy.array([0.0,
-                                      0.5/1.004e-6,
-                                      0.5/1.004e-6,
-                                      0.0,
-                                      0.0,
-                                      0.5/1.004e-6,
-                                      0.5/1.004e-6,
-                                      0.0])
 
-        dragBetaTypes = numpy.array([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
+        dragAlphaTypes = numpy.array([0.0, #1
+                                      0.5/1.004e-6,#1
+                                      0.5/1.004e-6, #2
+                                      0.0, #2
+                                      0.0, #3
+                                      0.5/1.004e-6,#3
+                                      0.5/1.004e-6,#4
+                                      0.0,#4
+                                      0.5/1.004e-6,#5
+                                      0.0,#5
+                                      0.5/1.004e-6,#6
+                                      0.0])#6
+
+        dragBetaTypes = numpy.array([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
         
-        epsFact_solidTypes = np.array([0.0,epsFact_solid,epsFact_solid_2,0.0,0.0,epsFact_solid,epsFact_solid_2,0.0])
+        epsFact_solidTypes = np.array([0.0,epsFact_solid,epsFact_solid_2,0.0,0.0,epsFact_solid,epsFact_solid_2,0.0,epsFact_solid_2,0.0,epsFact_solid_2,0.0])
 
     else:             
         vertices=[[0.0,0.0,0.0],#0
@@ -553,9 +580,20 @@ def waterVelocity(x,t):
 def zeroVel(x,t):
     return 0.0
 
+def phi_solid(x,t):
+  if x[0]<=x2:
+    return xRelaxCenter-x[0] #region 1 and 3
+  elif x[1]<=ySponge_2:   
+    return xRelaxCenter_2-x[0] #region 2 and 4
+  elif x[0]<=xSponge_2:
+    return yRelaxCenter_2-x[1] #region 6
+  else:
+    return epsFact_solid_2 -sqrt((x[0]-xSponge_2)**2 + (x[1]-ySponge_2)**2) #region 5
+
+
 from collections import  namedtuple
 
-RelaxationZone = namedtuple("RelaxationZone","center_x sign u v w")
+RelaxationZone = namedtuple("RelaxationZone","phi_solid sign u v w")
 
 class RelaxationZoneWaveGenerator(AV_base):
     """ Prescribe a velocity penalty scaling in a material zone via a Darcy-Forchheimer penalty
@@ -574,31 +612,41 @@ class RelaxationZoneWaveGenerator(AV_base):
                     for k in range(m.coefficients.q_phi.shape[1]):
                         t = m.timeIntegration.t
                         x = m.q['x'][eN,k]
-                        m.coefficients.q_phi_solid[eN,k] = self.zones[mType].sign*(self.zones[mType].center_x - x[0])
+                        m.coefficients.q_phi_solid[eN,k] = self.zones[mType].sign*self.zones[mType].phi_solid(x,t)
                         m.coefficients.q_velocity_solid[eN,k,0] = self.zones[mType].u(x,t)
                         m.coefficients.q_velocity_solid[eN,k,1] = self.zones[mType].v(x,t)
                         m.coefficients.q_velocity_solid[eN,k,2] = self.zones[mType].w(x,t)
         m.q['phi_solid'] = m.coefficients.q_phi_solid
         m.q['velocity_solid'] = m.coefficients.q_velocity_solid
 
-rzWaveGenerator = RelaxationZoneWaveGenerator(zones={1:RelaxationZone(xRelaxCenter,
-                                                                      1.0,
+rzWaveGenerator = RelaxationZoneWaveGenerator(zones={1:RelaxationZone(phi_solid,
+                                                                      -1.0,
                                                                       twpflowVelocity_u,
                                                                       twpflowVelocity_v,
                                                                       twpflowVelocity_w),
-                                                    2:RelaxationZone(xRelaxCenter_2,
-                                                                     -1.0,
+                                                    2:RelaxationZone(phi_solid,
+                                                                     1.0,
                                                                      zeroVel,
                                                                      zeroVel,
                                                                      zeroVel),
-                                                    3:RelaxationZone(xRelaxCenter,
-                                                                      1.0,
+                                                    3:RelaxationZone(phi_solid,
+                                                                      -1.0,
                                                                       twpflowVelocity_u,
                                                                       twpflowVelocity_v,
                                                                       twpflowVelocity_w),
-                                                    4:RelaxationZone(xRelaxCenter_2,
-                                                                     -1.0,
+                                                    4:RelaxationZone(phi_solid,
+                                                                     1.0,
+                                                                     zeroVel,
+                                                                     zeroVel,
+                                                                     zeroVel),
+                                                    5:RelaxationZone(phi_solid,
+                                                                     1.0,
+                                                                     zeroVel,
+                                                                     zeroVel,
+                                                                     zeroVel),
+                                                    6:RelaxationZone(phi_solid,
+                                                                     1.0,
                                                                      zeroVel,
                                                                      zeroVel,
                                                                      zeroVel)})
- 
+
