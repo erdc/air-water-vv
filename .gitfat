@@ -1,2 +1,2 @@
 [rsync]
-remote = mothership:cloud/air-water-fat
+remote = mothership:cloud-fat/air-water-fat

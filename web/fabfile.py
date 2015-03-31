@@ -14,8 +14,8 @@ production = 'root@localhost:22'
 dest_path = '/var/www'
 
 # Rackspace Cloud Files configuration settings
-env.cloudfiles_username = 'my_rackspace_username'
-env.cloudfiles_api_key = 'my_rackspace_api_key'
+env.cloudfiles_username  = 'my_rackspace_username'
+env.cloudfiles_api_key   = 'my_rackspace_api_key'
 env.cloudfiles_container = 'my_cloudfiles_container'
 
 

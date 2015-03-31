@@ -28,7 +28,7 @@ DEFAULT_PAGINATION = 10
 
 STATIC_PATHS = ['images',]
 
-THEME = '../stack.Darwin/share/pelican-bootstrap3'
+THEME = '../stack.linux2/share/pelican-bootstrap3'
 BOOTSTRAP_THEME = 'lumen'
 
 # Uncomment following line if you want document-relative URLs when developing

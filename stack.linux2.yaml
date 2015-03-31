@@ -1,0 +1,26 @@
+# This profile file controls your <#> (HashDist) build environment.
+
+# In the future, we'll provide better incorporation of
+# automatic environment detection.  For now, have a look
+# at the YAML files in the top-level directory and choose
+# the most *specific* file that matches your environment.
+
+extends:
+  - file: stack.yaml
+
+  - name: hashstack
+    key: 'git:d01464de08357a894c3a5fe227b15ec828bb2def'
+    urls: ['/home/cekees/proteus/stack']
+    file: debian.yaml
+
+# prefer homebrew-installed compilers
+parameters:
+  fortran: true
+  PATH: /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+
+packages:
+  blas:
+    use: host-blas
+  mpi:
+    use: mpich

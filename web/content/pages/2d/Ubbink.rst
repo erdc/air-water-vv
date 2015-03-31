@@ -9,6 +9,7 @@ The top of the domain is left open, when the rest of the boundary patches act as
 In the following figure, a sketch of the dambreak initial conditions is shown.
 
 .. figure:: {filename}/images/dambreakUbbink.bmp
+   :alt: dambreak domain
 
 This case tests the ability of PROTEUS to simulate the free-surface evolution and during the interaction of the dambreak front with the obstacle.
 The results of the simulations can be visually compared with the data in the following references.
