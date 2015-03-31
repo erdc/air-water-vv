@@ -1,0 +1,2 @@
+*.h5 filter=fat -crlf
+*.bmp filter=fat -crlf

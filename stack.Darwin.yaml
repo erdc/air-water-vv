@@ -1,0 +1,27 @@
+# This profile file controls your <#> (HashDist) build environment.
+
+# In the future, we'll provide better incorporation of
+# automatic environment detection.  For now, have a look
+# at the YAML files in the top-level directory and choose
+# the most *specific* file that matches your environment.
+
+extends:
+  - file: stack.yaml
+
+  - name: hashstack
+    key: 'git:2e76f62151463c2b0ca9cd4ab2f9c8312a6191ad'
+    urls: ['/Users/aron/hashstack']
+    file: osx.yaml
+
+# prefer homebrew-installed compilers
+parameters:
+  fortran: true
+  PATH: /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+  PROLOGUE: |
+    export MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion | sed "s/\(10.[0-9]\).*/\1/"); 
+
+packages:
+  blas:
+    use: host-osx-framework-accelerate
+  mpi:
+    use: mpich

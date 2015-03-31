@@ -1,0 +1,10 @@
+package_dirs:
+- private
+
+packages:
+  launcher:
+  git-fat:
+  pelican:
+  pelican-bootstrap3:
+  pelican-plugins:
+  proteus-mprans:
