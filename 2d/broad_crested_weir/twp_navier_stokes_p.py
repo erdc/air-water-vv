@@ -46,6 +46,7 @@ def getDBC_p(x,flag):
 
 def getDBC_u(x,flag):
     BCType = "uDirichlet"
+    return createBoundaryCondition(x,flag,BCType)
 
 
 def getDBC_v(x,flag):
