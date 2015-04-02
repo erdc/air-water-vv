@@ -7,28 +7,39 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus import Gauges
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
-import WaveTools
-
+from proteus import WaveTools
+#from proteus import Context
+#Context.declareOptions((
+#    (windVelocity, (0.0,0.0), "the velocity above  the free  surface"),
+#    ))
 
 #wave generator
+#windVelocity = Context.opts.windVelocity
 windVelocity = (0.0,0.0)
 inflowHeightMean = 1.0
 inflowVelocityMean = (0.0,0.0)
 period = 1.94
 omega = 2.0*math.pi/period
-waveheight = 0.25
+waveheight = 0.125
 amplitude = waveheight/ 2.0
 wavelength = 5.0
 k = 2.0*math.pi/wavelength
 
 waves = WaveTools.RandomWaves(Tp = 1.94,
-                              Hs = 0.25,
+                              Hs = waveheight,
                               d  = 1.0,
                               fp = 1.0/1.94,
                               bandFactor = 2.0,
                               N = 101,
                               mwl = 1.0,
                               g = 9.8)#shouldn't mwl = d always?
+
+waves = WaveTools.MonochromaticWaves(period = 1.94,
+                                     waveHeight = waveheight,
+                                     seaLevel  = 1.0,
+                                     depth = 1.0,
+                                     meanVelocity = 0.0,
+                                     g = 9.8)
 
 #  Discretization -- input options  
 genMesh=True
@@ -87,8 +98,8 @@ elif spaceOrder == 2:
 
 #for debugging, make the tank short
 L = (6.0*float(wavelength),1.50)
-he = float(wavelength)/50
-#he*=0.5
+he = float(wavelength)/25
+he*=0.5
 GenerationZoneLength = wavelength
 AbsorptionZoneLength= wavelength*2.0
 spongeLayer = True
@@ -98,7 +109,7 @@ epsFact_solid = xSponge/2.0
 #zone 2
 xSponge_2 = 2.0*L[0]/3.0#L[0] - 2.25
 xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-epsFact_solid_2 = xSponge_2/2.0
+epsFact_solid_2 = (L[0]-xSponge_2)/2.0
 
 weak_bc_penalty_constant = 100.0
 nLevels = 1
@@ -117,7 +128,11 @@ fields = ('vof',)
 
 lineColumnLeft  = ((0.01*L[0], 0, 0), (0.01*L[0], L[1], 0))
 lineColumnRight = ((0.99*L[0], 0, 0), (0.99*L[0], L[1], 0))
-columnLines = [lineColumnLeft,lineColumnRight]
+lineColumnLeftRelax  = ((xSponge,   0, 0), (xSponge  , L[1], 0))
+lineColumnLeftMidRelax  = ((xRelaxCenter,   0, 0), (xRelaxCenter  , L[1], 0))
+lineColumnRightRelax = ((xSponge_2, 0, 0), (xSponge_2, L[1], 0))
+lineColumnRightMidRelax = ((xRelaxCenter_2, 0, 0), (xRelaxCenter_2, L[1], 0))
+columnLines = [lineColumnLeft,lineColumnLeftMidRelax,lineColumnLeftRelax,lineColumnRightRelax,lineColumnRightMidRelax,lineColumnRight]
 
 columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
                                  fileName='column_gauge.csv')
@@ -204,6 +219,7 @@ else:
                                       0.5/1.004e-6,
                                       0.0])
         dragBetaTypes = numpy.array([0.0,0.0,0.0,0.0])
+        epsFact_solidTypes = np.array([0.0,epsFact_solid,epsFact_solid_2,0.0])
     else:
         vertices=[[0.0,0.0],#0
                   [L[0],0.0],#1
@@ -306,8 +322,8 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-10,0.0001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.0001*he**2)
+ns_nl_atol_res = max(1.0e-10,0.00001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.00001*he**2)
 ls_nl_atol_res = max(1.0e-10,0.0001*he**2)
 rd_nl_atol_res = max(1.0e-10,0.005*he)
 mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
@@ -363,14 +379,14 @@ def z(x):
 sigma = omega - k*inflowVelocityMean[0]
 h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
 
-#def waveHeight(x,t):
-#    return inflowHeightMean + waves.eta(x[0],t)
+def waveHeight(x,t):
+    return inflowHeightMean + waves.eta(x[0],t)
 
-#def waveVelocity_u(x,t):
-#    return waves.u(x[0],x[1],t)
+def waveVelocity_u(x,t):
+    return waves.u(x[0],x[1],t)
 
-#def waveVelocity_v(x,t):
-#    return waves.w(x[0],x[1],t)
+def waveVelocity_v(x,t):
+    return waves.w(x[0],x[1],t)
 
 def waveHeight(x,t):
      return inflowHeightMean + amplitude*cos(theta(x,t))

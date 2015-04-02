@@ -44,7 +44,7 @@ if spongeLayer or levee or slopingSpongeLayer:
                                         porosityTypes=porosityTypes,
                                         dragAlphaTypes=dragAlphaTypes,
                                         dragBetaTypes=dragBetaTypes,
-                                        epsFact_solid = epsFact_solid)
+                                        epsFact_solid = epsFact_solidTypes)
 else:
     coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                        sigma=0.0,
@@ -76,14 +76,16 @@ def getDBC_p(x,flag):
 #        return outflowPressure
     
 def getDBC_u(x,flag):
-    if flag == boundaryTags['left']:
-        return twpflowVelocity_u
+    return None
+#    if flag == boundaryTags['left']:
+#        return twpflowVelocity_u
 #    elif flag == boundaryTags['right']:
 #        return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
-    if flag == boundaryTags['left']:
-        return twpflowVelocity_v
+    return None
+#    if flag == boundaryTags['left']:
+#        return twpflowVelocity_v
 #    elif flag == boundaryTags['right']:
 #        return lambda x,t: 0.0
 
@@ -92,24 +94,43 @@ dirichletConditions = {0:getDBC_p,
                        2:getDBC_v}
 
 def getAFBC_p(x,flag):
+    #no flow on left
     if flag == boundaryTags['left']:
-        return lambda x,t: -twpflowVelocity_u(x,t)
-    elif flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
+        return lambda x,t: 0.0#-twpflowVelocity_u(x,t)
+    if flag == boundaryTags['bottom']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['right']:
         return lambda x,t: 0.0
     
 def getAFBC_u(x,flag):
-    if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
+    #no flow on left
+    if flag == boundaryTags['left']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['right']:
         return lambda x,t: 0.0
     
 def getAFBC_v(x,flag):
-    if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
+    #no flow on left
+    if flag == boundaryTags['left']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['bottom']:
+        return lambda x,t: 0.0
+    if flag == boundaryTags['right']:
         return lambda x,t: 0.0
     
 def getDFBC_u(x,flag):
+    #no flow on left
+    if flag == boundaryTags['left']:
+        return lambda x,t: 0.0
     if flag != boundaryTags['left']:
         return lambda x,t: 0.0
     
 def getDFBC_v(x,flag):
+    #no flow on left
+    if flag == boundaryTags['left']:
+        return lambda x,t: 0.0
     if flag != boundaryTags['left']:
         return lambda x,t: 0.0
 
