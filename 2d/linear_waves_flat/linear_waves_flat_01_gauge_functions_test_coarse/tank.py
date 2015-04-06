@@ -9,7 +9,7 @@ from proteus import Gauges
 from proteus.Gauges import PointGauges
 #from proteus.Gauges import LineGauges
 from proteus import Context
-opts=Context.declareAndGetInputOptions([
+opts=Context.Options([
     ("inflowHeightMean",1.0,"Free surface height at flume inflow"),
     ("inflowVelocityMean",(0.0,0.0),"Velocity at flume inflow"),
     ("wavelength",5.0,"Wavelength of generated waves"),
