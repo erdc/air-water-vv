@@ -71,7 +71,7 @@ else:
 
 def getDBC_p(x,flag):
     if flag == boundaryTags['top']:
-        return lambda x,t: 0.0
+        return outflowPressure
     elif flag == boundaryTags['right']:
         return outflowPressure
     elif flag == boundaryTags['airvent']:
@@ -80,8 +80,8 @@ def getDBC_p(x,flag):
 def getDBC_u(x,flag):
     if flag == boundaryTags['left']:
         return twpflowVelocity_u
-#    elif flag == boundaryTags['airvent']:
-#        return lambda x,t: 0.0
+    elif flag == boundaryTags['top']:
+        return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
     if flag == boundaryTags['left']:
@@ -98,23 +98,23 @@ dirichletConditions = {0:getDBC_p,
 def getAFBC_p(x,flag):
     if flag == boundaryTags['left']:
         return lambda x,t: -twpflowVelocity_u(x,t)
-    elif flag == boundaryTags['bottom']: #or flag == boundaryTags['right']:
+    elif flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
     
 def getAFBC_u(x,flag):
-    if flag == boundaryTags['bottom']:# or flag == boundaryTags['right']:
+    if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
     
 def getAFBC_v(x,flag):
-    if flag == boundaryTags['bottom']: # or flag == boundaryTags['right']:
+    if flag == boundaryTags['bottom']:
         return lambda x,t: 0.0
     
 def getDFBC_u(x,flag):
-    if flag != boundaryTags['left']:
+    if flag not in [boundaryTags['left'],boundaryTags['top']]:
         return lambda x,t: 0.0
     
 def getDFBC_v(x,flag):
-    if flag != boundaryTags['left']:
+    if flag not in [boundaryTags['left'],boundaryTags['airvent']]:
         return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,

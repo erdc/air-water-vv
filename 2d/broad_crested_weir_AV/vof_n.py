@@ -53,7 +53,7 @@ linearSolverConvergenceTest         = 'r-true'
 tolFac      = 0.0
 nl_atol_res = vof_nl_atol_res
 
-linTolFac   = 0.0
+linTolFac   = 0.1
 l_atol_res = 0.1*vof_nl_atol_res
 
 useEisenstatWalker = False

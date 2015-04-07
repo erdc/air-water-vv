@@ -9,7 +9,7 @@ from proteus import Gauges
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 
 
-
+airVent=True
 #wave generator
 windVelocity = (0.0,0.0)
 inflowHeightMean = 0.540
@@ -79,11 +79,11 @@ obst_portions = (0.5,0.401) #(width,height)
 obst_x_start = 1.5  # start x coordinate of the obstacle; caution to be in the domain's range
 obst_x_end = obst_x_start + obst_portions[0] # end x coordinate of the obstacle; caution to be in the domain's range
 obst = (obst_x_start,obst_portions[1],obst_x_end) #coordinates of the obstacle to be used to define the boundary
-airvent_y1=1.5*obst_portions[1]/4.0
+airvent_y1=2.5*obst_portions[1]/4.0
 airvent_y2=3.5*obst_portions[1]/4.0
 
 #Background refinement
-Refinement = 40
+Refinement = 50
 he = L[0]/float(4*Refinement-1)
 
 # Refinement parameters
@@ -228,7 +228,8 @@ else:
                       0,
                       0,
                       0]
-    
+        if not airVent:
+            segmentFlags[6] = boundaryTags['bottom']
         regions=[[xRelaxCenter, 0.5*L[1]],
                  [xRelaxCenter_2, 0.5*L[1]],
                  [obst_x_start,0.9*L[1]],
@@ -308,29 +309,29 @@ else:
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
 T=30.0
-dt_fixed = 0.1 
+dt_fixed = 0.25 
 dt_init = min(0.1*dt_fixed,0.1)
-runCFL=0.9
+runCFL=0.75
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = False#True
+ns_forceStrongDirichlet = True
 backgroundDiffusionFactor=0.01
 if useMetrics:
-    ns_shockCapturingFactor  = 0.25
+    ns_shockCapturingFactor  = 0.75
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.25
+    ls_shockCapturingFactor  = 0.75
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.25
+    ls_sc_beta  = 1.5
+    vof_shockCapturingFactor = 0.75
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.25
+    vof_sc_beta = 1.5
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
+    epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
