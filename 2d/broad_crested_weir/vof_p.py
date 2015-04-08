@@ -3,6 +3,8 @@ from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from broad_crested_weir import *
 from proteus.mprans import VOF
+from setBCfunction import *
+
 
 LevelModelType = VOF.LevelModel
 if useOnlyVF:
