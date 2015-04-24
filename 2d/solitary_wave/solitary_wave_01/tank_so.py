@@ -29,3 +29,4 @@ needEBQ_GLOBAL = False
 needEBQ = False
 
 tnList = [0.0,tank.dt_init]+[i*tank.dt_fixed for i in range(1,tank.nDTout+1)] 
+archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP

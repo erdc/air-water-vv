@@ -18,40 +18,76 @@ else:
     Closure_0_model = None
     Closure_1_model = None
 
-coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
-                                   sigma=0.0,
-                                   rho_0 = rho_0,
-                                   nu_0 = nu_0,
-                                   rho_1 = rho_1,
-                                   nu_1 = nu_1,
-                                   g=g,
-                                   nd=nd,
-                                   VF_model=1,
-                                   LS_model=LS_model,
-                                   Closure_0_model=Closure_0_model,
-                                   Closure_1_model=Closure_1_model,
-                                   epsFact_density=epsFact_density,
-                                   stokes=False,
-                                   useVF=useVF,
-                                   useRBLES=useRBLES,
-                                   useMetrics=useMetrics,
-                                   eb_adjoint_sigma=1.0,
-                                   eb_penalty_constant=weak_bc_penalty_constant,
-                                   forceStrongDirichlet=ns_forceStrongDirichlet,
-                                   turbulenceClosureModel=ns_closure,
-                                   movingDomain=movingDomain)
+if spongeLayer or levee or slopingSpongeLayer:
+    coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
+                                       sigma=0.0,
+                                        rho_0 = rho_0,
+                                        nu_0 = nu_0,
+                                        rho_1 = rho_1,
+                                        nu_1 = nu_1,
+                                        g=g,
+                                        nd=nd,
+                                        VF_model=1,
+                                        LS_model=LS_model,
+                                        Closure_0_model=Closure_0_model,
+                                        Closure_1_model=Closure_1_model,
+                                        epsFact_density=epsFact_density,
+                                        stokes=False,
+                                        useVF=useVF,
+                                        useRBLES=useRBLES,
+                                        useMetrics=useMetrics,
+                                        eb_adjoint_sigma=1.0,
+                                        eb_penalty_constant=weak_bc_penalty_constant,
+                                        forceStrongDirichlet=ns_forceStrongDirichlet,
+                                        turbulenceClosureModel=ns_closure,
+                                        movingDomain=movingDomain,
+                                        porosityTypes=porosityTypes,
+                                        dragAlphaTypes=dragAlphaTypes,
+                                        dragBetaTypes=dragBetaTypes,
+                                        epsFact_solid = epsFact_solidTypes)
+else:
+    coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
+                                       sigma=0.0,
+                                        rho_0 = rho_0,
+                                        nu_0 = nu_0,
+                                        rho_1 = rho_1,
+                                        nu_1 = nu_1,
+                                        g=g,
+                                        nd=nd,
+                                        VF_model=1,
+                                        LS_model=LS_model,
+                                        Closure_0_model=Closure_0_model,
+                                        Closure_1_model=Closure_1_model,
+                                        epsFact_density=epsFact_density,
+                                        stokes=False,
+                                        useVF=useVF,
+                                        useRBLES=useRBLES,
+                                        useMetrics=useMetrics,
+                                        eb_adjoint_sigma=1.0,
+                                        eb_penalty_constant=weak_bc_penalty_constant,
+                                        forceStrongDirichlet=ns_forceStrongDirichlet,
+                                        turbulenceClosureModel=ns_closure,
+                                        movingDomain=movingDomain)
 
 def getDBC_p(x,flag):
     if flag == boundaryTags['top']:
         return lambda x,t: 0.0
+#    elif flag == boundaryTags['right']:
+#        return outflowPressure
     
 def getDBC_u(x,flag):
+    return None
     if flag == boundaryTags['left']:
         return twpflowVelocity_u
+#    elif flag == boundaryTags['right']:
+#        return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
+    return None
     if flag == boundaryTags['left']:
         return twpflowVelocity_v
+#    elif flag == boundaryTags['right']:
+#        return lambda x,t: 0.0
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
@@ -60,23 +96,23 @@ dirichletConditions = {0:getDBC_p,
 def getAFBC_p(x,flag):
     if flag == boundaryTags['left']:
         return lambda x,t: -twpflowVelocity_u(x,t)
-    elif flag != boundaryTags['top']:
+    elif flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
         return lambda x,t: 0.0
     
 def getAFBC_u(x,flag):
-    if flag != boundaryTags['top'] and flag != boundaryTags['left']:
+    if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
         return lambda x,t: 0.0
     
 def getAFBC_v(x,flag):
-    if flag != boundaryTags['top'] and flag != boundaryTags['left']:
+    if flag == boundaryTags['bottom'] or flag == boundaryTags['right']:
         return lambda x,t: 0.0
     
 def getDFBC_u(x,flag):
-    if flag != boundaryTags['left']:
+   if flag != boundaryTags['left']:
         return lambda x,t: 0.0
     
-def getDFBC_v(x,flag):
-    if flag != boundaryTags['left']:
+def getDFBC_v(x,flag):  
+   if flag != boundaryTags['left']: 
         return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,
