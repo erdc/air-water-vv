@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from sluice_gate import *
+from tank import *
 from proteus.mprans import MCorr
 
 LevelModelType = MCorr.LevelModel
