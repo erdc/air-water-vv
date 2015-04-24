@@ -476,12 +476,12 @@ class RelaxationZoneWaveGenerator(AV_base):
         m.q['velocity_solid'] = m.coefficients.q_velocity_solid
 
 rzWaveGenerator = RelaxationZoneWaveGenerator(zones={1:RelaxationZone(xRelaxCenter,
-                                                                      1.0,
+                                                                      -1.0,
                                                                       twpflowVelocity_u,
                                                                       twpflowVelocity_v,
                                                                       twpflowVelocity_w),
                                                     2:RelaxationZone(xRelaxCenter_2,
-                                                                     -1.0,
+                                                                     1.0,
                                                                      zeroVel,
                                                                      zeroVel,
                                                                      zeroVel)})
