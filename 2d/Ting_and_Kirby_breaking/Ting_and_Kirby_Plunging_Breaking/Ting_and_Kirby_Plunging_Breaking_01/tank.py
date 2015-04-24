@@ -5,6 +5,10 @@ from proteus.default_n import *
 from proteus.Profiling import logEvent
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
+from proteus import Gauges
+from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
+#import WaveTools
+
 #wave generator
 windVelocity = (0.0,0.0)
 inflowHeightMean = 0.40
@@ -13,7 +17,7 @@ period = 5.0
 omega = 2.0*math.pi/period
 #waveheight = 
 #amplitude = waveheight/ 2.0
-wavelength = 10.652 #calculated by FFT
+wavelength = 10.655 #calculated by FFT
 k = 2.0*math.pi/wavelength
    
 #  Discretization -- input options  
@@ -73,12 +77,71 @@ elif spaceOrder == 2:
 
 #for debugging, make the tank short
 L = (40.0,1.0)
-he = L[0]/1000 #try this first
-cot_slope=35
+he = wavelength/300 #try this first
+cot_slope=35.0
 x1=15.0
 x2=17.0
 y1=0.02
 y2=(L[0]-x2)/cot_slope
+
+
+#EXPERIMENTAL GAUGES--------------------------------------------------
+gauge_y_exp_r=[0.169, 0.156, 0.142, 0.128, 0.113, 0.096, 0.079] #water depth
+gauge_y_exp=[]
+for gg in gauge_y_exp_r:
+  gauge_y_exp.append(max(inflowHeightMean-gg,0.0))
+
+PGL=[]
+LGL=[]
+for yp in gauge_y_exp: #+1 only if gauge_dx is an exact 
+ xp=cot_slope*(yp-y1)+x2
+# print yp , xp
+   
+ LGL.append([(xp,yp,0),(xp,L[1],0)])
+ if inflowHeightMean-yp>0.095:
+   PGL.append([xp,yp,0])
+
+gaugeLocations=tuple(map(tuple,PGL)) 
+columnLines=tuple(map(tuple,LGL)) 
+pointGauges1 = PointGauges(gauges=((('u','v'), gaugeLocations),
+                                (('p',),    gaugeLocations)),
+                  activeTime = (0, 1000.0),
+                  sampleRate = 0,
+                  fileName = 'exp_gauges.txt')
+fields = ('vof',)
+columnGauge1 = LineIntegralGauges(gauges=((fields, columnLines),),
+                    fileName='exp_column_gauge.csv')
+#EXTRA GAUGES  ------------------------------------------------------
+gauge_dx=0.25
+PGL2=[]
+LGL2=[]
+for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact 
+  if gauge_dx*i< x1:
+      a = 0.0
+  elif gauge_dx*i>=x1 and gauge_dx*i<x2:
+      a= y1/(x2-x1)*(gauge_dx*i-x1)+0.001
+  elif gauge_dx*i>=x2: 
+      a= (1/cot_slope)*(gauge_dx*i-x2)+y1+0.001
+ # print a , gauge_dx*i
+  
+  LGL2.append([(gauge_dx*i,a,0),(gauge_dx*i,L[1],0)])
+  if inflowHeightMean-a>0.2:
+   PGL2.append([gauge_dx*i,a,0])
+
+gaugeLocations=tuple(map(tuple,PGL2)) 
+columnLines=tuple(map(tuple,LGL2)) 
+
+
+pointGauges2 = PointGauges(gauges=((('u','v'), gaugeLocations),
+                                (('p',),    gaugeLocations)),
+                  activeTime = (0, 1000.0),
+                  sampleRate = 0,
+                  fileName = 'combined_gauge_0_0.5_sample_all.txt')
+
+fields = ('vof',)
+
+columnGauge2 = LineIntegralGauges(gauges=((fields, columnLines),),
+                                 fileName='column_gauge.csv')
 
 
 weak_bc_penalty_constant = 100.0
@@ -144,34 +207,34 @@ else:
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=200*period
-dt_fixed = period/21.0
-dt_init = min(0.1*dt_fixed,0.001)
+T=30*period
+dt_fixed = T
+dt_init = min(0.1*dt_fixed,0.1)
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
-backgroundDiffusionFactor=0.01
+backgroundDiffusionFactor=0.0
 if useMetrics:
-    ns_shockCapturingFactor  = 0.5
+    ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.25
+    ls_shockCapturingFactor  = 0.35
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = 0.35
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.25
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
-    redist_Newton = False
+    epsFact_redistance = 1.5
+    epsFact_consrv_diffusion = 10.0
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
@@ -208,11 +271,11 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-10,0.001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.001*he**2)
-ls_nl_atol_res = max(1.0e-10,0.001*he**2)
+ns_nl_atol_res = max(1.0e-10,0.00001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.00001*he**2)
+ls_nl_atol_res = max(1.0e-10,0.0001*he**2)
 rd_nl_atol_res = max(1.0e-10,0.005*he)
-mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
+mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
@@ -268,42 +331,36 @@ h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
 
 def waveHeight(x,t):
     
-   Y = [0.02107254,  #Surface elevation Fourier coefficients for non-dimensionalised solution 
-        0.01587903,
-        0.01058797, 
-        0.00658007,
-        0.00394568,
-        0.00233079,
-        0.00137308,
-        0.00081264,
-        0.00048548,
-        0.00029396,
-        0.00018147,
-        0.00011566,
-        0.00007823,
-        0.0000591,
-        0.00005328]  
+   Y = [0.02107762,     
+        0.01588268,     
+        0.01059044,     
+        0.00658221,    
+        0.00394857,  
+        0.00233566,     
+        0.00138150,      
+        0.00082688,     
+        0.00050907,    
+        0.00033254,
+        0.00024420,    
+        0.00021730] 
 
    waterDepth = inflowHeightMean 
    for i in range(0,int(len(Y))):  
        waterDepth += Y[i]*cos((i+1)*theta(x,t))/k
    return waterDepth
  
-B = [0.04204363,     
-     0.01597753,      
-     0.00713332,      
-     0.00328592,      
-     0.00151396,
-     0.00068745,    
-     0.00030407,   
-     0.00012939,  
-     0.00005211, 
-     0.00001932,
-     0.00000620, 
-     0.00000138, 
-    -0.00000015,  
-    -0.00000053, 
-   - 0.00000028]
+B = [0.04205140,    
+     0.01597969,     
+     0.00713356,     
+     0.00328541,     
+     0.00151320,
+     0.00068665,     
+     0.00030328,     
+     0.00012864,    
+     0.00005141,    
+     0.00001879,
+     0.00000623,    
+     0.00000148]
  
 def waveVelocity_u(x,t):
    wu=0

@@ -5,6 +5,10 @@ from proteus.default_n import *
 from proteus.Profiling import logEvent
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
+from proteus import Gauges
+from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
+#import WaveTools
+
 #wave generator
 windVelocity = (0.0,0.0)
 inflowHeightMean = 0.40
@@ -73,12 +77,74 @@ elif spaceOrder == 2:
 
 #for debugging, make the tank short
 L = (40.0,1.0)
-he = L[0]/1000 #try this first
-cot_slope=35
+he = wavelength/100 #try this first
+cot_slope=35.0
 x1=15.0
 x2=17.0
 y1=0.02
 y2=(L[0]-x2)/cot_slope
+
+#EXPERIMENTAL GAUGES--------------------------------------------------
+gauge_y_exp_r=[0.40, 0.208, 0.185, 0.169, 0.152, 0.137, 0.119, 0.097] #water depth
+gauge_y_exp=[]
+for gg in gauge_y_exp_r:
+  gauge_y_exp.append(max(inflowHeightMean-gg,0.0))
+
+PGL=[]
+LGL=[]
+for yp in gauge_y_exp: #+1 only if gauge_dx is an exact 
+ if yp==0.0:
+  xp=x2-1.265 #first gauge in Ting and Kirby
+ else:
+  xp=cot_slope*(yp-y1)+x2
+ print yp , xp
+   
+ LGL.append([(xp,yp,0),(xp,L[1],0)])
+ if inflowHeightMean-yp>0.095:
+   PGL.append([xp,yp,0])
+
+gaugeLocations=tuple(map(tuple,PGL)) 
+columnLines=tuple(map(tuple,LGL)) 
+pointGauges1 = PointGauges(gauges=((('u','v'), gaugeLocations),
+                                (('p',),    gaugeLocations)),
+                  activeTime = (0, 1000.0),
+                  sampleRate = 0,
+                  fileName = 'exp_gauges.txt')
+fields = ('vof',)
+columnGauge1 = LineIntegralGauges(gauges=((fields, columnLines),),
+                    fileName='exp_column_gauge.csv')
+#EXTRA GAUGES  ------------------------------------------------------
+gauge_dx=0.25
+PGL2=[]
+LGL2=[]
+for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact 
+  
+  if gauge_dx*i< x1:
+      a = 0.0
+  elif gauge_dx*i>=x1 and gauge_dx*i<x2:
+      a= y1/(x2-x1)*(gauge_dx*i-x1)+0.001
+  elif gauge_dx*i>=x2: 
+      a= (1/cot_slope)*(gauge_dx*i-x2)+y1+0.001
+ # print a , gauge_dx*i
+  
+  LGL2.append([(gauge_dx*i,a,0),(gauge_dx*i,L[1],0)])
+  if inflowHeightMean-a>0.2:
+   PGL2.append([gauge_dx*i,a,0])
+
+gaugeLocations=tuple(map(tuple,PGL2)) 
+columnLines=tuple(map(tuple,LGL2)) 
+
+
+pointGauges2 = PointGauges(gauges=((('u','v'), gaugeLocations),
+                                (('p',),    gaugeLocations)),
+                  activeTime = (0, 1000.0),
+                  sampleRate = 0,
+                  fileName = 'combined_gauge_0_0.5_sample_all.txt')
+
+fields = ('vof',)
+
+columnGauge2 = LineIntegralGauges(gauges=((fields, columnLines),),
+                                 fileName='column_gauge.csv')
 
 
 weak_bc_penalty_constant = 100.0
@@ -144,34 +210,34 @@ else:
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=200*period
-dt_fixed = period/21.0
-dt_init = min(0.1*dt_fixed,0.001)
+T=30*period
+dt_fixed = T
+dt_init = min(0.1*dt_fixed,0.1)
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
-backgroundDiffusionFactor=0.01
+backgroundDiffusionFactor=0.0
 if useMetrics:
-    ns_shockCapturingFactor  = 0.5
+    ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.25
+    ls_shockCapturingFactor  = 0.35
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = 0.35
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.25
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
-    redist_Newton = False
+    epsFact_redistance = 1.5
+    epsFact_consrv_diffusion = 10.0
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
@@ -208,11 +274,11 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-10,0.001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.001*he**2)
-ls_nl_atol_res = max(1.0e-10,0.001*he**2)
+ns_nl_atol_res = max(1.0e-10,0.00001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.00001*he**2)
+ls_nl_atol_res = max(1.0e-10,0.0001*he**2)
 rd_nl_atol_res = max(1.0e-10,0.005*he)
-mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
+mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
@@ -266,34 +332,29 @@ def z(x):
 sigma = omega - k*inflowVelocityMean[0]
 h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
 
-def waveHeight(x,t):
-    
-   Y = [ 0.09299273,    #Surface elevation Fourier coefficients for non-dimensionalised solution 
-         0.02936235,     
-         0.00835041,     
-         0.00247718,     
-         0.00078661,
-         0.00026488,     
-         0.00009336,   
-         0.00003449,     
-         0.00001438,    
-         0.00000951]  
+Y = [0.09299266,     
+        0.02936245,
+        0.00835072,     
+        0.00247792,     
+        0.00078845,
+        0.00026957,     
+        0.00010565,     
+        0.00006756]
 
+def waveHeight(x,t):
    waterDepth = inflowHeightMean 
    for i in range(0,int(len(Y))):  
        waterDepth += Y[i]*cos((i+1)*theta(x,t))/k
    return waterDepth
  
-B = [ 0.11965862,      
-      0.01875206,     
-      0.00268724,     
-      0.00027462,     
-      0.00000470,
-     -0.00000533,     
-     -0.00000119,    
-     -0.00000008,     
-      0.00000003,    
-      0.00000001]
+B = [0.11965847,     
+     0.01875206,     
+     0.00268726,     
+     0.00027464,     
+     0.00000472,
+    -0.00000529,     
+    -0.00000115,     
+    -0.00000008]
  
 def waveVelocity_u(x,t):
    wu=0
