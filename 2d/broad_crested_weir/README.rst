@@ -16,6 +16,7 @@ domain allows the flow to leave the domain.
 In the following figure, a simple sketch of the structure is presented showing the main parameters.
 
 .. figure:: ./BroadWeir.bmp
+   :width: 100%
 
 where,
 uo is the approach velocity, H is the upstream potential head, 

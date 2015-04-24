@@ -15,8 +15,6 @@ Running
 --------
 The benchmark can be run using the following command:
 
-::
-
 
 References
 --------------------------------
