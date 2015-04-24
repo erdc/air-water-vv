@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Broad crested weir benchmark case &mdash; air-water-vv 0.1.1 documentation</title>
+    
+    <link rel="stylesheet" href="../static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../static/bootswatch-3.2.0/readable/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="../static/bootstrap-sphinx.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/underscore.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../static/bootstrap-3.2.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../static/bootstrap-sphinx.js"></script>
+    <link rel="top" title="air-water-vv 0.1.1 documentation" href="../index.html" />
+    <link rel="next" title="Dambreak benchmark case" href="../3d/index.html" />
+    <link rel="prev" title="2D Tests" href="../index.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head>
+  <body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          air-water-vv</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Broad crested weir benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#dambreak-collagrosi-benchmark-case">Dambreak Collagrosi benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#submerged-breakwater-on-slope-benchmark-case">Submerged breakwater on slope  benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#sine-wave-sloshing-benchmark-case">Sine wave sloshing benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#crump-weir-benchmark-case">Crump weir benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#dambreak-ubbink-benchmark-case">Dambreak Ubbink benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#sharp-crested-weir-benchmark-case">Sharp crested weir benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#vertical-breakwater-benchmark-case">Vertical Breakwater benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#dambreak-benchmark-case">Dambreak benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#sluice-gate-benchmark-case">Sluice gate benchmark case</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../3d/index.html">Dambreak benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3d/index.html#dambreak-gomez-benchmark-case">Dambreak Gomez benchmark case</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">Broad crested weir benchmark case</a><ul>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dambreak-collagrosi-benchmark-case">Dambreak Collagrosi benchmark case</a><ul>
+<li><a class="reference internal" href="#id1">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#submerged-breakwater-on-slope-benchmark-case">Submerged breakwater on slope  benchmark case</a><ul>
+<li><a class="reference internal" href="#running">Running</a></li>
+<li><a class="reference internal" href="#id2">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sine-wave-sloshing-benchmark-case">Sine wave sloshing benchmark case</a><ul>
+<li><a class="reference internal" href="#id3">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#crump-weir-benchmark-case">Crump weir benchmark case</a><ul>
+<li><a class="reference internal" href="#id4">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dambreak-ubbink-benchmark-case">Dambreak Ubbink benchmark case</a><ul>
+<li><a class="reference internal" href="#id5">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sharp-crested-weir-benchmark-case">Sharp crested weir benchmark case</a><ul>
+<li><a class="reference internal" href="#id6">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#vertical-breakwater-benchmark-case">Vertical Breakwater benchmark case</a><ul>
+<li><a class="reference internal" href="#id7">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dambreak-benchmark-case">Dambreak benchmark case</a><ul>
+<li><a class="reference internal" href="#preprocessing">Preprocessing</a></li>
+<li><a class="reference internal" href="#id8">Running</a></li>
+<li><a class="reference internal" href="#postprocessing">Postprocessing</a></li>
+<li><a class="reference internal" href="#id9">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sluice-gate-benchmark-case">Sluice gate benchmark case</a><ul>
+<li><a class="reference internal" href="#id10">References</a></li>
+</ul>
+</li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+              
+                
+  <li>
+    <a href="../index.html" title="Previous Chapter: 2D Tests"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; 2D Tests</span>
+    </a>
+  </li>
+  <li>
+    <a href="../3d/index.html" title="Next Chapter: Dambreak benchmark case"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Dambreak benchma... &raquo;</span>
+    </a>
+  </li>
+              
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../sources/2d/index.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      
+  <div class="section" id="broad-crested-weir-benchmark-case">
+<h1>Broad crested weir benchmark case<a class="headerlink" href="#broad-crested-weir-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>A broad-crested weir is a standard hydraulic structure used as discharge measuring
+device and flow control device in open channel. This type of weir can be described
+as a simple solid rectangular channel obstruction spanned over the whole width of
+the channel. Due to the sharp edge of the upper left side corner of the weir, flow
+separation occurs at this location.</p>
+<p>As the flow propagates mainly in 2 directions, a 2D computational domain was used for the simulation.
+The height of the domain is equal to 0.7m and the length might vary from case to case.
+The weir has a height of P=0.401m and a width of b=0.5m.
+A uniform velocity distribution from bottom to free water level is imposed in the left
+wall boundary condition. The top of the domain is left open and the right wall of the
+domain allows the flow to leave the domain.
+In the following figure, a simple sketch of the structure is presented showing the main parameters.</p>
+<div class="figure">
+<a class="reference internal image-reference" href="../images/BroadWeir.bmp"><img alt="../images/BroadWeir.bmp" src="../images/BroadWeir.bmp" style="width: 100%;" /></a>
+</div>
+<p>where,
+uo is the approach velocity, H is the upstream potential head,
+hv is the upstream velocity head, Ht = H + hv is the upstream total head, d is the flow depth over the weir.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and the
+flow separation. The results of the simulations can be compared with the data in the following references.
+For more details, see runfiles or references.</p>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Fritz HM and Hager WH (1998) Hydraulics of embankment weirs. Journal of Hydraulic Engineer 124(9), 963–971.</li>
+<li>Hager WH and Schwalt M (1994). Broad-crested weir. Journal of Irrigation and Drainage 120(1), 13–26.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="dambreak-collagrosi-benchmark-case">
+<h1>Dambreak Collagrosi benchmark case<a class="headerlink" href="#dambreak-collagrosi-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>The problem consists of a 0.60m x 1.20m (height x width) column of water, initially at rest,
+that collapses under the action of gravity and impacts to a wall.
+The computational domain is a rectangular box with a heigth of 1.80m and a width of 3.22m.
+The top of the domain is left open, when the rest of the boundary patches act as no slip walls.
+In the following figure, a sketch of the dambreak initial conditions is shown.</p>
+<div class="figure">
+<img alt="../images/dambreakColagrossi.bmp" src="../images/dambreakColagrossi.bmp" />
+</div>
+<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and forces / pressures on structures, according to data that are available in the following references.
+For more details, see runfiles or references.</p>
+<div class="section" id="id1">
+<h2>References<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Colagrossi A and Landrini M (2003) Numerical simulation of interfacial flows by smoothed particle hydrodynamics, Journal of Computational Physics,191,448-475.</li>
+<li>Martin, J. C. &amp; Moyce, W. J., (1952) Part IV. An Experimental Study of the Collapse of Liquid Columns on a Rigid Horizontal Plane Phil. Trans. R. Soc. Lond. A 244 (882) 312-324.</li>
+<li>Zhou, Z. Q., De Kat, J. O. and Buchner, B. (1999) A nonlinear 3-D approach to simulate green water dynamics on deck in: J. Piquet (Ed.), Proc. 7th Int. Conf. Num. Ship Hydrod., Nantes, 5.11, 15.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="submerged-breakwater-on-slope-benchmark-case">
+<h1>Submerged breakwater on slope  benchmark case<a class="headerlink" href="#submerged-breakwater-on-slope-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>This benchmark simulates Wave propagation near a submerged breakwater
+on a slope and the comparisons of the results with experimental data
+in the in the nearshore zone are`` revealed and discussed. For the
+vertical breakwater, the published data by Jie et al. (2010) are
+used. The experiment was conducted in 60 m long, 0.5 m wide and 0.8 m
+deep wave flume. A 1/20 slope is placed at one side of the flume. The
+size of submerged breakwater is 10 cm crest wide, 1:2 gradient of
+front slope, 1:1 gradient of back slope, and 8 cm depth of
+submergence.  For more details, see runfiles or references.</p>
+<div class="section" id="running">
+<h2>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h2>
+<p>The benchmark can be run using the following command:</p>
+</div>
+<div class="section" id="id2">
+<h2>References<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<ol class="upperalpha simple" start="10">
+<li>Chen, C. Jiang, S. Hu, and W. Huang (2010) &#8220;Numerical study on the characteristics of flow field and wave propagation near submerged breakwater on slope&#8221;, Acta Oceanologica Sinica, 29(1), pp88-99</li>
+</ol>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="sine-wave-sloshing-benchmark-case">
+<h1>Sine wave sloshing benchmark case<a class="headerlink" href="#sine-wave-sloshing-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>Proteus is initialised with a free-surface profile that will excite the first asymmetric sloshing mode. The free-surface slope is small,
+therefore, we can consider that the flow evolution will obey to the linear sloshing theory. The output of Proteus can be compared with the
+analytical solution found in Ibrahim (2005) including only a symmetric mode. The computational domain is a 2D rectangular box with dimensions
+3.14m x 3.14m and the mean level of the water is in the middle of the box. The initail conditions of the simulation are shown in the following figure,</p>
+<div class="figure">
+<img alt="../images/Sloshing.bmp" src="../images/Sloshing.bmp" />
+</div>
+<p>where, a is the amplitude of the sloshing wave.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface evolution. For more details, see runfiles or references.</p>
+<div class="section" id="id3">
+<h2>References<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Ibrahim RA (2005). Liquid Sloshing Dynamics – Theory and Applications, Cambridge University Press, New York, NY.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="crump-weir-benchmark-case">
+<h1>Crump weir benchmark case<a class="headerlink" href="#crump-weir-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>A crump weir is a typical hydraulic structure mainly used as a measurement device in open-channels
+as well as for flow control. It is a triangular channel obstruction consisting of a 1:2 upstream and a
+1:5 downstream slope.The slope upstream is designed to avoid material sedimentation while the downstream
+side is designed to stabilize the flow. The weir spans  the width of the channel and obstructs the natural
+flow of the water.The following two flow conditions are tested:</p>
+<ul class="simple">
+<li>Modular flow conditions, where the flow regime is not affected by the downstream conditions. In this condition there is a direct relation between the flow rate and the upstream head. The modular flow condition is verified when the ratio between the downstream and the upstream total head is less or equal to 0.75.</li>
+<li>Non-modular flow conditions, where the flow regime is affected by the downstream conditions. This happens when the weir operates in submerged conditions.  The flow rate in this case is related to the total head upstream and downstream of the weir and therefore both head measurements are required.</li>
+</ul>
+<p>The computational domain is a 2D rectangular box with height equal to 2.1m the length might vary
+from case to case.The weir has a height of P=0.5m and a width of b=3.5m.
+A uniform velocity distribution from bottom to free water level is imposed in the left wall boundary condition.
+The top of the domain is left open. The right wall of the domain allows the flow to leave the domain for the case of the modular flow, when for the case of the non-modular flow an outflow velocity and downstream water level are imposed on the right boundary.</p>
+<p>In the following figure a simple sketch of the structure is presented.</p>
+<div class="figure">
+<img alt="../images/CrumpWeirBSISO.jpg" src="../images/CrumpWeirBSISO.jpg" />
+</div>
+<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and the results of the simulations can be compared with the data in the following references.
+For more details, see runfiles or references.</p>
+<div class="section" id="id4">
+<h2>References<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>British Standards Institution (2008) BS ISO 4360:2008: “Hydrometry - Open channel flow measurement using triangular profile weirs”. London, BSI. (Withdrawn (ISO 4360:1984 is a current alternative).</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="dambreak-ubbink-benchmark-case">
+<h1>Dambreak Ubbink benchmark case<a class="headerlink" href="#dambreak-ubbink-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>The problem consists of a 0.292m  x 1.146m (height x width) column of water, initially at rest.
+A small obstacle (0.024m x 0.048m) is placed in the middle of the tank base.
+Under the action of gravity the water column interacts with the obstacle and collapses to a wall.
+The computational domain is a 2D rectangular box with  dimensions 0.584m x 0.584m.
+The top of the domain is left open, when the rest of the boundary patches act as no slip walls.
+In the following figure, a sketch of the dambreak initial conditions is shown.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/dambreakUbbink.bmp"><img alt="../images/dambreakUbbink.bmp" src="../images/dambreakUbbink.bmp" style="width: 100%;" /></a>
+</div>
+<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and during the interaction of the dambreak front with the obstacle.
+The results of the simulations can be visually compared with the data in the following references.
+For more details, see runfiles or references.</p>
+<div class="section" id="id5">
+<h2>References<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Ubbink, O. (1997), Numerical prediction of two fluid systems with sharp interfaces, PhD thesis, Department of Mechanical Engineering, Imperial College of Science, Technology &amp; Medicine</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="sharp-crested-weir-benchmark-case">
+<h1>Sharp crested weir benchmark case<a class="headerlink" href="#sharp-crested-weir-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>A rectangular sharp-crested weir is a hydraulic structure mainly used as a flow control and
+measurement device in open-channels. It is a channel obstruction made from a thin plate
+with a sharp edge at the top (crest), spanned across the width of the channel. This artificial
+barrier obstructs the natural flow of the water, leading to an increase in the water level
+upstream, before spilling over the structure.
+The computational domain is a 2D rectangular box with height equal to 1.8m and the length might
+vary from case to case. The weir has a height of P=1.0m and a small width of b=0.01m.
+A uniform velocity distribution from bottom to the free water level is imposed in the left wall
+boundary condition. The top of the domain is left open and the right wall allows
+the flow to leave the domain.
+In the following figure, a simple sketch of the structure is presented showing the main parameters.</p>
+<div class="figure">
+<img alt="../images/SharpWeir.bmp" src="../images/SharpWeir.bmp" />
+</div>
+<p>where, uo is the approach velocity, H is the upstream potential head, hv is the upstream velocity head, Ht = H + hv is the upstream total head, h is the thickness of the nappe, d1 is the backwater depth beneath the nappe, d2 is the backwater depth downstream of the nappe.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and the
+flow separation. The results of the simulations can be compared with the data in the following references.
+For more details, see runfiles or references.</p>
+<div class="section" id="id6">
+<h2>References<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Montes, J.S. (1992). &#8220;Curvature Analysis of Spillway Profiles.&#8221; Proc. 11th Australasian Fluid Mechanics Conference AFMC, Hobart, Australia, Paper 7E-7,2, 941-944.</li>
+<li><ol class="first upperalpha" start="21">
+<li><ol class="first upperalpha" start="19">
+<li>Army Engineer Waterways Experiment Station (WES, 1977)  - HYDRAULIC DESIGN CRITERIA - SHEETS 111-11 to 111-14/1 - Overflow Spillway Crest – Upper Nappe Profile.</li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="vertical-breakwater-benchmark-case">
+<h1>Vertical Breakwater benchmark case<a class="headerlink" href="#vertical-breakwater-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>Numerical simulation (hybrid LS-VOF model) of hydrodynamic process
+during the interactions between incident waves and vertical
+breakwaters and the comparisons of the results with experimental data
+in the in the nearshore zone are revealed and discussed. For the
+vertical breakwater, the published data by Xie (1981) are used. The
+experiment was conducted in a 38 m long, 0.8mwide and 0.6 m deep wave
+flume. The water depth was equal to 0.45 m at the beginning of the
+flume and reduced to 0.3 m at the flat bed near the breakwater with a
+1:30 slope.  For more details, see runfiles or references.</p>
+<div class="section" id="id7">
+<h2>References<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>Xie SL. Scouring pattern in front of vertical breakwaters and their
+influence on the stability of the foundation of the
+breakwaters. Report. Delft (Netherlands): Department of Civil
+Engineering, Delft University of Technology; September, 1981. 61 p.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="dambreak-benchmark-case">
+<h1>Dambreak benchmark case<a class="headerlink" href="#dambreak-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>The problem consists of a 0.146m x 0.146m x 0.292m column of water, initially at rest, that collapses under
+the action of gravity and impacts a stationary object. The computational domain is a rectangular box with
+dimensions 0.584m x 0.146m x 0.350m. The top of the domain is left open. For more details, see runfiles or references.</p>
+<div class="section" id="preprocessing">
+<h2>Preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this headline">¶</a></h2>
+<p>No postprocessing is necessary for running this case.
+The first lines of dambreak.py the discretion and formulation can be chosen by modifying the following lines.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Refinement = 2</td>
+<td>Controls the global level or refinement  e.g. 5 ==&gt; 32x16x16</td>
+</tr>
+<tr class="row-odd"><td>spaceOrder = 1 / 2</td>
+<td>Choose linear or quadratic elements</td>
+</tr>
+<tr class="row-even"><td>useHex     = True / False</td>
+<td>Choose hexahedral or tetrahedral elements</td>
+</tr>
+<tr class="row-odd"><td>useRBLES   = 0.0 / 1.0</td>
+<td>Choose SUPG  (0.0) or RBLES/VMS (1.0) for stabilizing the Navier-Stokes equations</td>
+</tr>
+<tr class="row-even"><td>useMetrics = 0.0 / 1.0</td>
+<td>Choose h-based (0.0) or metric based (1.0) numerical parameters</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id8">
+<h2>Running<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>The benchmark can be run using the following command:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mpirun</span> <span class="o">-</span><span class="n">n</span> <span class="c">#NP parun dambreak_so.py -l 3 -v -O petsc.options -D lin_tet_3</span>
+</pre></div>
+</div>
+<p>where #NP stand for the number of processors. The final argument, which specifies the output directory, is optional.
+Or use one of the run.#HOST.pbs run files.</p>
+</div>
+<div class="section" id="postprocessing">
+<h2>Postprocessing<a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h2>
+<p>For extracting column heights and width a separate pvpython scripts are
+supplied in $PROTEUS_MPRANS/scripts. To be able to run the scripts pvpython needs to be installed. This is a special
+python shipped with paraview. Furthermore, the scripts assumed there is one master xmf file.  This master xmf file
+can be generated by running the following command in the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><pre>$PROTEUS/proteusModule/scripts/gatherArchives.py -s #NP -f dambreak_p</pre>
+</div>
+<p>This will generate a file dambreak_p_all#NP.xmf which can be used for extracting column heights and width by running
+the following commands in the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/dambreakExtractHeightAndWidth.py -f dambreak_p_all#NP.xmf</pre>
+</div>
+<p>This will produce the file height.txt that contain the height and width time series.
+The experimental data is provided by the file sakamoto_exp.dat</p>
+<p>For visualizing purposes it might be beneficial to repackage the xmf/h5 solution files.
+There are three distinct reasons/benefits to do this:</p>
+<ol class="arabic simple">
+<li>The script allows skipping time steps and only extracts variable deemed important,
+thereby greatly reducing the file size and hence the time to copy data form remote location.</li>
+<li>In the resulting solution files every time step has a distinct solution file,
+which allows visualization of results while the simulation is still running.</li>
+<li>The scripts also outputs VTK files which allows visualization with VisIt (and others).</li>
+</ol>
+<p>Repackaging of the solution can be done by running the following commands in the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/extractSolution.py -f ../dambreak_p -s #start -e #end -i #incr -n #NP</pre>
+</div>
+<p>where #start end #end are the begin and end timestep number and #incr is a increment time step (aka stride) and #NP is again the number of processors.</p>
+<p>For convenience all the postprocesing mentioned above are lumped in a simple script. This script can be run using
+following commands in the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">postpro</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id9">
+<h2>References<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">S.Koshizuka, H. Tamako, Y. Oka</p>
+<blockquote>
+<div><p>&#8220;A particle method for incompressible viscous flow with fluid fragmentation&#8221;
+Computational Fluid Mechanics Journal, 113 (1995) 134-147</p>
+</div></blockquote>
+</li>
+<li><p class="first">R.Elias, A. Coutinho</p>
+<blockquote>
+<div><p>&#8220;Stabilized edge-based finite element simulation of free-surface flows&#8221;
+International Journal of Numerical Methods in Fluids 54 (2007) 965-993</p>
+</div></blockquote>
+</li>
+<li><p class="first">C.E. Kees, I. Akkerman, M. W. Farthing and Y. Bazilevs</p>
+<blockquote>
+<div><p>&#8220;A Conservative Level Set Method for Variable-Order Approximations and Unstructured Meshes&#8221;
+Journal of Computational Physics, 230-12(2011) 3402-3414,  doi:10.1016/j.jcp.2011.02.030</p>
+</div></blockquote>
+</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="sluice-gate-benchmark-case">
+<h1>Sluice gate benchmark case<a class="headerlink" href="#sluice-gate-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<p>An under-shot sluice gate is a hydraulic structure mainly used as a flow control device in open-channels,
+where the discharge downstream can be related to the upstream head and therefore controlled.
+It is basically a vertical obstruction spanning the whole width of the channel with an opening across the bottom.
+The computational domain is a 2D rectangular box with height equal to 3.75m and the length equal to 4.5m
+The sluice gate has an opening of P=0.25m and a small width of b=0.01m. A uniform velocity distribution from bottom to free
+water level is imposed in the left wall boundary condition. The top of the domain is left
+open and the right wall of the domain allows the flow to leave the domain.
+In the following figure a simple sketch of the structure is presented showing the main parameters.</p>
+<div class="figure">
+<img alt="../images/SluiceGate.bmp" src="../images/SluiceGate.bmp" />
+</div>
+<p>where, uo is the approach velocity,u1 is the velocity downstream of the gate, d1 is the upstream water level, P is the opening of the gate, d1 is the water depth downstream of the gate.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface evolution.
+For more details, see runfiles or references.</p>
+<div class="section" id="id10">
+<h2>References<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>White F.M. 1999. “Fluid Mechanics”. Fourth Edition, McGraw-Hill series in mechanical engineering.</li>
+</ul>
+<hr class="docutils" />
+</div>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2015, air-water-vv developers.<br/>
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2b3.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
