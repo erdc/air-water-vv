@@ -1,0 +1,17 @@
+#!/bin/sh
+
+#PBS -S /bin/sh
+#PBS -N cas1215_NLW_AZ_200_EPS3
+#PBS -o linearwaves.output.o   # stdout file
+#PBS -e linearwaves.output.e   # stderr file
+#PBS -l nodes=1:ppn=12 # nodes required / processors per node
+#PBS -q highp          # queue name
+
+source /etc/profile.d/modules.sh
+
+
+module load proteus/0.9.0/
+cd $PBS_O_WORKDIR
+
+export NCPUS="12"
+mpirun -n $NCPUS  parun tank_so.py -m -p -l 7 -v -O /apps/proteus/0.9.0/proteus-mprans/benchmarks/inputTemplates/petsc.options.superlu_dist -D tank.$PBS_JOBID  -G | tee log.$PBS_JOBID

@@ -1,5 +1,5 @@
-Vertical Breakwater benchmark case
-===================================
+Vertical breakwater
+===================
 
 Numerical simulation (hybrid LS-VOF model) of hydrodynamic process
 during the interactions between incident waves and vertical
@@ -13,9 +13,9 @@ flume and reduced to 0.3 m at the flat bed near the breakwater with a
 
 
 References
---------------------------------
+----------
 
-Xie SL. Scouring pattern in front of vertical breakwaters and their
-influence on the stability of the foundation of the
-breakwaters. Report. Delft (Netherlands): Department of Civil
-Engineering, Delft University of Technology; September, 1981. 61 p.
+- Xie SL. Scouring pattern in front of vertical breakwaters and their
+  influence on the stability of the foundation of the
+  breakwaters. Report. Delft (Netherlands): Department of Civil
+  Engineering, Delft University of Technology; September, 1981. 61 p.

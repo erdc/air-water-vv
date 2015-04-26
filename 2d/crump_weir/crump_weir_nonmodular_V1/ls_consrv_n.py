@@ -1,5 +1,5 @@
 from proteus import *
-from crump_weir import *
+from tank import *
 from ls_consrv_p import *
 
 timeIntegrator  = ForwardIntegrator
@@ -34,14 +34,14 @@ if useSuperlu:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'mcorr_'
+nonlinearSolverConvergenceTest = 'r'
+levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest  = 'r-true'
-levelNonlinearSolverConvergenceTest  = 'r'
 
 tolFac = 0.0
+linTolFac = 0.01
+l_atol_res = 0.01*mcorr_nl_atol_res
 nl_atol_res = mcorr_nl_atol_res
-
-linTolFac = 0.0
-l_atol_res = 0.001*mcorr_nl_atol_res
 useEisenstatWalker = False
 
 maxNonlinearIts = 50
