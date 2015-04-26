@@ -60,3 +60,7 @@
 
 .. include:: ../../../2d/wave_current_interaction/README.rst
 
+----
+
+.. include:: ../../../2d/Ting_and_Kirby_breaking/README.rst
+
