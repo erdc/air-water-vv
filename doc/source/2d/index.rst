@@ -64,3 +64,7 @@
 
 .. include:: ../../../2d/Ting_and_Kirby_breaking/README.rst
 
+----
+
+.. include:: ../../../2d/Dingemans_wave_shoaling/README.rst
+
