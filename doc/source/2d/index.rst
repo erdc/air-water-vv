@@ -56,3 +56,7 @@
 
 .. include:: ../../../2d/linear_wave_shoaling/README.rst
 
+----
+
+.. include:: ../../../2d/wave_current_interaction/README.rst
+
