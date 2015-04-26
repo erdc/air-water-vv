@@ -3,37 +3,40 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. include:: ../../README.rst
 
-2D Tests
-========
+Gallery
+-------
+
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    2d/index.rst
 
-3D Tests
-========
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    3d/index.rst 
 
-.. include:: ../../README.rst
+.. _hrwWebsite: http://hrwallingford.com
 
+.. _chlWebsite: http://chl.usace.army.mil
 
 .. |hrwLogo| image:: ./hrw.*
    :width: 200pt
    :align: middle
+   :target: `hrwWebsite`_
 
 .. |chlLogo| image:: ./chl.*
    :width: 140pt
    :align: middle
+   :target: `chlWebsite`_
 
 .. centered:: |hrwLogo| |chlLogo|
 
-Indices and tables
-==================
+.. Indices and tables
+   ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`

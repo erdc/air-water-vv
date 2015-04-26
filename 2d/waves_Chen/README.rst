@@ -1,5 +1,5 @@
-Submerged breakwater on slope  benchmark case
-=============================================
+Submerged breakwater on slope
+=============================
 
 This benchmark simulates Wave propagation near a submerged breakwater
 on a slope and the comparisons of the results with experimental data
@@ -11,13 +11,12 @@ size of submerged breakwater is 10 cm crest wide, 1:2 gradient of
 front slope, 1:1 gradient of back slope, and 8 cm depth of
 submergence.  For more details, see runfiles or references.
 
-Running
---------
-The benchmark can be run using the following command:
-
 
 References
---------------------------------
+----------
 
-J. Chen, C. Jiang, S. Hu, and W. Huang (2010) "Numerical study on the characteristics of flow field and wave propagation near submerged breakwater on slope", Acta Oceanologica Sinica, 29(1), pp88-99
+- J. Chen, C. Jiang, S. Hu, and W. Huang (2010) "Numerical study on
+  the characteristics of flow field and wave propagation near
+  submerged breakwater on slope", Acta Oceanologica Sinica, 29(1),
+  pp88-99
 
