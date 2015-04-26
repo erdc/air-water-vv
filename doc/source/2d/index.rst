@@ -2,8 +2,6 @@
 2D Test problems
 ================
 
-----
-
 .. include:: ../../../2d/broad_crested_weir/README.rst
 
 ----
@@ -41,4 +39,9 @@
 ----
 
 .. include:: ../../../2d/sluice_gate/README.rst                     
+
+----
+
+.. include:: ../../../2d/steady_current/README.rst                     
+
 

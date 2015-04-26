@@ -2,8 +2,6 @@
 3D Test problems
 ================
 
-----
-
 .. include:: ../../../3d/marin/README.rst
 
 ----
