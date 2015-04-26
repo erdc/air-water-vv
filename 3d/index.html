@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Dambreak benchmark case &mdash; air-water-vv 0.1.1 documentation</title>
+    <title>3D Test problems &mdash; air-water-vv 0.1.1 documentation</title>
     
     <link rel="stylesheet" href="../static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
@@ -24,13 +24,12 @@
     <script type="text/javascript" src="../static/jquery.js"></script>
     <script type="text/javascript" src="../static/underscore.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="../static/js/jquery-1.11.0.min.js"></script>
     <script type="text/javascript" src="../static/js/jquery-fix.js"></script>
     <script type="text/javascript" src="../static/bootstrap-3.2.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../static/bootstrap-sphinx.js"></script>
     <link rel="top" title="air-water-vv 0.1.1 documentation" href="../index.html" />
-    <link rel="prev" title="Broad crested weir benchmark case" href="../2d/index.html" />
+    <link rel="prev" title="2D Test problems" href="../2d/index.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -66,20 +65,10 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html">Broad crested weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html#dambreak-collagrosi-benchmark-case">Dambreak Collagrosi benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html#submerged-breakwater-on-slope-benchmark-case">Submerged breakwater on slope  benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html#sine-wave-sloshing-benchmark-case">Sine wave sloshing benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html#crump-weir-benchmark-case">Crump weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html#dambreak-ubbink-benchmark-case">Dambreak Ubbink benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html#sharp-crested-weir-benchmark-case">Sharp crested weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html#vertical-breakwater-benchmark-case">Vertical Breakwater benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html#dambreak-benchmark-case">Dambreak benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../2d/index.html#sluice-gate-benchmark-case">Sluice gate benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../2d/index.html">2D Test problems</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">Dambreak benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#dambreak-gomez-benchmark-case">Dambreak Gomez benchmark case</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">3D Test problems</a></li>
 </ul>
 </ul>
 </li>
@@ -93,15 +82,29 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">Dambreak benchmark case</a><ul>
+<li><a class="reference internal" href="#">3D Test problems</a><ul>
+<li><a class="reference internal" href="#marin">MARIN</a><ul>
 <li><a class="reference internal" href="#preprocessing">Preprocessing</a></li>
 <li><a class="reference internal" href="#running">Running</a></li>
 <li><a class="reference internal" href="#postprocessing">Postprocessing</a></li>
 <li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dambreak-gomez-benchmark-case">Dambreak Gomez benchmark case</a><ul>
-<li><a class="reference internal" href="#id1">References</a></li>
+<li><a class="reference internal" href="#dambreak">Dambreak</a><ul>
+<li><a class="reference internal" href="#id1">Preprocessing</a></li>
+<li><a class="reference internal" href="#id2">Running</a></li>
+<li><a class="reference internal" href="#id3">Postprocessing</a></li>
+<li><a class="reference internal" href="#id4">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dambreak-gomez">Dambreak Gomez</a><ul>
+<li><a class="reference internal" href="#id5">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#penny-and-price-diffraction-benchmark-case">Penny and Price diffraction benchmark case</a><ul>
+<li><a class="reference internal" href="#id6">References</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -113,7 +116,7 @@
               
                 
   <li>
-    <a href="../2d/index.html" title="Previous Chapter: Broad crested weir benchmark case"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Broad crested we...</span>
+    <a href="../2d/index.html" title="Previous Chapter: 2D Test problems"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; 2D Test problems</span>
     </a>
   </li>
               
@@ -121,11 +124,7 @@
             
             
             
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="../sources/3d/index.txt"
-     rel="nofollow">Source</a>
-</div></li>
+              <li class="hidden-sm"></li>
             
           </ul>
 
@@ -147,15 +146,24 @@
   <div class="row">
     <div class="col-md-12">
       
-  <div class="section" id="dambreak-benchmark-case">
-<h1>Dambreak benchmark case<a class="headerlink" href="#dambreak-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>The problem consists of a 0.146m x 0.146m x 0.292m column of water, initially at rest, that collapses under
-the action of gravity and impacts a stationary object. The computational domain is a rectangular box with
-dimensions 0.584m x 0.146m x 0.350m. The top of the domain is left open. For more details, see runfiles or references.</p>
+  <div class="section" id="d-test-problems">
+<h1>3D Test problems<a class="headerlink" href="#d-test-problems" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="marin">
+<h2>MARIN<a class="headerlink" href="#marin" title="Permalink to this headline">¶</a></h2>
+<p>The problem consists of a 1m x 1m x 0.55m column of water, initially
+at rest, that collapses under the action of gravity and impacts a
+stationary object. The computational domain is a rectangular box with
+dimensions 3.22m x 1m x 1m. The object has dimensions 0.161m x 0.161m
+x 0.403m and is placed at the back end of the tank. The top of the
+domain is closed. For more details, see runfiles or references.</p>
 <div class="section" id="preprocessing">
-<h2>Preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this headline">¶</a></h2>
-<p>No postprocessing is necessary for running this case.
-The first lines of dambreak.py the discretion and formulation can be chosen by modifying the following lines.</p>
+<h3>Preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this headline">¶</a></h3>
+<p>No postprocessing is necessary for running this case.  To be able to
+run hexahedral elements the single-purpose marinMesh mesh-generator
+needs to be compiled.  This is part of the mprans default build
+sequence, so one can assume this utility is available.</p>
+<p>The first lines of marin.py the discretion and formulation can be
+chosen by modifying the following lines.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="25%" />
@@ -186,89 +194,242 @@ The first lines of dambreak.py the discretion and formulation can be chosen by m
 </table>
 </div>
 <div class="section" id="running">
-<h2>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h2>
+<h3>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h3>
 <p>The benchmark can be run using the following command:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">mpirun</span> <span class="o">-</span><span class="n">n</span> <span class="c">#NP parun dambreak_so.py -l 3 -v -O petsc.options -D lin_tet_3</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mpirun</span> <span class="o">-</span><span class="n">n</span> <span class="c">#NP parun marin_so.py -l 3 -v -O petsc.options -D lin_tet_3</span>
 </pre></div>
 </div>
-<p>where #NP stand for the number of processors. The final argument, which specifies the output directory, is optional.
-Or use one of the run.#HOST.pbs run files.</p>
+<p>where #NP stand for the number of processors. The final argument,
+which specifies the output directory, is optional.  Or use one of the
+run.#HOST.pbs run files.</p>
 </div>
 <div class="section" id="postprocessing">
-<h2>Postprocessing<a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h2>
-<p>For extracting column heights and width a separate pvpython scripts are
-supplied in $PROTEUS_MPRANS/scripts. To be able to run the scripts pvpython needs to be installed. This is a special
-python shipped with paraview. Furthermore, the scripts assumed there is one master xmf file.  This master xmf file
-can be generated by running the following command in the directory containing the xmf/h5 solution files.</p>
-<div class="highlight-python"><pre>$PROTEUS/proteusModule/scripts/gatherArchives.py -s #NP -f dambreak_p</pre>
+<h3>Postprocessing<a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h3>
+<p>For extracting pointwise pressure and waterheights at certain location
+in the tank 2 separate pvpython scripts are supplied in
+$PROTEUS_MPRANS/scripts. To be able to run the scripts pvpython needs
+to be installed. This is a special python shipped with
+paraview. Furthermore, the scripts assumed there is one master xmf
+file.  This master xmf file can be generated by running the following
+command in the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><pre>$PROTEUS/proteusModule/scripts/gatherArchives.py -s #NP -f marin_p</pre>
 </div>
-<p>This will generate a file dambreak_p_all#NP.xmf which can be used for extracting column heights and width by running
-the following commands in the directory containing the xmf/h5 solution files.</p>
-<div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/dambreakExtractHeightAndWidth.py -f dambreak_p_all#NP.xmf</pre>
+<p>This will generate a file marin_p_all#NP.xmf which can be used for
+extracting pressures and heights by running the following commands in
+the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/marinExtractPressure.py -f marin_p_all#NP.xmf
+$PROTEUS_MPRANS/scripts/marinExtractHeight.py   -f marin_p_all#NP.xmf</pre>
 </div>
-<p>This will produce the file height.txt that contain the height and width time series.
-The experimental data is provided by the file sakamoto_exp.dat</p>
-<p>For visualizing purposes it might be beneficial to repackage the xmf/h5 solution files.
-There are three distinct reasons/benefits to do this:</p>
-<ol class="arabic simple">
-<li>The script allows skipping time steps and only extracts variable deemed important,
-thereby greatly reducing the file size and hence the time to copy data form remote location.</li>
-<li>In the resulting solution files every time step has a distinct solution file,
-which allows visualization of results while the simulation is still running.</li>
-<li>The scripts also outputs VTK files which allows visualization with VisIt (and others).</li>
-</ol>
-<p>Repackaging of the solution can be done by running the following commands in the directory containing the xmf/h5 solution files.</p>
-<div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/extractSolution.py -f ../dambreak_p -s #start -e #end -i #incr -n #NP</pre>
+<p>This will produce the files pressure.txt and height.txt that contain
+the pressure and height time series.  The full experimental data is
+provided exp_full.dat, while exp_height.dat and exp_pres.dat only
+contain the relevant extracted form exp_full.dat.</p>
+<p>For visualizing purposes it might be beneficial to repackage the
+xmf/h5 solution files.  There are three distinct reasons/benefits to
+do this:</p>
+<p>1. The script allows skipping time steps and only extracts variable
+deemed important, thereby greatly reducing the file size and hence the
+time to copy data form remote location.</p>
+<p>2. In the resulting solution files every time step has a distinct
+solution file, which allows visualization of results while the
+simulation is still running.</p>
+<p>3. The scripts also outputs VTK files which allows visualization with
+VisIt (and others).</p>
+<p>Repackaging of the solution can be done by running the following
+commands in the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/extractSolution.py -f ../marin_p -s #start -e #end -i #incr -n #NP</pre>
 </div>
-<p>where #start end #end are the begin and end timestep number and #incr is a increment time step (aka stride) and #NP is again the number of processors.</p>
-<p>For convenience all the postprocesing mentioned above are lumped in a simple script. This script can be run using
-following commands in the directory containing the xmf/h5 solution files.</p>
+<p>where #start end #end are the begin and end timestep number and #incr
+is a increment time step (aka stride) and #NP is again the number of
+processors.</p>
+<p>For convenience all the postprocesing mentioned above are lumped in a
+simple script. This script can be run using following commands in the
+directory containing the xmf/h5 solution files.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">postpro</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
-<ul>
-<li><p class="first">S.Koshizuka, H. Tamako, Y. Oka</p>
-<blockquote>
-<div><p>&#8220;A particle method for incompressible viscous flow with fluid fragmentation&#8221;
-Computational Fluid Mechanics Journal, 113 (1995) 134-147</p>
-</div></blockquote>
-</li>
-<li><p class="first">R.Elias, A. Coutinho</p>
-<blockquote>
-<div><p>&#8220;Stabilized edge-based finite element simulation of free-surface flows&#8221;
-International Journal of Numerical Methods in Fluids 54 (2007) 965-993</p>
-</div></blockquote>
-</li>
-<li><p class="first">C.E. Kees, I. Akkerman, M. W. Farthing and Y. Bazilevs</p>
-<blockquote>
-<div><p>&#8220;A Conservative Level Set Method for Variable-Order Approximations and Unstructured Meshes&#8221;
-Journal of Computational Physics, 230-12(2011) 3402-3414,  doi:10.1016/j.jcp.2011.02.030</p>
-</div></blockquote>
-</li>
-</ul>
-</div>
-</div>
-<div class="section" id="dambreak-gomez-benchmark-case">
-<h1>Dambreak Gomez benchmark case<a class="headerlink" href="#dambreak-gomez-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>The problem consists of a 0.4m  x 0.3m x 0.61 (dx x dz x dy) column of water, initially at rest.
-Under the action of gravity, the water column interacts with an obstacle and collapses to a wall.
-The computational domain is a 3D rectangular box with  dimensions 1.6m long x 0.61m x 0.75m high.
-The obstacle has dimensions 0.12m x 0.12m, it is placed on the tank&#8217; s bottom and reaches the top of the doamin.
-The top of the domain is left open, when the rest of the boundary patches act as no slio walls.
-In the following figure, a sketch of the dambreak initial conditions is shown.</p>
-<div class="figure">
-<img alt="../images/dambreakGomez.JPG" src="../images/dambreakGomez.JPG" />
-</div>
-<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and forces / pressures on structures. The results of the simulations can be compared with the data in the following references.
-For more details, see runfiles or references.</p>
-<div class="section" id="id1">
-<h2>References<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Gómez-Gesteira, M. and R.A. Dalrymple, &#8220;Using a 3D SPH Method for Wave Impact on a Tall Structure, J. Waterway, Port, Coastal, Ocean Engineering, 130(2), 63-69, 2004.</li>
+<li>K.Kleefsman, G. Fekken, A. Veldman, B. Iwanowski, B. Bucher (2005) A volume-of-fluid based simulation method for wave impact problems, Journal of Computational Physics, 206, 363-393</li>
+<li>C.E. Kees, I. Akkerman, M. W. Farthing and Y. Bazilevs (2011) A
+Conservative Level Set Method for Variable-Order Approximations and
+Unstructured Meshes, Journal of Computational Physics, 230-12,
+3402-3414, doi:10.1016/j.jcp.2011.02.030</li>
+<li>I.Akkerman, Y. Bazilevs, C. E. Kees and M. W. Farthing (2011)
+Isogeometric Analysis of Free-Surface Flow Journal of Computational
+Physics, 230-11, 4137-4152, doi:10.1016/j.jcp.2010.11.044</li>
 </ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="dambreak">
+<h2>Dambreak<a class="headerlink" href="#dambreak" title="Permalink to this headline">¶</a></h2>
+<p>The problem consists of a 0.146m x 0.146m x 0.292m column of water,
+initially at rest, that collapses under the action of gravity and
+impacts a stationary object. The computational domain is a rectangular
+box with dimensions 0.584m x 0.146m x 0.350m. The top of the domain is
+left open. For more details, see runfiles or references.</p>
+<div class="section" id="id1">
+<h3>Preprocessing<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>No postprocessing is necessary for running this case.  The first lines
+of dambreak.py the discretion and formulation can be chosen by
+modifying the following lines.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Refinement = 2</td>
+<td>Controls the global level or refinement  e.g. 5 ==&gt; 32x16x16</td>
+</tr>
+<tr class="row-odd"><td>spaceOrder = 1 / 2</td>
+<td>Choose linear or quadratic elements</td>
+</tr>
+<tr class="row-even"><td>useHex     = True / False</td>
+<td>Choose hexahedral or tetrahedral elements</td>
+</tr>
+<tr class="row-odd"><td>useRBLES   = 0.0 / 1.0</td>
+<td>Choose SUPG  (0.0) or RBLES/VMS (1.0) for stabilizing the Navier-Stokes equations</td>
+</tr>
+<tr class="row-even"><td>useMetrics = 0.0 / 1.0</td>
+<td>Choose h-based (0.0) or metric based (1.0) numerical parameters</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id2">
+<h3>Running<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>The benchmark can be run using the following command:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">mpirun</span> <span class="o">-</span><span class="n">n</span> <span class="c">#NP parun dambreak_so.py -l 3 -v -O petsc.options -D lin_tet_3</span>
+</pre></div>
+</div>
+<p>where #NP stand for the number of processors. The final argument,
+which specifies the output directory, is optional.  Or use one of the
+run.#HOST.pbs run files.</p>
+</div>
+<div class="section" id="id3">
+<h3>Postprocessing<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>For extracting column heights and width a separate pvpython scripts
+are supplied in $PROTEUS_MPRANS/scripts. To be able to run the scripts
+pvpython needs to be installed. This is a special python shipped with
+paraview. Furthermore, the scripts assumed there is one master xmf
+file.  This master xmf file can be generated by running the following
+command in the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><pre>$PROTEUS/proteusModule/scripts/gatherArchives.py -s #NP -f dambreak_p</pre>
+</div>
+<p>This will generate a file dambreak_p_all#NP.xmf which can be used for
+extracting column heights and width by running the following commands
+in the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/dambreakExtractHeightAndWidth.py -f dambreak_p_all#NP.xmf</pre>
+</div>
+<p>This will produce the file height.txt that contain the height and
+width time series.  The experimental data is provided by the file
+sakamoto_exp.dat</p>
+<p>For visualizing purposes it might be beneficial to repackage the
+xmf/h5 solution files.  There are three distinct reasons/benefits to
+do this:</p>
+<ol class="arabic simple">
+<li>The script allows skipping time steps and only extracts variable
+deemed important, thereby greatly reducing the file size and hence
+the time to copy data form remote location.</li>
+<li>In the resulting solution files every time step has a distinct
+solution file, which allows visualization of results while the
+simulation is still running.</li>
+<li>The scripts also outputs VTK files which allows visualization with
+VisIt (and others).</li>
+</ol>
+<p>Repackaging of the solution can be done by running the following
+commands in the directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/extractSolution.py -f ../dambreak_p -s #start -e #end -i #incr -n #NP</pre>
+</div>
+<p>where #start end #end are the begin and end timestep number and #incr
+is a increment time step (aka stride) and #NP is again the number of
+processors.</p>
+<p>For convenience all the postprocesing mentioned above are lumped in a
+simple script. This script can be run using following commands in the
+directory containing the xmf/h5 solution files.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">postpro</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h3>References<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>S.Koshizuka, H. Tamako, Y. Oka (1995) A particle method for
+incompressible viscous flow with fluid fragmentation&#8221; Computational
+Fluid Mechanics Journal, 113, 134-147</li>
+<li>R.Elias, A. Coutinho (2007) Stabilized edge-based finite element
+simulation of free-surface flows, International Journal of Numerical
+Methods in Fluids 54, 965-993</li>
+<li>C.E. Kees, I. Akkerman, M. W. Farthing and Y. Bazilevs (2011) A
+Conservative Level Set Method for Variable-Order Approximations and
+Unstructured Meshes&#8221; Journal of Computational Physics, 230-12,
+3402-3414, doi:10.1016/j.jcp.2011.02.030</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="dambreak-gomez">
+<h2>Dambreak Gomez<a class="headerlink" href="#dambreak-gomez" title="Permalink to this headline">¶</a></h2>
+<p>The problem consists of a 0.4m x 0.3m x 0.61 (dx x dz x dy) column of
+water, initially at rest.  Under the action of gravity, the water
+column interacts with an obstacle and collapses to a wall.  The
+computational domain is a 3D rectangular box with dimensions 1.6m long
+x 0.61m x 0.75m high.  The obstacle has dimensions 0.12m x 0.12m, it
+is placed on the tank&#8217; s bottom and reaches the top of the doamin.
+The top of the domain is left open, when the rest of the boundary
+patches act as no slio walls.  In the following figure, a sketch of
+the dambreak initial conditions is shown.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/dambreakGomez.JPG"><img alt="../images/dambreakGomez.JPG" src="../images/dambreakGomez.JPG" style="width: 100%;" /></a>
+</div>
+<p>This case tests the ability of PROTEUS to simulate the free-surface
+evolution and forces / pressures on structures. The results of the
+simulations can be compared with the data in the following references.
+For more details, see runfiles or references.</p>
+<div class="section" id="id5">
+<h3>References<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Gómez-Gesteira, M. and R.A. Dalrymple, &#8220;Using a 3D SPH Method for
+Wave Impact on a Tall Structure, J. Waterway, Port, Coastal, Ocean
+Engineering, 130(2), 63-69, 2004.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="penny-and-price-diffraction-benchmark-case">
+<h2>Penny and Price diffraction benchmark case<a class="headerlink" href="#penny-and-price-diffraction-benchmark-case" title="Permalink to this headline">¶</a></h2>
+<p>Wave diffraction presents a boundary behaviour of waves associated with the bending of their path. Wave diffraction involves a change in direction of the wave propagation as they pass through an opening or around a barrier. The waves are, then, seen to pass around the barrier into regions behind it and disturb the water behind it.
+The present benchmark case represents the case of wave diffraction caused by a semi-infinite breakwater. Analytical solutions for this type of diffraction are presented in Penny and Price (1952) and can be used for comparisons of the corresponding results of PROTEUS.
+The case is simulated using a 3D rectangular numerical domain with height of 1.5 m, a length, L, of 25.0 m and width, b, of 30.0 m. The breakwater is represented as a vertical thin solid wall with length, b1, equal to 10.0 m. The mean water depth within the domain is equal to 1.0 m. within the left boundary and the generation/absorption zone, non-linear waves are generated with a height of 0.10 m, a period of 1.94 s and a length of 5.0 m. Also, the waves are absorbed within the implemented absorption zone. For the determination of the flux parameters, the Fenton Fourier Transformation theory is used (Fenton, 1988). Atmospheric conditions have been assigned to the top boundary of the domain and the bottom boundary, the surfaces of the breakwater, the front and the back boundaries act as free-slip walls.</p>
+<p>A sketch of the plan of the 3D domain of the present case is given in the following figure.</p>
+<div class="figure">
+<img alt="../images/Diffraction_PP_plan.bmp" src="../images/Diffraction_PP_plan.bmp" />
+</div>
+<p>where,</p>
+<ul class="simple">
+<li>Lga=1 wavelength (=5.0m), the length of the Generation/absorption zone</li>
+<li>L1=L2=1 wavelength (=5.0m)</li>
+<li>La=2 wavelengths (=10.0m), the length of the Absorption zone in the x direction</li>
+<li>ba=2 wavelengths (=10.0m), the length of the Absorption zone in the y direction</li>
+<li>b1=b2=2 wavelengths (=10.0m)</li>
+</ul>
+<p>This test case demonstrates the ability of PROTEUS to simulate the wave diffraction caused by a semi-infinite breakwater as well as the wave absorption within a 3D domain configuration.</p>
+<div class="section" id="id6">
+<h3>References<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Penny WG and Price AT (1952) The diffraction theory of sea waves and the shelter afforded by breakwaters. Part I in u201cSome gravity wave problems in the motion of perfect liquidsu201d by Martin JC, Moyce WJ, Penny WG, Price AT and Thornhill CK, Philosophy Transaction of the Royal Society in London, A244, 236u2013253.</li>
+<li>Fenton JD (1988) The numerical solution of steady water wave problems. Computer and Geosciences, 14(3), 357-368.</li>
+</ul>
+</div>
 </div>
 </div>
 

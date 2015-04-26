@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>2D Tests &mdash; air-water-vv 0.1.1 documentation</title>
+    <title>Verification and validation for air/water flow models &mdash; air-water-vv 0.1.1 documentation</title>
     
     <link rel="stylesheet" href="static/basic.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
@@ -24,13 +24,12 @@
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/underscore.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="static/js/jquery-1.11.0.min.js"></script>
     <script type="text/javascript" src="static/js/jquery-fix.js"></script>
     <script type="text/javascript" src="static/bootstrap-3.2.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="static/bootstrap-sphinx.js"></script>
     <link rel="top" title="air-water-vv 0.1.1 documentation" href="#" />
-    <link rel="next" title="Broad crested weir benchmark case" href="2d/index.html" />
+    <link rel="next" title="2D Test problems" href="2d/index.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -66,20 +65,10 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html">Broad crested weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#dambreak-collagrosi-benchmark-case">Dambreak Collagrosi benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#submerged-breakwater-on-slope-benchmark-case">Submerged breakwater on slope  benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#sine-wave-sloshing-benchmark-case">Sine wave sloshing benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#crump-weir-benchmark-case">Crump weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#dambreak-ubbink-benchmark-case">Dambreak Ubbink benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#sharp-crested-weir-benchmark-case">Sharp crested weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#vertical-breakwater-benchmark-case">Vertical Breakwater benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#dambreak-benchmark-case">Dambreak benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#sluice-gate-benchmark-case">Sluice gate benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2d/index.html">2D Test problems</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="3d/index.html">Dambreak benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3d/index.html#dambreak-gomez-benchmark-case">Dambreak Gomez benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3d/index.html">3D Test problems</a></li>
 </ul>
 </ul>
 </li>
@@ -93,19 +82,15 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">2D Tests</a><ul>
-</ul>
-</li>
-<li><a class="reference internal" href="#id1">3D Tests</a><ul>
-<li><a class="reference internal" href="#verification-and-validation-for-air-water-flow-models">Verification and validation for air/water flow models</a><ul>
+<li><a class="reference internal" href="#">Verification and validation for air/water flow models</a><ul>
 <li><a class="reference internal" href="#organization-of-the-test-set">Organization of the test set</a></li>
 <li><a class="reference internal" href="#adding-new-test-problems">Adding new test problems</a></li>
 <li><a class="reference internal" href="#contributors">Contributors</a></li>
+<li><a class="reference internal" href="#gallery">Gallery</a><ul>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 </ul>
 </li>
@@ -115,7 +100,7 @@
               
                 
   <li>
-    <a href="2d/index.html" title="Next Chapter: Broad crested weir benchmark case"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Broad crested we... &raquo;</span>
+    <a href="2d/index.html" title="Next Chapter: 2D Test problems"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">2D Test problems &raquo;</span>
     </a>
   </li>
               
@@ -123,11 +108,7 @@
             
             
             
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="sources/index.txt"
-     rel="nofollow">Source</a>
-</div></li>
+              <li class="hidden-sm"></li>
             
           </ul>
 
@@ -149,35 +130,10 @@
   <div class="row">
     <div class="col-md-12">
       
-  <div class="section" id="d-tests">
-<h1>2D Tests<a class="headerlink" href="#d-tests" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html">Broad crested weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#dambreak-collagrosi-benchmark-case">Dambreak Collagrosi benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#submerged-breakwater-on-slope-benchmark-case">Submerged breakwater on slope  benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#sine-wave-sloshing-benchmark-case">Sine wave sloshing benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#crump-weir-benchmark-case">Crump weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#dambreak-ubbink-benchmark-case">Dambreak Ubbink benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#sharp-crested-weir-benchmark-case">Sharp crested weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#vertical-breakwater-benchmark-case">Vertical Breakwater benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#dambreak-benchmark-case">Dambreak benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2d/index.html#sluice-gate-benchmark-case">Sluice gate benchmark case</a></li>
-</ul>
-</div>
-</div>
-<div class="section" id="id1">
-<h1>3D Tests<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="3d/index.html">Dambreak benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3d/index.html#dambreak-gomez-benchmark-case">Dambreak Gomez benchmark case</a></li>
-</ul>
-</div>
-<div class="section" id="verification-and-validation-for-air-water-flow-models">
-<h2>Verification and validation for air/water flow models<a class="headerlink" href="#verification-and-validation-for-air-water-flow-models" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="verification-and-validation-for-air-water-flow-models">
+<h1>Verification and validation for air/water flow models<a class="headerlink" href="#verification-and-validation-for-air-water-flow-models" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="organization-of-the-test-set">
-<h3>Organization of the test set<a class="headerlink" href="#organization-of-the-test-set" title="Permalink to this headline">¶</a></h3>
+<h2>Organization of the test set<a class="headerlink" href="#organization-of-the-test-set" title="Permalink to this headline">¶</a></h2>
 <p>The tests are divided into two-dimensional and three-dimensional
 tests, with additional subdivisions of those directores as needed. A
 test consists of a single directory including</p>
@@ -191,7 +147,7 @@ the problem</li>
 </ul>
 </div>
 <div class="section" id="adding-new-test-problems">
-<h3>Adding new test problems<a class="headerlink" href="#adding-new-test-problems" title="Permalink to this headline">¶</a></h3>
+<h2>Adding new test problems<a class="headerlink" href="#adding-new-test-problems" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Clone or fork this repository</li>
 <li>Add a new subdirectory with the contents of your test  problem</li>
@@ -201,23 +157,52 @@ the problem</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h3>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h3>
+<h2>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Chris Kees, Aggelos Dimakopolous, Eleni Zve, Matthew Farthing, Aron Ahmadia, Ido Akkerman, Matt Malej, Roham Bakhtyar</li>
 </ul>
-<p class="centered">
-<strong><a class="reference internal image-reference" href="images/hrw.png"><img alt="hrwLogo" class="align-middle" src="images/hrw.png" style="width: 200pt;" /></a>
- <a class="reference internal image-reference" href="images/chl.png"><img alt="chlLogo" class="align-middle" src="images/chl.png" style="width: 140pt;" /></a>
-</strong></p></div>
 </div>
-</div>
-<div class="section" id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
-<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
-<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+<div class="section" id="gallery">
+<h2>Gallery<a class="headerlink" href="#gallery" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="2d/index.html">2D Test problems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#broad-crested-weir">Broad crested weir</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#dambreak-collagrosi">Dambreak Collagrosi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#submerged-breakwater-on-slope">Submerged breakwater on slope</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#sine-wave-sloshing">Sine wave sloshing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#crump-weir">Crump weir</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#dambreak-ubbink">Dambreak Ubbink</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#sharp-crested-weir">Sharp crested weir</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#vertical-breakwater">Vertical breakwater</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#dambreak">Dambreak</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#sluice-gate">Sluice gate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#steady-state-current-propagation-over-a-flat-bottom">Steady state current propagation over a flat bottom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#solitary-wave-propagation-over-a-flat-bottom">Solitary wave propagation over a flat bottom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#nonlinear-waves-propagation-over-a-flat-bottom">Nonlinear waves propagation over a flat bottom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#linear-wave-shoaling">Linear wave shoaling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#wave-current-interaction">Wave/current interaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#wave-breaking">Wave breaking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2d/index.html#dingemans-wave-shoaling">Dingemans wave shoaling</a></li>
 </ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="3d/index.html">3D Test problems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="3d/index.html#marin">MARIN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3d/index.html#dambreak">Dambreak</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3d/index.html#dambreak-gomez">Dambreak Gomez</a></li>
+<li class="toctree-l2"><a class="reference internal" href="3d/index.html#penny-and-price-diffraction-benchmark-case">Penny and Price diffraction benchmark case</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<p class="centered">
+<strong><a class="reference external image-reference" href="http://hrwallingford.com"><img alt="hrwLogo" class="align-middle" src="images/hrw.png" style="width: 200pt;" /></a>
+ <a class="reference external image-reference" href="http://chl.usace.army.mil"><img alt="chlLogo" class="align-middle" src="images/chl.png" style="width: 140pt;" /></a>
+</strong></p></div>
 </div>
 
 

@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Broad crested weir benchmark case &mdash; air-water-vv 0.1.1 documentation</title>
+    <title>2D Test problems &mdash; air-water-vv 0.1.1 documentation</title>
     
     <link rel="stylesheet" href="../static/basic.css" type="text/css" />
     <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
@@ -24,14 +24,13 @@
     <script type="text/javascript" src="../static/jquery.js"></script>
     <script type="text/javascript" src="../static/underscore.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="../static/js/jquery-1.11.0.min.js"></script>
     <script type="text/javascript" src="../static/js/jquery-fix.js"></script>
     <script type="text/javascript" src="../static/bootstrap-3.2.0/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="../static/bootstrap-sphinx.js"></script>
     <link rel="top" title="air-water-vv 0.1.1 documentation" href="../index.html" />
-    <link rel="next" title="Dambreak benchmark case" href="../3d/index.html" />
-    <link rel="prev" title="2D Tests" href="../index.html" />
+    <link rel="next" title="3D Test problems" href="../3d/index.html" />
+    <link rel="prev" title="Verification and validation for air/water flow models" href="../index.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -67,20 +66,10 @@
   <ul class="dropdown-menu globaltoc"
       role="menu"
       aria-labelledby="dLabelGlobalToc"><ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">Broad crested weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#dambreak-collagrosi-benchmark-case">Dambreak Collagrosi benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#submerged-breakwater-on-slope-benchmark-case">Submerged breakwater on slope  benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#sine-wave-sloshing-benchmark-case">Sine wave sloshing benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#crump-weir-benchmark-case">Crump weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#dambreak-ubbink-benchmark-case">Dambreak Ubbink benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#sharp-crested-weir-benchmark-case">Sharp crested weir benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#vertical-breakwater-benchmark-case">Vertical Breakwater benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#dambreak-benchmark-case">Dambreak benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#sluice-gate-benchmark-case">Sluice gate benchmark case</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">2D Test problems</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../3d/index.html">Dambreak benchmark case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../3d/index.html#dambreak-gomez-benchmark-case">Dambreak Gomez benchmark case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../3d/index.html">3D Test problems</a></li>
 </ul>
 </ul>
 </li>
@@ -94,48 +83,78 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">Broad crested weir benchmark case</a><ul>
+<li><a class="reference internal" href="#">2D Test problems</a><ul>
+<li><a class="reference internal" href="#broad-crested-weir">Broad crested weir</a><ul>
 <li><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dambreak-collagrosi-benchmark-case">Dambreak Collagrosi benchmark case</a><ul>
+<li><a class="reference internal" href="#dambreak-collagrosi">Dambreak Collagrosi</a><ul>
 <li><a class="reference internal" href="#id1">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#submerged-breakwater-on-slope-benchmark-case">Submerged breakwater on slope  benchmark case</a><ul>
-<li><a class="reference internal" href="#running">Running</a></li>
+<li><a class="reference internal" href="#submerged-breakwater-on-slope">Submerged breakwater on slope</a><ul>
 <li><a class="reference internal" href="#id2">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#sine-wave-sloshing-benchmark-case">Sine wave sloshing benchmark case</a><ul>
+<li><a class="reference internal" href="#sine-wave-sloshing">Sine wave sloshing</a><ul>
 <li><a class="reference internal" href="#id3">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#crump-weir-benchmark-case">Crump weir benchmark case</a><ul>
+<li><a class="reference internal" href="#crump-weir">Crump weir</a><ul>
 <li><a class="reference internal" href="#id4">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dambreak-ubbink-benchmark-case">Dambreak Ubbink benchmark case</a><ul>
+<li><a class="reference internal" href="#dambreak-ubbink">Dambreak Ubbink</a><ul>
 <li><a class="reference internal" href="#id5">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#sharp-crested-weir-benchmark-case">Sharp crested weir benchmark case</a><ul>
+<li><a class="reference internal" href="#sharp-crested-weir">Sharp crested weir</a><ul>
 <li><a class="reference internal" href="#id6">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#vertical-breakwater-benchmark-case">Vertical Breakwater benchmark case</a><ul>
+<li><a class="reference internal" href="#vertical-breakwater">Vertical breakwater</a><ul>
 <li><a class="reference internal" href="#id7">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#dambreak-benchmark-case">Dambreak benchmark case</a><ul>
+<li><a class="reference internal" href="#dambreak">Dambreak</a><ul>
 <li><a class="reference internal" href="#preprocessing">Preprocessing</a></li>
-<li><a class="reference internal" href="#id8">Running</a></li>
+<li><a class="reference internal" href="#running">Running</a></li>
 <li><a class="reference internal" href="#postprocessing">Postprocessing</a></li>
+<li><a class="reference internal" href="#id8">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sluice-gate">Sluice gate</a><ul>
 <li><a class="reference internal" href="#id9">References</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#sluice-gate-benchmark-case">Sluice gate benchmark case</a><ul>
+<li><a class="reference internal" href="#steady-state-current-propagation-over-a-flat-bottom">Steady state current propagation over a flat bottom</a><ul>
 <li><a class="reference internal" href="#id10">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#solitary-wave-propagation-over-a-flat-bottom">Solitary wave propagation over a flat bottom</a><ul>
+<li><a class="reference internal" href="#id11">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#nonlinear-waves-propagation-over-a-flat-bottom">Nonlinear waves propagation over a flat bottom</a><ul>
+<li><a class="reference internal" href="#id12">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#linear-wave-shoaling">Linear wave shoaling</a><ul>
+<li><a class="reference internal" href="#id13">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wave-current-interaction">Wave/current interaction</a><ul>
+<li><a class="reference internal" href="#id14">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#wave-breaking">Wave breaking</a><ul>
+<li><a class="reference internal" href="#id15">References</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dingemans-wave-shoaling">Dingemans wave shoaling</a><ul>
+<li><a class="reference internal" href="#id16">References</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -147,11 +166,11 @@
               
                 
   <li>
-    <a href="../index.html" title="Previous Chapter: 2D Tests"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; 2D Tests</span>
+    <a href="../index.html" title="Previous Chapter: Verification and validation for air/water flow models"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; Verification and...</span>
     </a>
   </li>
   <li>
-    <a href="../3d/index.html" title="Next Chapter: Dambreak benchmark case"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">Dambreak benchma... &raquo;</span>
+    <a href="../3d/index.html" title="Next Chapter: 3D Test problems"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">3D Test problems &raquo;</span>
     </a>
   </li>
               
@@ -159,11 +178,7 @@
             
             
             
-              <li class="hidden-sm">
-<div id="sourcelink">
-  <a href="../sources/2d/index.txt"
-     rel="nofollow">Source</a>
-</div></li>
+              <li class="hidden-sm"></li>
             
           </ul>
 
@@ -185,62 +200,81 @@
   <div class="row">
     <div class="col-md-12">
       
-  <div class="section" id="broad-crested-weir-benchmark-case">
-<h1>Broad crested weir benchmark case<a class="headerlink" href="#broad-crested-weir-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>A broad-crested weir is a standard hydraulic structure used as discharge measuring
-device and flow control device in open channel. This type of weir can be described
-as a simple solid rectangular channel obstruction spanned over the whole width of
-the channel. Due to the sharp edge of the upper left side corner of the weir, flow
-separation occurs at this location.</p>
-<p>As the flow propagates mainly in 2 directions, a 2D computational domain was used for the simulation.
-The height of the domain is equal to 0.7m and the length might vary from case to case.
-The weir has a height of P=0.401m and a width of b=0.5m.
-A uniform velocity distribution from bottom to free water level is imposed in the left
-wall boundary condition. The top of the domain is left open and the right wall of the
-domain allows the flow to leave the domain.
-In the following figure, a simple sketch of the structure is presented showing the main parameters.</p>
-<div class="figure">
+  <div class="section" id="d-test-problems">
+<h1>2D Test problems<a class="headerlink" href="#d-test-problems" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="broad-crested-weir">
+<h2>Broad crested weir<a class="headerlink" href="#broad-crested-weir" title="Permalink to this headline">¶</a></h2>
+<p>A broad-crested weir is a standard hydraulic structure used as
+discharge measuring device and flow control device in open
+channel. This type of weir can be described as a simple solid
+rectangular channel obstruction spanned over the whole width of the
+channel. Due to the sharp edge of the upper left side corner of the
+weir, flow separation occurs at this location.</p>
+<p>As the flow propagates mainly in 2 directions, a 2D computational
+domain was used for the simulation.  The height of the domain is equal
+to <img class="math" src="../images/math/45f481def694095a45674ceb0821825de8176419.png" alt="0.7\mbox{m}"/> and the length might vary from case to case.
+The weir has a height of <img class="math" src="../images/math/55903842b2c6f883f869c2fdd82e5a126c6f911e.png" alt="P=0.401\mbox{m}"/> and a width of
+<img class="math" src="../images/math/9765af0c7f7e503fd503048d7045370000b7e724.png" alt="b=0.5\mbox{m}"/>.  A uniform velocity distribution from bottom to
+free water level is imposed in the left wall boundary condition. The
+top of the domain is left open and the right wall of the domain allows
+the flow to leave the domain.  In the following figure, a simple
+sketch of the structure is presented showing the main parameters.</p>
+<div class="figure align-center">
 <a class="reference internal image-reference" href="../images/BroadWeir.bmp"><img alt="../images/BroadWeir.bmp" src="../images/BroadWeir.bmp" style="width: 100%;" /></a>
 </div>
-<p>where,
-uo is the approach velocity, H is the upstream potential head,
-hv is the upstream velocity head, Ht = H + hv is the upstream total head, d is the flow depth over the weir.</p>
-<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and the
-flow separation. The results of the simulations can be compared with the data in the following references.
-For more details, see runfiles or references.</p>
+<p>where, <img class="math" src="../images/math/2353a93a59bdef11f1948072a60b855ce4d9e9e1.png" alt="uo"/> is the approach velocity, <img class="math" src="../images/math/b1902d279ba37d60bdce4e0e987b7cd19d48974e.png" alt="H"/> is the upstream
+potential head, <img class="math" src="../images/math/6b93a7d18387b0c6e2bd40d740d7823b6f6e2a93.png" alt="hv"/> is the upstream velocity head, <img class="math" src="../images/math/416fc340353917f4146c72d6758946c39a3d679d.png" alt="Ht =
+H + hv"/> is the upstream total head, <img class="math" src="../images/math/96ab646de7704969b91c76a214126b45f2b07b25.png" alt="d"/> is the flow depth over
+the weir.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface
+evolution and the flow separation. The results of the simulations can
+be compared with the data in the following references.  For more
+details, see runfiles or references.</p>
 <div class="section" id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Fritz HM and Hager WH (1998) Hydraulics of embankment weirs. Journal of Hydraulic Engineer 124(9), 963–971.</li>
-<li>Hager WH and Schwalt M (1994). Broad-crested weir. Journal of Irrigation and Drainage 120(1), 13–26.</li>
+<li>Fritz HM and Hager WH (1998) Hydraulics of embankment weirs. Journal
+of Hydraulic Engineer 124(9), 963–971.</li>
+<li>Hager WH and Schwalt M (1994). Broad-crested weir. Journal of
+Irrigation and Drainage 120(1), 13–26.</li>
 </ul>
 </div>
 </div>
 <hr class="docutils" />
-<div class="section" id="dambreak-collagrosi-benchmark-case">
-<h1>Dambreak Collagrosi benchmark case<a class="headerlink" href="#dambreak-collagrosi-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>The problem consists of a 0.60m x 1.20m (height x width) column of water, initially at rest,
-that collapses under the action of gravity and impacts to a wall.
-The computational domain is a rectangular box with a heigth of 1.80m and a width of 3.22m.
-The top of the domain is left open, when the rest of the boundary patches act as no slip walls.
-In the following figure, a sketch of the dambreak initial conditions is shown.</p>
-<div class="figure">
-<img alt="../images/dambreakColagrossi.bmp" src="../images/dambreakColagrossi.bmp" />
+<div class="section" id="dambreak-collagrosi">
+<h2>Dambreak Collagrosi<a class="headerlink" href="#dambreak-collagrosi" title="Permalink to this headline">¶</a></h2>
+<p>The problem consists of a 0.60m x 1.20m (height x width) column of
+water, initially at rest, that collapses under the action of gravity
+and impacts to a wall.  The computational domain is a rectangular box
+with a heigth of 1.80m and a width of 3.22m.  The top of the domain is
+left open, when the rest of the boundary patches act as no slip walls.
+In the following figure, a sketch of the dambreak initial conditions
+is shown.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/dambreakColagrossi.bmp"><img alt="../images/dambreakColagrossi.bmp" src="../images/dambreakColagrossi.bmp" style="width: 100%;" /></a>
 </div>
-<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and forces / pressures on structures, according to data that are available in the following references.
-For more details, see runfiles or references.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface
+evolution and forces / pressures on structures, according to data that
+are available in the following references.  For more details, see
+runfiles or references.</p>
 <div class="section" id="id1">
-<h2>References<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h3>References<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Colagrossi A and Landrini M (2003) Numerical simulation of interfacial flows by smoothed particle hydrodynamics, Journal of Computational Physics,191,448-475.</li>
-<li>Martin, J. C. &amp; Moyce, W. J., (1952) Part IV. An Experimental Study of the Collapse of Liquid Columns on a Rigid Horizontal Plane Phil. Trans. R. Soc. Lond. A 244 (882) 312-324.</li>
-<li>Zhou, Z. Q., De Kat, J. O. and Buchner, B. (1999) A nonlinear 3-D approach to simulate green water dynamics on deck in: J. Piquet (Ed.), Proc. 7th Int. Conf. Num. Ship Hydrod., Nantes, 5.11, 15.</li>
+<li>Colagrossi A and Landrini M (2003) Numerical simulation of
+interfacial flows by smoothed particle hydrodynamics, Journal of
+Computational Physics,191,448-475.</li>
+<li>Martin, J. C. &amp; Moyce, W. J., (1952) Part IV. An Experimental Study
+of the Collapse of Liquid Columns on a Rigid Horizontal Plane
+Phil. Trans. R. Soc. Lond. A 244 (882) 312-324.</li>
+<li>Zhou, Z. Q., De Kat, J. O. and Buchner, B. (1999) A nonlinear 3-D
+approach to simulate green water dynamics on deck in: J. Piquet
+(Ed.), Proc. 7th Int. Conf. Num. Ship Hydrod., Nantes, 5.11, 15.</li>
 </ul>
 </div>
 </div>
 <hr class="docutils" />
-<div class="section" id="submerged-breakwater-on-slope-benchmark-case">
-<h1>Submerged breakwater on slope  benchmark case<a class="headerlink" href="#submerged-breakwater-on-slope-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submerged-breakwater-on-slope">
+<h2>Submerged breakwater on slope<a class="headerlink" href="#submerged-breakwater-on-slope" title="Permalink to this headline">¶</a></h2>
 <p>This benchmark simulates Wave propagation near a submerged breakwater
 on a slope and the comparisons of the results with experimental data
 in the in the nearshore zone are`` revealed and discussed. For the
@@ -250,125 +284,165 @@ deep wave flume. A 1/20 slope is placed at one side of the flume. The
 size of submerged breakwater is 10 cm crest wide, 1:2 gradient of
 front slope, 1:1 gradient of back slope, and 8 cm depth of
 submergence.  For more details, see runfiles or references.</p>
-<div class="section" id="running">
-<h2>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h2>
-<p>The benchmark can be run using the following command:</p>
-</div>
 <div class="section" id="id2">
-<h2>References<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
-<ol class="upperalpha simple" start="10">
-<li>Chen, C. Jiang, S. Hu, and W. Huang (2010) &#8220;Numerical study on the characteristics of flow field and wave propagation near submerged breakwater on slope&#8221;, Acta Oceanologica Sinica, 29(1), pp88-99</li>
-</ol>
+<h3>References<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>J. Chen, C. Jiang, S. Hu, and W. Huang (2010) &#8220;Numerical study on
+the characteristics of flow field and wave propagation near
+submerged breakwater on slope&#8221;, Acta Oceanologica Sinica, 29(1),
+pp88-99</li>
+</ul>
 </div>
 </div>
 <hr class="docutils" />
-<div class="section" id="sine-wave-sloshing-benchmark-case">
-<h1>Sine wave sloshing benchmark case<a class="headerlink" href="#sine-wave-sloshing-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>Proteus is initialised with a free-surface profile that will excite the first asymmetric sloshing mode. The free-surface slope is small,
-therefore, we can consider that the flow evolution will obey to the linear sloshing theory. The output of Proteus can be compared with the
-analytical solution found in Ibrahim (2005) including only a symmetric mode. The computational domain is a 2D rectangular box with dimensions
-3.14m x 3.14m and the mean level of the water is in the middle of the box. The initail conditions of the simulation are shown in the following figure,</p>
-<div class="figure">
-<img alt="../images/Sloshing.bmp" src="../images/Sloshing.bmp" />
+<div class="section" id="sine-wave-sloshing">
+<h2>Sine wave sloshing<a class="headerlink" href="#sine-wave-sloshing" title="Permalink to this headline">¶</a></h2>
+<p>Proteus is initialised with a free-surface profile that will excite
+the first asymmetric sloshing mode. The free-surface slope is small,
+therefore, we can consider that the flow evolution will obey to the
+linear sloshing theory. The output of Proteus can be compared with the
+analytical solution found in Ibrahim (2005) including only a symmetric
+mode. The computational domain is a 2D rectangular box with dimensions
+3.14m x 3.14m and the mean level of the water is in the middle of the
+box. The initail conditions of the simulation are shown in the
+following figure,</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/Sloshing.bmp"><img alt="../images/Sloshing.bmp" src="../images/Sloshing.bmp" style="width: 100%;" /></a>
 </div>
 <p>where, a is the amplitude of the sloshing wave.</p>
-<p>This case tests the ability of PROTEUS to simulate the free-surface evolution. For more details, see runfiles or references.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface
+evolution. For more details, see runfiles or references.</p>
 <div class="section" id="id3">
-<h2>References<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<h3>References<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Ibrahim RA (2005). Liquid Sloshing Dynamics – Theory and Applications, Cambridge University Press, New York, NY.</li>
+<li>Ibrahim RA (2005). Liquid Sloshing Dynamics – Theory and
+Applications, Cambridge University Press, New York, NY.</li>
 </ul>
 </div>
 </div>
 <hr class="docutils" />
-<div class="section" id="crump-weir-benchmark-case">
-<h1>Crump weir benchmark case<a class="headerlink" href="#crump-weir-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>A crump weir is a typical hydraulic structure mainly used as a measurement device in open-channels
-as well as for flow control. It is a triangular channel obstruction consisting of a 1:2 upstream and a
-1:5 downstream slope.The slope upstream is designed to avoid material sedimentation while the downstream
-side is designed to stabilize the flow. The weir spans  the width of the channel and obstructs the natural
-flow of the water.The following two flow conditions are tested:</p>
+<div class="section" id="crump-weir">
+<h2>Crump weir<a class="headerlink" href="#crump-weir" title="Permalink to this headline">¶</a></h2>
+<p>A crump weir is a typical hydraulic structure mainly used as a
+measurement device in open-channels as well as for flow control. It is
+a triangular channel obstruction consisting of a 1:2 upstream and a
+1:5 downstream slope.The slope upstream is designed to avoid material
+sedimentation while the downstream side is designed to stabilize the
+flow. The weir spans the width of the channel and obstructs the
+natural flow of the water.The following two flow conditions are
+tested:</p>
 <ul class="simple">
-<li>Modular flow conditions, where the flow regime is not affected by the downstream conditions. In this condition there is a direct relation between the flow rate and the upstream head. The modular flow condition is verified when the ratio between the downstream and the upstream total head is less or equal to 0.75.</li>
-<li>Non-modular flow conditions, where the flow regime is affected by the downstream conditions. This happens when the weir operates in submerged conditions.  The flow rate in this case is related to the total head upstream and downstream of the weir and therefore both head measurements are required.</li>
+<li>Modular flow conditions, where the flow regime is not affected by
+the downstream conditions. In this condition there is a direct
+relation between the flow rate and the upstream head. The modular
+flow condition is verified when the ratio between the downstream and
+the upstream total head is less or equal to 0.75.</li>
+<li>Non-modular flow conditions, where the flow regime is affected by
+the downstream conditions. This happens when the weir operates in
+submerged conditions.  The flow rate in this case is related to the
+total head upstream and downstream of the weir and therefore both
+head measurements are required.</li>
 </ul>
-<p>The computational domain is a 2D rectangular box with height equal to 2.1m the length might vary
-from case to case.The weir has a height of P=0.5m and a width of b=3.5m.
-A uniform velocity distribution from bottom to free water level is imposed in the left wall boundary condition.
-The top of the domain is left open. The right wall of the domain allows the flow to leave the domain for the case of the modular flow, when for the case of the non-modular flow an outflow velocity and downstream water level are imposed on the right boundary.</p>
+<p>The computational domain is a 2D rectangular box with height equal to
+2.1m the length might vary from case to case.The weir has a height of
+<img class="math" src="../images/math/9d598fcaae36a1f5d50a46982389abf6dedd8633.png" alt="P=0.5\mbox{m}"/> and a width of <img class="math" src="../images/math/04a418fc1216bfddc6fa297881dc41d92a8ab266.png" alt="b=3.5\mbox{m}"/>.  A uniform
+velocity distribution from bottom to free water level is imposed in
+the left wall boundary condition.  The top of the domain is left
+open. The right wall of the domain allows the flow to leave the domain
+for the case of the modular flow, when for the case of the non-modular
+flow an outflow velocity and downstream water level are imposed on the
+right boundary.</p>
 <p>In the following figure a simple sketch of the structure is presented.</p>
-<div class="figure">
-<img alt="../images/CrumpWeirBSISO.jpg" src="../images/CrumpWeirBSISO.jpg" />
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/CrumpWeirBSISO.jpg"><img alt="../images/CrumpWeirBSISO.jpg" src="../images/CrumpWeirBSISO.jpg" style="width: 100%;" /></a>
 </div>
-<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and the results of the simulations can be compared with the data in the following references.
-For more details, see runfiles or references.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface
+evolution and the results of the simulations can be compared with the
+data in the following references.  For more details, see runfiles or
+references.</p>
 <div class="section" id="id4">
-<h2>References<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<h3>References<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>British Standards Institution (2008) BS ISO 4360:2008: “Hydrometry - Open channel flow measurement using triangular profile weirs”. London, BSI. (Withdrawn (ISO 4360:1984 is a current alternative).</li>
+<li>British Standards Institution (2008) BS ISO 4360:2008: “Hydrometry -
+Open channel flow measurement using triangular profile
+weirs”. London, BSI. (Withdrawn (ISO 4360:1984 is a current
+alternative).</li>
 </ul>
 </div>
 </div>
 <hr class="docutils" />
-<div class="section" id="dambreak-ubbink-benchmark-case">
-<h1>Dambreak Ubbink benchmark case<a class="headerlink" href="#dambreak-ubbink-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>The problem consists of a 0.292m  x 1.146m (height x width) column of water, initially at rest.
-A small obstacle (0.024m x 0.048m) is placed in the middle of the tank base.
-Under the action of gravity the water column interacts with the obstacle and collapses to a wall.
-The computational domain is a 2D rectangular box with  dimensions 0.584m x 0.584m.
-The top of the domain is left open, when the rest of the boundary patches act as no slip walls.
-In the following figure, a sketch of the dambreak initial conditions is shown.</p>
+<div class="section" id="dambreak-ubbink">
+<h2>Dambreak Ubbink<a class="headerlink" href="#dambreak-ubbink" title="Permalink to this headline">¶</a></h2>
+<p>The problem consists of a 0.292m x 1.146m (height x width) column of
+water, initially at rest.  A small obstacle (0.024m x 0.048m) is
+placed in the middle of the tank base.  Under the action of gravity
+the water column interacts with the obstacle and collapses to a wall.
+The computational domain is a 2D rectangular box with dimensions
+0.584m x 0.584m.  The top of the domain is left open, when the rest of
+the boundary patches act as no slip walls.  In the following figure, a
+sketch of the dambreak initial conditions is shown.</p>
 <div class="figure align-center">
 <a class="reference internal image-reference" href="../images/dambreakUbbink.bmp"><img alt="../images/dambreakUbbink.bmp" src="../images/dambreakUbbink.bmp" style="width: 100%;" /></a>
 </div>
-<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and during the interaction of the dambreak front with the obstacle.
-The results of the simulations can be visually compared with the data in the following references.
-For more details, see runfiles or references.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface
+evolution and during the interaction of the dambreak front with the
+obstacle.  The results of the simulations can be visually compared
+with the data in the following references.  For more details, see
+runfiles or references.</p>
 <div class="section" id="id5">
-<h2>References<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<h3>References<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Ubbink, O. (1997), Numerical prediction of two fluid systems with sharp interfaces, PhD thesis, Department of Mechanical Engineering, Imperial College of Science, Technology &amp; Medicine</li>
+<li>Ubbink, O. (1997), Numerical prediction of two fluid systems with
+sharp interfaces, PhD thesis, Department of Mechanical Engineering,
+Imperial College of Science, Technology &amp; Medicine</li>
 </ul>
 </div>
 </div>
 <hr class="docutils" />
-<div class="section" id="sharp-crested-weir-benchmark-case">
-<h1>Sharp crested weir benchmark case<a class="headerlink" href="#sharp-crested-weir-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>A rectangular sharp-crested weir is a hydraulic structure mainly used as a flow control and
-measurement device in open-channels. It is a channel obstruction made from a thin plate
-with a sharp edge at the top (crest), spanned across the width of the channel. This artificial
-barrier obstructs the natural flow of the water, leading to an increase in the water level
-upstream, before spilling over the structure.
-The computational domain is a 2D rectangular box with height equal to 1.8m and the length might
-vary from case to case. The weir has a height of P=1.0m and a small width of b=0.01m.
-A uniform velocity distribution from bottom to the free water level is imposed in the left wall
-boundary condition. The top of the domain is left open and the right wall allows
-the flow to leave the domain.
-In the following figure, a simple sketch of the structure is presented showing the main parameters.</p>
-<div class="figure">
-<img alt="../images/SharpWeir.bmp" src="../images/SharpWeir.bmp" />
+<div class="section" id="sharp-crested-weir">
+<h2>Sharp crested weir<a class="headerlink" href="#sharp-crested-weir" title="Permalink to this headline">¶</a></h2>
+<p>A rectangular sharp-crested weir is a hydraulic structure mainly used
+as a flow control and measurement device in open-channels. It is a
+channel obstruction made from a thin plate with a sharp edge at the
+top (crest), spanned across the width of the channel. This artificial
+barrier obstructs the natural flow of the water, leading to an
+increase in the water level upstream, before spilling over the
+structure.  The computational domain is a 2D rectangular box with
+height equal to 1.8m and the length might vary from case to case. The
+weir has a height of P=1.0m and a small width of
+<img class="math" src="../images/math/c725803331874403396a1f7d4a6f8b27b3f582b5.png" alt="b=0.01\mbox{m}"/>.  A uniform velocity distribution from bottom
+to the free water level is imposed in the left wall boundary
+condition. The top of the domain is left open and the right wall
+allows the flow to leave the domain.  In the following figure, a
+simple sketch of the structure is presented showing the main
+parameters.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/SharpWeir.bmp"><img alt="../images/SharpWeir.bmp" src="../images/SharpWeir.bmp" style="width: 100%;" /></a>
 </div>
-<p>where, uo is the approach velocity, H is the upstream potential head, hv is the upstream velocity head, Ht = H + hv is the upstream total head, h is the thickness of the nappe, d1 is the backwater depth beneath the nappe, d2 is the backwater depth downstream of the nappe.</p>
-<p>This case tests the ability of PROTEUS to simulate the free-surface evolution and the
-flow separation. The results of the simulations can be compared with the data in the following references.
-For more details, see runfiles or references.</p>
+<p>where, <img class="math" src="../images/math/4da05a286595094186f139b1a2ed6a0840b09e5a.png" alt="u_0"/> is the approach velocity, <img class="math" src="../images/math/b1902d279ba37d60bdce4e0e987b7cd19d48974e.png" alt="H"/> is the upstream
+potential head, <img class="math" src="../images/math/6b93a7d18387b0c6e2bd40d740d7823b6f6e2a93.png" alt="hv"/> is the upstream velocity head, <img class="math" src="../images/math/416fc340353917f4146c72d6758946c39a3d679d.png" alt="Ht =
+H + hv"/> is the upstream total head, <img class="math" src="../images/math/8189a5b5a0917b8c93350827be4038af1839139d.png" alt="h"/> is the thickness of the
+nappe, <img class="math" src="../images/math/34fc6045aab0e5e07262dcf74a89ef63c0badcf2.png" alt="d1"/> is the backwater depth beneath the nappe, <img class="math" src="../images/math/16b313ea292cbe0b65bdd58a0c7ef2b4592f8385.png" alt="d2"/>
+is the backwater depth downstream of the nappe.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface
+evolution and the flow separation. The results of the simulations can
+be compared with the data in the following references.  For more
+details, see runfiles or references.</p>
 <div class="section" id="id6">
-<h2>References<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<h3>References<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Montes, J.S. (1992). &#8220;Curvature Analysis of Spillway Profiles.&#8221; Proc. 11th Australasian Fluid Mechanics Conference AFMC, Hobart, Australia, Paper 7E-7,2, 941-944.</li>
-<li><ol class="first upperalpha" start="21">
-<li><ol class="first upperalpha" start="19">
-<li>Army Engineer Waterways Experiment Station (WES, 1977)  - HYDRAULIC DESIGN CRITERIA - SHEETS 111-11 to 111-14/1 - Overflow Spillway Crest – Upper Nappe Profile.</li>
-</ol>
-</li>
-</ol>
-</li>
+<li>Montes, J.S. (1992). &#8220;Curvature Analysis of Spillway Profiles.&#8221;
+Proc. 11th Australasian Fluid Mechanics Conference AFMC, Hobart,
+Australia, Paper 7E-7,2, 941-944.</li>
+<li>U. S. Army Engineer Waterways Experiment Station (WES, 1977) -
+HYDRAULIC DESIGN CRITERIA - SHEETS 111-11 to 111-14/1 - Overflow
+Spillway Crest – Upper Nappe Profile.</li>
 </ul>
 </div>
 </div>
 <hr class="docutils" />
-<div class="section" id="vertical-breakwater-benchmark-case">
-<h1>Vertical Breakwater benchmark case<a class="headerlink" href="#vertical-breakwater-benchmark-case" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="vertical-breakwater">
+<h2>Vertical breakwater<a class="headerlink" href="#vertical-breakwater" title="Permalink to this headline">¶</a></h2>
 <p>Numerical simulation (hybrid LS-VOF model) of hydrodynamic process
 during the interactions between incident waves and vertical
 breakwaters and the comparisons of the results with experimental data
@@ -379,23 +453,28 @@ flume. The water depth was equal to 0.45 m at the beginning of the
 flume and reduced to 0.3 m at the flat bed near the breakwater with a
 1:30 slope.  For more details, see runfiles or references.</p>
 <div class="section" id="id7">
-<h2>References<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
-<p>Xie SL. Scouring pattern in front of vertical breakwaters and their
+<h3>References<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Xie SL. Scouring pattern in front of vertical breakwaters and their
 influence on the stability of the foundation of the
 breakwaters. Report. Delft (Netherlands): Department of Civil
-Engineering, Delft University of Technology; September, 1981. 61 p.</p>
+Engineering, Delft University of Technology; September, 1981. 61 p.</li>
+</ul>
 </div>
 </div>
 <hr class="docutils" />
-<div class="section" id="dambreak-benchmark-case">
-<h1>Dambreak benchmark case<a class="headerlink" href="#dambreak-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>The problem consists of a 0.146m x 0.146m x 0.292m column of water, initially at rest, that collapses under
-the action of gravity and impacts a stationary object. The computational domain is a rectangular box with
-dimensions 0.584m x 0.146m x 0.350m. The top of the domain is left open. For more details, see runfiles or references.</p>
+<div class="section" id="dambreak">
+<h2>Dambreak<a class="headerlink" href="#dambreak" title="Permalink to this headline">¶</a></h2>
+<p>The problem consists of a 0.146m x 0.146m x 0.292m column of water,
+initially at rest, that collapses under the action of gravity and
+impacts a stationary object. The computational domain is a rectangular
+box with dimensions 0.584m x 0.146m x 0.350m. The top of the domain is
+left open. For more details, see runfiles or references.</p>
 <div class="section" id="preprocessing">
-<h2>Preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this headline">¶</a></h2>
-<p>No postprocessing is necessary for running this case.
-The first lines of dambreak.py the discretion and formulation can be chosen by modifying the following lines.</p>
+<h3>Preprocessing<a class="headerlink" href="#preprocessing" title="Permalink to this headline">¶</a></h3>
+<p>No postprocessing is necessary for running this case.  The first lines
+of dambreak.py the discretion and formulation can be chosen by
+modifying the following lines.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="25%" />
@@ -425,31 +504,36 @@ The first lines of dambreak.py the discretion and formulation can be chosen by m
 </tbody>
 </table>
 </div>
-<div class="section" id="id8">
-<h2>Running<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="running">
+<h3>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h3>
 <p>The benchmark can be run using the following command:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">mpirun</span> <span class="o">-</span><span class="n">n</span> <span class="c">#NP parun dambreak_so.py -l 3 -v -O petsc.options -D lin_tet_3</span>
 </pre></div>
 </div>
-<p>where #NP stand for the number of processors. The final argument, which specifies the output directory, is optional.
-Or use one of the run.#HOST.pbs run files.</p>
+<p>where #NP stand for the number of processors. The final argument,
+which specifies the output directory, is optional.  Or use one of the
+run.#HOST.pbs run files.</p>
 </div>
 <div class="section" id="postprocessing">
-<h2>Postprocessing<a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h2>
-<p>For extracting column heights and width a separate pvpython scripts are
-supplied in $PROTEUS_MPRANS/scripts. To be able to run the scripts pvpython needs to be installed. This is a special
-python shipped with paraview. Furthermore, the scripts assumed there is one master xmf file.  This master xmf file
-can be generated by running the following command in the directory containing the xmf/h5 solution files.</p>
+<h3>Postprocessing<a class="headerlink" href="#postprocessing" title="Permalink to this headline">¶</a></h3>
+<p>For extracting column heights and width a separate pvpython scripts
+are supplied in $PROTEUS_MPRANS/scripts. To be able to run the scripts
+pvpython needs to be installed. This is a special python shipped with
+paraview. Furthermore, the scripts assumed there is one master xmf
+file.  This master xmf file can be generated by running the following
+command in the directory containing the xmf/h5 solution files.</p>
 <div class="highlight-python"><pre>$PROTEUS/proteusModule/scripts/gatherArchives.py -s #NP -f dambreak_p</pre>
 </div>
 <p>This will generate a file dambreak_p_all#NP.xmf which can be used for extracting column heights and width by running
 the following commands in the directory containing the xmf/h5 solution files.</p>
 <div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/dambreakExtractHeightAndWidth.py -f dambreak_p_all#NP.xmf</pre>
 </div>
-<p>This will produce the file height.txt that contain the height and width time series.
-The experimental data is provided by the file sakamoto_exp.dat</p>
-<p>For visualizing purposes it might be beneficial to repackage the xmf/h5 solution files.
-There are three distinct reasons/benefits to do this:</p>
+<p>This will produce the file height.txt that contain the height and
+width time series.  The experimental data is provided by the file
+sakamoto_exp.dat</p>
+<p>For visualizing purposes it might be beneficial to repackage the
+xmf/h5 solution files.  There are three distinct reasons/benefits to
+do this:</p>
 <ol class="arabic simple">
 <li>The script allows skipping time steps and only extracts variable deemed important,
 thereby greatly reducing the file size and hence the time to copy data form remote location.</li>
@@ -461,59 +545,341 @@ which allows visualization of results while the simulation is still running.</li
 <div class="highlight-python"><pre>$PROTEUS_MPRANS/scripts/extractSolution.py -f ../dambreak_p -s #start -e #end -i #incr -n #NP</pre>
 </div>
 <p>where #start end #end are the begin and end timestep number and #incr is a increment time step (aka stride) and #NP is again the number of processors.</p>
-<p>For convenience all the postprocesing mentioned above are lumped in a simple script. This script can be run using
-following commands in the directory containing the xmf/h5 solution files.</p>
+<p>For convenience all the postprocesing mentioned above are lumped in a
+simple script. This script can be run using following commands in the
+directory containing the xmf/h5 solution files.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">postpro</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id9">
-<h2>References<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
-<ul>
-<li><p class="first">S.Koshizuka, H. Tamako, Y. Oka</p>
-<blockquote>
-<div><p>&#8220;A particle method for incompressible viscous flow with fluid fragmentation&#8221;
-Computational Fluid Mechanics Journal, 113 (1995) 134-147</p>
-</div></blockquote>
-</li>
-<li><p class="first">R.Elias, A. Coutinho</p>
-<blockquote>
-<div><p>&#8220;Stabilized edge-based finite element simulation of free-surface flows&#8221;
-International Journal of Numerical Methods in Fluids 54 (2007) 965-993</p>
-</div></blockquote>
-</li>
-<li><p class="first">C.E. Kees, I. Akkerman, M. W. Farthing and Y. Bazilevs</p>
-<blockquote>
-<div><p>&#8220;A Conservative Level Set Method for Variable-Order Approximations and Unstructured Meshes&#8221;
-Journal of Computational Physics, 230-12(2011) 3402-3414,  doi:10.1016/j.jcp.2011.02.030</p>
-</div></blockquote>
-</li>
-</ul>
-</div>
-</div>
-<hr class="docutils" />
-<div class="section" id="sluice-gate-benchmark-case">
-<h1>Sluice gate benchmark case<a class="headerlink" href="#sluice-gate-benchmark-case" title="Permalink to this headline">¶</a></h1>
-<p>An under-shot sluice gate is a hydraulic structure mainly used as a flow control device in open-channels,
-where the discharge downstream can be related to the upstream head and therefore controlled.
-It is basically a vertical obstruction spanning the whole width of the channel with an opening across the bottom.
-The computational domain is a 2D rectangular box with height equal to 3.75m and the length equal to 4.5m
-The sluice gate has an opening of P=0.25m and a small width of b=0.01m. A uniform velocity distribution from bottom to free
-water level is imposed in the left wall boundary condition. The top of the domain is left
-open and the right wall of the domain allows the flow to leave the domain.
-In the following figure a simple sketch of the structure is presented showing the main parameters.</p>
-<div class="figure">
-<img alt="../images/SluiceGate.bmp" src="../images/SluiceGate.bmp" />
-</div>
-<p>where, uo is the approach velocity,u1 is the velocity downstream of the gate, d1 is the upstream water level, P is the opening of the gate, d1 is the water depth downstream of the gate.</p>
-<p>This case tests the ability of PROTEUS to simulate the free-surface evolution.
-For more details, see runfiles or references.</p>
-<div class="section" id="id10">
-<h2>References<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id8">
+<h3>References<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>White F.M. 1999. “Fluid Mechanics”. Fourth Edition, McGraw-Hill series in mechanical engineering.</li>
+<li>S.Koshizuka, H. Tamako, Y. Oka (1995) A particle method for
+incompressible viscous flow with fluid fragmentation&#8221; Computational
+Fluid Mechanics Journal, 113, 134-147</li>
+<li>R.Elias, A. Coutinho (2007) Stabilized edge-based finite element
+simulation of free-surface flows&#8221; International Journal of Numerical
+Methods in Fluids 54, 965-993</li>
+<li>C.E. Kees, I. Akkerman, M. W. Farthing and Y. Bazilevs (2011) A
+Conservative Level Set Method for Variable-Order Approximations and
+Unstructured Meshes&#8221; Journal of Computational Physics, 230-12,
+3402-3414, doi:10.1016/j.jcp.2011.02.030</li>
 </ul>
+</div>
+</div>
 <hr class="docutils" />
+<div class="section" id="sluice-gate">
+<h2>Sluice gate<a class="headerlink" href="#sluice-gate" title="Permalink to this headline">¶</a></h2>
+<p>An under-shot sluice gate is a hydraulic structure mainly used as a
+flow control device in open-channels, where the discharge downstream
+can be related to the upstream head and therefore controlled.  It is
+basically a vertical obstruction spanning the whole width of the
+channel with an opening across the bottom.  The computational domain
+is a 2D rectangular box with height equal to 3.75m and the length
+equal to 4.5m The sluice gate has an opening of <img class="math" src="../images/math/6d34eb8acf8944fa288af89c79c75439575a781a.png" alt="P=0.25\mbox{m}"/>
+and a small width of <img class="math" src="../images/math/c725803331874403396a1f7d4a6f8b27b3f582b5.png" alt="b=0.01\mbox{m}"/>. A uniform velocity
+distribution from bottom to free water level is imposed in the left
+wall boundary condition. The top of the domain is left open and the
+right wall of the domain allows the flow to leave the domain.  In the
+following figure a simple sketch of the structure is presented showing
+the main parameters.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/SluiceGate.bmp"><img alt="../images/SluiceGate.bmp" src="../images/SluiceGate.bmp" style="width: 100%;" /></a>
+</div>
+<p>where, <img class="math" src="../images/math/4da05a286595094186f139b1a2ed6a0840b09e5a.png" alt="u_0"/> is the approach velocity, <img class="math" src="../images/math/0559ffc8c62a08ff533f3fcd1a5c1713a520755d.png" alt="u_1"/> is the
+velocity downstream of the gate, d1 is the upstream water level, P is
+the opening of the gate, d1 is the water depth downstream of the gate.</p>
+<p>This case tests the ability of PROTEUS to simulate the free-surface
+evolution.  For more details, see runfiles or references.</p>
+<div class="section" id="id9">
+<h3>References<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>White F.M. 1999. “Fluid Mechanics”. Fourth Edition, McGraw-Hill
+series in mechanical engineering.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="steady-state-current-propagation-over-a-flat-bottom">
+<h2>Steady state current propagation over a flat bottom<a class="headerlink" href="#steady-state-current-propagation-over-a-flat-bottom" title="Permalink to this headline">¶</a></h2>
+<p>The simulation aims to generate a uniform velocity profile in the
+inlet boundary of the flume and to investigate the development of a
+fully developed turbulent velocity profile within the length of the
+flume.  Uniform velocity profiles simulate deep water currents and are
+the simplest velocity profiles to investigate wave-current
+interaction.  Generating turbulent velocity profiles gives confidence
+in the turbulent models within PROTEUS, important for current
+interaction with hydraulic structures and floating bodies.</p>
+<p>The present problem consists of 2D rectangular numerical flume with
+height, H, of 1.5 m and a length, L, of 10.0 m, where the mean water
+depth, h, is equal to 1.0 m. At the left boundary, a uniform
+horizontal velocity profile is generated with a velocity
+<img class="math" src="../images/math/4da05a286595094186f139b1a2ed6a0840b09e5a.png" alt="u_0"/>. At the top boundary atmospheric conditions have been
+assigned and the bottom boundary acts as a no-slip wall. The right
+boundary has free outflow conditions. The water phase is initiated
+with a velocity <img class="math" src="../images/math/4da05a286595094186f139b1a2ed6a0840b09e5a.png" alt="u_0"/> in order to obtain in a short simulation
+time steady state conditions.  A sketch of the domain is given in the
+following figure.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/SteadyCurrent.bmp"><img alt="../images/SteadyCurrent.bmp" src="../images/SteadyCurrent.bmp" style="width: 100%;" /></a>
+</div>
+<p>This test case demonstrates the ability of PROTEUS to simulate the
+creation of steady state log-profile current within the flume as well
+as its absorption.</p>
+<div class="section" id="id10">
+<h3>References<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>von Kármán, T. (1930), &#8220;Mechanische Ähnlichkeit und Turbulenz&#8221;,
+Nachrichten von der Gesellschaft der Wissenschaften zu Göttingen,
+Fachgruppe 1 (Mathematik) 5: 58–76 (also as: “Mechanical Similitude
+and Turbulence”, Tech. Mem. NACA, no. 611, 1931).</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="solitary-wave-propagation-over-a-flat-bottom">
+<h2>Solitary wave propagation over a flat bottom<a class="headerlink" href="#solitary-wave-propagation-over-a-flat-bottom" title="Permalink to this headline">¶</a></h2>
+<p>A solitary wave is a theoretical wave shape (Boussinesq, 1872) that is
+often used in numerical wave simulations, partly because they have the
+unique property of being &#8216;stand-alone&#8217; waves that maintain their shape
+and kinematics when propagated over a flat smooth surface.  By
+measuring the properties of the wave as it propagates, the absence of
+numerical dissipation during wave propagation can be confirmed.</p>
+<p>The present problem consists of 2D rectangular numerical flume with
+height, H, of 2.0 m and a length, L, of 60.0 m, where the mean water
+depth, h, is equal to 1.0 m. At the left boundary, a solitary wave is
+generated with a height of 0.05 m. Atmospheric conditions have been
+assigned to the top boundary of the domain, the bottom boundary act as
+a free-slip wall and in the right boundary a free outflow has been
+assigned.  A sketch of the domain is given in the following figure.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/SolitaryWave.bmp"><img alt="../images/SolitaryWave.bmp" src="../images/SolitaryWave.bmp" style="width: 100%;" /></a>
+</div>
+<p>This test case demonstrates the ability of PROTEUS to simulate the
+generation and propagation of a solitary wave as well as its
+absorption.</p>
+<div class="section" id="id11">
+<h3>References<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Boussinesq J. (1872). Theory of waves and eddies that propagate
+along a horizontal rectanguar flume, by transmitting to the fluid in
+the flume, a speed that is approximately the same from bottom to
+surface, Journal de Mathématique Pures et Appliquées, Deuxième Série
+Vol 15: 55–108.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="nonlinear-waves-propagation-over-a-flat-bottom">
+<h2>Nonlinear waves propagation over a flat bottom<a class="headerlink" href="#nonlinear-waves-propagation-over-a-flat-bottom" title="Permalink to this headline">¶</a></h2>
+<p>Plane regular nonlinear waves are mild and high steepness waves that
+propagate in a single direction, in uniform wave fronts.  The wave
+profile deviates from the sinusoidal shape, and it typically exhibits
+high and sharp wave crests and low and flat wave troughs.  We cannot
+always accurately calculate the wave celerity from the linear
+dispersion theory, especially for highly nonlinear waves.
+Fenton (1988) proposes a method for calculating the nonlinear wave
+properties and profile, which we have adopted for the generation of
+nonlinear waves within Proteus.</p>
+<p>Given the wave period, the wavelength will be a function of the water
+depth. So it is the wave period, water depth and the wave height that
+contribute to the linearity or nonlinearity of the wave. Their
+interrelation is summarised in the following figure (Lé Méhauté 1976).</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/Mehaute_nonlinear_waves_01.png"><img alt="../images/Mehaute_nonlinear_waves_01.png" src="../images/Mehaute_nonlinear_waves_01.png" style="width: 100%;" /></a>
+</div>
+<p>where, the vertical axis corresponds to the no dimensional wave height
+and the horizontal to the no dimensional water depth. The term gT<sup>2</sup>is proportional to the wavelength in deep water and the dot
+named A corresponds to the tested case which is described below.  The
+present problem consists of 2D rectangular numerical flume with height
+of 1.5 m and a length of 40.6 m, where the mean water depth is equal
+to 0.873 m. At the left boundary, a regular non-linear wave is
+generated with a height of 0.109 m and a period of 2.95 s using
+Fenton&#8217;s method (Fenton, 1988). In the top boundary atmospheric
+conditions have been assigned and the bottom boundaty acts as a
+free-slip wall.</p>
+<p>This case tests demonstrates the ability of PROTEUS to simulate the
+generation and propagation of non-linear waves as well as their
+absorption.</p>
+<div class="section" id="id12">
+<h3>References<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Fenton JD (1988) The numerical solution of steady water wave
+problems, Comp and Geosc, 14(3), 357-368.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="linear-wave-shoaling">
+<h2>Linear wave shoaling<a class="headerlink" href="#linear-wave-shoaling" title="Permalink to this headline">¶</a></h2>
+<p>Sea waves transform when propagating from the offshore to the near
+shore environment and as they interact with coastal structures. In a
+2D flume, the main factors contributing to wave transformation are
+shoaling, reflection, transmission and breaking. The present case
+consists of a numerical experiment aiming to reproduce regular linear
+wave shoaling over simple but realistic bathymetry of a constant-slope
+beach.  The assessment of the numerical model performance is achieved
+through comparison with theoretical solutions.</p>
+<p>The present problem consists of a 2D numerical flume with a sloping
+bottom with 1:m slope. Upstream the slope there is a flat bottom
+region with length, Lu, equal to 5.0 m, the domain height, H, is 1.5 m
+and the mean water depth, h, is equal to 1.0 m. Downstream of the
+slope the water depth,b , is 0.4 m. The total length of the domain, L,
+is 30m. Two cases with slopes 1:10 and 1:25 are tested, where the
+length of the slope, Ls, is 6.0 m and 15.0 m respectively. Case A
+corresponds to the slope 1:10 and case B corresponds to the slope
+1:25. In both cases, at the left boundary regular linear waves are
+generated with height of 0.025 m and period of 1.94 s. The bottom
+boundaries act as a no-slip walls. A sketch of the domain is given in
+the following figure.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/LinearWaveShoaling.bmp"><img alt="../images/LinearWaveShoaling.bmp" src="../images/LinearWaveShoaling.bmp" style="width: 100%;" /></a>
+</div>
+<p>This test case demonstrates the ability of PROTEUS to simulate the
+shoaling process of regular linear waves over a constant slope
+bathymetries as well as their absorption.</p>
+<div class="section" id="id13">
+<h3>References<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>US Army Corps of Engineer (2002) Coastal Engineering
+Manual. Engineer Manual 1110-2-1100, US Army Corps of Engineers,
+Washington, DC (in 6 volumes)</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="wave-current-interaction">
+<h2>Wave/current interaction<a class="headerlink" href="#wave-current-interaction" title="Permalink to this headline">¶</a></h2>
+<p>The presence of a current in the wave field causes the waves to
+transform. The primary effect of a current, with velocity u, to a wave
+is the change the wavelength due to a Doppler shift. If the wave and
+current travel in the same direction (following current), then the
+wavelength is increased over the one that waves would possess in still
+water. If waves and current travel in opposite direction (opposing
+current) then the wavelength is decreased. Wave current interaction
+with the waves also affects the wave height due to wave energy
+conservation and the wave height decreases for following currents and
+increases for opposing currents. Given the wave period, modified
+height, depth and current velocity, the Fenton Fourier Transform
+theory can be used to calculate wavelength, particle velocities and
+pressure and these variables can be imposed as a boundary conditions
+in a numerical wave flume.</p>
+<p>A sketch of the interaction of waves with a current is given in the
+following figure.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/WaveCurrent.bmp"><img alt="../images/WaveCurrent.bmp" src="../images/WaveCurrent.bmp" style="width: 100%;" /></a>
+</div>
+<p>where, lambda1, lambda2, lambda3 are the wave lengths in the case
+without a current, an opposing current and a following current,
+respectively and the H0, H1 ,H2 are the corresponding wave heights.
+Also, the relationship between the wave lengths and the wave heights
+is the following: lambda1 &lt; lambda0 &lt; lambda2 and H2 &lt; H0 &lt; H1.</p>
+<p>The present benchmark case aims to simulate 2 different cases of
+wave/current interaction, where the modification of a linear regular
+wave by a uniform steady current is modelled. The first case consists
+of a regular wave with a following current of 1 m/s and the second
+case to an opposing current of 0.5 m/s to the same regular wave as in
+the first case.  The numerical domain of both cases consists of a 2D
+rectangular numerical flume with height of 2.0 m and a length of
+60.0 m. The mean water depth is equal to 1.0 m. The flux parameters of
+the modified waves due to a uniform current are imposed at the left
+boundary of the domain and the flux parameters are defined using
+Fenton&#8217;s method (Fenton, 1988). Atmospheric conditions have been
+assigned to the top boundary of the domain, the bottom boundary acts
+as a free-slip wall.</p>
+<p>This test case demonstrates the ability of PROTEUS to simulate the
+wave/current interaction in a 2D configuration.</p>
+<div class="section" id="id14">
+<h3>References<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Brevik I and Aas B (1980) Flume experiments on waves and
+currents II. smooth bed. Coastal Engineering,3, 149-177.</li>
+<li>Fenton JD (1988) The numerical solution of steady water wave
+problems, Comp and Geosc, 14(3), 357-368.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="wave-breaking">
+<h2>Wave breaking<a class="headerlink" href="#wave-breaking" title="Permalink to this headline">¶</a></h2>
+<p>Sea waves transform when propagating from the offshore to the near
+shore environment and as they interact with coastal structures. In a
+2D flume, the main factors contributing to wave transformation are
+shoaling, reflection, transmission and breaking. The present case aims
+to reproduce numerically the laboratory experiments on wave breaking
+of Ting and Kirby (1994).  Ting and Kirby (1994) conducted experiments
+on a 1 to 35 constant-slope bathymetry on 2 different types of
+breaking i.e. spilling and plunging breaking of cnoidal waves.</p>
+<p>The present problem consists of a 2D numerical flume with a sloping
+bottom of 1:35 slope. Upstream the slope the domain has a height, H,
+of 1.0 m, where the mean water depth, h, is equal to 0.4 m. The total
+length of the domain, L, is 40m. Two cases are simulated with regard
+to the type of breaking i.e. (a) spilling and (b) plunging
+breaking. In both cases, at the left boundary cnoidal waves are
+generated. The wave heights are 0.125 m and 0.128 m, for cases (a)
+and (b) respectively, when the wave period in the case (a) is 2.0s and
+in case (b) is 5.0s. For the generation of the waves the Fenton&#8217;s
+method (Fenton, 1988) have been used for identifying the input flux
+parameters within the left boundary. The bottom and right boundaries
+act as a free-slip walls, when in the top boundary have been assigned
+atmospheric conditions. A sketch of the domain is given in the
+following figure.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/Breaking.bmp"><img alt="../images/Breaking.bmp" src="../images/Breaking.bmp" style="width: 100%;" /></a>
+</div>
+<p>where L1=15.0m and ht=0.38m</p>
+<p>This test case demonstrates the ability of PROTEUS to simulate the
+shoaling process of two different types of wave breaking over a
+constant slope bathymetry.</p>
+<div class="section" id="id15">
+<h3>References<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Ting FCK and Kirby JT (1994) Observation of Undertow and Turbulence
+in a Laboratory Surf Zone. Coastal Engineering, 24, 177-204.</li>
+<li>Fenton JD (1988) The numerical solution of steady water wave
+problems. Computer and Geosciences, 14(3), 357-368.</li>
+</ul>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="dingemans-wave-shoaling">
+<h2>Dingemans wave shoaling<a class="headerlink" href="#dingemans-wave-shoaling" title="Permalink to this headline">¶</a></h2>
+<p>Sea waves transform when propagating from the offshore to the near
+shore environment as they interact with coastal structures. In a 2D
+flume, the main factors contributing to wave transformation are
+shoaling, reflection, transmission and breaking. The present case is
+the numerical reproduction of the Dingemans&#8217; experiment (Dingemans,
+1994), which is a classic benchmark test for numerical models and
+refers to non linear shoaling over a submerged shoal.  The
+experimental setup is shown the figure below. The geometry represents
+a submerged bar with seaward and shoreward slopes of 1/20 and 1/10,
+respectively.</p>
+<p>The numerical domain of the simulation has a length, L, of
+58.0 m. Upstream and downstream the shoal the domain has a height, H,
+of 1.26 m, where the mean water depth, h, is equal to 0.86 m. Over the
+shoal&#8217;s crest the water depth, b, is equal to 0.2 m. At the left
+boundary regular non linear waves are generated with height of 0.082 m
+and period of 1.43 s using Fenton&#8217;s method (Fenton, 1988). The bottom
+boundaries act as a no-slip walls.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../images/NonLinearWaveShoaling.bmp"><img alt="../images/NonLinearWaveShoaling.bmp" src="../images/NonLinearWaveShoaling.bmp" style="width: 100%;" /></a>
+</div>
+<p>where, L1=9.22 m, L2=5.79 m, L3=12.03, L4=4.0 m, L5=6.03 m, L6=8.74
+and L7=12.19 m.</p>
+<p>This test case demonstrates the ability of PROTEUS to simulate the
+shoaling process of regular non linear waves over a submerged shoal as
+well as their absorption.</p>
+<div class="section" id="id16">
+<h3>References<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Dingemans M.W. (1994). Comparison of computations with
+Boussinesq-like models and laboratory measurements, Report
+H-1684.12, Delft Hydraulics, 32</li>
+<li>Fenton J.D. (1988). &#8216;The numerical solution of steady water wave
+problems&#8217;, Comp and Geosc, 14(3), 357-368.</li>
+</ul>
+</div>
 </div>
 </div>
 
