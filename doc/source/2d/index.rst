@@ -48,4 +48,3 @@
 
 .. include:: ../../../2d/solitary_wave/README.rst                     
 
-
