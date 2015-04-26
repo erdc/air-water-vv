@@ -1,10 +1,10 @@
 from proteus import *
 from twp_navier_stokes_p import *
-from crump_weir import *
+from tank import *
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
-    timeOrder=2
+    timeOrdersline=2
     stepController  = Min_dt_cfl_controller
 elif timeDiscretization=='flcbdf':
     timeIntegration = FLCBDF
@@ -51,16 +51,17 @@ if useSuperlu:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'rans2p_'
-nonlinearSolverConvergenceTest = 'rits'
-levelNonlinearSolverConvergenceTest = 'rits'
-linearSolverConvergenceTest             = 'rits-true'
+nonlinearSolverConvergenceTest = 'r'
+levelNonlinearSolverConvergenceTest = 'r'
+linearSolverConvergenceTest             = 'r-true'
 
 tolFac = 0.0
+linTolFac = 0.001
+l_atol_res = 0.001*ns_nl_atol_res
 nl_atol_res = ns_nl_atol_res
-
-linTolFac = 0.01
-l_atol_res = 0.01*ns_nl_atol_res
 useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
+
+auxiliaryVariables=[pointGauges,rzWaveGenerator]

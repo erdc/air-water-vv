@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from crump_weir import *
+from tank import *
 from proteus.mprans import MCorr
 
 LevelModelType = MCorr.LevelModel
