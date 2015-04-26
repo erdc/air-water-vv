@@ -52,3 +52,7 @@
 
 .. include:: ../../../2d/non_linear_waves_flat/README.rst
 
+----
+
+.. include:: ../../../2d/linear_wave_shoaling/README.rst
+
