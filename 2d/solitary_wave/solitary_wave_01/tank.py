@@ -5,24 +5,31 @@ from proteus.default_n import *
 from proteus.Profiling import logEvent
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
+from proteus import Gauges
+from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
+#import WaveTools
+
+
 #wave generator
 windVelocity = (0.0,0.0)
 inflowHeightMean = 1.0
 inflowVelocityMean = (0.0,0.0)
-#period = 1.94
-#omega = 2.0*math.pi/period
+#period = 
+#omega = 
 waveheight = 0.05
 amplitude = waveheight/ 2.0
-#wavelength = 5.0
+#wavelength = 
 k = sqrt(3.0*waveheight/(4.0*inflowHeightMean**3.0))
-   
+
+
+
 #  Discretization -- input options  
 genMesh=True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
 useSuperlu=False
-timeDiscretization='be'#'vbdf'#'be','flcbdf'
+timeDiscretization='be'#'be','vbdf','flcbdf'
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
@@ -72,9 +79,19 @@ elif spaceOrder == 2:
 # Domain and mesh
 
 #for debugging, make the tank short
-L = (60.0,2.0)
-he = L[0]/1200 #try this first
+L = (60.0,1.50)
+he = waveheight
 
+GenerationZoneLength = 5.0
+AbsorptionZoneLength= 10.0
+spongeLayer = True
+xSponge = GenerationZoneLength
+xRelaxCenter = xSponge/2.0
+epsFact_solid = xSponge/2.0
+#zone 2
+xSponge_2 = L[0]-AbsorptionZoneLength
+xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
+epsFact_solid_2 = AbsorptionZoneLength/2.0
 
 weak_bc_penalty_constant = 100.0
 nLevels = 1
@@ -82,6 +99,39 @@ nLevels = 1
 parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 structured=False
+
+
+gauge_dx=0.50
+PGL=[]
+LGL=[]
+for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact 
+  PGL.append([gauge_dx*i,0.00,0])
+  LGL.append([(gauge_dx*i,0.01,0),(gauge_dx*i,L[1],0)])
+ 
+
+gaugeLocations=tuple(map(tuple,PGL)) 
+columnLines=tuple(map(tuple,LGL)) 
+
+
+pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
+                                (('p',),    gaugeLocations)),
+                  activeTime = (0, 1000.0),
+                  sampleRate = 0,
+                  fileName = 'combined_gauge_0_0.5_sample_all.txt')
+
+print gaugeLocations
+print columnLines
+
+fields = ('vof',)
+
+columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
+                                 fileName='column_gauge.csv')
+
+#lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_y=0':((0.0,0.0,0.0),(L[0],0.0,0.0))},linePoints=24)
+
+#lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
+
+
 if useHex:   
     nnx=ceil(L[0]/he)+1
     nny=ceil(L[1]/he)+1
@@ -93,6 +143,65 @@ else:
     if structured:
         nnx=ceil(L[0]/he)+1
         nny=ceil(L[1]/he)+1
+    elif spongeLayer:
+        vertices=[[0.0,0.0],#0
+                  [L[0],0.0],#1
+                  [L[0],L[1]],#2
+                  [0.0,L[1]],#3
+                  [xSponge_2,0.0],#4
+                  [xSponge_2,L[1]]]#5
+
+        vertexFlags=[boundaryTags['bottom'],
+                     boundaryTags['bottom'],
+                     boundaryTags['top'],  
+                     boundaryTags['top'],  
+                     boundaryTags['bottom'],  
+                     boundaryTags['top']]
+        segments=[[0,4],
+                  [4,1],            
+                  [1,2],
+                  [2,5],
+                  [5,3],  
+                  [3,0],
+                  [4,5]]
+                 
+        segmentFlags=[boundaryTags['bottom'],
+                      boundaryTags['bottom'],
+                      boundaryTags['right'],
+                      boundaryTags['top'],
+                      boundaryTags['top'],
+                      boundaryTags['left'],
+                      0]
+    
+        regions=[[xRelaxCenter_2, 0.5*L[1]],
+                 [0.5*L[0],0.5*L[1]]]
+        regionFlags=[1,2]
+        domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
+                                                      vertexFlags=vertexFlags,
+                                                      segments=segments,
+                                                      segmentFlags=segmentFlags,
+                                                      regions=regions,
+                                                      regionFlags=regionFlags)
+        #go ahead and add a boundary tags member 
+        domain.boundaryTags = boundaryTags
+        domain.writePoly("mesh")
+        domain.writePLY("mesh")
+        domain.writeAsymptote("mesh")
+        triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
+
+        logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
+        porosityTypes      = numpy.array([1.0,
+                                      
+                                          1.0,
+                                          1.0])
+        dragAlphaTypes = numpy.array([0.0,
+                                     
+                                      0.5/1.004e-6,
+                                      0.0])
+        dragBetaTypes = numpy.array([0.0,0.0,0.0,0.0])
+
+        epsFact_solidTypes = np.array([0.0,epsFact_solid_2,0.0])
+
     else:
         vertices=[[0.0,0.0],#0
                   [L[0],0.0],#1
@@ -132,33 +241,33 @@ else:
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
 T=60.0
-dt_fixed = 0.2
-dt_init = min(0.1*dt_fixed,0.001)
+dt_fixed = T#2.0*0.5/20.0#T/2.0#period/21.0
+dt_init = min(0.1*dt_fixed,0.1)
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
-backgroundDiffusionFactor=0.01
+backgroundDiffusionFactor=0.0
 if useMetrics:
-    ns_shockCapturingFactor  = 0.5
+    ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.25
+    ls_shockCapturingFactor  = 0.35
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = 0.35
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.25
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
-    redist_Newton = False
+    epsFact_redistance = 1.5
+    epsFact_consrv_diffusion = 10.0
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
@@ -195,11 +304,11 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-10,0.001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.001*he**2)
-ls_nl_atol_res = max(1.0e-10,0.001*he**2)
+ns_nl_atol_res = max(1.0e-10,0.00001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.00001*he**2)
+ls_nl_atol_res = max(1.0e-10,0.0001*he**2)
 rd_nl_atol_res = max(1.0e-10,0.005*he)
-mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
+mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
@@ -226,23 +335,11 @@ g = [0.0,-9.8]
 # Initial condition
 waterLine_x = 2*L[0]
 waterLine_z = inflowHeightMean
-#waterLine_x = 0.5*L[0]
-#waterLine_z = 0.9*L[1]
 
-trans=10
 
 def signedDistance(x):
-    try :
-      a0=cosh(k*(x[0]+trans))
-    except Exception:
-      a0=1e300
-    try :
-      eta= waveheight/(a0)**2.0 + inflowHeightMean
-    except Exception:
-      eta=1e-300
- 
     phi_x = x[0]-waterLine_x
-    phi_z = x[1]-eta
+    phi_z = x[1]-waterLine_z 
     if phi_x < 0.0:
         if phi_z < 0.0:
             return max(phi_x,phi_z)
@@ -257,7 +354,7 @@ def signedDistance(x):
 def z(x):
     return x[1] - inflowHeightMean
 
-h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
+h = inflowHeightMean 
 H_w= waveheight
 celerity = sqrt(abs(g[1])*(waveheight+inflowHeightMean))
 
@@ -310,6 +407,7 @@ def waveVelocity_v(x,t):
 
     return -Uvert
 
+ 
 #solution variables
 
 def wavePhi(x,t):
@@ -325,12 +423,76 @@ def twpflowVelocity_u(x,t):
     return u
 
 def twpflowVelocity_v(x,t):
-    waterspeed = 0.0
+    waterspeed = waveVelocity_v(x,t)
     H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
     return H*windVelocity[1]+(1.0-H)*waterspeed
 
 def twpflowFlux(x,t):
     return -twpflowVelocity_u(x,t)
 
+outflowHeight=inflowHeightMean
+
 def outflowVF(x,t):
     return smoothedHeaviside(epsFact_consrv_heaviside*he,x[1] - outflowHeight)
+
+def outflowPhi(x,t):
+    return x[1] - outflowHeight
+
+def outflowPressure(x,t):
+  if x[1]>inflowHeightMean:
+    return (L[1]-x[1])*rho_1*abs(g[1])
+  else:
+    return (L[1]-inflowHeightMean)*rho_1*abs(g[1])+(inflowHeightMean-x[1])*rho_0*abs(g[1])
+
+
+    #p_L = L[1]*rho_1*g[1]
+    #phi_L = L[1] - outflowHeight
+    #phi = x[1] - outflowHeight
+    #return p_L -g[1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
+    #                                                     -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))
+
+def twpflowVelocity_w(x,t):
+    return 0.0
+
+def zeroVel(x,t):
+    return 0.0
+
+from collections import  namedtuple
+
+RelaxationZone = namedtuple("RelaxationZone","center_x sign u v w")
+
+class RelaxationZoneWaveGenerator(AV_base):
+    """ Prescribe a velocity penalty scaling in a material zone via a Darcy-Forchheimer penalty
+    
+    :param zones: A dictionary mapping integer material types to Zones, where a Zone is a named tuple
+    specifying the x coordinate of the zone center and the velocity components
+    """
+    def __init__(self,zones):
+        assert isinstance(zones,dict)
+        self.zones = zones
+    def calculate(self):
+        for l,m in enumerate(self.model.levelModelList):
+            for eN in range(m.coefficients.q_phi.shape[0]):
+                mType = m.mesh.elementMaterialTypes[eN]
+                if self.zones.has_key(mType):
+                    for k in range(m.coefficients.q_phi.shape[1]):
+                        t = m.timeIntegration.t
+                        x = m.q['x'][eN,k]
+                        m.coefficients.q_phi_solid[eN,k] = self.zones[mType].sign*(self.zones[mType].center_x - x[0])
+                        m.coefficients.q_velocity_solid[eN,k,0] = self.zones[mType].u(x,t)
+                        m.coefficients.q_velocity_solid[eN,k,1] = self.zones[mType].v(x,t)
+                        #m.coefficients.q_velocity_solid[eN,k,2] = self.zones[mType].w(x,t)
+        m.q['phi_solid'] = m.coefficients.q_phi_solid
+        m.q['velocity_solid'] = m.coefficients.q_velocity_solid
+
+rzWaveGenerator = RelaxationZoneWaveGenerator(zones={
+                                                    1:RelaxationZone(xRelaxCenter_2,
+                                                                     1.0,
+                                                                     zeroVel,
+                                                                     zeroVel,
+                                                                     zeroVel)})
+
+
+
+ 
+

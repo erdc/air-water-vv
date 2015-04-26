@@ -12,6 +12,8 @@ coefficients = NCLS.Coefficients(V_model=0,RD_model=3,ME_model=2,
 def getDBC_ls(x,flag):
     if flag == boundaryTags['left']:
         return wavePhi
+#    elif flag == boundaryTags['right']:
+#        return  outflowPhi
     else:
         return None
 
