@@ -44,4 +44,8 @@
 
 .. include:: ../../../2d/steady_current/README.rst                     
 
+----
+
+.. include:: ../../../2d/solitary_wave/README.rst                     
+
 
