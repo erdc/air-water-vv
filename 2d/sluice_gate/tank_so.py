@@ -1,7 +1,7 @@
 from proteus.default_so import *
-import sluice_gate
+import tank
 
-if sluice_gate.useOnlyVF:
+if tank.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
               ("vof_p",               "vof_n")]
 else:
@@ -12,14 +12,14 @@ else:
               ("ls_consrv_p",         "ls_consrv_n")]
     
     
-if sluice_gate.useRANS > 0:
+if tank.useRANS > 0:
     pnList.append(("kappa_p",
                    "kappa_n"))
     pnList.append(("dissipation_p",
                    "dissipation_n"))
-name = "sluice_gate_p" 
+name = "tank_p" 
 
-if sluice_gate.timeDiscretization == 'flcbdf':
+if tank.timeDiscretization == 'flcbdf':
     systemStepControllerType = Sequential_MinFLCBDFModelStep
     systemStepControllerType = Sequential_MinAdaptiveModelStep
 else:
@@ -28,11 +28,5 @@ else:
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0,sluice_gate.dt_init]+[i*sluice_gate.dt_fixed for i in range(1,sluice_gate.nDTout+1)] 
-
-info = open("TimeList.txt","w")
-
-
-for time in tnList:
-    info.write(str(time)+"\n")
-info.close()
+tnList = [0.0,tank.dt_init]+[i*tank.dt_fixed for i in range(1,tank.nDTout+1)] 
+#archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP

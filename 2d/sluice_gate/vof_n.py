@@ -1,5 +1,5 @@
 from proteus import *
-from sluice_gate import *
+from tank import *
 from vof_p import *
 
 if timeDiscretization=='vbdf':
@@ -46,14 +46,19 @@ if useSuperlu:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'vof_'
+nonlinearSolverConvergenceTest = 'r'
 levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest         = 'r-true'
 
 tolFac      = 0.0
-linTolFac   = 0.0
-l_atol_res = 0.1*vof_nl_atol_res
 nl_atol_res = vof_nl_atol_res
+
+linTolFac   = 0.1
+l_atol_res = 0.1*vof_nl_atol_res
+
 useEisenstatWalker = False
 
-maxNonlinearIts = 100
+maxNonlinearIts = 50
 maxLineSearches = 0
+
+auxiliaryVariables = [columnGauge]

@@ -1,7 +1,8 @@
 from proteus import *
 from redist_p import *
-from sluice_gate import *
+from tank import *
 
+nl_atol_res = rd_nl_atol_res
 tolFac = 0.0
 nl_atol_res = rd_nl_atol_res
 
@@ -13,16 +14,16 @@ if redist_Newton:
     stepController = Newton_controller
     maxNonlinearIts = 50
     maxLineSearches = 0
-    nonlinearSolverConvergenceTest = 'rits'
-    levelNonlinearSolverConvergenceTest = 'rits'
-    linearSolverConvergenceTest = 'rits-true'
+    nonlinearSolverConvergenceTest = 'r'
+    levelNonlinearSolverConvergenceTest = 'r'
+    linearSolverConvergenceTest = 'r-true'
     useEisenstatWalker = False
 else:
     timeIntegration = BackwardEuler_cfl
     stepController = RDLS.PsiTC
-    runCFL=1.0
+    runCFL=2.0
     psitc['nStepsForce']=3
-    psitc['nStepsMax']=25
+    psitc['nStepsMax']=50
     psitc['reduceRatio']=2.0
     psitc['startRatio']=1.0
     rtol_res[0] = 0.0
@@ -32,7 +33,7 @@ else:
     maxLineSearches = 0
     nonlinearSolverConvergenceTest = 'rits'
     levelNonlinearSolverConvergenceTest = 'rits'
-    linearSolverConvergenceTest = 'rits-true'
+    linearSolverConvergenceTest = 'r-true'
 
 femSpaces = {0:basis}
        
@@ -64,4 +65,3 @@ if useSuperlu:
 
 linear_solver_options_prefix = 'rdls_'
 
-#auxiliaryVariables=[lineGauges_phi]
