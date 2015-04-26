@@ -48,3 +48,7 @@
 
 .. include:: ../../../2d/solitary_wave/README.rst                     
 
+----
+
+.. include:: ../../../2d/non_linear_waves_flat/README.rst
+
