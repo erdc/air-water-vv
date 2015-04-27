@@ -1,4 +1,4 @@
-Sine wave sloshing
+Wave sloshing
 ==================
 
 Proteus is initialised with a free-surface profile that will excite
