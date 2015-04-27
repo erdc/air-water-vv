@@ -1,4 +1,4 @@
-Wave breaking - Ting and Kirby benchmark
+Wave breaking - Ting and Kirby (1994)
 =============
 
 Sea waves transform when propagating from the offshore to the near
