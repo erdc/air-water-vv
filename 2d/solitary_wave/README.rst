@@ -1,4 +1,4 @@
-Solitary wave propagation over a flat bottom
+Solitary wave 
 ============================================
 
 A solitary wave is a theoretical wave shape (Boussinesq, 1872) that is
