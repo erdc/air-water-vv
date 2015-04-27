@@ -1,4 +1,4 @@
-Dambreak Collagrosi
+Dambreak flow - Collagrosi and Landrini benchmark
 ===================
 
 The problem consists of a 0.60m x 1.20m (height x width) column of
