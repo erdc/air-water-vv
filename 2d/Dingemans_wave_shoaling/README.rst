@@ -1,4 +1,4 @@
-Nonlinear wave shoaling - Dingeman's bar benchmark
+Nonlinear wave shoaling - Dingemans (1994)
 =======================
 
 Sea waves transform when propagating from the offshore to the near
