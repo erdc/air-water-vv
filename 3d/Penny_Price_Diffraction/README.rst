@@ -1,4 +1,4 @@
-Penny and Price diffraction benchmark case
+Wave diffraction - Penny and Price (1952)
 ==================================================================
 
 Wave diffraction presents a boundary behaviour of waves associated with the bending of their path. Wave diffraction involves a change in direction of the wave propagation as they pass through an opening or around a barrier. The waves are, then, seen to pass around the barrier into regions behind it and disturb the water behind it. 
