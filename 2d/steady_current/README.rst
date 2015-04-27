@@ -1,4 +1,4 @@
-Steady state current propagation over a flat bottom
+Steady state current
 ===================================================
 
 The simulation aims to generate a uniform velocity profile in the

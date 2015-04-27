@@ -1,4 +1,4 @@
-Linear wave propagation over a flat bottom  benchmark case
+Linear wave propagation and absorption
 ==========================================================
 
 To consider a wave linear, its free-surface slope must be very small (~ 0.1%).  The free-surface slope depends on:

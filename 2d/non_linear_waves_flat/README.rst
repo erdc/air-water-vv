@@ -1,4 +1,4 @@
-Nonlinear waves propagation over a flat bottom
+Nonlinear wave generation/absorption
 ==============================================
 
 Plane regular nonlinear waves are mild and high steepness waves that

@@ -1,4 +1,4 @@
-Dambreak Ubbink
+Dambreak flow with obstacle - Ubbink (1997)
 ===============
 
 The problem consists of a 0.292m x 1.146m (height x width) column of
