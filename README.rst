@@ -2,6 +2,8 @@
 Verification and validation for air/water flow models
 =====================================================
 
+https://github.com/erdc-cm/air-water-vv
+
 Organization of the test set
 ----------------------------
 
@@ -27,6 +29,6 @@ Adding new test problems
 
 Contributors
 ------------
-- Chris Kees, Aggelos Dimakopolous, Eleni Zve, Matthew Farthing, Aron Ahmadia, Ido Akkerman, Matt Malej, Roham Bakhtyar
+- Chris Kees, Aggelos Dimakopoulos, Eleni Zve, Matthew Farthing, Aron Ahmadia, Ido Akkerman, Matt Malej, Roham Bakhtyar
 
 
