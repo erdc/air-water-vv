@@ -1,5 +1,5 @@
 Dambreak flow - Collagrosi and Landrini (2003)
-===================
+==============================================
 
 The problem consists of a 0.60m x 1.20m (height x width) column of
 water, initially at rest, that collapses under the action of gravity
