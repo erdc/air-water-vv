@@ -1,5 +1,5 @@
 Dambreak flow with tall obstacle - Gomez-Gesteira and Dalrymple (2004)
-==============
+======================================================================
 
 The problem consists of a 0.4m x 0.3m x 0.61 (dx x dz x dy) column of
 water, initially at rest.  Under the action of gravity, the water

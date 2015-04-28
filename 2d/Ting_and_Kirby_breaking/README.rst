@@ -1,5 +1,5 @@
 Wave breaking - Ting and Kirby (1994)
-=============
+=====================================
 
 Sea waves transform when propagating from the offshore to the near
 shore environment and as they interact with coastal structures. In a

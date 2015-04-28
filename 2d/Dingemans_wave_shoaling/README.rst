@@ -1,5 +1,5 @@
 Nonlinear wave shoaling - Dingemans (1994)
-=======================
+==========================================
 
 Sea waves transform when propagating from the offshore to the near
 shore environment as they interact with coastal structures. In a 2D
