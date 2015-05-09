@@ -1,7 +1,7 @@
 Dambreak flow with tall obstacle - Gomez-Gesteira and Dalrymple (2004)
 ======================================================================
 
-The the domain is initialised with a 0.4m x 0.3m x 0.61 (dx x dz x dy) column of
+The computational domain is initialised with a 0.4m x 0.3m x 0.61 (dx x dz x dy) column of
 water, initially at rest.  Under the action of gravity, the water
 column collapses and interacts with an obstacle.  The
 computational domain is a 3D rectangular box with dimensions 1.6m long
