@@ -8,7 +8,7 @@ computational domain is a 3D rectangular box with dimensions 1.6m long
 x 0.61m x 0.75m high.  The obstacle has dimensions 0.12m x 0.12m, it
 is placed on the tank' s bottom and reaches the top of the doamin.
 The top of the domain is left open, when the rest of the boundary
-patches act as no slio walls.  In the following figure, a sketch of
+patches act as no slip walls.  In the following figure, a sketch of
 the dambreak initial conditions is shown.
 
 .. figure:: ./dambreakGomez.JPG
