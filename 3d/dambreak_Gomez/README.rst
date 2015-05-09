@@ -6,7 +6,7 @@ water, initially at rest.  Under the action of gravity, the water
 column interacts with an obstacle and collapses to a wall.  The
 computational domain is a 3D rectangular box with dimensions 1.6m long
 x 0.61m x 0.75m high.  The obstacle has dimensions 0.12m x 0.12m, it
-is placed on the tank' s bottom and reaches the top of the doamin.
+is placed on the tank' s bottom and reaches the top of the domain.
 The top of the domain is left open, when the rest of the boundary
 patches act as no slip walls.  In the following figure, a sketch of
 the dambreak initial conditions is shown.
