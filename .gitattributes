@@ -1,2 +1,7 @@
 *.h5 filter=fat -crlf
 *.bmp filter=fat -crlf
+*.xmf filter=lfs diff=lfs merge=lfs -crlf
+*.h5 filter=lfs diff=lfs merge=lfs -crlf
+*.mp4 filter=lfs diff=lfs merge=lfs -crlf
+*.png filter=lfs diff=lfs merge=lfs -crlf
+*.jpg filter=lfs diff=lfs merge=lfs -crlf
