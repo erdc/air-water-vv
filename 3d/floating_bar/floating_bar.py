@@ -365,21 +365,27 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.world.setERP(0.8)
         self.world.setCFM(1E-5)
         self.world.setGravity(g)
+
         self.space = ode.Space()
-        eps_x = L[0]- 0.45*L[0]
-        eps_y = L[1]- 0.45*L[1]
+        eps_x = L[0]- 0.8*L[0]
+        eps_y = L[1]- 0.8*L[1]
+        #tank geometry
         self.tankWalls = [ode.GeomPlane(self.space, (1,0,0) ,x_ll[0]+eps_x),
                           ode.GeomPlane(self.space, (-1,0,0),-(x_ll[0]+L[0]-eps_x)),
                           ode.GeomPlane(self.space, (0,1,0) ,x_ll[1]+eps_y),
                           ode.GeomPlane(self.space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
-        #self.tank = ode.GeomBox(self.space,(0.45,0.45,0.3))
-        #self.tank.setPosition((0.5,0.5,0.6))
-        self.contactgroup = ode.JointGroup()
-        self.body = ode.Body(self.world)
+        #mass/intertial tensor of rigid bar
         self.M = ode.Mass()
         self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2])
+        #bar body
+        self.body = ode.Body(self.world)
         self.body.setMass(self.M)
-        self.body.setPosition(bar_center)
+        #bar geometry
+        self.bar = ode.GeomBox(self.space,bar_dim)
+        self.bar.setBody(self.body)
+        self.bar.setPosition(bar_center)
+        #contact joints
+        self.contactgroup = ode.JointGroup()
         self.last_position=bar_center
         self.position=bar_center
         self.last_velocity=(0.0,0.0,0.0)
@@ -426,7 +432,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.body.setTorque((M[0]*opts.free_r[0],
                              M[1]*opts.free_r[1],
                              M[2]*opts.free_r[2]))
-        space.collide((self.world,self.contactgroup), near_callback)
+        self.space.collide((self.world,self.contactgroup), near_callback)
         self.world.step(self.model.stepController.dt_model)
         self.contactgroup.empty()
         x,y,z = self.body.getPosition()
