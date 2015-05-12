@@ -368,10 +368,10 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.space = ode.Space()
         eps_x = L[0]- 0.45*L[0]
         eps_y = L[1]- 0.45*L[1]
-        self.tankWalls = [ode.GeomPlane(space, (1,0,0) ,x_ll[0]+eps_x),
-                          ode.GeomPlane(space, (-1,0,0),-(x_ll[0]+L[0]-eps_x)),
-                          ode.GeomPlane(space, (0,1,0) ,x_ll[1]+eps_y),
-                          ode.GeomPlane(space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
+        self.tankWalls = [ode.GeomPlane(self.space, (1,0,0) ,x_ll[0]+eps_x),
+                          ode.GeomPlane(self.space, (-1,0,0),-(x_ll[0]+L[0]-eps_x)),
+                          ode.GeomPlane(self.space, (0,1,0) ,x_ll[1]+eps_y),
+                          ode.GeomPlane(self.space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
         #self.tank = ode.GeomBox(self.space,(0.45,0.45,0.3))
         #self.tank.setPosition((0.5,0.5,0.6))
         self.contactgroup = ode.JointGroup()
