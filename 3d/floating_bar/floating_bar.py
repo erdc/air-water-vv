@@ -394,29 +394,37 @@ class RigidBar(AuxiliaryVariables.AV_base):
                              M[1]*opts.free_r[1],
                              M[2]*opts.free_r[2]))
         self.world.step(self.model.stepController.dt_model)
-        self.h = (self.velocity[0]*self.model.stepController.dt_model,
-                  self.velocity[1]*self.model.stepController.dt_model,
-                  self.velocity[2]*self.model.stepController.dt_model)
         x,y,z = self.body.getPosition()
         u,v,w = self.body.getLinearVel()
         self.barycenters[7,0]=x
         self.barycenters[7,1]=y
         self.barycenters[7,2]=z
+        self.last_velocity=self.velocity
+        self.last_position=self.position
         self.position=(x,y,z)
         self.velocity=(u,v,w)
         self.h = (self.position[0]-self.last_position[0],
                   self.position[1]-self.last_position[1],
                   self.position[2]-self.last_position[2])
-        print "%1.2fsec: pos=(%6.3f, %6.3f, %6.3f)  vel=(%6.3f, %6.3f, %6.3f)" % \
-            (self.model.stepController.t_model, 
-             self.position[0], self.position[1], self.position[2], 
-             self.velocity[0],self.velocity[1],self.velocity[2])
-        print "%1.2fsec: last_pos=(%6.3f, %6.3f, %6.3f)  last_vel=(%6.3f, %6.3f, %6.3f)" % \
-            (self.model.stepController.t_model, 
-             self.last_position[0], self.last_position[1], self.last_position[2], 
-             self.last_velocity[0],self.last_velocity[1],self.last_velocity[2])
-        print "displacement at center of gravity",self.h
-        self.last_velocity=self.velocity
-        self.last_position=self.position
+        h_v = (self.model.stepController.dt_model*self.velocity[0],
+               self.model.stepController.dt_model*self.velocity[1],
+               self.model.stepController.dt_model*self.velocity[2])
+        for i,(hi,h_vi) in enumerate(zip(self.h,h_v)):
+            if fabs(hi-h_vi)/(fabs(hi)+1.0e-8) > 1.0e-8:
+                print "hi hcz",hi,h_vi,i
+        print "%1.2fsec: pos=(%6.3f, %6.3f, %6.3f) vel=(%6.3f, %6.3f, %6.3f)" % (self.model.stepController.t_model,
+                                                                                 self.position[0],
+                                                                                 self.position[1],
+                                                                                 self.position[2],
+                                                                                 self.velocity[0],
+                                                                                 self.velocity[1],
+                                                                                 self.velocity[2])
+        print "%1.2fsec: last_pos=(%6.3f, %6.3f, %6.3f)  last_vel=(%6.3f, %6.3f, %6.3f)" % (self.model.stepController.t_model,
+                                                                                            self.last_position[0],
+                                                                                            self.last_position[1],
+                                                                                            self.last_position[2],
+                                                                                            self.last_velocity[0],
+                                                                                            self.last_velocity[1],
+                                                                                            self.last_velocity[2])
 
 bar = RigidBar(density=0.5*(rho_0+rho_1),bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters)

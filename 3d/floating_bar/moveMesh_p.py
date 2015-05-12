@@ -41,7 +41,7 @@ class FloatingObstacle(AuxiliaryVariables.AV_base):
             hx = self.object.body.getPointVel(x)[0]*self.object.model.stepController.dt_model
             hcx = self.object.h[0]
             if fabs(hx-hcx)/(fabs(hcx)+1.0e-8) > 1.0e-8:
-                print hx,hcx
+                print "hx hcx",hx,hcx
             return hx
     def hy(self,x,t):
         if self.object == None:
@@ -50,7 +50,7 @@ class FloatingObstacle(AuxiliaryVariables.AV_base):
             hy = self.object.body.getPointVel(x)[1]*self.object.model.stepController.dt_model
             hcy = self.object.h[1]
             if fabs(hy-hcy)/(fabs(hcy)+1.0e-8) > 1.0e-8:
-                print hy,hcy
+                print "hy hcy",hy,hcy
             return hy
     def hz(self,x,t):
         if self.object == None:
@@ -59,7 +59,7 @@ class FloatingObstacle(AuxiliaryVariables.AV_base):
             hz = self.object.body.getPointVel(x)[2]*self.object.model.stepController.dt_model
             hcz = self.object.h[2]
             if fabs(hz-hcz)/(fabs(hcz)+1.0e-8) > 1.0e-8:
-                print hz,hcz
+                print "hz hcz",hz,hcz
             return hz
     def calculate(self):
         pass
