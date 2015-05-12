@@ -378,6 +378,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.body = ode.Body(self.world)
         self.M = ode.Mass()
         self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2])
+        self.bar = ode.GeomBox(self.space,bar_dim[1],bar_dim[2])
         self.body.setMass(self.M)
         self.body.setPosition(bar_center)
         self.last_position=bar_center
