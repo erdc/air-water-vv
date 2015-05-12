@@ -341,7 +341,7 @@ def twpflowPressure_init(x,t):
 
 import ode
 class RigidBar(AuxiliaryVariables.AV_base):
-    def __init__(self,density=1.0,bar_center=(0.0,0.0,0.0),bar_dim=(1.0,1.0,1.0)):
+    def __init__(self,density=1.0,bar_center=(0.0,0.0,0.0),bar_dim=(1.0,1.0,1.0),barycenters=None):
         self.world = ode.World()
         self.world.setGravity(g)
         self.body = ode.Body(self.world)
@@ -354,7 +354,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.last_velocity=(0.0,0.0,0.0)
         self.velocity=(0.0,0.0,0.0)
         self.h=(0.0,0.0,0.0)
-        self.init=True
+        self.barycenters=barycenters
     def attachModel(self,model,ar):
         self.model=model
         self.ar=ar
@@ -363,10 +363,10 @@ class RigidBar(AuxiliaryVariables.AV_base):
         m = self.model.levelModelList[-1]
         flagMax = max(m.mesh.elementBoundaryMaterialTypes)
         flagMin = min(m.mesh.elementBoundaryMaterialTypes)
-        assert(flagMin == 0)
-        assert(flagMax == 7)
+        assert(flagMin >= 0)
+        assert(flagMax <= 7)
         self.nForces=flagMax+1
-        assert(self.nForces == 8)
+        assert(self.nForces <= 8)
         return self
     def get_u(self):
         return self.last_velocity[0]
@@ -396,6 +396,9 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.world.step(self.model.stepController.dt_model)
         x,y,z = self.body.getPosition()
         u,v,w = self.body.getLinearVel()
+        self.barycenters[7,0]=x
+        self.barycenters[7,1]=y
+        self.barycenters[7,2]=z
         self.last_velocity=self.velocity
         self.last_position=self.position
         self.position=(x,y,z)
@@ -424,4 +427,4 @@ class RigidBar(AuxiliaryVariables.AV_base):
                                                                                             self.last_velocity[1],
                                                                                             self.last_velocity[2])
 
-bar = RigidBar(density=0.5*(rho_0+rho_1),bar_center=bar_center,bar_dim=opts.bar_dim)
+bar = RigidBar(density=0.5*(rho_0+rho_1),bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters)
