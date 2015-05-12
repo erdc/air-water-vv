@@ -340,10 +340,41 @@ def twpflowPressure_init(x,t):
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))
 
 import ode
+
+def near_callback(args, geom1, geom2):
+    """Callback function for the collide() method.
+
+    This function checks if the given geoms do collide and
+    creates contact joints if they do.
+    """
+
+    # Check if the objects do collide
+    contacts = ode.collide(geom1, geom2)
+
+    # Create contact joints
+    world,contactgroup = args
+    for c in contacts:
+        c.setBounce(0.2)
+        c.setMu(5000)
+        j = ode.ContactJoint(world, contactgroup, c)
+        j.attach(geom1.getBody(), geom2.getBody())
+
 class RigidBar(AuxiliaryVariables.AV_base):
     def __init__(self,density=1.0,bar_center=(0.0,0.0,0.0),bar_dim=(1.0,1.0,1.0),barycenters=None):
         self.world = ode.World()
+        self.world.setERP(0.8)
+        self.world.setCFM(1E-5)
         self.world.setGravity(g)
+        self.space = ode.Space()
+        eps_x = L[0]- 0.45*L[0]
+        eps_y = L[1]- 0.45*L[1]
+        self.tankWalls = [ode.GeomPlane(space, (1,0,0) ,x_ll[0]+eps_x),
+                          ode.GeomPlane(space, (-1,0,0),-(x_ll[0]+L[0]-eps_x)),
+                          ode.GeomPlane(space, (0,1,0) ,x_ll[1]+eps_y),
+                          ode.GeomPlane(space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
+        #self.tank = ode.GeomBox(self.space,(0.45,0.45,0.3))
+        #self.tank.setPosition((0.5,0.5,0.6))
+        self.contactgroup = ode.JointGroup()
         self.body = ode.Body(self.world)
         self.M = ode.Mass()
         self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2])
@@ -355,6 +386,8 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.velocity=(0.0,0.0,0.0)
         self.h=(0.0,0.0,0.0)
         self.barycenters=barycenters
+        self.init=True
+
     def attachModel(self,model,ar):
         self.model=model
         self.ar=ar
@@ -393,7 +426,9 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.body.setTorque((M[0]*opts.free_r[0],
                              M[1]*opts.free_r[1],
                              M[2]*opts.free_r[2]))
+        space.collide((self.world,self.contactgroup), near_callback)
         self.world.step(self.model.stepController.dt_model)
+        self.contactgroup.empty()
         x,y,z = self.body.getPosition()
         u,v,w = self.body.getLinearVel()
         self.barycenters[7,0]=x
