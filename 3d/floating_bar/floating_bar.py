@@ -426,7 +426,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.body.setTorque((M[0]*opts.free_r[0],
                              M[1]*opts.free_r[1],
                              M[2]*opts.free_r[2]))
-        space.collide((self.world,self.contactgroup), near_callback)
+        self.space.collide((self.world,self.contactgroup), near_callback)
         self.world.step(self.model.stepController.dt_model)
         self.contactgroup.empty()
         x,y,z = self.body.getPosition()
