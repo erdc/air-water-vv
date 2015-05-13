@@ -367,8 +367,8 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.world.setGravity(g)
 
         self.space = ode.Space()
-        eps_x = L[0]- 0.8*L[0]
-        eps_y = L[1]- 0.8*L[1]
+        eps_x = L[0]- 0.75*L[0]
+        eps_y = L[1]- 0.75*L[1]
         #tank geometry
         self.tankWalls = [ode.GeomPlane(self.space, (1,0,0) ,x_ll[0]+eps_x),
                           ode.GeomPlane(self.space, (-1,0,0),-(x_ll[0]+L[0]-eps_x)),
