@@ -1,4 +1,5 @@
 from proteus import *
+from proteus.Isosurface import  Isosurface
 from ls_p import *
 
 timeIntegration = BackwardEuler_cfl
@@ -45,3 +46,4 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 
+auxiliaryVariables=[Isosurface(isosurfaces=(('phi',(0.0,)),))]
