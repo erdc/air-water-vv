@@ -9,12 +9,12 @@ If the angle a is less than 90° (current with a following component) the wavele
 possess in still water. If the angle a is greater than 90° (current with an opposing component) then the wavelength is decreased. 
 Finally, in the case that a is equal to 90°, then the wave characteristics are not modified due to the presence of the current. 
 
-Wave current interaction with the waves, also, affects the wave height due to wave energy conservation and the wave height decreases 
+Current interaction with the waves, also, affects the wave height due to wave energy conservation and the wave height decreases 
 for following currents and increases for opposing currents. Given the wave period, modified height, 
-depth and current velocity, the Fenton Fourier Transform theory (Fenton, 1988) can be used to calculate wavelength, particle velocities 
-and pressure.
+depth and current velocity, the Fenton Fourier Transform theory (Fenton, 1988) can be used to calculate the wavelength, the particle velocities 
+and the pressure.
 
-The case is simulated using a 3D rectangular numerical domain with height of 1.5 m, a length, (L + La), and width, (b + ba). The mean water 
+The case is simulated using a 3D rectangular numerical domain with a height of 1.5 m, a length (L + La), and a width (b + ba). The mean water 
 depth in the domain is equal to 1.0 m. Within the left boundary (wave maker) interacted waves with a current are generated imposing the flux 
 parameters according to Fenton’s method. In the front boundary a uniform current profile is imposed in the region below the still water level. 
 Free-slip boundary conditions are assigned to the bottom boundary. The top boundary has been assigned atmospheric conditions and the right 
