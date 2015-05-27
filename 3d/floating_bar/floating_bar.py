@@ -384,6 +384,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.bar = ode.GeomBox(self.space,bar_dim)
         self.bar.setBody(self.body)
         self.bar.setPosition(bar_center)
+        self.boxsize = (bar_dim[0],bar_dim[1],bar_dim[2])
         #contact joints
         self.contactgroup = ode.JointGroup()
         self.last_position=bar_center
