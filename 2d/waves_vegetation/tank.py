@@ -94,7 +94,7 @@ elif spaceOrder == 2:
 
 #for debugging, make the tank short
 L = (45.4,1.0)
-he = float(wavelength)/20.0#100
+he = float(wavelength)/2#0.0#100
 
 GenerationZoneLength = wavelength
 AbsorptionZoneLength= wavelength*2.0
@@ -127,19 +127,19 @@ gaugeLocations=tuple(map(tuple,PGL))
 columnLines=tuple(map(tuple,LGL))
 
 
-pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
-                                (('p',),    gaugeLocations)),
-                  activeTime = (0, 1000.0),
-                  sampleRate = 0,
-                  fileName = 'combined_gauge_0_0.5_sample_all.txt')
+#pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
+#                                (('p',),    gaugeLocations)),
+#                  activeTime = (0, 1000.0),
+#                  sampleRate = 0,
+#                  fileName = 'combined_gauge_0_0.5_sample_all.txt')
 
-print gaugeLocations
-print columnLines
+#print gaugeLocations
+#print columnLines
 
 fields = ('vof',)
 
-columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
-                                 fileName='column_gauge.csv')
+#columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
+#                                 fileName='column_gauge.csv')
 
 #lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_y=0':((0.0,0.0,0.0),(L[0],0.0,0.0))},linePoints=24)
 
@@ -158,15 +158,15 @@ else:
         nnx=ceil(L[0]/he)+1
         nny=ceil(L[1]/he)+1
     elif spongeLayer:
-        vertices=[[0.0,0.0],#0
-                  [19.6,                 19.6/44.0         ],#1
-                  [19.6+6.1,             19.6/44.0+6.1/20.0],#2
-                  [19.6+6.1+1.2,         19.6/44.0+6.1/20.0],#3
-                  [19.6+6.1+1.2+9.8,     19.6/44.0+6.1/20.0],#4
-                  [19.6+6.1+1.2+9.8+1.2, 19.6/44.0+6.1/20.0],#5
-                  [37.9,                 19.5/44.0+6.1/20.0],#6
-                  [45.4,                 19.5/44.0+11.3/20.0],#7
-                  [37.9,                 19.5/44.0+11.3/20.0],#8
+        vertices=[[0.0,                  0.0                 ],#0
+                  [19.6,                 19.6/44.0           ],#1
+                  [19.6+6.1,             19.6/44.0+6.1/20.0  ],#2
+                  [19.6+6.1+1.2,         19.6/44.0+6.1/20.0  ],#3
+                  [19.6+6.1+1.2+9.8,     19.6/44.0+6.1/20.0  ],#4
+                  [19.6+6.1+1.2+9.8+1.2, 19.6/44.0+6.1/20.0  ],#5
+                  [37.9,                 19.5/44.0+6.1/20.0  ],#6
+                  [45.4,                 19.5/44.0+11.3/20.0 ],#7
+                  [37.9,                 19.5/44.0+11.3/20.0 ],#8
                   [0.0,                  19.5/44.0+11.3/20.0]]#9
 
         vertexFlags=[boundaryTags['bottom'],#0
@@ -189,7 +189,7 @@ else:
                   [7,8],#7
                   [8,9],#8
                   [9,0],#9
-                  [7,0]]#10
+                  [6,8]]#10
 
         segmentFlags=[boundaryTags['bottom'],#0
                       boundaryTags['bottom'],#1
