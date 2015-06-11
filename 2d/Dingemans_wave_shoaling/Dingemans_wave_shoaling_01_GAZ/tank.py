@@ -76,8 +76,8 @@ elif spaceOrder == 2:
     
 # Domain and mesh
 
-L = (58.0,1.26)
-he = float(wavelength)/200
+L = (54.25,1.26)
+he = float(wavelength)/65
 x1=9.22 
 x2=10.42 
 x3=15.01 
@@ -90,7 +90,7 @@ y1=0.06
 y2=0.66
 
 GenerationZoneLength = 4.0
-AbsorptionZoneLength= 8.0
+AbsorptionZoneLength= 6.0
 spongeLayer = True
 xSponge = GenerationZoneLength
 xRelaxCenter = xSponge/2.0
@@ -109,8 +109,26 @@ nLayersOfOverlapForParallel = 0
 structured=False
 
 
-gaugeLocations=((24.04,0.66,0.0),(30.04,0.66,0.0),(34.04,0.66,0.0)) 
-columnLines=(((24.04,0.5295,0.0),(24.04,L[1],0.0)),((30.04,0.66,0.0),(30.04,L[1],0.0)),((34.04,0.66,0.0),(34.04,L[1],0.0)))
+gaugeLocations=((0.0,0.36,0.0),
+                (xRelaxCenter,0.36,0.0),
+                (xSponge,0.36,0.0),
+                (24.04,0.5295,0.0),
+                (30.04,0.66,0.0),
+                (34.04,0.36,0.0),
+                (xSponge_2,0.36,0.0),
+                (xRelaxCenter_2,0.36,0.0),
+                (L[0],0.36,0.0)) 
+
+
+columnLines=( ((0.0,0.0,0.0),(0.0,L[1],0.0)),
+              ((xRelaxCenter,0.0,0.0),(xRelaxCenter,L[1],0.0)),
+              ((xSponge,0.0,0.0),(xSponge,L[1],0.0)),
+              ((24.04,0.5295,0.0),(24.04,L[1],0.0)),
+              ((30.04,0.66,0.0),(30.04,L[1],0.0)),
+              ((34.04,0.362,0.0),(34.04,L[1],0.0)),
+              ((xSponge_2,0.0,0.0),(xSponge_2,L[1],0.0)),
+              ((xRelaxCenter_2,0.0,0.0),(xRelaxCenter_2,L[1],0.0)),
+              ((L[0],0.0,0.0),(L[0],L[1],0.0)))
 
 
 pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
@@ -281,8 +299,8 @@ else:
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=40*period
-dt_fixed = T#2.0*0.5/20.0#T/2.0#period/21.0
+T=60*period
+dt_fixed = T
 dt_init = min(0.1*dt_fixed,0.1)
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
@@ -304,7 +322,7 @@ if useMetrics:
     vof_sc_beta = 1.0
     rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
-    epsFact_density    = 3.0
+    epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 1.5
     epsFact_consrv_diffusion = 10.0
@@ -516,12 +534,12 @@ class RelaxationZoneWaveGenerator(AV_base):
         m.q['velocity_solid'] = m.coefficients.q_velocity_solid
 
 rzWaveGenerator = RelaxationZoneWaveGenerator(zones={1:RelaxationZone(xRelaxCenter,
-                                                                      1.0,
+                                                                      -1.0,
                                                                       twpflowVelocity_u,
                                                                       twpflowVelocity_v,
                                                                       twpflowVelocity_w),
                                                     2:RelaxationZone(xRelaxCenter_2,
-                                                                     -1.0,
+                                                                     1.0,
                                                                      zeroVel,
                                                                      zeroVel,
                                                                      zeroVel)})
