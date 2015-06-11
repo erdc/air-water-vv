@@ -1,0 +1,51 @@
+The Delft Hydraulics measurements have a linear scale n_L=2 compared
+to the Beji measurements on which the computations are based. To
+compare the measurements withy the computations the surface levations
+should be divided by 2 and the time should be divided by sqrt(2).
+
+We consider the measuring conditions A, B and C, defined as follows
+for an undisturbed depth of .40 m:
+A:    T = 2.02  s and H = 2   cm
+B:    T = 2.525 s and H = 2.9 cm
+C:    T = 1.01  s and H = 4.1 cm .
+
+For measuring condition A the two files #bea01.asc and #bea02.asc are
+given where the time window 10 to 70 s has been given with interval
+dt = 0.05 s. This is in unscaled variables (i.e., belonging to a
+depth of 0.80 m). Notice that "be" comes from "Beji", "a" comes from
+condition A and "01" and "02" denotes the fact that the measurements
+had to be repeated with another position of the free surface
+elevation measuring probes (termed GHM in Dutch).
+
+In scaled dimensions (i.e., belonging to the undisturbed depth 0.40
+m) the columns in the files mean the following: in the first column
+the time is given and in next six columns the free surface elevations
+for the six probes is given.
+
+bea01  1     2      3       4       5       6       7
+     time   2 m    5.7 m   10.5 m  13.5 m  15.7 m  19 m
+
+bea02  1     2      3       4       5       6       7
+     time  4 m     5.7 m   12.5 m  14.5 m  17.3 m  21 m
+
+The bottom geometry is in scaled dimensions (i.e., undisturbed depth
+0.40 m) as follows. Here is given (x,z) while z=0 is in the still
+water level.
+(0,-.40), (6,-0.40), (12,-0.10), (14,-0.10), 17,-0.40), and further
+constant depth, z=-0.40 m. This geometry is also given in the plot
+bq-geom.hpg .
+
+In unscaled dimensions (undisturbed depth -.80 m), a slightly
+different configuration has been used:
+(0,-0.86), (5.22,-0.86), (6.42,-0.80), (11.01,-0.80), (23.04,-0.20), 
+(27.04,-0.10), (33.07,-0.80), (40.61,-0.80), (41.82,-0.86), futher
+constant depth, z = -0.86 m. A active wave absorber with mean
+position was placed at 46.04 m.  
+
+The locations of the wave probes in the unscaled dimensions were:
+3.04 m, 7.04 m, 9.44 m, 20.04 m, 24.04 m, 26.04 m, 28.04 m, 30.44 m,
+33.64 m, 37.04 m, 41.04 m.
+
+4 October 1993
+M.W. Dingemans
+
