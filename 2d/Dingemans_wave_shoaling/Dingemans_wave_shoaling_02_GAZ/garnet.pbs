@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -A ERDCV00898R40
+#PBS -l walltime=048:00:00
+#PBS -l select=4:ncpus=32:mpiprocs=32
+#PBS -q standard
+#PBS -N dingemans2
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/tank_dingemans2.$PBS_JOBID
+aprun -n 128  parun tank_so.py -l 7 -v -m -O ../../../inputTemplates/petsc.options.asm -D $WORKDIR/tank_dingemans2.$PBS_JOBID

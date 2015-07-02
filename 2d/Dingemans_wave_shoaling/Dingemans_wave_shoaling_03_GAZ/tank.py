@@ -77,7 +77,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 
 L = (54.25,1.26)
-he = float(wavelength)/65
+he = float(wavelength)/200
 x1=9.22 
 x2=10.42 
 x3=15.01 
@@ -300,7 +300,7 @@ else:
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
 T=60*period
-dt_fixed = T
+dt_fixed = period/6.0
 dt_init = min(0.1*dt_fixed,0.1)
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
