@@ -7,7 +7,7 @@ import numpy
 import proteus.MeshTools
 from proteus import Domain
 from proteus.Profiling import logEvent
-from proteus.default_n import *   
+from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
@@ -25,8 +25,8 @@ opts=Context.Options([
     ("cfl",0.33,"Target cfl"),
     ("nsave",100,"Number of time steps to  save"),
     ("parallel",True,"Run in parallel"),
-    ("free_x",(1.0,1.0,1.0),"Free translations"),
-    ("free_r",(0.0,0.0,0.0),"Free rotations")])
+    ("free_x",(0.0,0.0,1.0),"Free translations"),
+    ("free_r",(1.0,1.0,0.0),"Free rotations")])
 
 #----------------------------------------------------
 # Physical properties
@@ -67,9 +67,9 @@ bar_cg      = [0.0,0.0,0.0]
 bar_inertia = [[(L[1]**2+L[2]**2)/12.0, 0.0                    , 0.0                   ],
                [0.0                   , (L[0]**2+L[2]**2)/12.0 , 0.0                   ],
                [0.0                   , 0.0                    , (L[0]**2+L[1]**2)/12.0]]
-			
-RBR_linCons  = [1,1,0]   
-RBR_angCons  = [1,0,1]  
+
+RBR_linCons  = [1,1,0]
+RBR_angCons  = [1,0,1]
 
 
 nLevels = 1
@@ -168,7 +168,7 @@ domain = Domain.PiecewiseLinearComplexDomain(vertices=vertices,
                                              regions=regions,
                                              regionFlags=regionFlags,
                                              holes=holes)
-#go ahead and add a boundary tags member 
+#go ahead and add a boundary tags member
 domain.boundaryTags = boundaryTags
 domain.writePoly("mesh")
 triangleOptions="VApq1.35q12feena%21.16e" % ((he**3)/6.0,)
@@ -206,7 +206,7 @@ runCFL = opts.cfl
 #----------------------------------------------------
 water_depth  = waterLevel-x_ll[2]
 
-#  Discretization -- input options  
+#  Discretization -- input options
 useOldPETSc=False
 useSuperlu = not opts.parallel
 spaceOrder = 1
@@ -222,40 +222,40 @@ useRANS = 0 # 0 -- None
 # Input checks
 if spaceOrder not in [1,2]:
     print "INVALID: spaceOrder" + spaceOrder
-    sys.exit()    
-    
+    sys.exit()
+
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print "INVALID: useRBLES" + useRBLES
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
     print "INVALID: useMetrics"
     sys.exit()
-    
-#  Discretization   
+
+#  Discretization
 nd = 3
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
 	 basis=C0_AffineLinearOnCubeWithNodalBasis
          elementQuadrature = CubeGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)     	 
+         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
     else:
     	 basis=C0_AffineLinearOnSimplexWithNodalBasis
          elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3) 	    
-         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1) 	    
+         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
+         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
 elif spaceOrder == 2:
     hFactor=0.5
-    if useHex:    
+    if useHex:
 	basis=C0_AffineLagrangeOnCubeWithNodalBasis
         elementQuadrature = CubeGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)    
-    else:    
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis	
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
+    else:
+	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
-    
+
 
 # Numerical parameters
 ns_forceStrongDirichlet = False

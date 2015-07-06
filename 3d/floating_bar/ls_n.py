@@ -46,4 +46,4 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 
-auxiliaryVariables=[Isosurface(isosurfaces=(('phi',(0.0,)),),domain=domain)]
+#auxiliaryVariables=[Isosurface(isosurfaces=(('phi',(0.0,)),),domain=domain)]
