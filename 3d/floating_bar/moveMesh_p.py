@@ -1,5 +1,7 @@
 from proteus import *
 from proteus.default_p import *
+from proteus import Context
+ct = Context.get()
 from floating_bar import *
 from proteus.mprans import MoveMesh
 
