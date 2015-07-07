@@ -16,7 +16,7 @@ opts=Context.Options([
     ("bar_dim", (0.33,0.33,0.2), "Dimensions of the bar"),
     ("tank_dim", (1.0,1.0,1.0), "Dimensiosn of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
-    ("bar_height",0.6,"Initial height of bar center above bottom"),
+    ("bar_height",0.55,"Initial height of bar center above bottom"),
     ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
     ("gen_mesh",True,"Generate new mesh"),
@@ -362,18 +362,18 @@ def near_callback(args, geom1, geom2):
 class RigidBar(AuxiliaryVariables.AV_base):
     def __init__(self,density=1.0,bar_center=(0.0,0.0,0.0),bar_dim=(1.0,1.0,1.0),barycenters=None):
         self.world = ode.World()
-        self.world.setERP(0.8)
-        self.world.setCFM(1E-5)
+        #self.world.setERP(0.8)
+        #self.world.setCFM(1E-5)
         self.world.setGravity(g)
 
         self.space = ode.Space()
         eps_x = L[0]- 0.75*L[0]
         eps_y = L[1]- 0.75*L[1]
         #tank geometry
-        self.tankWalls = [ode.GeomPlane(self.space, (1,0,0) ,x_ll[0]+eps_x),
-                          ode.GeomPlane(self.space, (-1,0,0),-(x_ll[0]+L[0]-eps_x)),
-                          ode.GeomPlane(self.space, (0,1,0) ,x_ll[1]+eps_y),
-                          ode.GeomPlane(self.space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
+        #self.tankWalls = [ode.GeomPlane(self.space, (1,0,0) ,x_ll[0]+eps_x),
+        #                  ode.GeomPlane(self.space, (-1,0,0),-(x_ll[0]+L[0]-eps_x)),
+        #ode.GeomPlane(self.space, (0,1,0) ,x_ll[1]+eps_y),
+        #                  ode.GeomPlane(self.space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
         #mass/intertial tensor of rigid bar
         self.M = ode.Mass()
         self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2])
@@ -392,6 +392,9 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.last_velocity=(0.0,0.0,0.0)
         self.velocity=(0.0,0.0,0.0)
         self.h=(0.0,0.0,0.0)
+        self.rotation = np.eye(3)
+        self.last_rotation = np.eye(3)
+        self.last_rotation_inv = np.eye(3)
         self.barycenters=barycenters
         self.init=True
 
@@ -418,6 +421,8 @@ class RigidBar(AuxiliaryVariables.AV_base):
         pass
     def calculate(self):
         import  numpy as np
+        from numpy.linalg import inv
+        import copy
         F = self.model.levelModelList[-1].coefficients.netForces_p[7,:] + self.model.levelModelList[-1].coefficients.netForces_v[7,:];
         M = self.model.levelModelList[-1].coefficients.netMoments[7,:]
         logEvent("x Force " +`self.model.stepController.t_model`+" "+`F[0]`)
@@ -441,19 +446,22 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.barycenters[7,0]=x
         self.barycenters[7,1]=y
         self.barycenters[7,2]=z
-        self.last_velocity=self.velocity
-        self.last_position=self.position
+        self.last_velocity=copy.deepcopy(self.velocity)
+        self.last_position=copy.deepcopy(self.position)
+        self.last_rotation=self.rotation.copy()
+        self.last_rotation_inv = inv(self.last_rotation)
         self.position=(x,y,z)
         self.velocity=(u,v,w)
+        self.rotation=np.array(self.body.getRotation()).reshape(3,3)
         self.h = (self.position[0]-self.last_position[0],
                   self.position[1]-self.last_position[1],
                   self.position[2]-self.last_position[2])
-        h_v = (self.model.stepController.dt_model*self.velocity[0],
-               self.model.stepController.dt_model*self.velocity[1],
-               self.model.stepController.dt_model*self.velocity[2])
-        for i,(hi,h_vi) in enumerate(zip(self.h,h_v)):
-            if fabs(hi-h_vi)/(fabs(hi)+1.0e-8) > 1.0e-8:
-                print "hi hcz",hi,h_vi,i
+#        h_v = (self.model.stepController.dt_model*self.velocity[0],
+#               self.model.stepController.dt_model*self.velocity[1],
+#               self.model.stepController.dt_model*self.velocity[2])
+#        for i,(hi,h_vi) in enumerate(zip(self.h,h_v)):
+#            if fabs(hi-h_vi)/(fabs(hi)+1.0e-8) > 1.0e-8:
+#                print "hi hcz",hi,h_vi,i
         print "%1.2fsec: pos=(%6.3f, %6.3f, %6.3f) vel=(%6.3f, %6.3f, %6.3f)" % (self.model.stepController.t_model,
                                                                                  self.position[0],
                                                                                  self.position[1],

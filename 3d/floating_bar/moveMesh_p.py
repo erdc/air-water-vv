@@ -19,11 +19,11 @@ smTypes[1,0] = 1.0    ##E
 smTypes[1,1] = 0.3    ##nu
 
 LevelModelType = MoveMesh.LevelModel
-coefficients = MoveMesh.Coefficients(hullMass=bar_mass,    
-				     hullCG=bar_cg,      
-				     hullInertia=bar_inertia,             	
-				     linConstraints=(1,1,1),  
-				     angConstraints=(1,1,1),  
+coefficients = MoveMesh.Coefficients(hullMass=bar_mass,
+				     hullCG=bar_cg,
+				     hullInertia=bar_inertia,
+				     linConstraints=(1,1,1),
+				     angConstraints=(1,1,1),
 				     V_model=0,modelType_block=smFlags,
 				     modelParams_block=smTypes,meIndex=5)
 
@@ -40,28 +40,30 @@ class FloatingObstacle(AuxiliaryVariables.AV_base):
         if self.object == None:
             return 0.0
         else:
-            hx = self.object.body.getPointVel(x)[0]*self.object.model.stepController.dt_model
-            hcx = self.object.h[0]
-            if fabs(hx-hcx)/(fabs(hcx)+1.0e-8) > 1.0e-8:
-                print "hx hcx",hx,hcx
+            hx = self.object.body.getRelPointPos(np.dot(self.object.last_rotation_inv,(x-self.object.last_position)))[0] - x[0]
+#            hcx = self.object.h[0]
+#            if fabs(hx-hcx)/(fabs(hcx)+1.0e-8) > 1.0e-8:
+#                print "hx hcx",hx,hcx
             return hx
     def hy(self,x,t):
         if self.object == None:
             return 0.0
         else:
-            hy = self.object.body.getPointVel(x)[1]*self.object.model.stepController.dt_model
-            hcy = self.object.h[1]
-            if fabs(hy-hcy)/(fabs(hcy)+1.0e-8) > 1.0e-8:
-                print "hy hcy",hy,hcy
+            hy = self.object.body.getRelPointPos(np.dot(self.object.last_rotation_inv,(x-self.object.last_position)))[1] - x[1]
+#            hy = self.object.body.getPointVel(self.object.last_rotation_inv*(x-self.object.last_position))[1]*self.object.model.stepController.dt_model
+#            hcy = self.object.h[1]
+#            if fabs(hy-hcy)/(fabs(hcy)+1.0e-8) > 1.0e-8:
+#                print "hy hcy",hy,hcy
             return hy
     def hz(self,x,t):
         if self.object == None:
             return 0.0
         else:
-            hz = self.object.body.getPointVel(x)[2]*self.object.model.stepController.dt_model
-            hcz = self.object.h[2]
-            if fabs(hz-hcz)/(fabs(hcz)+1.0e-8) > 1.0e-8:
-                print "hz hcz",hz,hcz
+            hz = self.object.body.getRelPointPos(np.dot(self.object.last_rotation_inv,(x-self.object.last_position)))[2] - x[2]
+#            hz = self.object.body.getPointVel(self.object.last_rotation_inv*(x-self.object.last_position))[2]*self.object.model.stepController.dt_model
+#            hcz = self.object.h[2]
+#            if fabs(hz-hcz)/(fabs(hcz)+1.0e-8) > 1.0e-8:z
+#                print "hz hcz",hz,hcz
             return hz
     def calculate(self):
         pass
@@ -73,13 +75,13 @@ def getDBC_hx(x,flag):
         return lambda x,t: 0.0
     if flag == boundaryTags['obstacle']:
         return lambda x,t: fo.hx(x,t)
-    
+
 def getDBC_hy(x,flag):
     if flag in [boundaryTags['front'],boundaryTags['back']]:
         return lambda x,t: 0.0
     if flag == boundaryTags['obstacle']:
         return lambda x,t: fo.hy(x,t)
-    
+
 def getDBC_hz(x,flag):
     if flag in [boundaryTags['top'],boundaryTags['bottom']]:
         return lambda x,t: 0.0
@@ -104,7 +106,7 @@ def stress_u(x,flag):
     if flag not in [boundaryTags['left'],
                     boundaryTags['right']]:
         return 0.0
-    
+
 def stress_v(x,flag):
     if flag not in [boundaryTags['front'],
                     boundaryTags['back']]:
