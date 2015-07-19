@@ -24,8 +24,8 @@ coefficients = MoveMesh.Coefficients(hullMass=bar_mass,
 				     hullInertia=bar_inertia,
 				     linConstraints=(1,1,1),
 				     angConstraints=(1,1,1),
-				     V_model=0,modelType_block=smFlags,
-				     modelParams_block=smTypes,meIndex=5)
+				     V_model=1,modelType_block=smFlags,
+				     modelParams_block=smTypes,meIndex=0)
 
 class FloatingObstacle(AuxiliaryVariables.AV_base):
     import numpy as np
@@ -62,7 +62,7 @@ class FloatingObstacle(AuxiliaryVariables.AV_base):
             hz = self.object.body.getRelPointPos(np.dot(self.object.last_rotation_inv,(x-self.object.last_position)))[2] - x[2]
 #            hz = self.object.body.getPointVel(self.object.last_rotation_inv*(x-self.object.last_position))[2]*self.object.model.stepController.dt_model
 #            hcz = self.object.h[2]
-#            if fabs(hz-hcz)/(fabs(hcz)+1.0e-8) > 1.0e-8:z
+#            if fabs(hz-hcz)/(fabs(hcz)+1.0e-8) > 1.0e-8:
 #                print "hz hcz",hz,hcz
             return hz
     def calculate(self):
