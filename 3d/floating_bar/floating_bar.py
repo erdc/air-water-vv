@@ -318,7 +318,7 @@ else:
 ns_nl_atol_res = max(1.0e-12,0.001*he**2)
 vof_nl_atol_res = max(1.0e-12,0.001*he**2)
 ls_nl_atol_res = max(1.0e-12,0.001*he**2)
-mcorr_nl_atol_res = max(1.0e-12,0.001*he**2)
+mcorr_nl_atol_res = max(1.0e-12,0.0001*he**2)
 rd_nl_atol_res = max(1.0e-12,0.01*he)
 kappa_nl_atol_res = max(1.0e-12,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-12,0.001*he**2)
@@ -380,6 +380,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         #bar body
         self.body = ode.Body(self.world)
         self.body.setMass(self.M)
+        self.body.setFiniteRotationMode(1)
         #bar geometry
         self.bar = ode.GeomBox(self.space,bar_dim)
         self.bar.setBody(self.body)
@@ -438,9 +439,9 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.body.setTorque((M[0]*opts.free_r[0],
                              M[1]*opts.free_r[1],
                              M[2]*opts.free_r[2]))
-        self.space.collide((self.world,self.contactgroup), near_callback)
+        #self.space.collide((self.world,self.contactgroup), near_callback)
         self.world.step(self.model.stepController.dt_model)
-        self.contactgroup.empty()
+        #self.contactgroup.empty()
         x,y,z = self.body.getPosition()
         u,v,w = self.body.getLinearVel()
         self.barycenters[7,0]=x
@@ -456,12 +457,6 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.h = (self.position[0]-self.last_position[0],
                   self.position[1]-self.last_position[1],
                   self.position[2]-self.last_position[2])
-#        h_v = (self.model.stepController.dt_model*self.velocity[0],
-#               self.model.stepController.dt_model*self.velocity[1],
-#               self.model.stepController.dt_model*self.velocity[2])
-#        for i,(hi,h_vi) in enumerate(zip(self.h,h_v)):
-#            if fabs(hi-h_vi)/(fabs(hi)+1.0e-8) > 1.0e-8:
-#                print "hi hcz",hi,h_vi,i
         print "%1.2fsec: pos=(%6.3f, %6.3f, %6.3f) vel=(%6.3f, %6.3f, %6.3f)" % (self.model.stepController.t_model,
                                                                                  self.position[0],
                                                                                  self.position[1],

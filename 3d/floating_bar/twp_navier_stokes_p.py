@@ -29,8 +29,9 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    nu_1 = ct.nu_1,
                                    g=ct.g,
                                    nd=ct.nd,
-                                   VF_model=1,
-                                   LS_model=LS_model,
+                                   ME_model=int(ct.movingDomain)+0,
+                                   VF_model=int(ct.movingDomain)+1,
+                                   LS_model=int(ct.movingDomain)+LS_model,
                                    Closure_0_model=Closure_0_model,
                                    Closure_1_model=Closure_1_model,
                                    epsFact_density=ct.epsFact_density,
@@ -54,7 +55,7 @@ def getDBC_p(x,flag):
 def getDBC_u(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
-    
+
 def getDBC_v(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
