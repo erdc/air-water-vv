@@ -259,7 +259,7 @@ elif spaceOrder == 2:
 
 # Numerical parameters
 ns_forceStrongDirichlet = False
-
+backgroundDiffusionFactor=0.01
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
