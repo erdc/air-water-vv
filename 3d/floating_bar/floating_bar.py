@@ -170,7 +170,13 @@ domain = Domain.PiecewiseLinearComplexDomain(vertices=vertices,
                                              holes=holes)
 #go ahead and add a boundary tags member
 domain.boundaryTags = boundaryTags
-domain.writePoly("mesh")
+from proteus import Comm
+comm = Comm.get()
+if comm.isMaster():
+    domain.writePoly("mesh")
+else:
+    domain.polyfile="mesh"
+comm.barrier()
 triangleOptions="VApq1.35q12feena%21.16e" % ((he**3)/6.0,)
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 restrictFineSolutionToAllMeshes=False
