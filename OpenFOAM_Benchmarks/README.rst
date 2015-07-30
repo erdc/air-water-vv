@@ -4,7 +4,7 @@ OpenFOAM Benchmarks
 
 https://github.com/erdc-cm/air-water-vv/OpenFOAM_Benchmarks/
 
-Benchmark descritpion
+Case descritpion
 ----------------------------
 
 - dambreakColagrossi, see  https://github.com/erdc-cm/air-water-vv/2d/dambreak_Colagrossi/README.rst
