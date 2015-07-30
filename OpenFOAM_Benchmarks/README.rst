@@ -15,7 +15,7 @@ Case descritpion
 
 - dambreakGomez, see https://github.com/erdc-cm/air-water-vv/blob/master/3d/dambreak_Gomez/README.rst
 
-How to run OpenFOAM cases
+How to set up and run OpenFOAM cases
 ------------------------
 See OpenFOAM's user guide (http://foam.sourceforge.net/docs/Guides-a4/UserGuide.pdf), Section 2. Regarding this test set, see also recommenations below:
 
