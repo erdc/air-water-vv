@@ -14,7 +14,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus import Context
 opts=Context.Options([
     ("bar_dim", (0.33,0.33,0.2), "Dimensions of the bar"),
-    ("tank_dim", (1.0,1.0,1.0), "Dimensiosn of the tank"),
+    ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
     ("bar_height",0.55,"Initial height of bar center above bottom"),
     ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
