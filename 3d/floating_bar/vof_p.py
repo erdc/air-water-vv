@@ -23,7 +23,7 @@ coefficients = VOF.Coefficients(LS_model=int(ct.movingDomain)+LS_model,
                                 epsFact=epsFact_vof,
                                 sc_uref=vof_sc_uref,
                                 sc_beta=vof_sc_beta,
-                                movingDomain=0.0)#cek hack movingDomain)
+                                movingDomain=ct.movingDomain)
 
 def getDBC_vof(x,flag):
     if flag == boundaryTags['top']:

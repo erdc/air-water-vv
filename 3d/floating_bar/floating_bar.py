@@ -268,8 +268,8 @@ ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
-    ns_lag_shockCapturing = True
-    ns_lag_subgridError = True
+    ns_lag_shockCapturing = False
+    ns_lag_subgridError = False
     ls_shockCapturingFactor  = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0

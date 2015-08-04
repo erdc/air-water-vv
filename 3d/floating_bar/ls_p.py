@@ -15,7 +15,7 @@ coefficients = NCLS.Coefficients(V_model=int(ct.movingDomain)+0,
                                  epsFact=epsFact_consrv_heaviside,
                                  sc_uref=ls_sc_uref,
                                  sc_beta=ls_sc_beta,
-                                 movingDomain=0.0)#cek hack movingDomain)
+                                 movingDomain=ct.movingDomain)
 
 def getDBC_ls(x,flag):
     return None
