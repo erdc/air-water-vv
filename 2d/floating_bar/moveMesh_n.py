@@ -5,8 +5,7 @@ from moveMesh_p import *
 timeIntegration = NoIntegration
 
 femSpaces = {0:C0_AffineLinearOnSimplexWithNodalBasis,
-             1:C0_AffineLinearOnSimplexWithNodalBasis,
-             2:C0_AffineLinearOnSimplexWithNodalBasis}
+             1:C0_AffineLinearOnSimplexWithNodalBasis}
 
 elementQuadrature = SimplexGaussQuadrature(nd,quad_order)
 elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,quad_order)

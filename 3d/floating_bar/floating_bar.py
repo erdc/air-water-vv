@@ -16,7 +16,7 @@ opts=Context.Options([
     ("bar_dim", (0.33,0.33,0.2), "Dimensions of the bar"),
     ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
-    ("bar_height",0.55,"Initial height of bar center above bottom"),
+    ("bar_height",0.4,"Initial height of bar center above bottom"),
     ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
     ("gen_mesh",True,"Generate new mesh"),
@@ -74,7 +74,7 @@ RBR_angCons  = [1,0,1]
 
 nLevels = 1
 
-he = (bar_height/2.0) #coarse grid
+he = (bar_height) #coarse grid
 he *=(0.5)**opts.refinement_level
 genMesh=opts.gen_mesh
 
@@ -206,7 +206,7 @@ weak_bc_penalty_constant = 100.0#Re
 dt_init=opts.dt_init
 T = opts.T
 nDTout=opts.nsave
-dt_out =  (T-dt_init)/nDTout
+dt_out =  dt_init#(T-dt_init)/nDTout
 runCFL = opts.cfl
 
 #----------------------------------------------------
@@ -268,8 +268,8 @@ ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
-    ns_lag_shockCapturing = False
-    ns_lag_subgridError = False
+    ns_lag_shockCapturing = True
+    ns_lag_subgridError = True
     ls_shockCapturingFactor  = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
@@ -432,12 +432,12 @@ class RigidBar(AuxiliaryVariables.AV_base):
         import copy
         F = self.model.levelModelList[-1].coefficients.netForces_p[7,:] + self.model.levelModelList[-1].coefficients.netForces_v[7,:];
         M = self.model.levelModelList[-1].coefficients.netMoments[7,:]
-        logEvent("x Force " +`self.model.stepController.t_model`+" "+`F[0]`)
-        logEvent("y Force " +`self.model.stepController.t_model`+" "+`F[1]`)
-        logEvent("z Force " +`self.model.stepController.t_model`+" "+`F[2]`)
-        logEvent("x Moment " +`self.model.stepController.t_model`+" "+`M[0]`)
-        logEvent("y Moment " +`self.model.stepController.t_model`+" "+`M[1]`)
-        logEvent("z Moment " +`self.model.stepController.t_model`+" "+`M[2]`)
+        logEvent("x Force " +`self.model.stepController.t_model_last`+" "+`F[0]`)
+        logEvent("y Force " +`self.model.stepController.t_model_last`+" "+`F[1]`)
+        logEvent("z Force " +`self.model.stepController.t_model_last`+" "+`F[2]`)
+        logEvent("x Moment " +`self.model.stepController.t_model_last`+" "+`M[0]`)
+        logEvent("y Moment " +`self.model.stepController.t_model_last`+" "+`M[1]`)
+        logEvent("z Moment " +`self.model.stepController.t_model_last`+" "+`M[2]`)
         #assume moving in the x direction
         self.body.setForce((F[0]*opts.free_x[0],
                             F[1]*opts.free_x[1],
@@ -446,7 +446,14 @@ class RigidBar(AuxiliaryVariables.AV_base):
                              M[1]*opts.free_r[1],
                              M[2]*opts.free_r[2]))
         #self.space.collide((self.world,self.contactgroup), near_callback)
-        self.world.step(self.model.stepController.dt_model)
+        self.world.step(0.5*self.model.stepController.dt_model)
+        self.body.setForce((F[0]*opts.free_x[0],
+                            F[1]*opts.free_x[1],
+                            F[2]*opts.free_x[2]))
+        self.body.setTorque((M[0]*opts.free_r[0],
+                             M[1]*opts.free_r[1],
+                             M[2]*opts.free_r[2]))
+        self.world.step(0.5*self.model.stepController.dt_model)
         #self.contactgroup.empty()
         x,y,z = self.body.getPosition()
         u,v,w = self.body.getLinearVel()
@@ -463,19 +470,12 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.h = (self.position[0]-self.last_position[0],
                   self.position[1]-self.last_position[1],
                   self.position[2]-self.last_position[2])
-        print "%1.2fsec: pos=(%6.3f, %6.3f, %6.3f) vel=(%6.3f, %6.3f, %6.3f)" % (self.model.stepController.t_model,
-                                                                                 self.position[0],
-                                                                                 self.position[1],
-                                                                                 self.position[2],
-                                                                                 self.velocity[0],
-                                                                                 self.velocity[1],
-                                                                                 self.velocity[2])
-        print "%1.2fsec: last_pos=(%6.3f, %6.3f, %6.3f)  last_vel=(%6.3f, %6.3f, %6.3f)" % (self.model.stepController.t_model,
-                                                                                            self.last_position[0],
-                                                                                            self.last_position[1],
-                                                                                            self.last_position[2],
-                                                                                            self.last_velocity[0],
-                                                                                            self.last_velocity[1],
-                                                                                            self.last_velocity[2])
+        logEvent("%1.2fsec: pos=(%6.3f, %6.3f, %6.3f) vel=(%6.3f, %6.3f, %6.3f)" % (self.model.stepController.t_model_last,
+                                                                                    self.position[0],
+                                                                                    self.position[1],
+                                                                                    self.position[2],
+                                                                                    self.velocity[0],
+                                                                                    self.velocity[1],
+                                                                                    self.velocity[2]))
 
 bar = RigidBar(density=0.5*(rho_0+rho_1),bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters)

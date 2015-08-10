@@ -13,7 +13,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 from proteus import Context
 opts=Context.Options([
-    ("bar_dim", (0.33,0.33,0.2), "Dimensions of the bar"),
+    ("bar_dim", (0.33,0.2,0.33), "Dimensions of the bar"),
     ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
     ("bar_height",0.4,"Initial height of bar center above bottom"),
@@ -25,8 +25,8 @@ opts=Context.Options([
     ("cfl",0.33,"Target cfl"),
     ("nsave",100,"Number of time steps to  save"),
     ("parallel",True,"Run in parallel"),
-    ("free_x",(0.0,0.0,1.0),"Free translations"),
-    ("free_r",(1.0,1.0,0.0),"Free rotations")])
+    ("free_x",(0.0,1.0,0.0),"Free translations"),
+    ("free_r",(0.0,0.0,1.0),"Free rotations")])
 
 #----------------------------------------------------
 # Physical properties
@@ -34,17 +34,17 @@ opts=Context.Options([
 rho_0=998.2
 nu_0 =1.004e-6
 
-rho_1=1.205
-nu_1 =1.500e-5
+rho_1=rho_0#1.205
+nu_1 =nu_0#1.500e-5
 
 sigma_01=0.0
 
-g=[0.0,0.0,-9.81]
+g=[0.0,-9.81]
 
 #----------------------------------------------------
 # Domain - mesh - quadrature
 #----------------------------------------------------
-nd = 3
+nd = 2
 
 (bar_length,bar_width,bar_height)  = opts.bar_dim
 
@@ -54,7 +54,7 @@ x_ll = (0.0,0.0,0.0)
 
 waterLevel   =  opts.water_surface_height
 
-bar_center = (0.5*L[0],0.5*L[1],opts.bar_height)
+bar_center = (0.5*L[0],opts.bar_height,0.5*L[2])
 
 #set up barycenters for force calculation
 barycenters = numpy.zeros((8,3),'d')
@@ -74,97 +74,61 @@ RBR_angCons  = [1,0,1]
 
 nLevels = 1
 
-he = (bar_height) #coarse grid
+he = (bar_height)/10.0 #coarse grid
 he *=(0.5)**opts.refinement_level
 genMesh=opts.gen_mesh
 
 boundaryTags = { 'bottom': 1, 'front':2, 'right':3, 'back': 4, 'left':5, 'top':6, 'obstacle':7}
 
 #tank
-vertices=[[x_ll[0],x_ll[1],x_ll[2]],#0
-          [x_ll[0]+L[0],x_ll[1],x_ll[2]],#1
-          [x_ll[0]+L[0],x_ll[1]+L[1],x_ll[2]],#2
-          [x_ll[0],x_ll[1]+L[1],x_ll[2]],#3
-          [x_ll[0],x_ll[1],x_ll[2]+L[2]],#4
-          [x_ll[0]+L[0],x_ll[1],x_ll[2]+L[2]],#5
-          [x_ll[0]+L[0],x_ll[1]+L[1],x_ll[2]+L[2]],#6
-          [x_ll[0],x_ll[1]+L[1],x_ll[2]+L[2]]]#7
+vertices=[[x_ll[0]     , x_ll[1]     ],#0
+          [x_ll[0]+L[0], x_ll[1]     ],#1
+          [x_ll[0]+L[0], x_ll[1]+L[1]],#2
+          [x_ll[0]     , x_ll[1]+L[1]]]#3
 vertexFlags=[boundaryTags['left'],
              boundaryTags['right'],
              boundaryTags['right'],
-             boundaryTags['left'],
-             boundaryTags['left'],
-             boundaryTags['right'],
-             boundaryTags['right'],
              boundaryTags['left']]
-facets=[[[0,1,2,3]],
-        [[0,1,5,4]],
-        [[1,2,6,5]],
-        [[2,3,7,6]],
-        [[3,0,4,7]],
-        [[4,5,6,7]]]
-facetFlags=[boundaryTags['bottom'],
-            boundaryTags['front'],
-            boundaryTags['right'],
-            boundaryTags['back'],
-            boundaryTags['left'],
-            boundaryTags['top']]
-regions=[[x_ll[0]+0.5*L[0],x_ll[1]+0.5*L[1],x_ll[2]+0.5*L[2]]]
+segments=[[0,1],
+          [1,2],
+          [2,3],
+          [3,0]]
+segmentFlags=[boundaryTags['bottom'],
+              boundaryTags['right'],
+              boundaryTags['top'],
+              boundaryTags['left']]
+regions=[[x_ll[0]+0.5*L[0],x_ll[1]+0.5*L[1]]]
 regionFlags=[1.0]
 holes=[]
 #bar
 nStart = len(vertices)
 vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
+                 bar_center[1] - 0.5*bar_width])
 vertexFlags.append(boundaryTags['obstacle'])
 vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
+                 bar_center[1] + 0.5*bar_width])
 vertexFlags.append(boundaryTags['obstacle'])
 vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
+                 bar_center[1] + 0.5*bar_width])
 vertexFlags.append(boundaryTags['obstacle'])
 vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
+                 bar_center[1] - 0.5*bar_width])
 vertexFlags.append(boundaryTags['obstacle'])
 
 #todo, add initial rotation of bar
-facets.append([[nStart,nStart+1,nStart+2,nStart+3]])#1
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart,nStart+1,nStart+5,nStart+4]])#2
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+1,nStart+2,nStart+6,nStart+5]])#3
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+2,nStart+3,nStart+7,nStart+6]])#4
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+3,nStart,nStart+4,nStart+7]])#5
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+4,nStart+5,nStart+6,nStart+7]])#6
-facetFlags.append(boundaryTags['obstacle'])
-holes.append(bar_center)
-domain = Domain.PiecewiseLinearComplexDomain(vertices=vertices,
+segments.append([nStart,nStart+1])
+segmentFlags.append(boundaryTags['obstacle'])
+segments.append([nStart+1,nStart+2])
+segmentFlags.append(boundaryTags['obstacle'])
+segments.append([nStart+2,nStart+3])
+segmentFlags.append(boundaryTags['obstacle'])
+segments.append([nStart+3,nStart])
+segmentFlags.append(boundaryTags['obstacle'])
+holes.append((bar_center[0],bar_center[1]))
+domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
                                              vertexFlags=vertexFlags,
-                                             facets=facets,
-                                             facetFlags=facetFlags,
+                                             segments=segments,
+                                             segmentFlags=segmentFlags,
                                              regions=regions,
                                              regionFlags=regionFlags,
                                              holes=holes)
@@ -177,8 +141,8 @@ if comm.isMaster():
 else:
     domain.polyfile="mesh"
 comm.barrier()
-triangleOptions="VApq1.35q12feena%21.16e" % ((he**3)/6.0,)
-logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
+triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
+logEvent("""Mesh generated using: triangle -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 restrictFineSolutionToAllMeshes=False
 parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
@@ -202,15 +166,16 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = 100.0#Re
+weak_bc_penalty_constant = 10.0/nu_0#Re
 dt_init=opts.dt_init
 T = opts.T
 nDTout=opts.nsave
-dt_out =  dt_init#(T-dt_init)/nDTout
+dt_out =  opts.dt_init#(T-dt_init)/nDTout
+T=opts.nsave*opts.dt_init
 runCFL = opts.cfl
 
 #----------------------------------------------------
-water_depth  = waterLevel-x_ll[2]
+water_depth  = waterLevel-x_ll[1]
 
 #  Discretization -- input options
 useOldPETSc=False
@@ -239,7 +204,7 @@ if useMetrics not in [0.0, 1.0]:
     sys.exit()
 
 #  Discretization
-nd = 3
+nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
@@ -284,7 +249,7 @@ if useMetrics:
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
-    redist_Newton = False
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True
     kappa_sc_uref = 1.0
@@ -339,10 +304,10 @@ elif useRANS >= 2:
     ns_closure == 4
 
 def twpflowPressure_init(x,t):
-    p_L = L[2]*rho_1*g[2]
-    phi_L = L[2] - waterLevel
-    phi = x[2] - waterLevel
-    return p_L -g[2]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
+    p_L = 0.0
+    phi_L = L[1] - waterLevel
+    phi = x[1] - waterLevel
+    return p_L -g[1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))
 
 import ode
@@ -370,7 +335,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.world = ode.World()
         #self.world.setERP(0.8)
         #self.world.setCFM(1E-5)
-        self.world.setGravity(g)
+        self.world.setGravity([g[0],g[1],0.0])
 
         self.space = ode.Space()
         eps_x = L[0]- 0.75*L[0]
@@ -404,7 +369,9 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.last_rotation_inv = np.eye(3)
         self.barycenters=barycenters
         self.init=True
-
+        self.bar_dim = bar_dim
+        self.last_F = np.zeros(3,'d')
+        self.last_M = np.zeros(3,'d')
     def attachModel(self,model,ar):
         self.model=model
         self.ar=ar
@@ -431,30 +398,42 @@ class RigidBar(AuxiliaryVariables.AV_base):
         from numpy.linalg import inv
         import copy
         F = self.model.levelModelList[-1].coefficients.netForces_p[7,:] + self.model.levelModelList[-1].coefficients.netForces_v[7,:];
+        F[2] = 0.0
+        F *= self.bar_dim[2]
         M = self.model.levelModelList[-1].coefficients.netMoments[7,:]
+        M[0] = 0.0
+        M[1] = 0.0
+        M *= self.bar_dim[2]
         logEvent("x Force " +`self.model.stepController.t_model_last`+" "+`F[0]`)
         logEvent("y Force " +`self.model.stepController.t_model_last`+" "+`F[1]`)
         logEvent("z Force " +`self.model.stepController.t_model_last`+" "+`F[2]`)
         logEvent("x Moment " +`self.model.stepController.t_model_last`+" "+`M[0]`)
         logEvent("y Moment " +`self.model.stepController.t_model_last`+" "+`M[1]`)
         logEvent("z Moment " +`self.model.stepController.t_model_last`+" "+`M[2]`)
-        #assume moving in the x direction
-        self.body.setForce((F[0]*opts.free_x[0],
-                            F[1]*opts.free_x[1],
-                            F[2]*opts.free_x[2]))
-        self.body.setTorque((M[0]*opts.free_r[0],
-                             M[1]*opts.free_r[1],
-                             M[2]*opts.free_r[2]))
-        #self.space.collide((self.world,self.contactgroup), near_callback)
-        self.world.step(0.5*self.model.stepController.dt_model)
-        self.body.setForce((F[0]*opts.free_x[0],
-                            F[1]*opts.free_x[1],
-                            F[2]*opts.free_x[2]))
-        self.body.setTorque((M[0]*opts.free_r[0],
-                             M[1]*opts.free_r[1],
-                             M[2]*opts.free_r[2]))
-        self.world.step(0.5*self.model.stepController.dt_model)
+        logEvent("dt " +`self.model.levelModelList[-1].dt_last`)
+        scriptMotion=False
+        if scriptMotion:
+            velocity = np.array((0.0,0.2/1.0,0.0))
+            logEvent("script pos="+`(np.array(self.position)+velocity*self.model.levelModelList[-1].dt_last).tolist()`)
+            self.body.setPosition((np.array(self.position)+velocity*self.model.levelModelList[-1].dt_last).tolist())
+            self.body.setLinearVel(velocity)
+        else:
+            nSteps=3
+            Fstar=0.5*(F+self.last_F)
+            Mstar=0.5*(M+self.last_M)
+            for i in range(nSteps):
+                self.body.setForce((Fstar[0]*opts.free_x[0],
+                                    Fstar[1]*opts.free_x[1],
+                                    Fstar[2]*opts.free_x[2]))
+                self.body.setTorque((Mstar[0]*opts.free_r[0],
+                                     Mstar[1]*opts.free_r[1],
+                                     Mstar[2]*opts.free_r[2]))
+                #self.space.collide((self.world,self.contactgroup), near_callback)
+                print "Mass ",self.body.getMass()," Force ",self.body.getForce()
+                self.world.step(self.model.levelModelList[-1].dt_last/float(nSteps))
         #self.contactgroup.empty()
+        self.last_F[:] = F
+        self.last_M[:] = M
         x,y,z = self.body.getPosition()
         u,v,w = self.body.getLinearVel()
         self.barycenters[7,0]=x
@@ -470,12 +449,15 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.h = (self.position[0]-self.last_position[0],
                   self.position[1]-self.last_position[1],
                   self.position[2]-self.last_position[2])
-        logEvent("%1.2fsec: pos=(%6.3f, %6.3f, %6.3f) vel=(%6.3f, %6.3f, %6.3f)" % (self.model.stepController.t_model_last,
+        logEvent("%1.2fsec: pos=(%21.16e, %21.16e, %21.16e) vel=(%21.16e, %21.16e, %21.16e) h=(%21.16e, %21.16e, %21.16e)" % (self.model.stepController.t_model_last,
                                                                                     self.position[0],
                                                                                     self.position[1],
                                                                                     self.position[2],
                                                                                     self.velocity[0],
                                                                                     self.velocity[1],
-                                                                                    self.velocity[2]))
+                                                                                                            self.velocity[2],
+                                                                                                            self.h[0],
+                                                                                                            self.h[1],
+                                                                                                            self.h[2]))
 
-bar = RigidBar(density=0.5*(rho_0+rho_1),bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters)
+bar = RigidBar(density=0.5*rho_0,bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters)
