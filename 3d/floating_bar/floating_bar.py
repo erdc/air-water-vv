@@ -340,9 +340,9 @@ elif useRANS >= 2:
 
 def twpflowPressure_init(x,t):
     p_L = 0.0
-    phi_L = L[1] - waterLevel
-    phi = x[1] - waterLevel
-    return p_L -g[1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
+    phi_L = L[2] - waterLevel
+    phi = x[2] - waterLevel
+    return p_L -g[2]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))
 
 import ode

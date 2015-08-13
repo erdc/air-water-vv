@@ -55,13 +55,19 @@ def getDBC_p(x,flag):
 def getDBC_u(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
+    if flag in [ct.boundaryTags['obstacle'],ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
+        return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
+    if flag in [ct.boundaryTags['obstacle'],ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
+        return lambda x,t: 0.0
 
 def getDBC_w(x,flag):
     if flag == ct.boundaryTags['top']:
+        return lambda x,t: 0.0
+    if flag in [ct.boundaryTags['obstacle'],ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
         return lambda x,t: 0.0
 
 dirichletConditions = {0:getDBC_p,
@@ -78,29 +84,32 @@ def getAFBC_p(x,flag):
 def getAFBC_u(x,flag):
     if flag == ct.boundaryTags['top']:
         return None
-    else:
-        return lambda x,t: 0.0
+    if flag in [ct.boundaryTags['obstacle'],ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
+        return None
 
 def getAFBC_v(x,flag):
     if flag == ct.boundaryTags['top']:
         return None
-    else:
-        return lambda x,t: 0.0
+    if flag in [ct.boundaryTags['obstacle'],ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
+        return None
 
 def getAFBC_w(x,flag):
     if flag == ct.boundaryTags['top']:
         return None
-    else:
-        return lambda x,t: 0.0
+    if flag in [ct.boundaryTags['obstacle'],ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
+        return None
 
 def getDFBC_u(x,flag):
-    return lambda x,t: 0.0
+    if flag == ct.boundaryTags['top']:
+        return lambda x,t: 0.0
 
 def getDFBC_v(x,flag):
-    return lambda x,t: 0.0
+    if flag == ct.boundaryTags['top']:
+        return lambda x,t: 0.0
 
 def getDFBC_w(x,flag):
-    return lambda x,t: 0.0
+    if flag == ct.boundaryTags['top']:
+        return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,
                                     1:getAFBC_u,
