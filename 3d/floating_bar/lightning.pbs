@@ -14,4 +14,4 @@ cp *.py $JOBDIR
 cp lightning.pbs $JOBDIR
 cp $HOME/air-water-vv/inputTemplates/petsc.options.asm $JOBDIR
 cd $JOBDIR
-aprun -n 24  parun floating_bar_so.py -l 5 -O petsc.options.asm -F -C "cfl=0.9 bar_height=0.4 gen_mesh=True refinement_level=1 parallel=True nsave=2000 dt_init=0.001"
+aprun -n 24  parun floating_bar_so.py -l 5 -O petsc.options.asm -F -C "cfl=0.33 bar_height=0.4 gen_mesh=True refinement_level=1 parallel=True nsave=2000 dt_init=0.001 free_r=(0.0,0.0,0.0)"
