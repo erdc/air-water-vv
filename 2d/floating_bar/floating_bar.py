@@ -34,8 +34,8 @@ opts=Context.Options([
 rho_0=998.2
 nu_0 =1.004e-6
 
-rho_1=rho_0#1.205
-nu_1 =nu_0#1.500e-5
+rho_1=1.205
+nu_1 =1.500e-5
 
 sigma_01=0.0
 
@@ -170,8 +170,7 @@ weak_bc_penalty_constant = 10.0/nu_0#Re
 dt_init=opts.dt_init
 T = opts.T
 nDTout=opts.nsave
-dt_out =  opts.dt_init#(T-dt_init)/nDTout
-T=opts.nsave*opts.dt_init
+dt_out =  (T-dt_init)/nDTout
 runCFL = opts.cfl
 
 #----------------------------------------------------
@@ -331,12 +330,15 @@ def near_callback(args, geom1, geom2):
         j.attach(geom1.getBody(), geom2.getBody())
 
 class RigidBar(AuxiliaryVariables.AV_base):
-    def __init__(self,density=1.0,bar_center=(0.0,0.0,0.0),bar_dim=(1.0,1.0,1.0),barycenters=None):
+    def __init__(self,density=1.0,bar_center=(0.0,0.0,0.0),bar_dim=(1.0,1.0,1.0),barycenters=None,he=1.0,cfl_target=0.9,dt_init=0.001):
+        self.dt_init = dt_init
+        self.he=he
+        self.cfl_target=cfl_target
         self.world = ode.World()
         #self.world.setERP(0.8)
         #self.world.setCFM(1E-5)
         self.world.setGravity([g[0],g[1],0.0])
-
+        self.g = np.array([g[0],g[1],0.0])
         self.space = ode.Space()
         eps_x = L[0]- 0.75*L[0]
         eps_y = L[1]- 0.75*L[1]
@@ -347,6 +349,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         #                  ode.GeomPlane(self.space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
         #mass/intertial tensor of rigid bar
         self.M = ode.Mass()
+        self.totalMass = density*bar_dim[0]*bar_dim[1]*bar_dim[2]
         self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2])
         #bar body
         self.body = ode.Body(self.world)
@@ -392,11 +395,16 @@ class RigidBar(AuxiliaryVariables.AV_base):
     def get_w(self):
         return self.last_velocity[2]
     def calculate_init(self):
-        pass
+        self.last_F = None
+        self.calculate()
     def calculate(self):
         import  numpy as np
         from numpy.linalg import inv
         import copy
+        try:
+            dt = self.model.levelModelList[-1].dt_last
+        except:
+            dt = self.dt_init
         F = self.model.levelModelList[-1].coefficients.netForces_p[7,:] + self.model.levelModelList[-1].coefficients.netForces_v[7,:];
         F[2] = 0.0
         F *= self.bar_dim[2]
@@ -410,27 +418,61 @@ class RigidBar(AuxiliaryVariables.AV_base):
         logEvent("x Moment " +`self.model.stepController.t_model_last`+" "+`M[0]`)
         logEvent("y Moment " +`self.model.stepController.t_model_last`+" "+`M[1]`)
         logEvent("z Moment " +`self.model.stepController.t_model_last`+" "+`M[2]`)
-        logEvent("dt " +`self.model.levelModelList[-1].dt_last`)
+        logEvent("dt " +`dt`)
         scriptMotion=False
+        linearOnly=False
+        if self.last_F == None:
+            self.last_F = F.copy()
         if scriptMotion:
-            velocity = np.array((0.0,0.2/1.0,0.0))
-            logEvent("script pos="+`(np.array(self.position)+velocity*self.model.levelModelList[-1].dt_last).tolist()`)
-            self.body.setPosition((np.array(self.position)+velocity*self.model.levelModelList[-1].dt_last).tolist())
+            velocity = np.array((0.0,0.3/1.0,0.0))
+            logEvent("script pos="+`(np.array(self.position)+velocity*dt).tolist()`)
+            self.body.setPosition((np.array(self.position)+velocity*dt).tolist())
             self.body.setLinearVel(velocity)
         else:
-            nSteps=3
-            Fstar=0.5*(F+self.last_F)
-            Mstar=0.5*(M+self.last_M)
-            for i in range(nSteps):
-                self.body.setForce((Fstar[0]*opts.free_x[0],
-                                    Fstar[1]*opts.free_x[1],
-                                    Fstar[2]*opts.free_x[2]))
-                self.body.setTorque((Mstar[0]*opts.free_r[0],
-                                     Mstar[1]*opts.free_r[1],
-                                     Mstar[2]*opts.free_r[2]))
-                #self.space.collide((self.world,self.contactgroup), near_callback)
-                print "Mass ",self.body.getMass()," Force ",self.body.getForce()
-                self.world.step(self.model.levelModelList[-1].dt_last/float(nSteps))
+            if linearOnly:
+                Fstar = 0.5*(F+self.last_F) + np.array(self.world.getGravity())
+                velocity_last = np.array(self.velocity)
+                velocity = velocity_last + Fstar*(dt/self.totalMass)
+                velocity[0] = 0.0
+                vmax = self.he*self.cfl_target/dt
+                vnorm = np.linalg.norm(velocity,ord=2)
+                if vnorm > vmax:
+                    velocity *= vmax/vnorm
+                    logEvent("Warning: limiting rigid body velocity from "+`vnorm`+" to "+`vmax`)
+                position_last = np.array(self.position)
+                position = position_last + 0.5*(velocity_last + velocity)*dt
+                self.body.setPosition(position.tolist())
+                self.body.setLinearVel(velocity.tolist())
+                msg = """
+Fstar         = {0}
+F             = {1}
+F_last        = {2}
+dt            = {3:f}
+velocity      = {4}
+velocity_last = {5}
+position      = {6}
+position_last = {7}""".format(Fstar,F,self.last_F,dt,velocity,velocity_last,position,position_last)
+                logEvent(msg)
+            else:
+                nSteps=10
+                # vnorm = np.linalg.norm((F+self.g)*dt)
+                # vmax = self.he*self.cfl_target/dt
+                # if vnorm > vmax:
+                #     F *= vmax/vnorm
+                #     logEvent("Warning: limiting rigid body velocity from "+`vnorm`+" to "+`vmax`)
+
+                Fstar=F#0.5*(F+self.last_F)
+                Mstar=M#0.5*(M+self.last_M)
+                for i in range(nSteps):
+                    self.body.setForce((Fstar[0]*opts.free_x[0],
+                                        Fstar[1]*opts.free_x[1],
+                                        Fstar[2]*opts.free_x[2]))
+                    self.body.setTorque((Mstar[0]*opts.free_r[0],
+                                         Mstar[1]*opts.free_r[1],
+                                         Mstar[2]*opts.free_r[2]))
+                    #self.space.collide((self.world,self.contactgroup), near_callback)
+                    print "Mass ",self.body.getMass()," Force ",self.body.getForce()
+                    self.world.step(dt/float(nSteps))
         #self.contactgroup.empty()
         self.last_F[:] = F
         self.last_M[:] = M
@@ -460,4 +502,4 @@ class RigidBar(AuxiliaryVariables.AV_base):
                                                                                                             self.h[1],
                                                                                                             self.h[2]))
 
-bar = RigidBar(density=0.5*rho_0,bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters)
+bar = RigidBar(density=0.5*(rho_0+rho_1),bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters,he=he,cfl_target=0.9*opts.cfl,dt_init=opts.dt_init)
