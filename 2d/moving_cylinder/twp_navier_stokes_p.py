@@ -1,10 +1,13 @@
-from proteus import *
 from proteus.default_p import *
 from proteus.mprans import RANS2P
 from proteus import Context
 ct = Context.get()
-from floating_bar import *
-
+genMesh = ct.genMesh
+movingDomain = ct.movingDomain
+L = ct.L
+T = ct.T
+nd = ct.nd
+domain = ct.domain
 
 LevelModelType = RANS2P.LevelModel
 if ct.useOnlyVF:
@@ -12,11 +15,14 @@ if ct.useOnlyVF:
 else:
     LS_model = 2
 if ct.useRANS >= 1:
-    Closure_0_model = 5; Closure_1_model=6
+    Closure_0_model = 5
+    Closure_1_model=6
     if useOnlyVF:
-        Closure_0_model=2; Closure_1_model=3
+        Closure_0_model=2
+        Closure_1_model=3
     if movingDomain:
-        Closure_0_model += 1; Closure_1_model += 1
+        Closure_0_model += 1
+        Closure_1_model += 1
 else:
     Closure_0_model = None
     Closure_1_model = None
@@ -54,13 +60,37 @@ def getDBC_p(x,flag):
 
 def getDBC_u(x,flag):
     if flag == ct.boundaryTags['left']:
-        return lambda x,t: -speed
+        return lambda x,t: -ct.speed*ct.inflowProfile(x,t)
+    if flag in (ct.boundaryTags['front'],
+                ct.boundaryTags['back'],
+                ct.boundaryTags['top'],
+                ct.boundaryTags['bottom']):
+        if ct.wallBC=="no_slip_observer":
+            return lambda x,t: -ct.speed
+        elif ct.wallBC=="no_slip_obstacle":
+            return lambda x,t: 0.0
+        elif ct.wallBC=="slip":
+            return None
+        else:
+            raise RuntimeError
     elif flag == ct.boundaryTags['obstacle']:
         return lambda x,t: 0.0
 
 def getDBC_v(x,flag):
     if flag == ct.boundaryTags['left']:
         return lambda x,t: 0.0
+    elif flag in (ct.boundaryTags['front'],
+                  ct.boundaryTags['back'],
+                  ct.boundaryTags['top'],
+                  ct.boundaryTags['bottom']):
+        if ct.wallBC=="no_slip_observer":
+            return lambda x,t: 0.0
+        elif ct.wallBC=="no_slip_obstacle":
+            return lambda x,t: 0.0
+        elif ct.wallBC=="slip":
+            return None
+        else:
+            raise RuntimeError
     elif flag == ct.boundaryTags['obstacle']:
         return lambda x,t: 0.0
 
@@ -70,25 +100,72 @@ dirichletConditions = {0:getDBC_p,
 
 def getAFBC_p(x,flag):
     if flag == ct.boundaryTags['left']:
-        return lambda x,t: speed
-    elif flag in [ct.boundaryTags['top'], ct.boundaryTags['bottom'], ct.boundaryTags['front'], ct.boundaryTags['back']]:
+        return lambda x,t: ct.speed*ct.inflowProfile(x,t)
+    elif flag in (ct.boundaryTags['top'],
+                  ct.boundaryTags['bottom'],
+                  ct.boundaryTags['front'],
+                  ct.boundaryTags['back']):
         return lambda x,t: 0.0
 
 def getAFBC_u(x,flag):
-    if flag in [ct.boundaryTags['top'],ct.boundaryTags['bottom'], ct.boundaryTags['front'], ct.boundaryTags['back']]:
-        return lambda x,t: 0.0
+    if flag in (ct.boundaryTags['front'],
+                ct.boundaryTags['back'],
+                ct.boundaryTags['top'],
+                ct.boundaryTags['bottom']):
+        if ct.wallBC=="no_slip_observer":
+            return None
+        elif ct.wallBC=="no_slip_obstacle":
+            return None
+        elif ct.wallBC=="slip":
+            return lambda x,t: 0.0
+        else:
+            raise RuntimeError
 
 def getAFBC_v(x,flag):
-    if flag in [ct.boundaryTags['top'],ct.boundaryTags['bottom'], ct.boundaryTags['front'], ct.boundaryTags['back']]:
-        return lambda x,t: 0.0
+    if flag in (ct.boundaryTags['front'],
+                ct.boundaryTags['back'],
+                ct.boundaryTags['top'],
+                ct.boundaryTags['bottom']):
+        if ct.wallBC=="no_slip_observer":
+            return None
+        elif ct.wallBC=="no_slip_obstacle":
+            return None
+        elif ct.wallBC=="slip":
+            return lambda x,t: 0.0
+        else:
+            raise RuntimeError
 
 def getDFBC_u(x,flag):
-    if flag in [ct.boundaryTags['right'],ct.boundaryTags['top'],ct.boundaryTags['bottom'], ct.boundaryTags['front'], ct.boundaryTags['back']]:
+    if flag == ct.boundaryTags['right']:
         return lambda x,t: 0.0
+    elif flag in (ct.boundaryTags['front'],
+                  ct.boundaryTags['back'],
+                  ct.boundaryTags['top'],
+                  ct.boundaryTags['bottom']):
+        if ct.wallBC=="no_slip_observer":
+            return None
+        elif ct.wallBC=="no_slip_obstacle":
+            return None
+        elif ct.wallBC=="slip":
+            return lambda x,t: 0.0
+        else:
+            raise RuntimeError
 
 def getDFBC_v(x,flag):
-    if flag in [ct.boundaryTags['right'],ct.boundaryTags['top'],ct.boundaryTags['bottom'], ct.boundaryTags['front'], ct.boundaryTags['back']]:
+    if flag == ct.boundaryTags['right']:
         return lambda x,t: 0.0
+    elif flag in (ct.boundaryTags['front'],
+                  ct.boundaryTags['back'],
+                  ct.boundaryTags['top'],
+                  ct.boundaryTags['bottom']):
+        if ct.wallBC=="no_slip_observer":
+            return None
+        elif ct.wallBC=="no_slip_obstacle":
+            return None
+        elif ct.wallBC=="slip":
+            return lambda x,t: 0.0
+        else:
+            raise RuntimeError
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,
                                     1:getAFBC_u,

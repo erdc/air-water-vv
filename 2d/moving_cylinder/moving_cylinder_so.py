@@ -2,9 +2,9 @@
 The split operator module for air/water flow around a moving rigid cylinder
 """
 from proteus.default_so import *
-from proteus import Context
-import floating_bar
-Context.setFromModule(floating_bar)
+from proteus import Context, SplitOperator
+import moving_cylinder
+Context.setFromModule(moving_cylinder)
 ct = Context.get()
 
 if ct.useOnlyVF:
@@ -32,13 +32,16 @@ if ct.useRANS > 0:
                    "kappa_n"))
     pnList.append(("dissipation_p",
                    "dissipation_n"))
-name = "floating_bar"
 
-#systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
-systemStepControllerType = Sequential_MinAdaptiveModelStep
-#systemStepControllerType = Sequential_FixedStep_Simple # uses time steps in so.tnList
+name = "moving_cylinder"
+
+if ct.opts.fixedStep:
+    systemStepControllerType = SplitOperator.Sequential_FixedStep_Simple
+else:
+    systemStepControllerType = SplitOperator.Sequential_MinAdaptiveModelStep
 
 needEBQ_GLOBAL = False
 needEBQ = False
 
 tnList = [0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_out for i in range(1,ct.nDTout+1)]
+archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP

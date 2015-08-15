@@ -1,9 +1,13 @@
-from proteus import *
 from proteus.default_p import *
-from floating_bar import *
 from proteus.mprans import MCorr
 from proteus import Context
 ct = Context.get()
+genMesh = ct.genMesh
+movingDomain = ct.movingDomain
+L = ct.L
+T = ct.T
+nd = ct.nd
+domain = ct.domain
 
 LevelModelType = MCorr.LevelModel
 
@@ -11,13 +15,13 @@ coefficients = MCorr.Coefficients(LSModel_index=int(ct.movingDomain)+2,
                                   V_model=int(ct.movingDomain)+0,
                                   me_model=int(ct.movingDomain)+4,
                                   VOFModel_index=int(ct.movingDomain)+1,
-                                  applyCorrection=applyCorrection,
-                                  nd=nd,
+                                  applyCorrection=ct.applyCorrection,
+                                  nd=ct.nd,
                                   checkMass=True,
-                                  useMetrics=useMetrics,
-                                  epsFactHeaviside=epsFact_consrv_heaviside,
-                                  epsFactDirac=epsFact_consrv_dirac,
-                                  epsFactDiffusion=epsFact_consrv_diffusion)
+                                  useMetrics=ct.useMetrics,
+                                  epsFactHeaviside=ct.epsFact_consrv_heaviside,
+                                  epsFactDirac=ct.epsFact_consrv_dirac,
+                                  epsFactDiffusion=ct.epsFact_consrv_diffusion)
 
 class zero_phi:
     def __init__(self):
