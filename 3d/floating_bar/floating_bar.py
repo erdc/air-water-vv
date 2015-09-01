@@ -502,7 +502,6 @@ position_last = {7}""".format(Fstar,F,self.last_F,dt,velocity,velocity_last,posi
                                          Mstar[1]*opts.free_r[1],
                                          Mstar[2]*opts.free_r[2]))
                     #self.space.collide((self.world,self.contactgroup), near_callback)
-                    print "Mass ",self.body.getMass()," Force ",self.body.getForce()
                     self.world.step(dt/float(nSteps))
         #self.contactgroup.empty()
         self.last_F[:] = F
