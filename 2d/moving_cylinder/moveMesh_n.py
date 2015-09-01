@@ -1,28 +1,38 @@
-from proteus import *
 from proteus.default_n import *
-from moveMesh_p import *
+from proteus import (FemTools,
+                     Quadrature,
+                     TimeIntegration,
+                     NumericalFlux,
+                     NonlinearSolvers,
+                     LinearSolvers)
+import moveMesh_p as physics
+from proteus import Context
+ct = Context.get()
+nLevels = ct.nLevels
+parallelPartitioningType = ct.parallelPartitioningType
+nLayersOfOverlapForParallel = ct.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = ct.restrictFineSolutionToAllMeshes
+triangleOptions = ct.triangleOptions
 
-timeIntegration = NoIntegration
+timeIntegration = TimeIntegration.NoIntegration
 
-femSpaces = {0:C0_AffineLinearOnSimplexWithNodalBasis,
-             1:C0_AffineLinearOnSimplexWithNodalBasis}
+femSpaces = {0:ct.basis,
+             1:ct.basis}
 
-elementQuadrature = SimplexGaussQuadrature(nd,quad_order)
-elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,quad_order)
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
-
-nLevels = 1
 
 subgridError = None
 
 massLumping = False
 
-numericalFluxType = Stress_IIPG_exterior
+numericalFluxType = NumericalFlux.Stress_IIPG_exterior
 
 shockCapturing = None
 
-multilevelNonlinearSolver  = Newton
-levelNonlinearSolver = Newton
+multilevelNonlinearSolver  = NonlinearSolvers.Newton
+levelNonlinearSolver = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
 linearSmoother = None
@@ -32,16 +42,12 @@ fullNewtonFlag = True
 
 matrix = SparseMatrix
 
-if useOldPETSc:
-    multilevelLinearSolver = PETSc
-    levelLinearSolver      = PETSc
+if True:#cek hack, profiling, ct.opts.parallel:
+    multilevelLinearSolver = LinearSolvers.KSP_petsc4py
+    levelLinearSolver      = LinearSolvers.KSP_petsc4py
 else:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
-
-if useSuperlu:
-    multilevelLinearSolver = LU
-    levelLinearSolver      = LU
+    multilevelLinearSolver = LinearSolvers.LU
+    levelLinearSolver      = LinearSolvers.LU
 
 linear_solver_options_prefix = 'mesh_'
 linearSmoother = None
@@ -55,4 +61,4 @@ maxLineSearches = 0
 
 conservativeFlux = None
 
-auxiliaryVariables=[fo]
+auxiliaryVariables=[physics.fo]

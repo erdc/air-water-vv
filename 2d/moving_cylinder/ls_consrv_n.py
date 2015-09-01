@@ -1,46 +1,56 @@
-from proteus import *
-from floating_bar import *
-from ls_consrv_p import *
+from proteus.default_n import *
+from proteus import (StepControl,
+                     TimeIntegration,
+                     NonlinearSolvers,
+                     LinearSolvers,
+                     LinearAlgebraTools,
+                     NumericalFlux)
+import ls_consrv_p as physics
+from proteus import Context
+ct = Context.get()
+nLevels = ct.nLevels
+parallelPartitioningType = ct.parallelPartitioningType
+nLayersOfOverlapForParallel = ct.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = ct.restrictFineSolutionToAllMeshes
+triangleOptions = ct.triangleOptions
 
-timeIntegrator  = ForwardIntegrator
-timeIntegration = NoIntegration
+timeIntegrator  = TimeIntegration.ForwardIntegrator
+timeIntegration = TimeIntegration.NoIntegration
 
-femSpaces = {0:basis}
+femSpaces = {0:ct.basis}
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 subgridError      = None
 massLumping       = False
-numericalFluxType = DoNothing
+numericalFluxType = NumericalFlux.DoNothing
 conservativeFlux  = None
 shockCapturing    = None
 
 fullNewtonFlag = True
-multilevelNonlinearSolver = Newton
-levelNonlinearSolver      = Newton
+multilevelNonlinearSolver = NonlinearSolvers.Newton
+levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
 linearSmoother    = None
 
 matrix = SparseMatrix
 
-if useOldPETSc:
-    multilevelLinearSolver = PETSc
-    levelLinearSolver      = PETSc
+if ct.opts.parallel:
+    multilevelLinearSolver = LinearSolvers.KSP_petsc4py
+    levelLinearSolver      = LinearSolvers.KSP_petsc4py
 else:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
-
-if useSuperlu:
-    multilevelLinearSolver = LU
-    levelLinearSolver      = LU
+    multilevelLinearSolver = LinearSolvers.LU
+    levelLinearSolver      = LinearSolvers.LU
 
 linear_solver_options_prefix = 'mcorr_'
 linearSolverConvergenceTest  = 'r-true'
 
 tolFac = 0.0
 linTolFac = 0.001
-l_atol_res = 0.001*mcorr_nl_atol_res
-nl_atol_res = mcorr_nl_atol_res
-useEisenstatWalker = False#True
+l_atol_res = 0.001*ct.mcorr_nl_atol_res
+nl_atol_res = ct.mcorr_nl_atol_res
+useEisenstatWalker = False
 
 maxNonlinearIts = 50
 maxLineSearches = 0

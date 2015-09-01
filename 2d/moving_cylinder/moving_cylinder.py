@@ -1,32 +1,46 @@
 """
 Bar floating in half-filled tank
 """
-from math import *
-from proteus import *
-import numpy
+import numpy as np
 import proteus.MeshTools
-from proteus import Domain
+from proteus import (Domain,
+                     MeshTools,
+                     FemTools,
+                     Quadrature,
+                     AuxiliaryVariables,
+                     Archiver)
+from math import fabs
 from proteus.Profiling import logEvent
-from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
+from symmetricDomain_john import symmetric2D
 
 from proteus import Context
 opts=Context.Options([
-    ("bar_dim", (0.33,0.2,0.33), "Dimensions of the bar"),
-    ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
-    ("water_surface_height",0.5,"Height of free surface above bottom"),
-    ("bar_height",0.4,"Initial height of bar center above bottom"),
+    ("bar_dim", (0.1,0.1,0.1), "Dimensions of the bar"),
+    ("tank_dim", (2.2,0.41,1.0), "Dimensions of the tank"),
+    ("water_surface_height",0.205,"Height of free surface above bottom"),
+    ("bar_height",0.205,"Initial height of bar center above bottom"),
     ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
     ("gen_mesh",True,"Generate new mesh"),
-    ("T",10.0,"Simulation time"),
+    ("Re",120.0,"Simulation Reynolds number"),
     ("dt_init",0.001,"Initial time step"),
     ("cfl",0.33,"Target cfl"),
     ("nsave",100,"Number of time steps to  save"),
-    ("parallel",True,"Run in parallel"),
+    ("parallel",False,"Run in parallel"),
     ("free_x",(0.0,1.0,0.0),"Free translations"),
-    ("free_r",(0.0,0.0,1.0),"Free rotations")])
+    ("free_r",(0.0,0.0,1.0),"Free rotations"),
+    ("fixedStep",
+     False,
+     "used fixed time step (otherwise cfl-based time step)"),
+    ("movingDomain",
+     True,
+     "run problem in a moving coordinate system"),
+    ("cylinder",
+     True,
+     "use a cylinder  for the obstacle (otherwise use a rectangle"),
+    ("nTimes", 3, "how far tank should move as multiple of length")])
 
 #----------------------------------------------------
 # Physical properties
@@ -57,7 +71,7 @@ waterLevel   =  opts.water_surface_height
 bar_center = (3*opts.bar_dim[1],opts.bar_height,0.5*L[2])
 
 #set up barycenters for force calculation
-barycenters = numpy.zeros((8,3),'d')
+barycenters = np.zeros((8,3),'d')
 barycenters[7,:] = bar_center
 
 bar_mass    = bar_length*bar_width*bar_height*0.5*(rho_0+rho_1)
@@ -102,36 +116,52 @@ regionFlags=[1.0]
 holes=[]
 #bar
 nStart = len(vertices)
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width])
-vertexFlags.append(boundaryTags['obstacle'])
+if opts.cylinder:
+    from math import ceil,pi,sin,cos
+    radius = 0.5*opts.bar_dim[1]
+    vStart = len(vertices)
+    points_on_cylinder = 4*int(ceil(0.5*pi*(radius)/he))
+    for cb in range(points_on_cylinder):
+        vertices.append([bar_center[0]+radius*sin(float(cb)/float(points_on_cylinder)*2.0*pi),
+                         bar_center[1]+radius*cos(float(cb)/float(points_on_cylinder)*2.0*pi)])
+        vertexFlags.append(boundaryTags['obstacle'])
+    for cb in range(points_on_cylinder):
+        segments.append([vStart+cb,vStart+(cb+1)%points_on_cylinder])
+        segmentFlags.append(boundaryTags['obstacle'])
+else:
+    vertices.append([bar_center[0] - 0.5*bar_length,
+                     bar_center[1] - 0.5*bar_width])
+    vertexFlags.append(boundaryTags['obstacle'])
+    vertices.append([bar_center[0] - 0.5*bar_length,
+                     bar_center[1] + 0.5*bar_width])
+    vertexFlags.append(boundaryTags['obstacle'])
+    vertices.append([bar_center[0] + 0.5*bar_length,
+                     bar_center[1] + 0.5*bar_width])
+    vertexFlags.append(boundaryTags['obstacle'])
+    vertices.append([bar_center[0] + 0.5*bar_length,
+                     bar_center[1] - 0.5*bar_width])
+    vertexFlags.append(boundaryTags['obstacle'])
 
-#todo, add initial rotation of bar
-segments.append([nStart,nStart+1])
-segmentFlags.append(boundaryTags['obstacle'])
-segments.append([nStart+1,nStart+2])
-segmentFlags.append(boundaryTags['obstacle'])
-segments.append([nStart+2,nStart+3])
-segmentFlags.append(boundaryTags['obstacle'])
-segments.append([nStart+3,nStart])
-segmentFlags.append(boundaryTags['obstacle'])
+    #todo, add initial rotation of bar
+    segments.append([nStart,nStart+1])
+    segmentFlags.append(boundaryTags['obstacle'])
+    segments.append([nStart+1,nStart+2])
+    segmentFlags.append(boundaryTags['obstacle'])
+    segments.append([nStart+2,nStart+3])
+    segmentFlags.append(boundaryTags['obstacle'])
+    segments.append([nStart+3,nStart])
+    segmentFlags.append(boundaryTags['obstacle'])
 holes.append((bar_center[0],bar_center[1]))
 domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
-                                             vertexFlags=vertexFlags,
-                                             segments=segments,
-                                             segmentFlags=segmentFlags,
-                                             regions=regions,
-                                             regionFlags=regionFlags,
-                                             holes=holes)
+                                              vertexFlags=vertexFlags,
+                                              segments=segments,
+                                              segmentFlags=segmentFlags,
+                                              regions=regions,
+                                              regionFlags=regionFlags,
+                                              holes=holes)
+
+
+
 #go ahead and add a boundary tags member
 domain.boundaryTags = boundaryTags
 from proteus import Comm
@@ -157,7 +187,7 @@ openSides = False
 openEnd = True
 smoothBottom = False
 smoothObstacle = False
-movingDomain=True
+movingDomain=opts.movingDomain
 checkMass=False
 applyCorrection=True
 applyRedistancing=True
@@ -166,12 +196,12 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-Re=120.0
-speed=-Re*nu_0/opts.bar_dim[1]
+speed=-opts.Re*nu_0/opts.bar_dim[1]
+logEvent("Re = "+`opts.Re`)
 logEvent("obstacle speed = "+`speed`)
 weak_bc_penalty_constant = 10.0/nu_0#Re
 dt_init=opts.dt_init
-T = opts.tank_dim[0]/fabs(speed)#opts.T
+T = opts.nTimes*opts.tank_dim[0]/fabs(speed)
 nDTout=opts.nsave
 dt_out =  (T-dt_init)/nDTout
 runCFL = opts.cfl
@@ -210,31 +240,31 @@ nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
+	 basis=FemTools.C0_AffineLinearOnCubeWithNodalBasis
+         elementQuadrature = Quadrature.CubeGaussQuadrature(nd,3)
+         elementBoundaryQuadrature = Quadrature.CubeGaussQuadrature(nd-1,3)
     else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
-         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
+    	 basis=FemTools.C0_AffineLinearOnSimplexWithNodalBasis
+         elementQuadrature = Quadrature.SimplexGaussQuadrature(nd,3)
+         elementBoundaryQuadrature = Quadrature.SimplexGaussQuadrature(nd-1,3)
+
 elif spaceOrder == 2:
     hFactor=0.5
     if useHex:
-	basis=C0_AffineLagrangeOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
+	basis=FemTools.C0_AffineLagrangeOnCubeWithNodalBasis
+        elementQuadrature = Quadrature.CubeGaussQuadrature(nd,4)
+        elementBoundaryQuadrature = Quadrature.CubeGaussQuadrature(nd-1,4)
     else:
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
+	basis=FemTools.C0_AffineQuadraticOnSimplexWithNodalBasis
+        elementQuadrature = Quadrature.SimplexGaussQuadrature(nd,4)
+        elementBoundaryQuadrature = Quadrature.SimplexGaussQuadrature(nd-1,4)
 
 
 # Numerical parameters
-ns_forceStrongDirichlet = True
+ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 if useMetrics:
-    ns_shockCapturingFactor  = 0.5
+    ns_shockCapturingFactor  = 0.0
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
     ls_shockCapturingFactor  = 0.5
@@ -312,6 +342,17 @@ def twpflowPressure_init(x,t):
     return p_L -g[1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))
 
+def parabolicProfile(x,t):
+    return x[1]*(opts.tank_dim[1]-x[1])/(0.25*opts.tank_dim[1]**2)
+
+def flatProfile(x,t):
+    return 1.0
+
+inflowProfile = parabolicProfile
+
+wallBC="slip"
+wallBC="no_slip_observer"
+wallBC="no_slip_obstacle"
 import ode
 
 def near_callback(args, geom1, geom2):
@@ -401,13 +442,13 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.last_F = None
         self.calculate()
     def calculate(self):
-        import  numpy as np
         from numpy.linalg import inv
         import copy
         try:
             dt = self.model.levelModelList[-1].dt_last
         except:
             dt = self.dt_init
+        t = self.model.stepController.t_model_last
         F = self.model.levelModelList[-1].coefficients.netForces_p[7,:] + self.model.levelModelList[-1].coefficients.netForces_v[7,:];
         F[2] = 0.0
         F *= self.bar_dim[2]

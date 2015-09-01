@@ -1,10 +1,13 @@
-from proteus import *
 from proteus.default_p import *
-from math import *
-from floating_bar import *
 from proteus.mprans import RDLS
 from proteus import Context
 ct = Context.get()
+genMesh = ct.genMesh
+movingDomain = ct.movingDomain
+L = ct.L
+T = ct.T
+nd = ct.nd
+domain = ct.domain
 
 """
 The redistancing equation in the sloshbox test problem.
@@ -12,12 +15,12 @@ The redistancing equation in the sloshbox test problem.
 
 LevelModelType = RDLS.LevelModel
 
-coefficients = RDLS.Coefficients(applyRedistancing=applyRedistancing,
-                                 epsFact=epsFact_redistance,
-                                 nModelId=int(ct.movingDomain)+2,
-                                 rdModelId=int(ct.movingDomain)+3,
-                                 useMetrics=useMetrics,
-                                 backgroundDiffusionFactor=ct.backgroundDiffusionFactor)
+coefficients = RDLS.Coefficients(applyRedistancing = ct.applyRedistancing,
+                                 epsFact = ct.epsFact_redistance,
+                                 nModelId = int(ct.movingDomain)+2,
+                                 rdModelId = int(ct.movingDomain)+3,
+                                 useMetrics = ct.useMetrics,
+                                 backgroundDiffusionFactor = ct.backgroundDiffusionFactor)
 
 def getDBC_rd(x,flag):
     pass
@@ -30,6 +33,6 @@ diffusiveFluxBoundaryConditions = {0:{}}
 
 class PHI_IC:
     def uOfXT(self,x,t):
-        return x[1]-waterLevel
+        return x[1]-ct.waterLevel
 
 initialConditions  = {0:PHI_IC()}
