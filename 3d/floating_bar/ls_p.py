@@ -18,7 +18,9 @@ coefficients = NCLS.Coefficients(V_model=int(ct.movingDomain)+0,
                                  movingDomain=ct.movingDomain)
 
 def getDBC_ls(x,flag):
-    return None
+    if flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return lambda x,t: x[2]-waterLevel
 
 dirichletConditions = {0:getDBC_ls}
 

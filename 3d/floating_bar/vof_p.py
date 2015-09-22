@@ -28,12 +28,18 @@ coefficients = VOF.Coefficients(LS_model=int(ct.movingDomain)+LS_model,
 def getDBC_vof(x,flag):
     if flag == boundaryTags['top']:
         return lambda x,t: 1.0
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return lambda x,t: smoothedHeaviside(epsFact_consrv_heaviside*he,x[2]-waterLevel)
 
 dirichletConditions = {0:getDBC_vof}
 
 def getAFBC_vof(x,flag):
     if flag != boundaryTags['top']:
         return lambda x,t: 0.0
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return None
 
 advectiveFluxBoundaryConditions = {0:getAFBC_vof}
 diffusiveFluxBoundaryConditions = {0:{}}

@@ -50,28 +50,37 @@ domain = ct.domain
 
 def getDBC_p(x,flag):
     if flag == ct.boundaryTags['top']:
-        return lambda x,t: 0.0
+        return twpflowPressure_init
+    elif flag == ct.boundaryTags['right']:
+        if ct.speed > 0.0:
+            return twpflowPressure_init
 
 def getDBC_u(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
-    if flag in [ct.boundaryTags['obstacle']]:
-#,ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
+    elif flag in [ct.boundaryTags['obstacle']]:
         return lambda x,t: 0.0
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return lambda x,t: ct.speed
 
 def getDBC_v(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
-    if flag in [ct.boundaryTags['obstacle']]:
-#,ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
+    elif flag in [ct.boundaryTags['obstacle']]:
         return lambda x,t: 0.0
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return lambda x,t: 0.0
 
 def getDBC_w(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
-    if flag in [ct.boundaryTags['obstacle']]:
-#,ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
+    elif flag in [ct.boundaryTags['obstacle']]:
         return lambda x,t: 0.0
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return lambda x,t: 0.0
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
@@ -81,6 +90,16 @@ dirichletConditions = {0:getDBC_p,
 def getAFBC_p(x,flag):
     if flag == ct.boundaryTags['top']:
         return None
+    elif flag == ct.boundaryTags['left']:
+        if ct.speed > 0.0:
+            return lambda x,t: -ct.speed
+        else:
+            return lambda x,t: 0.0
+    elif flag == ct.boundaryTags['right']:
+        if ct.speed > 0.0:
+            return None
+        else:
+            return lambda x,t: 0.0
     else:
         return lambda x,t: 0.0
 
@@ -88,8 +107,12 @@ def getAFBC_u(x,flag):
     if flag == ct.boundaryTags['top']:
         return None
     elif flag in [ct.boundaryTags['obstacle']]:
-#,ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
         return None
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return None
+        else:
+            return lambda x,t: 0.0
     else:
         return lambda x,t: 0.0
 
@@ -97,8 +120,12 @@ def getAFBC_v(x,flag):
     if flag == ct.boundaryTags['top']:
         return None
     elif flag in [ct.boundaryTags['obstacle']]:
-#,ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
         return None
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return None
+        else:
+            return lambda x,t: 0.0
     else:
         return lambda x,t: 0.0
 
@@ -106,8 +133,12 @@ def getAFBC_w(x,flag):
     if flag == ct.boundaryTags['top']:
         return None
     elif flag in [ct.boundaryTags['obstacle']]:
-#,ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
         return None
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return None
+        else:
+            return lambda x,t: 0.0
     else:
         return lambda x,t: 0.0
 
@@ -115,8 +146,12 @@ def getDFBC_u(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
     elif flag in [ct.boundaryTags['obstacle']]:
-#,ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
         return None
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return lambda x,t: 0.0#None
+        else:
+            return lambda x,t: 0.0
     else:
         return lambda x,t: 0.0
 
@@ -124,8 +159,12 @@ def getDFBC_v(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
     elif flag in [ct.boundaryTags['obstacle']]:
-#,ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
         return None
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return lambda x,t: 0.0#None
+        else:
+            return lambda x,t: 0.0
     else:
         return lambda x,t: 0.0
 
@@ -133,8 +172,12 @@ def getDFBC_w(x,flag):
     if flag == ct.boundaryTags['top']:
         return lambda x,t: 0.0
     elif flag in [ct.boundaryTags['obstacle']]:
-#,ct.boundaryTags['left'],ct.boundaryTags['right'],ct.boundaryTags['bottom'],ct.boundaryTags['front'],ct.boundaryTags['back']]:
         return None
+    elif flag in [ct.boundaryTags['left'], ct.boundaryTags['right']]:
+        if ct.speed > 0.0:
+            return lambda x,t: 0.0#None
+        else:
+            return lambda x,t: 0.0
     else:
         return lambda x,t: 0.0
 
@@ -154,7 +197,10 @@ class P_IC:
 
 class U_IC:
     def uOfXT(self,x,t):
-        return 0.0
+        if ct.speed > 0.0:
+            return ct.speed
+        else:
+            return 0.0
 
 class V_IC:
     def uOfXT(self,x,t):
