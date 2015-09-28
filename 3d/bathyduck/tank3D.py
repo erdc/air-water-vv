@@ -12,11 +12,11 @@ from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 windVelocity = (0.0,0.0,0.0)
 inflowHeightMean = 0.0
 inflowVelocityMean = (0.0,0.0,0.0)
-period = 1.94
+period = 11.0
 omega = 2.0*math.pi/period
-waveheight = 0.025
+waveheight = 0.5*4.572
 amplitude = waveheight/ 2.0
-wavelength = 10.0
+wavelength = 15.0
 k = 2.0*math.pi/wavelength
 
 
@@ -77,7 +77,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 L = (float(6.0*wavelength), 2.0, 1.50)
 
-he = wavelength/20
+he = wavelength/35
 
 GenerationZoneLength = wavelength*1.0
 AbsorptionZoneLength= wavelength*2.0
@@ -286,9 +286,9 @@ else:
     domain = PiecewiseLinearComplexDomain(fileprefix="frfDomain3D")
 # Time stepping
 T=20.0*period
-dt_fixed = T
-dt_init = min(0.1*dt_fixed,0.1*he)
-runCFL=0.90
+dt_fixed = period/5.0
+dt_init = min(0.001*dt_fixed,0.1*he)
+runCFL=0.9
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
