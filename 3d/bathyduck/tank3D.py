@@ -409,7 +409,7 @@ def waveHeight(x,t):
 def waveVelocity_u(x,t):
      return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
 
-def waveVelocity_v(x,t):
+def waveVelocity_w(x,t):
      return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
 
 #solution variables
@@ -427,12 +427,12 @@ def twpflowVelocity_u(x,t):
     return u
 
 def twpflowVelocity_v(x,t):
-    waterspeed = waveVelocity_v(x,t)
-    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
-    return H*windVelocity[1]+(1.0-H)*waterspeed
+    return 0.0
 
 def twpflowVelocity_w(x,t):
-    return 0.0
+    waterspeed = waveVelocity_w(x,t)
+    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
+    return H*windVelocity[2]+(1.0-H)*waterspeed
 
 def twpflowFlux(x,t):
     return -twpflowVelocity_u(x,t)
