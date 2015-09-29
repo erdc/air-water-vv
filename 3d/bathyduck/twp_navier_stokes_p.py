@@ -75,18 +75,18 @@ def getDBC_p(x,flag):
         return lambda x,t: 0.0
 #    elif flag == boundaryTags['right']:
 #        return outflowPressure
-    
+
 def getDBC_u(x,flag):
     if flag == boundaryTags['left']:
           return twpflowVelocity_u
 
 
 def getDBC_v(x,flag):
-    if flag == boundaryTags['left']: 
+    if flag == boundaryTags['left']:
           return twpflowVelocity_v
 
 def getDBC_w(x,flag):
-    if flag == boundaryTags['left']: 
+    if flag == boundaryTags['left']:
           return twpflowVelocity_w
 
 dirichletConditions = {0:getDBC_p,
@@ -103,7 +103,7 @@ def getAFBC_p(x,flag):
         return lambda x,t: 0.0
     else:
         return None
-    
+
 def getAFBC_u(x,flag):
     if flag == boundaryTags['bottom']  or flag == boundaryTags['back'] or flag == boundaryTags['front']:
         return lambda x,t: 0.0
@@ -111,7 +111,7 @@ def getAFBC_u(x,flag):
         return lambda x,t: 0.0
     else:
         return None
-    
+
 def getAFBC_v(x,flag):
     if flag == boundaryTags['bottom']  or flag == boundaryTags['back'] or flag == boundaryTags['front']:
         return lambda x,t: 0.0
@@ -127,15 +127,15 @@ def getAFBC_w(x,flag):
         return lambda x,t: 0.0
     else:
         return None
-    
+
 def getDFBC_u(x,flag):
     if flag != boundaryTags['left']:
-        return lambda x,t: 0.0  
-    
-    
+        return lambda x,t: 0.0
+
+
 def getDFBC_v(x,flag):
     if flag != boundaryTags['left']:
-       return lambda x,t: 0.0  
+       return lambda x,t: 0.0
 
 
 def getDFBC_w(x,flag):
@@ -151,7 +151,7 @@ def getDFBC_w(x,flag):
 #        return lambda x,t: 0.0
 #    elif flag == boundaryTags['top']:
 #        return lambda x,t: 0.0
-    
+
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,
                                     1:getAFBC_u,
@@ -167,10 +167,11 @@ class PerturbedSurface_p:
     def __init__(self,waterLevel):
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
+        waterLevel = waveHeight(x,t)
         if signedDistance(x) < 0:
-            return -(L[2] - self.waterLevel)*rho_1*g[2] - (self.waterLevel - x[2])*rho_0*g[2]
+            return -(L[2] - waterLevel)*rho_1*g[2] - (waterLevel - x[2])*rho_0*g[2]
         else:
-            return -(L[2] - self.waterLevel)*rho_1*g[2]
+            return -(L[2] - waterLevel)*rho_1*g[2]
 
 class AtRest:
     def __init__(self):
@@ -182,10 +183,21 @@ class WaterVelocity_u:
     def __init__(self):
         pass
     def uOfXT(self,x,t):
-         
-        return  waterVelocity(x,0)
+        return  twpflowVelocity_u(x,t)
+
+class WaterVelocity_v:
+    def __init__(self):
+        pass
+    def uOfXT(self,x,t):
+        return  twpflowVelocity_v(x,t)
+
+class WaterVelocity_w:
+    def __init__(self):
+        pass
+    def uOfXT(self,x,t):
+        return  twpflowVelocity_w(x,t)
 
 initialConditions = {0:PerturbedSurface_p(waterLine_z),
-                     1:AtRest(),
-                     2:AtRest(),
-                     3:AtRest()}
+                     1:WaterVelocity_u(),
+                     2:WaterVelocity_v(),
+                     3:WaterVelocity_w()}

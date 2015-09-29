@@ -7,16 +7,17 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus import Gauges
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
-
+from proteus import Comm
+comm = Comm.init()
 #wave generator
 windVelocity = (0.0,0.0,0.0)
 inflowHeightMean = 0.0
 inflowVelocityMean = (0.0,0.0,0.0)
 period = 11.0
 omega = 2.0*math.pi/period
-waveheight = 0.5*4.572
+waveheight = 0.25*4.572
 amplitude = waveheight/ 2.0
-wavelength = 15.0
+wavelength = 15.0/2.0
 k = 2.0*math.pi/wavelength
 
 
@@ -77,7 +78,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 L = (float(6.0*wavelength), 2.0, 1.50)
 
-he = wavelength/35
+he = wavelength/25
 
 GenerationZoneLength = wavelength*1.0
 AbsorptionZoneLength= wavelength*2.0
@@ -134,7 +135,7 @@ columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
 #lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
 
 
-if genMesh:
+if genMesh and comm.isMaster():
     if useHex:
         nnx=4*Refinement+1
         nny=2*Refinement+1
@@ -358,7 +359,7 @@ kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
@@ -387,7 +388,7 @@ def signedDistance(x):
     return phi_z
 
 def theta(x,t):
-    return k*x[0] - omega*t + math.pi/2.0
+    return k*x[0] + omega*t + math.pi/2.0
 
 def z(x):
     return x[2] - inflowHeightMean
@@ -400,7 +401,7 @@ def ramp(t):
     return 1
 
 h = inflowHeightMean - mesh2D.meshList[-1].nodeArray[:,2].min()# - transect[0][1] if lower left hand corner is not at z=0
-sigma = omega - k*inflowVelocityMean[0]
+sigma = -omega - k*inflowVelocityMean[0]
 
 def waveHeight(x,t):
      return inflowHeightMean + amplitude*cos(theta(x,t))
