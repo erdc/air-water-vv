@@ -18,7 +18,7 @@ omega = 2.0*math.pi/period
 waveheight = 0.25*4.572
 amplitude = waveheight/ 2.0
 wavelength = 15.0/2.0
-k = 2.0*math.pi/wavelength
+k = -2.0*math.pi/wavelength
 
 
 #  Discretization -- input options
@@ -388,7 +388,7 @@ def signedDistance(x):
     return phi_z
 
 def theta(x,t):
-    return k*x[0] + omega*t + math.pi/2.0
+    return k*x[0] - omega*t + math.pi/2.0
 
 def z(x):
     return x[2] - inflowHeightMean
@@ -401,7 +401,7 @@ def ramp(t):
     return 1
 
 h = inflowHeightMean - mesh2D.meshList[-1].nodeArray[:,2].min()# - transect[0][1] if lower left hand corner is not at z=0
-sigma = -omega - k*inflowVelocityMean[0]
+sigma = omega - k*inflowVelocityMean[0]
 
 def waveHeight(x,t):
      return inflowHeightMean + amplitude*cos(theta(x,t))
