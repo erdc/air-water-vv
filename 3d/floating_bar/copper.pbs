@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -A ERDCV00898R40
+#PBS -l walltime=048:00:00
+#PBS -l select=4:ncpus=32:mpiprocs=32
+#PBS -q standard
+#PBS -N bar
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/bar.$PBS_JOBID
+aprun -n 128  parun floating_bar_so.py -p -l 5 -v -O ../../inputTemplates/petsc.options.asm -C "refinement_level=2 parallel=True" -D $WORKDIR/bar.$PBS_JOBID
