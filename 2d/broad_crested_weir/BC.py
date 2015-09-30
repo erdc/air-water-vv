@@ -29,6 +29,8 @@ class boundaryConditions:
         self.BCTypeCheck(BCType)
         if ("Advective" in BCType) and ("vof" not in BCType):
             BC=self.constantValue(0.0)
+        elif (BCType is "vofDirichlet"):
+            BC=self.constantValue(1.0)
         else:
             return self.empty()
 
@@ -46,6 +48,8 @@ class boundaryConditions:
             if "vof" in BCType:
                 BC = self.empty()
             return BC
+        elif (BCType is "vofDirichlet"):
+            BC=self.constantValue(1.0)
         else:
             return self.empty()
 #: U=0

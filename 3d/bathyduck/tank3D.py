@@ -9,9 +9,9 @@ from proteus import Gauges
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 from proteus import Comm
 comm = Comm.init()
-#wave generator
+#wave generatorx
 windVelocity = (0.0,0.0,0.0)
-inflowHeightMean = 0.0
+inflowHeightMean = 1.26
 inflowVelocityMean = (0.0,0.0,0.0)
 period = 11.0
 omega = 2.0*math.pi/period
@@ -23,7 +23,7 @@ k = -2.0*math.pi/wavelength
 
 #  Discretization -- input options
 
-genMesh=False#True
+genMesh= False #True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
@@ -78,7 +78,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 L = (float(6.0*wavelength), 2.0, 1.50)
 
-he = wavelength/50.0
+he = 0.25
 
 GenerationZoneLength = wavelength*1.0
 AbsorptionZoneLength= wavelength*2.0
@@ -163,10 +163,10 @@ if genMesh:
         ymax = 1000.0
         #
         #debugging domain (quasi 2DV)
-        xmin = 90.0
-        xmax = 140.0
+        xmin = 65.0
+        xmax = 105.0
         ymin = 900.0
-        ymax = 901.0
+        ymax = 900 + he
         #
         boundaries=['empty','left','right','bottom','top','front','back']
         boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
@@ -290,8 +290,8 @@ else:
     domain = PiecewiseLinearComplexDomain(fileprefix="frfDomain3D")
     domain.boundaryTags = boundaryTags
 # Time stepping
-T=20.0*period
-dt_fixed = period/5.0
+T=70.
+dt_fixed = 5.
 dt_init = min(0.001*dt_fixed,0.1*he)
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
@@ -398,24 +398,46 @@ def z(x):
     return x[2] - inflowHeightMean
 
 def ramp(t):
-  t0=10 #ramptime
+  t0=1 #ramptime
   if t<t0:
     return 1
   else:
-    return 1
+    return t/t0
 
 domain_vertices = numpy.array(domain.vertices)
 h = inflowHeightMean - domain_vertices[:,2].min()# - transect[0][1] if lower left hand corner is not at z=0
 sigma = omega - k*inflowVelocityMean[0]
 
+
+from proteus import WaveTools as wt
+
+
+tseries = wt.timeSeries(timeSeriesFile= "Duck_series.txt",
+                     skiprows = 0,
+                     d =h, #Need to set the depth
+                     Npeaks = 1, #Dummy
+                     bandFactor = [2.0], #Dummy
+                     peakFrequencies = [1.0],#Dummy
+                     N = 32,          #Dummy
+                     Nwaves = 20, # Dummy
+                     mwl =inflowHeightMean,        #mean water level
+                     waveDir = np.array([-1,0,0]),
+                     g = np.array(g)         #accelerationof gravity
+                     )
+
+
+
+
+
 def waveHeight(x,t):
-     return inflowHeightMean + amplitude*cos(theta(x,t))
+    return inflowHeightMean# + tseries.reconstruct_direct(0.,x[1],x[2],t,64)*ramp(t)#+ tseries
 
 def waveVelocity_u(x,t):
-     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
+    return 0.# tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","x")*ramp(t)#+ tseries
 
 def waveVelocity_w(x,t):
-     return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
+    return  0. #tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","z")*ramp(t)#+ tseries
+
 
 #solution variables
 
