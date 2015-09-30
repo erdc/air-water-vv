@@ -95,8 +95,8 @@ dirichletConditions = {0:getDBC_p,
                        3:getDBC_w}
 
 def getAFBC_p(x,flag):
-    if flag == boundaryTags['left']:
-        return lambda x,t: -twpflowVelocity_u(x,t)
+    if flag == boundaryTags['left']:#note, this is really right so - sign is removed
+        return lambda x,t: twpflowVelocity_u(x,t)
     elif flag == boundaryTags['bottom'] or flag == boundaryTags['back'] or flag == boundaryTags['front']:
         return lambda x,t: 0.0
     elif flag == boundaryTags['right']:

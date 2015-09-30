@@ -18,7 +18,7 @@ omega = 2.0*math.pi/period
 waveheight = 0.25*4.572
 amplitude = waveheight/ 2.0
 wavelength = 15.0/2.0
-k = 2.0*math.pi/wavelength
+k = -2.0*math.pi/wavelength
 
 
 #  Discretization -- input options
@@ -392,7 +392,7 @@ def signedDistance(x):
     return phi_z
 
 def theta(x,t):
-    return k*x[0] + omega*t + math.pi/2.0
+    return k*x[0] - omega*t + math.pi/2.0
 
 def z(x):
     return x[2] - inflowHeightMean
@@ -406,7 +406,7 @@ def ramp(t):
 
 domain_vertices = numpy.array(domain.vertices)
 h = inflowHeightMean - domain_vertices[:,2].min()# - transect[0][1] if lower left hand corner is not at z=0
-sigma = -omega - k*inflowVelocityMean[0]
+sigma = omega - k*inflowVelocityMean[0]
 
 def waveHeight(x,t):
      return inflowHeightMean + amplitude*cos(theta(x,t))
@@ -414,7 +414,7 @@ def waveHeight(x,t):
 def waveVelocity_u(x,t):
      return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
 
-def waveVelocity_v(x,t):
+def waveVelocity_w(x,t):
      return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
 
 #solution variables
@@ -432,12 +432,12 @@ def twpflowVelocity_u(x,t):
     return u
 
 def twpflowVelocity_v(x,t):
-    waterspeed = waveVelocity_v(x,t)
-    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
-    return H*windVelocity[1]+(1.0-H)*waterspeed
+    return 0.0
 
 def twpflowVelocity_w(x,t):
-    return 0.0
+    waterspeed = waveVelocity_w(x,t)
+    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
+    return H*windVelocity[2]+(1.0-H)*waterspeed
 
 def twpflowFlux(x,t):
     return -twpflowVelocity_u(x,t)
