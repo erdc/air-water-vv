@@ -11,7 +11,7 @@ from proteus import Comm
 comm = Comm.init()
 #wave generator
 windVelocity = (0.0,0.0,0.0)
-inflowHeightMean = 0.0
+inflowHeightMean = 1.26
 inflowVelocityMean = (0.0,0.0,0.0)
 period = 11.0
 omega = 2.0*math.pi/period
@@ -23,11 +23,11 @@ k = -2.0*math.pi/wavelength
 
 #  Discretization -- input options
 
-genMesh=False#True
+genMesh=True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
-useSuperlu=False
+useSuperlu=True
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
 spaceOrder = 1
 useHex     = False
@@ -78,7 +78,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 L = (float(6.0*wavelength), 2.0, 1.50)
 
-he = wavelength/50.0
+he = wavelength/25.0
 
 GenerationZoneLength = wavelength*1.0
 AbsorptionZoneLength= wavelength*2.0
@@ -166,7 +166,12 @@ if genMesh:
         xmin = 90.0
         xmax = 140.0
         ymin = 900.0
-        ymax = 901.0
+        ymax = ymin+he
+        #
+        xmin = 65.0
+        xmax = 105.0
+        ymin = 900.0
+        ymax = 900 + he
         #
         boundaries=['empty','left','right','bottom','top','front','back']
         boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
@@ -316,7 +321,7 @@ if useMetrics:
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 0.1
+    epsFact_consrv_diffusion = 10.0
     redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
