@@ -1,8 +1,8 @@
 #!/bin/csh
 #PBS -A ERDCV00898R40
-#PBS -l walltime=024:00:00
-#PBS -l select=2:ncpus=32:mpiprocs=32
-#PBS -q standard
+#PBS -l walltime=001:00:00
+#PBS -l select=1:ncpus=32:mpiprocs=32
+#PBS -q debug
 #PBS -N bathyduck
 #PBS -j oe
 #PBS -l application=proteus
@@ -11,4 +11,4 @@
 #PBS -M cekees@gmail.com
 cd $PBS_O_WORKDIR
 mkdir $WORKDIR/bathyduck.$PBS_JOBID
-aprun -n 64  parun tank3D_so.py -l 7 -v -O ../../inputTemplates/petsc.options.superlu_dist -D $WORKDIR/bathyduck.$PBS_JOBID
+aprun -n 32  parun tank3D_so.py -l 7 -v -O ../../inputTemplates/petsc.options.superlu_dist -D $WORKDIR/bathyduck.$PBS_JOBID

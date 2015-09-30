@@ -23,11 +23,11 @@ k = -2.0*math.pi/wavelength
 
 #  Discretization -- input options
 
-genMesh=True
+genMesh=False
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
-useSuperlu=True
+useSuperlu=False
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
 spaceOrder = 1
 useHex     = False
