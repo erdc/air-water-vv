@@ -23,11 +23,11 @@ k = -2.0*math.pi/wavelength
 
 #  Discretization -- input options
 
-genMesh=True
+genMesh=False#True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
-useSuperlu=True
+useSuperlu=False
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
 spaceOrder = 1
 useHex     = False
@@ -78,7 +78,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 L = (float(6.0*wavelength), 2.0, 1.50)
 
-he = wavelength/25
+he = wavelength/50.0
 
 GenerationZoneLength = wavelength*1.0
 AbsorptionZoneLength= wavelength*2.0
@@ -135,7 +135,7 @@ columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
 #lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
 
 
-if genMesh and comm.isMaster():
+if genMesh:
     if useHex:
         nnx=4*Refinement+1
         nny=2*Refinement+1
@@ -282,9 +282,13 @@ if genMesh and comm.isMaster():
         dragAlphaTypes = numpy.array([0.0])
         dragBetaTypes = numpy.array([0.0])
         epsFact_solidTypes = np.array([0.0])
+        comm.barrier()
 else:
+    boundaries=['empty','left','right','bottom','top','front','back']
+    boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     from proteus.Domain import  PiecewiseLinearComplexDomain
     domain = PiecewiseLinearComplexDomain(fileprefix="frfDomain3D")
+    domain.boundaryTags = boundaryTags
 # Time stepping
 T=20.0*period
 dt_fixed = period/5.0
@@ -400,7 +404,8 @@ def ramp(t):
   else:
     return 1
 
-h = inflowHeightMean - mesh2D.meshList[-1].nodeArray[:,2].min()# - transect[0][1] if lower left hand corner is not at z=0
+domain_vertices = numpy.array(domain.vertices)
+h = inflowHeightMean - domain_vertices[:,2].min()# - transect[0][1] if lower left hand corner is not at z=0
 sigma = omega - k*inflowVelocityMean[0]
 
 def waveHeight(x,t):

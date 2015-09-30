@@ -167,7 +167,7 @@ class PerturbedSurface_p:
     def __init__(self,waterLevel):
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
-        waterLevel = waveHeight(x,t)
+        waterLevel = self.waterLevel#waveHeight(x,t)
         if signedDistance(x) < 0:
             return -(L[2] - waterLevel)*rho_1*g[2] - (waterLevel - x[2])*rho_0*g[2]
         else:
@@ -183,19 +183,19 @@ class WaterVelocity_u:
     def __init__(self):
         pass
     def uOfXT(self,x,t):
-        return  twpflowVelocity_u(x,t)
+        return  0.0#twpflowVelocity_u(x,t)
 
 class WaterVelocity_v:
     def __init__(self):
         pass
     def uOfXT(self,x,t):
-        return  twpflowVelocity_v(x,t)
+        return  0.0#twpflowVelocity_v(x,t)
 
 class WaterVelocity_w:
     def __init__(self):
         pass
     def uOfXT(self,x,t):
-        return  twpflowVelocity_w(x,t)
+        return  0.0#twpflowVelocity_w(x,t)
 
 initialConditions = {0:PerturbedSurface_p(waterLine_z),
                      1:WaterVelocity_u(),
