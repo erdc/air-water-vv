@@ -42,6 +42,6 @@ diffusiveFluxBoundaryConditions = {0:{}}
 
 class PerturbedSurface_H:
     def uOfXT(self,x,t):
-        return waveVF(x,t)
+        return smoothedHeaviside(epsFact_consrv_heaviside*he,signedDistance(x))#waveVF(x,t)
 
 initialConditions  = {0:PerturbedSurface_H()}

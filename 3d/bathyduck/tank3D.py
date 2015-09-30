@@ -392,7 +392,7 @@ def signedDistance(x):
     return phi_z
 
 def theta(x,t):
-    return k*x[0] - omega*t + math.pi/2.0
+    return k*x[0] - omega*t - math.pi/2.0
 
 def z(x):
     return x[2] - inflowHeightMean

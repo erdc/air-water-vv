@@ -24,6 +24,6 @@ diffusiveFluxBoundaryConditions = {0:{}}
 
 class PerturbedSurface_phi:
     def uOfXT(self,x,t):
-        return wavePhi(x,t)
+        return signedDistance(x)#wavePhi(x,t)
 
 initialConditions  = {0:PerturbedSurface_phi()}
