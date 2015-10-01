@@ -23,7 +23,7 @@ k = -2.0*math.pi/wavelength
 
 #  Discretization -- input options
 
-genMesh= False #True
+genMesh=False
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
@@ -78,7 +78,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 L = (float(6.0*wavelength), 2.0, 1.50)
 
-he = 0.25
+he = 0.5
 
 GenerationZoneLength = wavelength*1.0
 AbsorptionZoneLength= wavelength*2.0
@@ -291,7 +291,7 @@ else:
     domain.boundaryTags = boundaryTags
 # Time stepping
 T=70.
-dt_fixed = 5.
+dt_fixed = 1.
 dt_init = min(0.001*dt_fixed,0.1*he)
 runCFL=0.9
 nDTout = int(round(T/dt_fixed))
@@ -316,7 +316,7 @@ if useMetrics:
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 0.1
+    epsFact_consrv_diffusion = 10.
     redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
@@ -398,11 +398,11 @@ def z(x):
     return x[2] - inflowHeightMean
 
 def ramp(t):
-  t0=1 #ramptime
+  t0=1. #ramptime
   if t<t0:
-    return 1
-  else:
     return t/t0
+  else:
+    return 1
 
 domain_vertices = numpy.array(domain.vertices)
 h = inflowHeightMean - domain_vertices[:,2].min()# - transect[0][1] if lower left hand corner is not at z=0
@@ -430,13 +430,13 @@ tseries = wt.timeSeries(timeSeriesFile= "Duck_series.txt",
 
 
 def waveHeight(x,t):
-    return inflowHeightMean# + tseries.reconstruct_direct(0.,x[1],x[2],t,64)*ramp(t)#+ tseries
+    return inflowHeightMean + tseries.reconstruct_direct(0.,x[1],x[2],t,64)*ramp(t)#+ tseries
 
 def waveVelocity_u(x,t):
-    return 0.# tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","x")*ramp(t)#+ tseries
+    return  tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","x")*ramp(t)#+ tseries
 
 def waveVelocity_w(x,t):
-    return  0. #tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","z")*ramp(t)#+ tseries
+    return  tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","z")*ramp(t)#+ tseries
 
 
 #solution variables
