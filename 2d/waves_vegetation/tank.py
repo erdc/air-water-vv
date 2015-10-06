@@ -12,14 +12,14 @@ from proteus import WaveTools as WT
 
 #wave generator
 windVelocity = (0.0,0.0)
-depth = 1.0
-inflowHeightMean = 1.0
+depth = 19.6/44.0+6.1/20.0 + 0.457
+inflowHeightMean = 19.6/44.0+6.1/20.0 + 0.457
 inflowVelocityMean = (0.0,0.0)
-period = 1.134
+period = 2.0
 omega = 2.0*math.pi/period
-waveheight = 0.05
+waveheight = 0.192
 amplitude = waveheight/ 2.0
-wavelength = 1.5
+wavelength = 3.91
 k = 2.0*math.pi/wavelength
 waveDir = numpy.array([1,0,0])
 g = numpy.array([0,-9.81,0])
@@ -34,6 +34,13 @@ waves = WT.RandomWaves( Tp = period, # Peak period
                         g = g, # Gravity vector, defines the vertical
                         gamma=3.3,
                         spec_fun = WT.JONSWAP)
+waves = WT.MonochromaticWaves( period = period, # Peak period
+                               waveHeight = waveheight, # Height
+                               depth = depth, # Depth
+                               mwl = inflowHeightMean, # Sea water level
+                               waveDir = waveDir, # waveDirection
+                               g = g, # Gravity vector, defines the vertical
+                               waveType="Linear")
 
 
 
@@ -42,7 +49,7 @@ genMesh=True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
-useSuperlu=False
+useSuperlu=True
 timeDiscretization='be'#'be','vbdf','flcbdf'
 spaceOrder = 1
 useHex     = False
@@ -94,7 +101,7 @@ elif spaceOrder == 2:
 
 #for debugging, make the tank short
 L = (45.4,1.0)
-he = float(wavelength)/2#0.0#100
+he = float(wavelength)/50.0#0.0#100
 
 GenerationZoneLength = wavelength
 AbsorptionZoneLength= wavelength*2.0
@@ -164,10 +171,10 @@ else:
                   [19.6+6.1+1.2,         19.6/44.0+6.1/20.0  ],#3
                   [19.6+6.1+1.2+9.8,     19.6/44.0+6.1/20.0  ],#4
                   [19.6+6.1+1.2+9.8+1.2, 19.6/44.0+6.1/20.0  ],#5
-                  [37.9,                 19.5/44.0+6.1/20.0  ],#6
-                  [45.4,                 19.5/44.0+11.3/20.0 ],#7
-                  [37.9,                 19.5/44.0+11.3/20.0 ],#8
-                  [0.0,                  19.5/44.0+11.3/20.0]]#9
+                  [45.4,                 19.6/44.0+11.3/20.0 ],#6
+                  [45.4,                 19.6/44.0+11.3/20.0 +1.0],#7
+                  [37.9,                 19.6/44.0+11.3/20.0 +1.0],#8
+                  [0.0,                  19.6/44.0+11.3/20.0 +1.0]]#9
 
         vertexFlags=[boundaryTags['bottom'],#0
                      boundaryTags['bottom'],#1
@@ -176,7 +183,7 @@ else:
                      boundaryTags['bottom'],#4
                      boundaryTags['bottom'],#5
                      boundaryTags['bottom'],#6
-                     boundaryTags['bottom'],#7
+                     boundaryTags['top'],#7
                      boundaryTags['top'],#8
                      boundaryTags['top']]#9
         segments=[[0,1],#0
@@ -189,7 +196,7 @@ else:
                   [7,8],#7
                   [8,9],#8
                   [9,0],#9
-                  [6,8]]#10
+                  [5,8]]#10
 
         segmentFlags=[boundaryTags['bottom'],#0
                       boundaryTags['bottom'],#1
@@ -197,7 +204,7 @@ else:
                       boundaryTags['bottom'],#3
                       boundaryTags['bottom'],#4
                       boundaryTags['bottom'],#5
-                      boundaryTags['bottom'],#6
+                      boundaryTags['right'],#6
                       boundaryTags['top'],#7
                       boundaryTags['top'],#8
                       boundaryTags['left'],#9
@@ -218,7 +225,7 @@ else:
         domain.writeAsymptote("mesh")
         triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
 
-        logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
+        logEvent("""Mesh generated using: triangle -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
         porosityTypes      = numpy.array([1.0,
                                           1.0,
 
@@ -267,12 +274,12 @@ else:
         domain.writeAsymptote("mesh")
         triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
 
-        logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
+        logEvent("""Mesh generated using: triangle -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
 T=40*period
-dt_fixed = T#2.0*0.5/20.0#T/2.0#period/21.0
-dt_init = min(0.1*dt_fixed,0.1)
-runCFL=0.9
+dt_fixed = period/11.0#2.0*0.5/20.0#T/2.0#period/21.0
+dt_init = min(0.001*dt_fixed,0.001)
+runCFL=0.90
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
@@ -282,21 +289,21 @@ if useMetrics:
     ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.35
+    ls_shockCapturingFactor  = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.35
+    vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.75
+    rd_shockCapturingFactor  = 0.25
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 1.5
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = True
+    redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
@@ -342,7 +349,7 @@ kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
