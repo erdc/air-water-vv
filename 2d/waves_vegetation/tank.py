@@ -104,14 +104,14 @@ L = (45.4,1.0)
 he = float(wavelength)/50.0#0.0#100
 
 GenerationZoneLength = wavelength
-AbsorptionZoneLength= wavelength*2.0
+AbsorptionZoneLength= 45.4-37.9
 spongeLayer = True
 xSponge = GenerationZoneLength
 xRelaxCenter = xSponge/2.0
 epsFact_solid = xSponge/2.0
 #zone 2
-xSponge_2 = L[0]-AbsorptionZoneLength
-xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
+xSponge_2 = 37.9
+xRelaxCenter_2 = 0.5*(37.9+45.4)
 epsFact_solid_2 = AbsorptionZoneLength/2.0
 
 weak_bc_penalty_constant = 100.0
@@ -228,15 +228,13 @@ else:
         logEvent("""Mesh generated using: triangle -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
         porosityTypes      = numpy.array([1.0,
                                           1.0,
-
                                           1.0])
         dragAlphaTypes = numpy.array([0.0,
-                                      0.5/1.004e-6,
-
-                                      0.0])
+                                      0.0,
+                                      0.5/1.004e-6])
         dragBetaTypes = numpy.array([0.0,0.0,0.0])
 
-        epsFact_solidTypes = np.array([0.0,epsFact_solid_2,0.0])
+        epsFact_solidTypes = np.array([0.0,0.0,epsFact_solid_2])
 
     else:
         vertices=[[0.0,0.0],#0
