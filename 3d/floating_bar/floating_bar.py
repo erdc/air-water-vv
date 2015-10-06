@@ -386,6 +386,15 @@ class RigidBar(AuxiliaryVariables.AV_base):
         #ode.GeomPlane(self.space, (0,1,0) ,x_ll[1]+eps_y),
         #                  ode.GeomPlane(self.space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
         #mass/intertial tensor of rigid bar
+        #eps_x = L[0]- 0.45*L[0]
+        #eps_y = L[1]- 0.45*L[1]
+        #self.tankWalls = [ode.GeomPlane(space, (1,0,0) ,x_ll[0]+eps_x),
+        #                  ode.GeomPlane(space, (-1,0,0),-(x_ll[0]+L[0]-eps_x)),
+        #                  ode.GeomPlane(space, (0,1,0) ,x_ll[1]+eps_y),
+        #                  ode.GeomPlane(space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
+        #self.tank = ode.GeomBox(self.space,(0.45,0.45,0.3))
+        #self.tank.setPosition((0.5,0.5,0.6))
+        #self.contactgroup = ode.JointGroup()
         self.M = ode.Mass()
         self.totalMass = density*bar_dim[0]*bar_dim[1]*bar_dim[2]
         self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2])
@@ -413,6 +422,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.bar_dim = bar_dim
         self.last_F = np.zeros(3,'d')
         self.last_M = np.zeros(3,'d')
+
     def attachModel(self,model,ar):
         self.model=model
         self.ar=ar
