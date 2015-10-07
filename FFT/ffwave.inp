@@ -1,0 +1,10 @@
+0.05   "Ht" is wave height (m)
+period "case" IS EITHER 'period' OR 'wavelength'.
+1.134	wave period (s) if "case" =period OR wavelength (m) if "case"=wavelength
+1.	water depth (m).  Water considered deep if d/T/T > g/pi or d/L > 2.
+euler 	"currnt" IS EITHER 'euler' OR 'stokes'.
+0 	magnitude of the mean Eulerian or Stokes velocities (m/s) 
+8	"n" is the No of terms in the Fourier series and the No. of intervals in half a wavelength.
+10	"nstep" is the number of steps in wave height (generally 4 or less).
+1000	"rho" = water density (kg/m^3)
+9.81	"g" = gravitational acceleration (m/s/s)
