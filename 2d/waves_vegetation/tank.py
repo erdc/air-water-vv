@@ -12,8 +12,8 @@ from proteus import WaveTools as WT
 
 #wave generator
 windVelocity = (0.0,0.0)
-depth = 19.6/44.0+6.1/20.0 + 0.457
-inflowHeightMean = 19.6/44.0+6.1/20.0 + 0.457
+depth = 17.2/44.0 + 6.1/20.0 + 0.457
+inflowHeightMean = 17.2/44.0 + 6.1/20.0 + 0.457
 inflowVelocityMean = (0.0,0.0)
 period = 2.0
 omega = 2.0*math.pi/period
@@ -124,10 +124,24 @@ structured=False
 
 gauge_dx=0.075
 PGL=[]
-LGL=[]
-for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact
-  PGL.append([gauge_dx*i,0.5,0])
-  LGL.append([(gauge_dx*i,0.0,0),(gauge_dx*i,L[1],0)])
+gauge_top = 19.5/44.0 + 1.5
+veg_gauge_bottom_y = 17.2/44.0 + 6.1/20.0
+LGL=[[(6.1, (6.1 - 5.4)/44.0, 0.0), (6.1,gauge_top,0.0)],#1 Goda
+     [(6.4, (6.4 - 5.4)/44.0, 0.0), (6.4,gauge_top,0.0)],#2 Goda
+     [(7.0, (7.0 - 5.4)/44.0, 0.0), (7.0,gauge_top,0.0)],#3 Goda
+     [(26.0, veg_gauge_bottom_y, 0.0), (26.0,gauge_top,0.0)],#4 veg
+     [(26.9, veg_gauge_bottom_y, 0.0), (26.9,gauge_top,0.0)],#5
+     [(27.4, veg_gauge_bottom_y, 0.0), (27.4,gauge_top,0.0)],#6
+     [(27.9, veg_gauge_bottom_y, 0.0), (27.9,gauge_top,0.0)],#7
+     [(28.5, veg_gauge_bottom_y, 0.0), (28.5,gauge_top,0.0)],#8
+     [(29.5, veg_gauge_bottom_y, 0.0), (29.5,gauge_top,0.0)],#9
+     [(31.0, veg_gauge_bottom_y, 0.0), (31.0,gauge_top,0.0)],#10
+     [(32.7, veg_gauge_bottom_y, 0.0), (32.7,gauge_top,0.0)],#11
+     [(34.4, veg_gauge_bottom_y, 0.0), (34.4,gauge_top,0.0)],#12
+     [(36.2, veg_gauge_bottom_y, 0.0), (36.2,gauge_top,0.0)]]#13
+#for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact
+#  PGL.append([gauge_dx*i,0.5,0])
+#  LGL.append([(gauge_dx*i,0.0,0),(gauge_dx*i,L[1],0)])
 
 
 gaugeLocations=tuple(map(tuple,PGL))
@@ -145,10 +159,18 @@ columnLines=tuple(map(tuple,LGL))
 
 fields = ('vof',)
 
-#columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
-#                                 fileName='column_gauge.csv')
+columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
+                                 fileName='column_gauge.csv')
 
-#lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_y=0':((0.0,0.0,0.0),(L[0],0.0,0.0))},linePoints=24)
+#v_resolution = max(he,0.05)
+#linePoints = int((gauge_top - veg_gauge_bottom_y)/v_resolution)
+lineGauges  = LineGauges(gauges=((('u','v'),#fields in gauge set
+                                  (#lines for these fields
+                                      ((26.0, veg_gauge_bottom_y, 0.0),(26.0, gauge_top, 0.0)),
+                                  ),#end  lines
+                              ),#end gauge set
+                             ),#end gauges
+                         fileName="vegZoneVelocity.csv")
 
 #lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
 
@@ -165,16 +187,20 @@ else:
         nnx=ceil(L[0]/he)+1
         nny=ceil(L[1]/he)+1
     elif spongeLayer:
-        vertices=[[0.0,                  0.0                 ],#0
-                  [19.6,                 19.6/44.0           ],#1
-                  [19.6+6.1,             19.6/44.0+6.1/20.0  ],#2
-                  [19.6+6.1+1.2,         19.6/44.0+6.1/20.0  ],#3
-                  [19.6+6.1+1.2+9.8,     19.6/44.0+6.1/20.0  ],#4
-                  [19.6+6.1+1.2+9.8+1.2, 19.6/44.0+6.1/20.0  ],#5
-                  [45.4,                 19.6/44.0+11.3/20.0 ],#6
-                  [45.4,                 19.6/44.0+11.3/20.0 +1.0],#7
-                  [37.9,                 19.6/44.0+11.3/20.0 +1.0],#8
-                  [0.0,                  19.6/44.0+11.3/20.0 +1.0]]#9
+        vertices=[[0.0,                                                   0.0                 ],#0
+                  [5.4,                                                   0.0                 ],#1
+                  [5.4 + 17.2,                                            17.2/44.0           ],#2
+                  [5.4 + 17.2 + 6.1,                                      17.2/44.0 + 6.1/20.0  ],#3
+                  [5.4 + 17.2 + 6.1 + 1.2,                                17.2/44.0 + 6.1/20.0  ],#4
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8,                          17.2/44.0 + 6.1/20.0  ],#5
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2,                    17.2/44.0 + 6.1/20.0  ],#6 -- sponge
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5,              17.2/44.0 + 6.1/20.0 + 7.5/20.0],#7
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0,        17.2/44.0 + 6.1/20.0 + 7.5/20.0],#8
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0,        19.5/44.0],#9
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0 + 12.0, 19.5/44.0],#10
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0 + 12.0, 19.5/44.0 + 1.5],#11
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2,                    19.5/44.0 + 1.5],#12 -- sponge
+                  [0.0,                                                   19.5/44.0 + 1.5]]#13
 
         vertexFlags=[boundaryTags['bottom'],#0
                      boundaryTags['bottom'],#1
@@ -183,9 +209,13 @@ else:
                      boundaryTags['bottom'],#4
                      boundaryTags['bottom'],#5
                      boundaryTags['bottom'],#6
-                     boundaryTags['top'],#7
-                     boundaryTags['top'],#8
-                     boundaryTags['top']]#9
+                     boundaryTags['bottom'],#7
+                     boundaryTags['bottom'],#8
+                     boundaryTags['bottom'],#9
+                     boundaryTags['bottom'],#10
+                     boundaryTags['top'],#11
+                     boundaryTags['top'],#12
+                     boundaryTags['top']]#13
         segments=[[0,1],#0
                   [1,2],#1
                   [2,3],#2
@@ -195,8 +225,12 @@ else:
                   [6,7],#6
                   [7,8],#7
                   [8,9],#8
-                  [9,0],#9
-                  [5,8]]#10
+                  [9,10],#9
+                  [10,11],#10
+                  [11,12],#11
+                  [12,13],#12
+                  [13,0],#13
+                  [6,12]]#14
 
         segmentFlags=[boundaryTags['bottom'],#0
                       boundaryTags['bottom'],#1
@@ -204,13 +238,18 @@ else:
                       boundaryTags['bottom'],#3
                       boundaryTags['bottom'],#4
                       boundaryTags['bottom'],#5
-                      boundaryTags['right'],#6
-                      boundaryTags['top'],#7
-                      boundaryTags['top'],#8
-                      boundaryTags['left'],#9
-                      0]#10
+                      boundaryTags['bottom'],#6
+                      boundaryTags['bottom'],#7
+                      boundaryTags['bottom'],#8
+                      boundaryTags['bottom'],#9
+                      boundaryTags['right'],#10
+                      boundaryTags['top'],#11
+                      boundaryTags['top'],#12
+                      boundaryTags['left'],#13
+                      0]#14
 
-        regions=[[0.001,0.5],[38,0.5]]
+        regions=[[0.5,0.5],
+                 [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0 + 12.0 -0.5, 19.5/44.0 + 1.5 - 0.5]]
         regionFlags=[1,2]
         domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
                                                       vertexFlags=vertexFlags,
@@ -497,7 +536,7 @@ rzWaveGenerator = RelaxationZoneWaveGenerator(zones={
                                                     #                  twpflowVelocity_v,
                                                     #                  twpflowVelocity_w),
                                                     1:RelaxationZone(xRelaxCenter_2,
-                                                                     1.0, #currently Hs=1-exp_function
+                                                                     -1.0, #currently Hs=1-exp_function
                                                                      zeroVel,
                                                                      zeroVel,
                                                                      zeroVel)})
