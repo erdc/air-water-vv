@@ -9,47 +9,94 @@ from proteus import Gauges
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 from proteus import WaveTools as WT
 
+from proteus import Context
+opts=Context.Options([
+    ("wave_type", 'linear', "type of waves generated: 'linear', 'Nonlinear', 'single-peaked', 'double-peaked'"),
+    ("depth", 0.457, "water depth at leading edge of vegetation (not at wave generator)[m]"),
+    ("wave_height", 0.192, "wave height at leading edget of vegetation [m]"),
+    ("peak_period", 2.0, "Peak period [s]"),
+    ("peak_period2", 1.5, "Second peak period (only used in double-peaked case)[s]"),
+    ("peak_wavelength",3.91,"Peak wavelength in [m]"),
+    ("parallel", False, "Run in parallel")])
 
 #wave generator
 windVelocity = (0.0,0.0)
-depth = 17.2/44.0 + 6.1/20.0 + 0.457
-inflowHeightMean = 17.2/44.0 + 6.1/20.0 + 0.457
+veg_platform_height = 17.2/44.0 + 6.1/20.0
+depth = veg_platform_height + opts.depth
+inflowHeightMean = depth
 inflowVelocityMean = (0.0,0.0)
-period = 2.0
+period = opts.peak_period
 omega = 2.0*math.pi/period
-waveheight = 0.192
+waveheight = opts.wave_height
 amplitude = waveheight/ 2.0
-wavelength = 3.91
+wavelength = opts.peak_wavelength
 k = 2.0*math.pi/wavelength
 waveDir = numpy.array([1,0,0])
 g = numpy.array([0,-9.81,0])
-waves = WT.RandomWaves( Tp = period, # Peak period
-                        Hs = waveheight, # Height
-                        d = depth, # Depth
-                        fp = 1./period, #peak Frequency
-                        bandFactor = 2.0, #fmin=fp/Bandfactor, fmax = Bandfactor * fp
-                        N = 101, #No of frequencies for signal reconstruction
-                        mwl = inflowHeightMean, # Sea water level
-                        waveDir = waveDir, # waveDirection
-                        g = g, # Gravity vector, defines the vertical
-                        gamma=3.3,
-                        spec_fun = WT.JONSWAP)
-waves = WT.MonochromaticWaves( period = period, # Peak period
-                               waveHeight = waveheight, # Height
-                               depth = depth, # Depth
-                               mwl = inflowHeightMean, # Sea water level
-                               waveDir = waveDir, # waveDirection
-                               g = g, # Gravity vector, defines the vertical
-                               waveType="Linear")
-
-
+if opts.wave_type == 'linear':
+    waves = WT.MonochromaticWaves(period = period, # Peak period
+                                  waveHeight = waveheight, # Height
+                                  depth = depth, # Depth
+                                  mwl = inflowHeightMean, # Sea water level
+                                  waveDir = waveDir, # waveDirection
+                                  g = g, # Gravity vector, defines the vertical
+                                  waveType="Linear")
+elif opts.wave_type == 'nonlinear':
+    waves = WT.MonochromaticWaves(period = period, # Peak period
+                                  waveHeight = waveheight, # Height
+                                  depth = depth, # Depth
+                                  mwl = inflowHeightMean, # Sea water level
+                                  waveDir = waveDir, # waveDirection
+                                  g = g, # Gravity vector, defines the vertical
+                                  waveType="Fenton",
+                                  Y = [0.04160592, #Surface elevation Fourier coefficients for non-dimensionalised solution
+                                       0.00555874,
+                                       0.00065892,
+                                       0.00008144,
+                                       0.00001078,
+                                       0.00000151,
+                                       0.00000023,
+                                       0.00000007],
+                                  B = [0.05395079,
+                                       0.00357780,
+                                       0.00020506,
+                                       0.00000719,
+                                       -0.00000016,
+                                       -0.00000005,
+                                       0.00000000,
+                                       0.00000000])
+elif opts.wave_type == 'single-peaked':
+    waves = WT.RandomWaves( Tp = period, # Peak period
+                            Hs = waveheight, # Height
+                            d = depth, # Depth
+                            fp = 1./period, #peak Frequency
+                            bandFactor = 2.0, #fmin=fp/Bandfactor, fmax = Bandfactor * fp
+                            N = 101, #No of frequencies for signal reconstruction
+                            mwl = inflowHeightMean, # Sea water level
+                            waveDir = waveDir, # waveDirection
+                            g = g, # Gravity vector, defines the vertical
+                            gamma=3.3,
+                            spec_fun = WT.JONSWAP)
+elif opts.wave_type == 'double-peaked':
+    waves = WT.DoublePeakedRandomWaves( Tp = period, # Peak period
+                                        Hs = waveheight, # Height
+                                        d = depth, # Depth
+                                        fp = 1./period, #peak Frequency
+                                        bandFactor = 2.0, #fmin=fp/Bandfactor, fmax = Bandfactor * fp
+                                        N = 101, #No of frequencies for signal reconstruction
+                                        mwl = inflowHeightMean, # Sea water level
+                                        waveDir = waveDir, # waveDirection
+                                        g = g, # Gravity vector, defines the vertical
+                                        gamma=10.0,
+                                        spec_fun = WT.JONSWAP,
+                                        Tp_2 = opts.peak_period2)
 
 #  Discretization -- input options
 genMesh=True
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
-useSuperlu=True
+useSuperlu=not opts.parallel
 timeDiscretization='be'#'be','vbdf','flcbdf'
 spaceOrder = 1
 useHex     = False
@@ -441,10 +488,9 @@ def waveHeight(x,t):
 def waveVelocity_u(x,t):
     return waves.u(x[0],x[1],x[2],t,"x")
 def waveVelocity_v(x,t):
-     return waves.u(x[0],x[1],x[2],t,"y")
+    return waves.u(x[0],x[1],x[2],t,"y")
 def waveVelocity_w(x,t):
-     return waves.u(x[0],x[1],x[2],t,"z")
-
+    return waves.u(x[0],x[1],x[2],t,"z")
 
 #solution variables
 
