@@ -22,7 +22,6 @@ LevelModelType = MoveMesh.LevelModel
 coefficients = MoveMesh.Coefficients(nd = ct.nd,
 				     V_model=1,modelType_block=smFlags,
 				     modelParams_block=smTypes,meIndex=0)
-
 class FloatingObstacle(AuxiliaryVariables.AV_base):
     import numpy as np
     def __init__(self):
@@ -56,6 +55,7 @@ class FloatingObstacle(AuxiliaryVariables.AV_base):
             return 0.0
         else:
             hz = self.object.body.getRelPointPos(np.dot(self.object.last_rotation_inv,(x-self.object.last_position)))[2] - x[2]
+            #print "z",x[2],np.dot(self.object.last_rotation_inv,(x-self.object.last_position))[2],hz
 #            hz = self.object.body.getPointVel(self.object.last_rotation_inv*(x-self.object.last_position))[2]*self.object.model.stepController.dt_model
 #            hcz = self.object.h[2]
 #            if fabs(hz-hcz)/(fabs(hcz)+1.0e-8) > 1.0e-8:
