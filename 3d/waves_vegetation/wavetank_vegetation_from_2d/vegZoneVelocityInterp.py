@@ -20,8 +20,8 @@ for i in range(1,len(g)):
         zListW.append(float(h[3]))
 
 time = vals[:,0]
-zU = np.array(zListU)
-zW = np.array(zListW)
+zU = np.array(zListU)-zListU[0]
+zW = np.array(zListW)-zListW[0]
 
 Uarray = vals[:,1:len(zListU)+1]
 Warray = vals[:,len(zListU)+1::]
