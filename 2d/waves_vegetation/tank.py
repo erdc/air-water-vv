@@ -581,7 +581,7 @@ rzWaveGenerator = RelaxationZoneWaveGenerator(zones={
                                                     #                  twpflowVelocity_u,
                                                     #                  twpflowVelocity_v,
                                                     #                  twpflowVelocity_w),
-                                                    1:RelaxationZone(xRelaxCenter_2,
+                                                    2:RelaxationZone(xRelaxCenter_2,
                                                                      -1.0, #currently Hs=1-exp_function
                                                                      zeroVel,
                                                                      zeroVel,
