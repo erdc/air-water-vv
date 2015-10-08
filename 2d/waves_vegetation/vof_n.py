@@ -1,6 +1,8 @@
 from proteus import *
 from tank import *
 from vof_p import *
+from proteus  import Context
+ctx = Context.get()
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
@@ -61,4 +63,6 @@ useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
 
-auxiliaryVariables = [columnGauge]
+
+if ctx.gauges:
+    auxiliaryVariables = [columnGauge]

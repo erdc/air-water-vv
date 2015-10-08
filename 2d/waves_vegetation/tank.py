@@ -17,7 +17,8 @@ opts=Context.Options([
     ("peak_period", 2.0, "Peak period [s]"),
     ("peak_period2", 1.5, "Second peak period (only used in double-peaked case)[s]"),
     ("peak_wavelength",3.91,"Peak wavelength in [m]"),
-    ("parallel", False, "Run in parallel")])
+    ("parallel", False, "Run in parallel"),
+    ("gauges", True, "Enable gauges")])
 
 #wave generator
 windVelocity = (0.0,0.0)
@@ -92,6 +93,7 @@ elif opts.wave_type == 'double-peaked':
                                         spec_fun = WT.JONSWAP,
                                         Tp_2 = opts.peak_period2)
 
+gauges=opts.gauges
 #  Discretization -- input options
 genMesh=True
 movingDomain=False
@@ -242,13 +244,10 @@ else:
                   [5.4 + 17.2 + 6.1 + 1.2,                                17.2/44.0 + 6.1/20.0  ],#4
                   [5.4 + 17.2 + 6.1 + 1.2 + 9.8,                          17.2/44.0 + 6.1/20.0  ],#5
                   [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2,                    17.2/44.0 + 6.1/20.0  ],#6 -- sponge
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5,              17.2/44.0 + 6.1/20.0 + 7.5/20.0],#7
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0,        17.2/44.0 + 6.1/20.0 + 7.5/20.0],#8
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0,        19.5/44.0],#9
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0 + 12.0, 19.5/44.0],#10
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0 + 12.0, 19.5/44.0 + 1.5],#11
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2,                    19.5/44.0 + 1.5],#12 -- sponge
-                  [0.0,                                                   19.5/44.0 + 1.5]]#13
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 20.95,            17.2/44.0 + 6.1/20.0 + 20.95/20.0],#7
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 20.95,            17.2/44.0 + 6.1/20.0 + 20.95/20.0+0.2],#8
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2,                    19.5/44.0 + 1.5],#9 -- sponge
+                  [0.0,                                                   19.5/44.0 + 1.5]]#10
 
         vertexFlags=[boundaryTags['bottom'],#0
                      boundaryTags['bottom'],#1
@@ -258,12 +257,9 @@ else:
                      boundaryTags['bottom'],#5
                      boundaryTags['bottom'],#6
                      boundaryTags['bottom'],#7
-                     boundaryTags['bottom'],#8
-                     boundaryTags['bottom'],#9
-                     boundaryTags['bottom'],#10
-                     boundaryTags['top'],#11
-                     boundaryTags['top'],#12
-                     boundaryTags['top']]#13
+                     boundaryTags['top'],#8
+                     boundaryTags['top'],#9
+                     boundaryTags['top']]#10
         segments=[[0,1],#0
                   [1,2],#1
                   [2,3],#2
@@ -273,12 +269,9 @@ else:
                   [6,7],#6
                   [7,8],#7
                   [8,9],#8
-                  [9,10],#9
-                  [10,11],#10
-                  [11,12],#11
-                  [12,13],#12
-                  [13,0],#13
-                  [6,12]]#14
+                  [9,10],#8
+                  [10,0],#9
+                  [6,9]]#10
 
         segmentFlags=[boundaryTags['bottom'],#0
                       boundaryTags['bottom'],#1
@@ -287,17 +280,14 @@ else:
                       boundaryTags['bottom'],#4
                       boundaryTags['bottom'],#5
                       boundaryTags['bottom'],#6
-                      boundaryTags['bottom'],#7
-                      boundaryTags['bottom'],#8
-                      boundaryTags['bottom'],#9
-                      boundaryTags['right'],#10
-                      boundaryTags['top'],#11
-                      boundaryTags['top'],#12
-                      boundaryTags['left'],#13
-                      0]#14
+                      boundaryTags['right'],#7
+                      boundaryTags['top'],#8
+                      boundaryTags['top'],#9
+                      boundaryTags['left'],#10
+                      0]#11
 
         regions=[[0.5,0.5],
-                 [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 7.5 + 3.0 + 12.0 -0.5, 19.5/44.0 + 1.5 - 0.5]]
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2+1.0,                    17.2/44.0 + 6.1/20.0 + 1.0]]
         regionFlags=[1,2]
         domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
                                                       vertexFlags=vertexFlags,
@@ -368,7 +358,7 @@ runCFL=0.90
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = False#True
+ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.0
 if useMetrics:
     ns_shockCapturingFactor  = 0.25
@@ -425,11 +415,11 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-10,0.0001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.0001*he**2)
-ls_nl_atol_res = max(1.0e-10,0.0001*he**2)
-rd_nl_atol_res = max(1.0e-10,0.005*he)
-mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
+ns_nl_atol_res = max(1.0e-10,0.001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.001*he**2)
+ls_nl_atol_res = max(1.0e-10,0.001*he**2)
+rd_nl_atol_res = max(1.0e-10,0.05*he)
+mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 

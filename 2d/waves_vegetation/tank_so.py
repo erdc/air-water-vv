@@ -1,5 +1,8 @@
 from proteus.default_so import *
 import tank
+from proteus import Context
+Context.setFromModule(tank)
+ctx = Context.get()
 
 if tank.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),

@@ -1,6 +1,8 @@
 from proteus import *
 from twp_navier_stokes_p import *
 from tank import *
+from proteus import Context
+ctx = Context.get()
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
@@ -26,8 +28,8 @@ numericalFluxType = None
 conservativeFlux  = None
 
 numericalFluxType = RANS2P.NumericalFlux
-subgridError = RANS2P.SubgridError(coefficients,nd,lag=ns_lag_subgridError,hFactor=hFactor)
-shockCapturing = RANS2P.ShockCapturing(coefficients,nd,ns_shockCapturingFactor,lag=ns_lag_shockCapturing)
+subgridError = RANS2P.SubgridError(coefficients,nd,lag=ns_lag_subgridError,hFactor=hFactor,nStepsToDelay=1)
+shockCapturing = RANS2P.ShockCapturing(coefficients,nd,ns_shockCapturingFactor,lag=ns_lag_shockCapturing,nStepsToDelay=1)
 
 fullNewtonFlag = True
 multilevelNonlinearSolver = Newton
@@ -39,12 +41,8 @@ nonlinearSmoother = None
 
 matrix = SparseMatrix
 
-if useOldPETSc:
-    multilevelLinearSolver = PETSc
-    levelLinearSolver      = PETSc
-else:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
+multilevelLinearSolver = KSP_petsc4py
+levelLinearSolver      = KSP_petsc4py
 
 if useSuperlu:
     multilevelLinearSolver = LU
@@ -60,9 +58,10 @@ linTolFac = 0.01
 l_atol_res = 0.01*ns_nl_atol_res
 nl_atol_res = ns_nl_atol_res
 useEisenstatWalker = False
-maxNonlinearIts = 50
+maxNonlinearIts = 100
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
 
-auxiliaryVariables=[lineGauges]
+if ctx.gauges:
+    auxiliaryVariables=[lineGauges]
 #auxiliaryVariables=[pointGauges,rzWaveGenerator]
