@@ -93,7 +93,7 @@ elif spaceOrder == 2:
 #for debugging, make the tank short
 
 he = float(wavelength)/30.0#0.0#100
-L = (15.0, he, 1.0)
+L = (15.0, 1.5, 1.0)
 
 GenerationZoneLength = 1.2
 AbsorptionZoneLength= 2.8
