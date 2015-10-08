@@ -18,7 +18,7 @@ he = 1.0/20.0
 
 #wave generator
 windVelocity = (0.0,0.0,0.0)
-inflowHeightMean = vegZoneInterp.interp_phi.__call__(0.0)
+inflowHeightMean = float(vegZoneInterp.interp_phi.__call__(0.0))
 inflowVelocityMean = (0.0,0.0,0.0)
 period = 1.0
 g = [0.0,0.0,-9.8]
@@ -440,16 +440,16 @@ h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
 # sigma = omega - k*inflowVelocityMean[0]
     
 def waveHeight(x,t):
-     return vegZoneInterp.interp_phi.__call__(t) 
+     return float(vegZoneInterp.interp_phi.__call__(t))
  
 def waveVelocity_u(x,t):
-     return vegZoneInterp.interpU.__call__(t,x[2]+height_2d)
+     return vegZoneInterp.interpU.__call__(t,x[2]+height_2d)[0][0]
 
 def waveVelocity_v(x,t):
      return 0.0 
 
 def waveVelocity_w(x,t):
-     return  vegZoneInterp.interpW.__call__(t,x[2]+height_2d) 
+     return  vegZoneInterp.interpW.__call__(t,x[2]+height_2d)[0][0]
 #solution variables
 
 def wavePhi(x,t):

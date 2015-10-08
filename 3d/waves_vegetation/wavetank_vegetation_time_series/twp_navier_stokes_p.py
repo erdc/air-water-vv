@@ -2,7 +2,7 @@ from proteus import *
 from proteus.default_p import *
 from tank3D import *
 from proteus.mprans import RANS2P
-from proteus.ib import RANS2P_IB
+from proteus.mprans import RANS2P_IB
 
 LevelModelType = RANS2P_IB.LevelModel
 if useOnlyVF:
