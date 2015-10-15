@@ -8,26 +8,38 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus import Gauges
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 from proteus import Comm
+from proteus import Context
 comm = Comm.init()
+opts=Context.Options([
+    ("wave_type", 'linear', "type of waves generated: 'linear', 'Nonlinear', 'single-peaked', 'double-peaked', 'time-series'"),
+#    ("depth", 0.457, "water depth [m]"),
+    ("wave_height", 3.7, "wave height [m]"),
+    ("peak_period", 12.0, "Peak period [s]"),
+    ("peak_period2", 6.0, "Second peak period (only used in double-peaked case)[s]"),
+    ("peak_wavelength",10.0,"Peak wavelength in [m]"),
+    ("parallel", False, "Run in parallel"),
+    ("gauges", True, "Enable gauges")])
+
 #wave generatorx
 windVelocity = (0.0,0.0,0.0)
-inflowHeightMean = 1.26
+depth = 7.0
 inflowVelocityMean = (0.0,0.0,0.0)
-period = 11.0
+period = opts.peak_period
 omega = 2.0*math.pi/period
-waveheight = 0.25*4.572
+waveheight = opts.wave_height
 amplitude = waveheight/ 2.0
-wavelength = 15.0/2.0
+wavelength = opts.peak_wavelength
 k = -2.0*math.pi/wavelength
+
 
 
 #  Discretization -- input options
 
-genMesh=False
+genMesh=True#False
 movingDomain=False
 applyRedistancing=True
 useOldPETSc=False
-useSuperlu=False
+useSuperlu=not opts.parallel
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
 spaceOrder = 1
 useHex     = False
@@ -78,7 +90,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 L = (float(6.0*wavelength), 2.0, 1.50)
 
-he = 0.5
+he = 1.0
 
 GenerationZoneLength = wavelength*1.0
 AbsorptionZoneLength= wavelength*2.0
@@ -164,7 +176,8 @@ if genMesh:
         #
         #debugging domain (quasi 2DV)
         xmin = 65.0
-        xmax = 105.0
+        xmax = 450.0
+        #xmax = 150.0
         ymin = 900.0
         ymax = 900 + he
         #
@@ -176,9 +189,9 @@ if genMesh:
         from proteus.Domain  import InterpolatedBathymetryDomain, PiecewiseLinearComplexDomain
         bathy_points = np.vstack((bathy[:,7],bathy[:,8],bathy[:,9])).transpose()
         domain2D = InterpolatedBathymetryDomain(vertices=[[xmin,ymin],[xmin,ymax],[xmax,ymax],[xmax,ymin]],
-                                              vertexFlags=[boundaryTags['right'],boundaryTags['right'],boundaryTags['left'],boundaryTags['left']],
+                                              vertexFlags=[boundaryTags['left'],boundaryTags['left'],boundaryTags['right'],boundaryTags['right']],
                                               segments=[[0,1],[1,2],[2,3],[3,0]],
-                                              segmentFlags=[boundaryTags['right'],boundaryTags['front'],boundaryTags['left'],boundaryTags['back']],
+                                              segmentFlags=[boundaryTags['left'],boundaryTags['back'],boundaryTags['right'],boundaryTags['front']],
                                               regions=[(0.5*(xmax+xmin),0.5*(ymax+ymin))],
                                               regionFlags=[1],
                                               name="frfDomain2D",
@@ -289,11 +302,16 @@ else:
     from proteus.Domain import  PiecewiseLinearComplexDomain
     domain = PiecewiseLinearComplexDomain(fileprefix="frfDomain3D")
     domain.boundaryTags = boundaryTags
+zmin = np.array(domain.vertices)[:,2].min()
+import pdb
+pdb.set_trace()
+inflowHeightMean = zmin + depth
+
 # Time stepping
 T=70.
 dt_fixed = 1.
-dt_init = min(0.001*dt_fixed,0.1*he)
-runCFL=0.9
+dt_init = min(0.001*dt_fixed,0.001*he)
+runCFL=0.33
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
@@ -380,7 +398,7 @@ nu_1  = 1.500e-5
 sigma_01 = 0.0
 
 # Gravity
-g = [0.0,0.0,-9.8]
+g = np.array([0.0,0.0,-9.8])
 
 # Initial condition
 waterLine_x =  2*L[0]
@@ -411,33 +429,101 @@ sigma = omega - k*inflowVelocityMean[0]
 
 from proteus import WaveTools as wt
 
+waveDir = np.array([-1,0,0])
+if opts.wave_type == 'linear':
+    waves = wt.MonochromaticWaves(period = period, # Peak period
+                                  waveHeight = waveheight, # Height
+                                  depth = depth, # Depth
+                                  mwl = inflowHeightMean, # Sea water level
+                                  waveDir = waveDir, # waveDirection
+                                  g = g, # Gravity vector, defines the vertical
+                                  waveType="Linear")
+elif opts.wave_type == 'Nonlinear':
+    waves = wt.MonochromaticWaves(period = period, # Peak period
+                                  waveHeight = waveheight, # Height
+                                  wavelength = wavelength,
+                                  depth = depth, # Depth
+                                  mwl = inflowHeightMean, # Sea water level
+                                  waveDir = waveDir, # waveDirection
+                                  g = g, # Gravity vector, defines the vertical
+                                  waveType="Fenton",
+                                  Ycoeff = [0.04160592, #Surface elevation Fourier coefficients for non-dimensionalised solution
+                                       0.00555874,
+                                       0.00065892,
+                                       0.00008144,
+                                       0.00001078,
+                                       0.00000151,
+                                       0.00000023,
+                                       0.00000007],
+                                  Bcoeff = [0.05395079,
+                                       0.00357780,
+                                       0.00020506,
+                                       0.00000719,
+                                       -0.00000016,
+                                       -0.00000005,
+                                       0.00000000,
+                                       0.00000000])
+elif opts.wave_type == 'single-peaked':
+    waves = wt.RandomWaves( Tp = period, # Peak period
+                            Hs = waveheight, # Height
+                            d = depth, # Depth
+                            fp = 1./period, #peak Frequency
+                            bandFactor = 2.0, #fmin=fp/Bandfactor, fmax = Bandfactor * fp
+                            N = 101, #No of frequencies for signal reconstruction
+                            mwl = inflowHeightMean, # Sea water level
+                            waveDir = waveDir, # waveDirection
+                            g = g, # Gravity vector, defines the vertical
+                            gamma=3.3,
+                            spec_fun = wt.JONSWAP)
+elif opts.wave_type == 'double-peaked':
+    waves = wt.DoublePeakedRandomWaves( Tp = period, # Peak period
+                                        Hs = waveheight, # Height
+                                        d = depth, # Depth
+                                        fp = 1./period, #peak Frequency
+                                        bandFactor = 2.0, #fmin=fp/Bandfactor, fmax = Bandfactor * fp
+                                        N = 101, #No of frequencies for signal reconstruction
+                                        mwl = inflowHeightMean, # Sea water level
+                                        waveDir = waveDir, # waveDirection
+                                        g = g, # Gravity vector, defines the vertical
+                                        gamma=10.0,
+                                        spec_fun = wt.JONSWAP,
+                                        Tp_2 = opts.peak_period2)
+elif  opts.wave_type == 'time-series':
+    tseries = wt.timeSeries(rec_direct = True,
+                            timeSeriesFile= "Duck_series.txt",
+                            skiprows = 0,
+                            d =h, #Need to set the depth
+                            Npeaks = 1, #Dummy
+                            bandFactor = [2.0], #Dummy
+                            peakFrequencies = [1.0],#Dummy
+                            N = 32,          #Dummy
+                            Nwaves = 20, # Dummy
+                            mwl =inflowHeightMean,        #mean water level
+                            waveDir = waveDir,
+                            g = np.array(g)         #accelerationof gravity
+                        )
 
-tseries = wt.timeSeries(timeSeriesFile= "Duck_series.txt",
-                     skiprows = 0,
-                     d =h, #Need to set the depth
-                     Npeaks = 1, #Dummy
-                     bandFactor = [2.0], #Dummy
-                     peakFrequencies = [1.0],#Dummy
-                     N = 32,          #Dummy
-                     Nwaves = 20, # Dummy
-                     mwl =inflowHeightMean,        #mean water level
-                     waveDir = np.array([-1,0,0]),
-                     g = np.array(g)         #accelerationof gravity
-                     )
 
 
 
+if  opts.wave_type == 'time-series':
+    def waveHeight(x,t):
+        return inflowHeightMean + tseries.reconstruct_direct(0.,x[1],x[2],t,64)*ramp(t)#+ tseries
 
+    def waveVelocity_u(x,t):
+        return  tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","x")*ramp(t)#+ tseries
 
-def waveHeight(x,t):
-    return inflowHeightMean + tseries.reconstruct_direct(0.,x[1],x[2],t,64)*ramp(t)#+ tseries
-
-def waveVelocity_u(x,t):
-    return  tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","x")*ramp(t)#+ tseries
-
-def waveVelocity_w(x,t):
-    return  tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","z")*ramp(t)#+ tseries
-
+    def waveVelocity_w(x,t):
+        return  tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","z")*ramp(t)#+ tseries
+else:
+    def waveHeight(x,t):
+        return inflowHeightMean + waves.eta(x[0],x[1],x[2],t)
+    def waveVelocity_u(x,t):
+        return waves.u(x[0],x[1],x[2],t,"x")
+    def waveVelocity_v(x,t):
+        return waves.u(x[0],x[1],x[2],t,"y")
+    def waveVelocity_w(x,t):
+        return waves.u(x[0],x[1],x[2],t,"z")
 
 #solution variables
 
