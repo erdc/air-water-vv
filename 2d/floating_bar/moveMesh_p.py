@@ -20,11 +20,6 @@ smTypes[1,1] = 0.3    ##nu
 
 LevelModelType = MoveMesh.LevelModel
 coefficients = MoveMesh.Coefficients(nd=ct.nd,
-                                     hullMass=bar_mass,
-				     hullCG=bar_cg,
-				     hullInertia=bar_inertia,
-				     linConstraints=(1,1,1),
-				     angConstraints=(1,1,1),
 				     V_model=1,modelType_block=smFlags,
 				     modelParams_block=smTypes,meIndex=0)
 
