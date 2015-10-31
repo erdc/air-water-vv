@@ -79,7 +79,7 @@ he = (bar_height)/10.0 #coarse grid
 he *=(0.5)**opts.refinement_level
 genMesh=opts.gen_mesh
 
-boundaries = { 'bottom', 'front', 'right', 'back', 'left', 'top', 'obstacle'}
+boundaries = [ 'bottom', 'front', 'right', 'back', 'left', 'top', 'obstacle' ]
 boundaryTags = dict([(key,i+1) for (i,key) in enumerate(boundaries)])
 
 faceMap = { 'left'     : [1],
