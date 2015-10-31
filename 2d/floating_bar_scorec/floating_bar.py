@@ -98,8 +98,8 @@ for boundary in boundaries:
 domain = Domain.PUMIDomain(dim=2)
 domain.faceList = faceList
 
-adaptMesh = False
-adaptMesh_nSteps = 10
+adaptMesh = True
+adaptMesh_nSteps = 50
 adaptMesh_numIter = 2
 
 domain.PUMIMesh = MeshAdaptPUMI.MeshAdaptPUMI(hmax=he,hmin=he,
