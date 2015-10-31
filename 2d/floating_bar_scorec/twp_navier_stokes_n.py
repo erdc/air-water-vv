@@ -26,7 +26,7 @@ multilevelNonlinearSolver = NonlinearSolvers.Newton
 levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
-linearSmoother    = LinearSolvers.SimpleNavierStokes3D
+linearSmoother    = LinearSolvers.SimpleNavierStokes2D
 
 matrix = SparseMatrix
 
