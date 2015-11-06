@@ -11,14 +11,14 @@ from proteus import Comm
 from proteus import Context
 comm = Comm.init()
 opts=Context.Options([
-    ("wave_type", 'linear', "type of waves generated: 'linear', 'Nonlinear', 'single-peaked', 'double-peaked', 'time-series'"),
-#    ("depth", 0.457, "water depth [m]"),
-    ("wave_height", 3.7, "wave height [m]"),
-    ("peak_period", 12.0, "Peak period [s]"),
+    ("wave_type", 'single-peaked', "type of waves generated: 'linear', 'Nonlinear', 'single-peaked', 'double-peaked', 'time-series'"),
+    ("depth", 7.25, "water depth [m]"),
+    ("wave_height", 4.0, "wave height [m]"),
+    ("peak_period", 1.0/0.09, "Peak period [s]"),
     ("peak_period2", 6.0, "Second peak period (only used in double-peaked case)[s]"),
     ("peak_wavelength",10.0,"Peak wavelength in [m]"),
     ("parallel", False, "Run in parallel"),
-    ("gauges", True, "Enable gauges")])
+    ("gauges", False, "Enable gauges")])
 
 #wave generatorx
 windVelocity = (0.0,0.0,0.0)
@@ -175,7 +175,7 @@ if genMesh:
         ymax = 1000.0
         #
         #debugging domain (quasi 2DV)
-        xmin = 65.0
+        xmin = 425.0#65.0
         xmax = 450.0
         #xmax = 150.0
         ymin = 900.0
@@ -217,7 +217,7 @@ if genMesh:
         verticalEdges = {}
         nN_start = fineMesh.nodeArray.shape[0]
         nN = nN_start
-        zTop = fineMesh.nodeArray[:,2].max()+1.0
+        zTop = max(fineMesh.nodeArray[:,2].max(),fineMesh.nodeArray[:,2].min()+depth+2*waveheight)
         for nN_bottom, n,f in zip(range(nN_start), fineMesh.nodeArray, fineMesh.nodeMaterialTypes):
             if f > 0:
                 newNodes[nN] = (n[0],n[1],zTop)
@@ -303,8 +303,6 @@ else:
     domain = PiecewiseLinearComplexDomain(fileprefix="frfDomain3D")
     domain.boundaryTags = boundaryTags
 zmin = np.array(domain.vertices)[:,2].min()
-import pdb
-pdb.set_trace()
 inflowHeightMean = zmin + depth
 
 # Time stepping
@@ -464,7 +462,7 @@ elif opts.wave_type == 'Nonlinear':
                                        0.00000000,
                                        0.00000000])
 elif opts.wave_type == 'single-peaked':
-    waves = wt.RandomWaves( Tp = period, # Peak period
+    waves = wt.RandomWaves(
                             Hs = waveheight, # Height
                             d = depth, # Depth
                             fp = 1./period, #peak Frequency
@@ -476,7 +474,7 @@ elif opts.wave_type == 'single-peaked':
                             gamma=3.3,
                             spec_fun = wt.JONSWAP)
 elif opts.wave_type == 'double-peaked':
-    waves = wt.DoublePeakedRandomWaves( Tp = period, # Peak period
+    waves = wt.DoublePeakedRandomWaves(
                                         Hs = waveheight, # Height
                                         d = depth, # Depth
                                         fp = 1./period, #peak Frequency
