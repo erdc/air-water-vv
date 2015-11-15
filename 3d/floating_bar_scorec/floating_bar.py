@@ -10,6 +10,7 @@ from proteus.Profiling import logEvent
 from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
+from proteus.MeshAdaptPUMI import MeshAdaptPUMI
 
 from proteus import Context
 opts=Context.Options([
