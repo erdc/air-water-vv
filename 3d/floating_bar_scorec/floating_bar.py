@@ -103,10 +103,10 @@ domain.faceList = faceList
 
 adaptMesh = True
 adaptMesh_nSteps = 10
-adaptMesh_numIter = 2
+adaptMesh_numIter = 3
 
 domain.PUMIMesh = MeshAdaptPUMI.MeshAdaptPUMI(hmax=he,hmin=he,
-                                              numIter=3,sfConfig="farhad")
+                                              numIter=adaptMesh_numIter,sfConfig="farhad")
 domain.PUMIMesh.loadModelAndMesh("floating_bar_3d.dmg",
                                  "floating_bar_3d.smb")
 
