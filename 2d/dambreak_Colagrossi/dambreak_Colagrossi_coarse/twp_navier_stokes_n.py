@@ -63,4 +63,4 @@ useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
-auxiliaryVariables=[pointGauges,lineGauges]
+#auxiliaryVariables=[pointGauges,lineGauges]

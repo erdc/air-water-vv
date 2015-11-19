@@ -1,6 +1,6 @@
 from math import *
 from proteus import Domain
-from proteus.Gauges import PointGauges, LineGauges, LineGauges_phi
+#from proteus.Gauges import PointGauges, LineGauges
 
 import proteus.MeshTools
 from proteus.default_n import *
@@ -39,7 +39,7 @@ if useMetrics not in [0.0, 1.0]:
     print "INVALID: useMetrics"
     sys.exit()
 
-#  Discretization   
+#  Discretization
 nd = 2
 if spaceOrder == 1:
     hFactor = 1.0
@@ -66,7 +66,7 @@ elif spaceOrder == 2:
 #L = (0.584,0.350)
 L = (3.22, 1.8)
 he = L[0] / float(4 * Refinement - 1)
-#he*=0.5
+he*=0.5
 #he*=0.5
 #he*=0.5
 #he*=0.5
@@ -80,14 +80,14 @@ structured = False
 
 
 # new style PointGauges
-pointGauges = PointGauges(gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))), (('p',), ((0.5, 0.5, 0),))),
-                          activeTime=(0, 0.5),
-                          sampleRate=0,
-                          fileName='combined_gauge_0_0.5_sample_all.csv')
+# pointGauges = PointGauges(gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))), (('p',), ((0.5, 0.5, 0),))),
+#                           activeTime=(0, 0.5),
+#                           sampleRate=0,
+#                           fileName='combined_gauge_0_0.5_sample_all.csv')
 
-lineGauges = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825': ((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))}, linePoints=20)
-#'lineGauge_x/H=1.653':((0.99,0.0,0.0),(0.99,1.8,0.0))
-lineGauges_phi = LineGauges_phi(lineGauges.endpoints, linePoints=20)
+# lineGauges = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825': ((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))}, linePoints=20)
+# #'lineGauge_x/H=1.653':((0.99,0.0,0.0),(0.99,1.8,0.0))
+# lineGauges_phi = LineGauges_phi(lineGauges.endpoints, linePoints=20)
 
 if useHex:
     nnx = 4 * Refinement + 1
@@ -124,17 +124,17 @@ else:
         #            vertices.append(gaugeCoordinates)
         #            vertexFlags.append(pointGauges.flags[gaugeName])
 
-        for gaugeName, gaugeLines in lineGauges.linepoints.iteritems():
-            for gaugeCoordinates in gaugeLines:
-                vertices.append(gaugeCoordinates)
-                vertexFlags.append(lineGauges.flags[gaugeName])
+        # for gaugeName, gaugeLines in lineGauges.linepoints.iteritems():
+        #     for gaugeCoordinates in gaugeLines:
+        #         vertices.append(gaugeCoordinates)
+        #         vertexFlags.append(lineGauges.flags[gaugeName])
         domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
                                                       vertexFlags=vertexFlags,
                                                       segments=segments,
                                                       segmentFlags=segmentFlags,
                                                       regions=regions,
                                                       regionFlags=regionFlags)
-        #go ahead and add a boundary tags member 
+        #go ahead and add a boundary tags member
         domain.boundaryTags = boundaryTags
         domain.writePoly("mesh")
         domain.writePLY("mesh")
@@ -143,8 +143,8 @@ else:
 
 logEvent("""Mesh generated using: tetgen -%s %s""" % (triangleOptions, domain.polyfile + ".poly"))
 # Time stepping
-T = 3.0
-dt_fixed = 0.01
+T = 5.0#3.0
+dt_fixed = 0.1
 dt_init = min(0.1 * dt_fixed, 0.001)
 runCFL = 0.9
 nDTout = int(round(T / dt_fixed))
@@ -169,7 +169,7 @@ if useMetrics:
     epsFact_viscosity = epsFact_curvature = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = \
         epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 0.1
+    epsFact_consrv_diffusion = 10.0
     redist_Newton = True
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True  #False
@@ -208,16 +208,16 @@ else:
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.0
 
-ns_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-vof_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-ls_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-rd_nl_atol_res = max(1.0e-10, 0.005 * he)
-mcorr_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-kappa_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-dissipation_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
+ns_nl_atol_res = max(1.0e-10, 0.01 * he ** 2)
+vof_nl_atol_res = max(1.0e-10, 0.01 * he ** 2)
+ls_nl_atol_res = max(1.0e-10, 0.01 * he ** 2)
+rd_nl_atol_res = max(1.0e-10, 0.05 * he)
+mcorr_nl_atol_res = max(1.0e-10, 0.01 * he ** 2)
+kappa_nl_atol_res = max(1.0e-10, 0.01 * he ** 2)
+dissipation_nl_atol_res = max(1.0e-10, 0.01 * he ** 2)
 
 #turbulence
-ns_closure = 2  #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure = 0  #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
@@ -254,4 +254,3 @@ def signedDistance(x):
             return phi_x
         else:
             return sqrt(phi_x ** 2 + phi_z ** 2)
-
