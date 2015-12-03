@@ -15,7 +15,10 @@ domain = Domain.PlanarStraightLineGraphDomain()
 tank_dim = [58.0, 1.26]
 y1=0.06
 y2=0.66
-b_or = np.array([[0., -1.], [1., 0.], [0., 1.], [-1., 0.]])
+b_or = {'bottom': [0., -1.],
+        'right': [1., 0.],
+        'top': [0., 1.],
+        'left': [-1., 0.],}
 boundaryTags = {'bottom': 1,
                 'right': 2,
                 'top': 3,
@@ -77,7 +80,7 @@ period=1.43
 waterLevel = 0.86
 Ycoeff=[0.08448147, 0.00451131, 0.00032646, 0.00002816,
          0.00000267, 0.00000027, 0.00000003, 0.00000001]
-Bcoeff=B = [0.08677594, 0.00070042, -0.00001289,
+Bcoeff=[0.08677594, 0.00070042, -0.00001289,
             0.00000006, 0.00000001]
 waveinput=MonochromaticWaves(period=period,waterLevel=depth,g=g,waveType="Linear",Ycoeff = Ycoeff, Bcoeff = Bcoeff)
 
@@ -87,15 +90,25 @@ waveinput=MonochromaticWaves(period=period,waterLevel=depth,g=g,waveType="Linear
 from proteus import Gauges
 
 # ----- Output Gauges ----- #
-linear_output=lineGauges(gauges=((('u', 'v'), (((20.04, 1.26), (20.04, 0.66)),
+line_output=LineGauges(gauges=((('u', 'v'), (((20.04, 1.26), (20.04, 0.66)),
                                                ((30.04, 1.26), (30.04, 0.66)),
                                                ((36.04, 1.26), (36.04, 0.66)))),
                                  (('p'), (((20.04, 1.26), (20.04, 0.66)),
                                           ((30.04, 1.26), (30.04, 0.66)),
                                           ((36.04, 1.26), (36.04, 0.66)))),
-                                 ('HH'), (((20.04, 1.26), (20.04, 0.66)),
-                                          ((30.04, 1.26), (30.04, 0.66)),
-                                          ((36.04, 1.26), (36.04, 0.66)))),))
+                                 ),
+                         activeTime=(0, 71.5),
+                         sampleRate=1/dt_fixed,
+                         filename='line_output_u,v_p.csv')
+                         
+                         
+integral_output=LineIntegralGauges(gauges=((('vof'), (((20.04, 1.26), (20.04, 0.66)),
+                                               ((30.04, 1.26), (30.04, 0.66)),
+                                               ((36.04, 1.26), (36.04, 0.66)))),
+                                           ),
+                         activeTime=(0, 71.5),
+                         sampleRate=1/dt_fixed,
+                         filename='integral_output_vof.csv')
 
 
 
