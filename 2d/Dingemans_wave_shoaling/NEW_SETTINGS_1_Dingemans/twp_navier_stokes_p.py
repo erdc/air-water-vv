@@ -125,9 +125,9 @@ class PerturbedSurface_p:
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
         if signedDistance(x) < 0:
-            return -(L[1] - self.waterLevel)*rho_1*g[1] - (self.waterLevel - x[1])*rho_0*g[1]
+            return -(tank_dimL[1] - self.waterLevel)*rho_1*g[1] - (self.waterLevel - x[1])*rho_0*g[1]
         else:
-            return -(L[1] - self.waterLevel)*rho_1*g[1]
+            return -(tank+dimL[1] - self.waterLevel)*rho_1*g[1]
 
 class AtRest:
     def __init__(self):
