@@ -357,47 +357,7 @@ elif useRANS == 2:
 waterLine_x = 2*tank_dim[0]
 waterLine_z = inflowHeightMean
 
-"""
-sigma = omega - k*inflowVelocityMean[0]
-h = waterLevel # - transect[0][1] if lower left hand corner is not at z=0
 
-def waveHeight(t):
-    
-   Y =  [0.08448147, #Surface elevation Fourier coefficients for non-dimensionalised solution
-         0.00451131,
-         0.00032646,
-         0.00002816,
-         0.00000267,
-         0.00000027,
-         0.00000003,    
-         0.00000001] 
-  
-
-   waterDepth = inflowHeightMean 
-   for i in range(0,int(len(Y))):  
-       waterDepth += Y[i]*cos((i+1)*theta(t))/k
-   return waterDepth
- 
-B = [0.08677594,
-     0.00070042,
-    -0.00001289,
-     0.00000006,     
-     0.00000001]  
- 
-def waveVelocity_u(t):
-   wu=0
-   for i in range(0,int(len(B))): 
-     wu += sqrt(abs(g[1])/k)*(i+1)*B[i]*cosh((i+1)*k*(z()+h))/cosh((i+1)*k*h)*cos((i+1)*theta(t))
-    
-   return wu
-
-def waveVelocity_v(t):
-   wv=0
-   for i in range(0,int(len(B))): 
-     wv += sqrt(abs(g[1])/k)*(i+1)*B[i]*sinh((i+1)*k*(z()+h))/cosh((i+1)*k*h)*sin((i+1)*theta(t)) 
-
-   return wv
-"""
 
 
 Vcomp=waveinput.u(x,y,z,t)
