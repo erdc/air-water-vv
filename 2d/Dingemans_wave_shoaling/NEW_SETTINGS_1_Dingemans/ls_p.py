@@ -28,6 +28,8 @@ advectiveFluxBoundaryConditions = {}
 
 diffusiveFluxBoundaryConditions = {0: {}}
 
+
+
 class PHI_IC:
     def uOfXT(self, x, t):
         return x[nd-1] - ct.waterLevel

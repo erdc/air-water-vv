@@ -135,8 +135,7 @@ dt_init = min(0.1*dt_fixed,0.001)
 T = 50*period
 nDTout= int(round(T/dt_fixed))
 runCFL = 0.9
-tnList = np.array([0.0,dt_init]+[i*dt_fixed for i in range(1,nDTout+1)]) 
-t=[tnList]
+
 
 
 # ----- WAVE input ----- #
@@ -211,6 +210,8 @@ nLayersOfOverlapForParallel = 0
 
 quad_order = 3
 
+
+
 #----------------------------------------------------
 # Boundary conditions and other flags
 #----------------------------------------------------
@@ -278,6 +279,7 @@ elif spaceOrder == 2:
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
 
+        
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
@@ -336,6 +338,7 @@ else:
     dissipation_lag_shockCapturing = True#False
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
+
     
 
 ns_nl_atol_res = max(1.0e-10,0.001*he**2)
@@ -345,6 +348,8 @@ rd_nl_atol_res = max(1.0e-10,0.005*he)
 mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
+
+
 
 #turbulence
 ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -357,13 +362,10 @@ elif useRANS == 2:
 waterLine_x = 2*tank_dim[0]
 waterLine_z = inflowHeightMean
 
-"""
-sigma = omega - k*inflowVelocityMean[0]
-h = waterLevel # - transect[0][1] if lower left hand corner is not at z=0
 
-def waveHeight(t):
-    
-   Y =  [0.08448147, #Surface elevation Fourier coefficients for non-dimensionalised solution
+
+def waveHeight(x,t):
+   Y =  [0.08448147,    #Surface elevation Fourier coefficients for non-dimensionalised solution
          0.00451131,
          0.00032646,
          0.00002816,
@@ -371,43 +373,19 @@ def waveHeight(t):
          0.00000027,
          0.00000003,    
          0.00000001] 
-  
-
    waterDepth = inflowHeightMean 
    for i in range(0,int(len(Y))):  
-       waterDepth += Y[i]*cos((i+1)*theta(t))/k
+       waterDepth += Y[i]*cos((i+1)*theta(x,t))/k
    return waterDepth
- 
-B = [0.08677594,
-     0.00070042,
-    -0.00001289,
-     0.00000006,     
-     0.00000001]  
- 
-def waveVelocity_u(t):
-   wu=0
-   for i in range(0,int(len(B))): 
-     wu += sqrt(abs(g[1])/k)*(i+1)*B[i]*cosh((i+1)*k*(z()+h))/cosh((i+1)*k*h)*cos((i+1)*theta(t))
-    
-   return wu
-
-def waveVelocity_v(t):
-   wv=0
-   for i in range(0,int(len(B))): 
-     wv += sqrt(abs(g[1])/k)*(i+1)*B[i]*sinh((i+1)*k*(z()+h))/cosh((i+1)*k*h)*sin((i+1)*theta(t)) 
-
-   return wv
-"""
 
 
-Vcomp=waveinput.u(x,y,z,t)
-U=Vcomp
-   
+def wavePhi(x,t):
+    return x[1] - waveHeight(x,t)
 
 
 # ----- BOUNDARY CONDITIONS ----- #
 
 tank.BC.top.setOpenAir()
-tank.BC.left.setTwoPhaseVelocityInlet(U=U, waterLevel=waterLevel, vert_axis=-1, air=1., water=0.)
+tank.BC.left.MonochromaticWaveBoundary(waveinput)
 tank.BC.bottom.setNoSlip()
 tank.BC.right.reset()

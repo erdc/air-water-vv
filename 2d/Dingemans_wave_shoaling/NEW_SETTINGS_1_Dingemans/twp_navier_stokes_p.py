@@ -4,12 +4,14 @@ import numpy as np
 from proteus import Context
 ct = Context.get()
 
+
 domain = ct.domain
 nd = domain.nd
 
 genMesh = ct.genMesh
 movingDomain = ct.movingDomain
 T = ct.T  # might not be necessary
+
 
 LevelModelType = RANS2P.LevelModel
 if ct.useOnlyVF:
@@ -29,6 +31,7 @@ else:
     Closure_0_model = None
     Closure_1_model = None
 
+    
 # for absorption zones (defined as regions)
 # (!) should be done with regionFlags but all regions have different flags so far
 porosityTypes = np.ones(len(ct.domain.regions)+1)
@@ -106,9 +109,10 @@ if nd == 3:
     advectiveFluxBoundaryConditions[3] = lambda x, flag: domain.bc[flag].w_advective
     diffusiveFluxBoundaryConditions[3] = {3: lambda x, flag: domain.bc[flag].w_diffusive}
 
+    
 def signedDistance(x):
-    phi_x = x[0]-waterLine_x
-    phi_z = x[1]-waterLine_z 
+    phi_x = x[0]-ct.waterLine_x
+    phi_z = x[1]-ct.waterLine_z 
     if phi_x < 0.0:
         if phi_z < 0.0:
             return max(phi_x,phi_z)
@@ -125,9 +129,9 @@ class PerturbedSurface_p:
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
         if signedDistance(x) < 0:
-            return -(tank_dimL[1] - self.waterLevel)*rho_1*g[1] - (self.waterLevel - x[1])*rho_0*g[1]
+            return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1] - (self.waterLevel - x[1])*ct.rho_0*ct.g[1]
         else:
-            return -(tank+dimL[1] - self.waterLevel)*rho_1*g[1]
+            return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1]
 
 class AtRest:
     def __init__(self):
@@ -136,6 +140,6 @@ class AtRest:
         return 0.0
 
 
-initialConditions = {0:PerturbedSurface_p(waterLine_z),
+initialConditions = {0:PerturbedSurface_p(ct.waterLine_z),
                      1:AtRest(),
                      2:AtRest()}
