@@ -81,7 +81,7 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       regions=regions, regionFlags=regionFlags,
                       boundaryTags=boundaryTags, boundaryOrientations=b_or)
 
-abszone=tank.setAbsorptionZones(indice=[0, 2], epsFact_solid=L_leftSpo)
+abszone=tank.setAbsorptionZones(indice=[0, 2], epsFact_solid=L_leftSpo/2)
 
 
 
@@ -171,8 +171,8 @@ line_output=ga.LineGauges(gauges=((('u', 'v'), (((0., 1.26), (0., 0.)),
                                            ((30.04, 1.26), (30.04, 0.66)),
                                            ((36.04, 1.26), (36.04, 0.66))),
                                    ),
-                                  ),
-                          activeTime=(0, 71.5),
+                                  ), 
+                          activeTime = (0., 71.5),
                           sampleRate=1/dt_fixed,
                           fileName='line_gauges.csv')
                          
@@ -181,7 +181,7 @@ integral_output=ga.LineIntegralGauges(gauges=((('vof'), (((20.04, 1.26), (20.04,
                                                          ((30.04, 1.26), (30.04, 0.66)),
                                                          ((36.04, 1.26), (36.04, 0.66)))),
                                              ),
-                                      activeTime=(0, 71.5),
+                                      activeTime = (0., 71.5),
                                       sampleRate=1/dt_fixed,
                                       fileName='line_integral_gauges.csv')
 
