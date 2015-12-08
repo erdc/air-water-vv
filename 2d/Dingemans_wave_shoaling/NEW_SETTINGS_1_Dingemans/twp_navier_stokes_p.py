@@ -50,12 +50,12 @@ for auxvar in ct.domain.auxiliaryVariables:
                 auxvar_dragAlphaTypes[:] = auxvar.shape.dragAlphaTypes
                 auxvar_dragBetaTypes[:] = auxvar.shape.dragBetaTypes
                 auxvar_epsFact_solid[:] = auxvar.shape.epsFact_solid
-            i0 = auxvar.shape._snr+1
-            i1 = i0 + len(auxvar.shape.regions)
-            porosityTypes[i0:i1] = auxvar_porosityTypes
-            dragAlphaTypes[i0:i1] = auxvar_dragAlphaTypes
-            dragBetaTypes[i0:i1] = auxvar_dragBetaTypes
-            epsFact_solid[i0:i1] = auxvar_epsFact_solid
+                i0 = auxvar.shape._snr+1
+                i1 = i0 + len(auxvar.shape.regions)
+                porosityTypes[i0:i1] = auxvar_porosityTypes
+                dragAlphaTypes[i0:i1] = auxvar_dragAlphaTypes
+                dragBetaTypes[i0:i1] = auxvar_dragBetaTypes
+                epsFact_solid[i0:i1] = auxvar_epsFact_solid
 if not np.any(dragAlphaTypes):  # checking if all values are 0.
     porosityTypes = None
     dragAlphaTypes = None
@@ -143,3 +143,4 @@ class AtRest:
 initialConditions = {0:PerturbedSurface_p(ct.waterLine_z),
                      1:AtRest(),
                      2:AtRest()}
+auxiliaryVariables = ct.domain.auxiliaryVariables

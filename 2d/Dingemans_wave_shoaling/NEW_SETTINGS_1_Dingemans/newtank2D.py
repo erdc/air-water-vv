@@ -3,6 +3,13 @@ from proteus import SpatialTools as st
 import ode
 from math import *
 import numpy as np
+from proteus import MeshTools, AuxiliaryVariables
+from proteus.Profiling import logEvent
+from proteus.default_n import *
+from proteus.ctransportCoefficients import smoothedHeaviside
+from proteus.ctransportCoefficients import smoothedHeaviside_integral
+from proteus import Gauges as ga
+from proteus import WaveTools as wt
 
 
 # ----- DOMAIN ----- #
@@ -129,6 +136,7 @@ k = float(2.0*pi/wavelength)
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
+
 weak_bc_penalty_constant = 100
 dt_fixed = period/21.0
 dt_init = min(0.1*dt_fixed,0.001)
@@ -140,7 +148,6 @@ runCFL = 0.9
 
 # ----- WAVE input ----- #
 
-from proteus import WaveTools as wt
 
 waveinput = wt.MonochromaticWaves(period=period,
                                   waveHeight=waveHeight,
@@ -149,7 +156,7 @@ waveinput = wt.MonochromaticWaves(period=period,
                                   g=g,
                                   waveDir=waveDir,
                                   wavelength=wavelength,
-                                  waveType="Linear",
+                                  waveType="Fenton",
                                   Ycoeff = Ycoeff,
                                   Bcoeff = Bcoeff,
                                   )
@@ -159,7 +166,6 @@ waveinput = wt.MonochromaticWaves(period=period,
 
 # ----- Output Gauges ----- #
 
-from proteus import Gauges as ga
 
 line_output=ga.LineGauges(gauges=((('u', 'v'), (((0., 1.26), (0., 0.)),
                                                 ((20.04, 1.26), (20.04, 0.66)),
@@ -189,16 +195,6 @@ integral_output=ga.LineIntegralGauges(gauges=((('vof'), (((20.04, 1.26), (20.04,
 
 
 # ----- Mesh ----- #
-
-from math import *
-from proteus import MeshTools, AuxiliaryVariables
-import numpy
-import proteus.MeshTools
-from proteus import Domain
-from proteus.Profiling import logEvent
-from proteus.default_n import *
-from proteus.ctransportCoefficients import smoothedHeaviside
-from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 he = tank_dim[0]/2900
 domain.writePoly("mesh")
@@ -386,6 +382,8 @@ def wavePhi(x,t):
 # ----- BOUNDARY CONDITIONS ----- #
 
 tank.BC.top.setOpenAir()
-tank.BC.left.MonochromaticWaveBoundary(waveinput)
+tank.BC.left.MonochromaticWaveBoundary(waveinput, waterLevel=waterLevel)
 tank.BC.bottom.setNoSlip()
 tank.BC.right.reset()
+
+
