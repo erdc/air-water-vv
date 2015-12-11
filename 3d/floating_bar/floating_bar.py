@@ -367,6 +367,8 @@ def near_callback(args, geom1, geom2):
         j = ode.ContactJoint(world, contactgroup, c)
         j.attach(geom1.getBody(), geom2.getBody())
 
+import ChRigidBar
+
 class RigidBar(AuxiliaryVariables.AV_base):
     def __init__(self,density=1.0,bar_center=(0.0,0.0,0.0),bar_dim=(1.0,1.0,1.0),barycenters=None,he=1.0,cfl_target=0.9,dt_init=0.001):
         self.dt_init = dt_init
@@ -422,8 +424,17 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.bar_dim = bar_dim
         self.last_F = np.zeros(3,'d')
         self.last_M = np.zeros(3,'d')
+        self.chbar = ChRigidBar.RigidBar(bar_center=np.array(bar_center),
+                                         bar_dim=np.array(bar_dim),
+                                         L=np.array(L),
+                                         mass = self.M.mass,
+                                         g=np.array(g),
+                                         inertia=np.array(self.M.I),
+                                         free_x = np.array(opts.free_x),
+                                         free_r = np.array(opts.free_r))
 
     def attachModel(self,model,ar):
+        self.chbar.attachModel(model,ar)
         self.model=model
         self.ar=ar
         self.writer = Archiver.XdmfWriter()
@@ -446,6 +457,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.last_F = None
         self.calculate()
     def calculate(self):
+        self.chbar.calculate()
         import  numpy as np
         from numpy.linalg import inv
         import copy
