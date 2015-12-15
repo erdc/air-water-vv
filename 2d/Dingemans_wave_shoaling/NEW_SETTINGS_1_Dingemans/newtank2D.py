@@ -1,15 +1,19 @@
-from proteus import Domain
-from proteus import SpatialTools as st
-import ode
 from math import *
 import numpy as np
+
+from proteus import Domain
+from proteus import SpatialTools as st
+
 from proteus import MeshTools, AuxiliaryVariables
+
+from proteus import Gauges as ga
+from proteus import WaveTools as wt
+
 from proteus.Profiling import logEvent
 from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
-from proteus import Gauges as ga
-from proteus import WaveTools as wt
+
 
 
 # ----- DOMAIN ----- #
@@ -17,17 +21,41 @@ from proteus import WaveTools as wt
 domain = Domain.PlanarStraightLineGraphDomain()
 
 
+
+# ----- WAVE CONDITIONS ----- #
+period=1.43
+waterLevel = 0.86
+Ycoeff=[0.08448147, 0.00451131, 0.00032646, 0.00002816,
+         0.00000267, 0.00000027, 0.00000003, 0.00000001]
+Bcoeff=[0.08677594, 0.00070042, -0.00001289,
+            0.00000006, 0.00000001]
+waveDir=np.array([1, 0., 0.])
+mwl=waterLevel
+waveHeight=np.array(Ycoeff)
+omega = float(2.0*pi/period)
+wavelength = 8.12
+inflowHeightMean=waterLevel
+inflowVelocityMean =np.array([0.,0.,0.])
+windVelocity = np.array([0.,0.,0.])
+k = float(2.0*pi/wavelength)
+
+#---------Domain Dimension
+nd = 2
+
+
 # ----- SHAPES ----- #
 
 tank_dim = [58.0, 1.26]
 y1=0.06
 y2=0.66
-L_leftSpo = 1.5
-L_rightSpo = 1.5
-b_or = {'bottom': [0., -1.],
-        'right': [1., 0.],
-        'top': [0., 1.],
-        'left': [-1., 0.],
+L_leftSpo = wavelength
+L_rightSpo = wavelength/2
+
+
+b_or = {'bottom': [0., -1.,0.],
+        'right': [1., 0.,0.],
+        'top': [0., 1.,0.],
+        'left': [-1., 0.,0.],
         'sponge': None,
         }
 boundaryTags = {'bottom': 1,
@@ -36,6 +64,8 @@ boundaryTags = {'bottom': 1,
                 'left': 4,
                 'sponge': 5,
                }
+
+
 vertices=[[0.0,0.0],#0
           [9.22,0.0],#1
           [10.42,y1],#2
@@ -48,13 +78,14 @@ vertices=[[0.0,0.0],#0
           [tank_dim[0],0.0],#9
           [tank_dim[0],tank_dim[1]],#10
           [0.0,tank_dim[1]],#11
-          [L_leftSpo,0.0],#12
-          [L_leftSpo,y2],#13
-          [tank_dim[0]-L_rightSpo,0.0],#14
-          [tank_dim[0]-L_rightSpo,y2],#15
+          [0.0-L_leftSpo,0.0],#12
+          [0.0-L_leftSpo,tank_dim[1]],#13
+          [tank_dim[0]+L_rightSpo,0.0],#14
+          [tank_dim[0]+L_rightSpo,tank_dim[1]],#15
          ]
+vertexFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 3, 1, 3,
+                     ])
 
-vertexFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 3, 1, 3])
 
 segments=[[0,1],
           [1,2],
@@ -68,19 +99,23 @@ segments=[[0,1],
           [9,10],
           [10,11],
           [11,0],
-          [12,13],
+          [11,13],
+          [13,12],
+          [12,0],
+          [9,14],
           [14,15],
+          [15,10],
          ]
+segmentFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 3, 5, 3, 4, 1, 1, 2, 3,
+                      ])
 
-segmentFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 5, 5])
-regions=[ [ 0.1*tank_dim[0] , 0.1*tank_dim[1] ],
-          [ 0.5*tank_dim[0] , y2+0.1 ],
-          [0.95*tank_dim[0] , 0.95*tank_dim[1] ] ]
-regionFlags=np.array([1,2,3])
 
-left = right = False
-if L_leftSpo is not None: left = True
-if L_rightSpo is not None: right = True
+regions=[ [ 0.1*tank_dim[0]-L_leftSpo , 0.1*tank_dim[1] ],
+          [ 0.5*tank_dim[0] , tank_dim[1]*0.95 ],
+          [0.95*tank_dim[0]+L_rightSpo, 0.95*tank_dim[1] ],
+        ]
+regionFlags=np.array([1,2,3,
+                     ])
 
 
 tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
@@ -88,8 +123,8 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       regions=regions, regionFlags=regionFlags,
                       boundaryTags=boundaryTags, boundaryOrientations=b_or)
 
-abszone=tank.setAbsorptionZones(indice=[0, 2], epsFact_solid=L_leftSpo/2)
 
+#tank.setAbsorptionZones(indice=2, epsFact_solid=L_rightSpo/2, sign=-1)
 
 
 ##########################################
@@ -104,45 +139,26 @@ nu_0  = 1.004e-6
 
 # Air
 rho_1 = 1.205
-nu_1  = 1.500e-5 
+nu_1  = 1.500e-5
 
 # Surface tension
 sigma_01 = 0.0
 
 # Gravity
-g = np.array([0.0,-9.8])
-
-
-
-# ----- WAVE CONDITIONS ----- #
-period=1.43
-waterLevel = 0.86
-Ycoeff=[0.08448147, 0.00451131, 0.00032646, 0.00002816,
-         0.00000267, 0.00000027, 0.00000003, 0.00000001]
-Bcoeff=[0.08677594, 0.00070042, -0.00001289,
-            0.00000006, 0.00000001]
-waveDir=np.array([1, 0])
-mwl=0.
-waveHeight=np.array(Ycoeff)
-omega = float(2.0*pi/period)
-wavelength = 8.12
-inflowHeightMean=waterLevel
-inflowVelocityMean = (0.0,0.0)
-windVelocity = (0.0,0.0)
-k = float(2.0*pi/wavelength)
-
+g =np.array([0.,-9.8,0.])
 
 
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
 
-weak_bc_penalty_constant = 100
+weak_bc_penalty_constant = 10.0/nu_0
 dt_fixed = period/21.0
 dt_init = min(0.1*dt_fixed,0.001)
 T = 50*period
 nDTout= int(round(T/dt_fixed))
 runCFL = 0.9
+
 
 
 
@@ -163,7 +179,6 @@ waveinput = wt.MonochromaticWaves(period=period,
 
 
 
-
 # ----- Output Gauges ----- #
 
 
@@ -177,12 +192,12 @@ line_output=ga.LineGauges(gauges=((('u', 'v'), (((0., 1.26), (0., 0.)),
                                            ((30.04, 1.26), (30.04, 0.66)),
                                            ((36.04, 1.26), (36.04, 0.66))),
                                    ),
-                                  ), 
+                                  ),
                           activeTime = (0., 71.5),
                           sampleRate=1/dt_fixed,
                           fileName='line_gauges.csv')
-                         
-                         
+
+
 integral_output=ga.LineIntegralGauges(gauges=((('vof'), (((20.04, 1.26), (20.04, 0.66)),
                                                          ((30.04, 1.26), (30.04, 0.66)),
                                                          ((36.04, 1.26), (36.04, 0.66)))),
@@ -191,12 +206,15 @@ integral_output=ga.LineIntegralGauges(gauges=((('vof'), (((20.04, 1.26), (20.04,
                                       sampleRate=1/dt_fixed,
                                       fileName='line_integral_gauges.csv')
 
-
+domain.auxiliaryVariables+=[line_output, integral_output]
 
 
 # ----- Mesh ----- #
 
 he = tank_dim[0]/2900
+domain.Mesh.elementSize(he)
+st.buildDomain(domain)
+
 domain.writePoly("mesh")
 triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
@@ -208,36 +226,55 @@ quad_order = 3
 
 
 
+
 #----------------------------------------------------
 # Boundary conditions and other flags
 #----------------------------------------------------
-openTop = False
-openSides = False
-openEnd = True
-smoothBottom = False
-smoothObstacle = False
-movingDomain=False
+
+
 checkMass=False
 applyCorrection=True
 applyRedistancing=True
-freezeLevelSet=True
+freezeLevelSet=False
+
+
+# ----- BOUNDARY CONDITIONS ----- #
+
+tank.BC.top.setOpenAir()
+tank.BC.left.MonochromaticWaveBoundary(wave=waveinput, waterLevel=waterLevel)
+tank.BC.bottom.setNoSlip()
+tank.BC.right.setNoSlip()
+#tank.BC.top.setNoSlip()
+#tank.BC.left.setNoSlip()
+#tank.BC.right.setNoSlip()
+
+# -----  GENERATION ZONE  ----- #
+
+#tank.setGenerationZones(indice=0, epsFact_solid=L_leftSpo/2, sign=1, center_x=-L_leftSpo/4, waves=waveinput, windSpeed=windVelocity)
+
 
 
 #  Discretization -- input options
+
+
+useOnlyVF = False
+movingDomain=False
+useRANS = 0 # 0 -- None
+            # 1 -- K-Epsilon
+            # 2 -- K-Omega, 1998
+            # 3 -- K-Omega, 1988
+
 genMesh=True
 useOldPETSc=False
-useSuperlu = not True
+useSuperlu = False
+timeDiscretization='be' #'vbdf'#'be','flcbdf'
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
 applyCorrection=True
 useVF = 1.0
-useOnlyVF = False
-useRANS = 0 # 0 -- None
-            # 1 -- K-Epsilon
-            # 2 -- K-Omega, 1998
-            # 3 -- K-Omega, 1988
+
 # Input checks
 if spaceOrder not in [1,2]:
     print "INVALID: spaceOrder" + spaceOrder
@@ -252,7 +289,7 @@ if useMetrics not in [0.0, 1.0]:
     sys.exit()
 
 #  Discretization
-nd = 2
+
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
@@ -275,11 +312,12 @@ elif spaceOrder == 2:
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
 
-        
+
 
 # Numerical parameters
-ns_forceStrongDirichlet = False#True
+ns_forceStrongDirichlet = False #True
 backgroundDiffusionFactor=0.01
+"""fROM tRISTAN
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
@@ -307,6 +345,35 @@ if useMetrics:
     dissipation_lag_shockCapturing = True
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.5
+"""
+#FROM old settings of Dingemans case
+if useMetrics:
+    ns_shockCapturingFactor  = 0.5
+    ns_lag_shockCapturing = True
+    ns_lag_subgridError = True
+    ls_shockCapturingFactor  = 0.25
+    ls_lag_shockCapturing = True
+    ls_sc_uref  = 1.0
+    ls_sc_beta  = 1.0
+    vof_shockCapturingFactor = 0.25
+    vof_lag_shockCapturing = True
+    vof_sc_uref = 1.0
+    vof_sc_beta = 1.0
+    rd_shockCapturingFactor  = 0.25
+    rd_lag_shockCapturing = False
+    epsFact_density    = 3.0
+    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
+    epsFact_redistance = 0.33
+    epsFact_consrv_diffusion = 1.0
+    redist_Newton = False
+    kappa_shockCapturingFactor = 0.1
+    kappa_lag_shockCapturing = True#False
+    kappa_sc_uref = 1.0
+    kappa_sc_beta = 1.0
+    dissipation_shockCapturingFactor = 0.1
+    dissipation_lag_shockCapturing = True#False
+    dissipation_sc_uref = 1.0
+    dissipation_sc_beta = 1.0
 else:
     ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
@@ -335,7 +402,7 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-    
+
 
 ns_nl_atol_res = max(1.0e-10,0.001*he**2)
 vof_nl_atol_res = max(1.0e-10,0.001*he**2)
@@ -355,35 +422,34 @@ elif useRANS == 2:
     ns_closure == 4
 
 # Initial condition
-waterLine_x = 2*tank_dim[0]
+waterLine_x = 2*(tank_dim[0]+L_leftSpo+L_rightSpo)
 waterLine_z = inflowHeightMean
 
 
 
 def waveHeight(x,t):
-   Y =  [0.08448147,    #Surface elevation Fourier coefficients for non-dimensionalised solution
-         0.00451131,
-         0.00032646,
-         0.00002816,
-         0.00000267,
-         0.00000027,
-         0.00000003,    
-         0.00000001] 
-   waterDepth = inflowHeightMean 
-   for i in range(0,int(len(Y))):  
-       waterDepth += Y[i]*cos((i+1)*theta(x,t))/k
-   return waterDepth
+    waterDepth=waveinput.waterDepth(x[0], x[1], x[2], t)
+    return waterDepth
 
 
 def wavePhi(x,t):
-    return x[1] - waveHeight(x,t)
+    return x[1]- waveHeight(x,t)
 
 
-# ----- BOUNDARY CONDITIONS ----- #
-
-tank.BC.top.setOpenAir()
-tank.BC.left.MonochromaticWaveBoundary(waveinput, waterLevel=waterLevel)
-tank.BC.bottom.setNoSlip()
-tank.BC.right.reset()
+def waveVF(x,t):
+    return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
 
 
+def signedDistance(x):
+    phi_x = x[0]-waterLine_x
+    phi_z = x[1]-waterLine_z
+    if phi_x < 0.0:
+        if phi_z < 0.0:
+            return max(phi_x,phi_z)
+        else:
+            return phi_z
+    else:
+        if phi_z < 0.0:
+            return phi_x
+        else:
+            return sqrt(phi_x**2 + phi_z**2)
