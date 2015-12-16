@@ -31,36 +31,8 @@ else:
     Closure_0_model = None
     Closure_1_model = None
 
-    
-# for absorption zones (defined as regions)
-# (!) should be done with regionFlags but all regions have different flags so far
-porosityTypes = np.ones(len(ct.domain.regions)+1)
-dragAlphaTypes = np.zeros(len(ct.domain.regions)+1)
-dragBetaTypes = np.zeros(len(ct.domain.regions)+1)
-epsFact_solid = np.zeros(len(ct.domain.regions)+1)
-for auxvar in ct.domain.auxiliaryVariables:
-    if hasattr(auxvar.shape, 'regions'):
-        if auxvar.shape.regions is not None:
-            auxvar_porosityTypes = np.ones(len(auxvar.shape.regions))
-            auxvar_dragAlphaTypes = np.zeros(len(auxvar.shape.regions))
-            auxvar_dragBetaTypes = np.zeros(len(auxvar.shape.regions))
-            auxvar_epsFact_solid = np.zeros(len(auxvar.shape.regions))
-            if hasattr(auxvar.shape, 'porosityTypes'):
-                auxvar_porosityTypes[:] = auxvar.shape.porosityTypes
-                auxvar_dragAlphaTypes[:] = auxvar.shape.dragAlphaTypes
-                auxvar_dragBetaTypes[:] = auxvar.shape.dragBetaTypes
-                auxvar_epsFact_solid[:] = auxvar.shape.epsFact_solid
-                i0 = auxvar.shape._snr+1
-                i1 = i0 + len(auxvar.shape.regions)
-                porosityTypes[i0:i1] = auxvar_porosityTypes
-                dragAlphaTypes[i0:i1] = auxvar_dragAlphaTypes
-                dragBetaTypes[i0:i1] = auxvar_dragBetaTypes
-                epsFact_solid[i0:i1] = auxvar_epsFact_solid
-if not np.any(dragAlphaTypes):  # checking if all values are 0.
-    porosityTypes = None
-    dragAlphaTypes = None
-    dragBetaTypes = None
-    epsFact_solid = None
+
+
 
 coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
@@ -85,10 +57,10 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ct.ns_closure,
                                    movingDomain=ct.movingDomain,
-                                   porosityTypes=porosityTypes,
-                                   dragAlphaTypes=dragAlphaTypes,
-                                   dragBetaTypes=dragBetaTypes,
-                                   epsFact_solid=epsFact_solid,
+                                   porosityTypes=ct.domain.porosityTypes,
+                                   dragAlphaTypes=ct.domain.dragAlphaTypes,
+                                   dragBetaTypes=ct.domain.dragBetaTypes,
+                                   epsFact_solid=ct.domain.epsFact_solid,
                                    barycenters=ct.domain.barycenters)
 
 
@@ -109,26 +81,13 @@ if nd == 3:
     advectiveFluxBoundaryConditions[3] = lambda x, flag: domain.bc[flag].w_advective
     diffusiveFluxBoundaryConditions[3] = {3: lambda x, flag: domain.bc[flag].w_diffusive}
 
-    
-def signedDistance(x):
-    phi_x = x[0]-ct.waterLine_x
-    phi_z = x[1]-ct.waterLine_z 
-    if phi_x < 0.0:
-        if phi_z < 0.0:
-            return max(phi_x,phi_z)
-        else:
-            return phi_z
-    else:
-        if phi_z < 0.0:
-            return phi_x
-        else:
-            return sqrt(phi_x**2 + phi_z**2)
-    
+
+
 class PerturbedSurface_p:
     def __init__(self,waterLevel):
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
-        if signedDistance(x) < 0:
+        if ct.signedDistance(x) < 0:
             return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1] - (self.waterLevel - x[1])*ct.rho_0*ct.g[1]
         else:
             return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1]

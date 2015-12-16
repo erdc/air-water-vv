@@ -124,7 +124,7 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       boundaryTags=boundaryTags, boundaryOrientations=b_or)
 
 
-#tank.setAbsorptionZones(indice=2, epsFact_solid=L_rightSpo/2, sign=-1)
+tank.setAbsorptionZones(flags=1, epsFact_solid=L_rightSpo/2, sign=-1)
 
 
 ##########################################
@@ -250,7 +250,7 @@ tank.BC.right.setNoSlip()
 
 # -----  GENERATION ZONE  ----- #
 
-#tank.setGenerationZones(indice=0, epsFact_solid=L_leftSpo/2, sign=1, center_x=-L_leftSpo/4, waves=waveinput, windSpeed=windVelocity)
+tank.setGenerationZones(flags=3, epsFact_solid=L_leftSpo/2, sign=1, center_x=-L_leftSpo/4, waves=waveinput, windSpeed=windVelocity)
 
 
 

@@ -25,7 +25,7 @@ coefficients = NCLS.Coefficients(V_model=int(ct.movingDomain)+0,
 
 def getDBC_ls(x,flag):
     if flag == ct.boundaryTags['left']:
-        return wavePhi
+        return ct.wavePhi
     else:
         return None
 
@@ -40,6 +40,6 @@ diffusiveFluxBoundaryConditions = {0: {}}
 
 class PHI_IC:
     def uOfXT(self, x, t):
-        return x[nd-1] - ct.waterLevel
+        return ct.signedDistance(x)
 
 initialConditions = {0: PHI_IC()}
