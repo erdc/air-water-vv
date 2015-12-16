@@ -206,24 +206,16 @@ class cppChRigidBar
   {
     pos_last = bar->GetPos();
     A_last = bar->GetA();
-    //ChBody.h
-    //on the body
-    //    setPosition()//
-    //bar->SetPos(ChVector<>(dummy_pos));
-    //bar->SetPos_dt(ChVector<>(dummy_vel));
-    //  setLinearVel()
-    //  setTorque
-    //  setForce
     bar->Empty_forces_accumulators();
-    ChVector<> Fstar;
     bar->Accumulate_force(ChVector<double>(force[0]*free_x(0),
                                            force[1]*free_x(1),
                                            force[2]*free_x(2)),
-                          ChVector<>(0,0,0),true);
+                          pos_last,
+                          false);
     bar->Accumulate_torque(ChVector<double>(torque[0]*free_r(0),
                                             torque[1]*free_r(1),
                                             torque[2]*free_r(2)),
-                           true);
+                           false);
     msystem.DoStepDynamics(dt);
     pos = bar->GetPos();
     A = bar->GetA();
