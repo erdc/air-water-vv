@@ -102,4 +102,4 @@ class AtRest:
 initialConditions = {0:PerturbedSurface_p(ct.waterLine_z),
                      1:AtRest(),
                      2:AtRest()}
-auxiliaryVariables = ct.domain.auxiliaryVariables
+

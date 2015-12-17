@@ -124,9 +124,6 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       boundaryTags=boundaryTags, boundaryOrientations=b_or)
 
 
-tank.setAbsorptionZones(flags=1, epsFact_solid=L_rightSpo/2, sign=-1)
-
-
 ##########################################
 # Numerical Options and other parameters #
 ##########################################
@@ -179,36 +176,6 @@ waveinput = wt.MonochromaticWaves(period=period,
 
 
 
-# ----- Output Gauges ----- #
-
-
-line_output=ga.LineGauges(gauges=((('u', 'v'), (((0., 1.26), (0., 0.)),
-                                                ((20.04, 1.26), (20.04, 0.66)),
-                                                ((30.04, 1.26), (30.04, 0.66)),
-                                                ((36.04, 1.26), (36.04, 0.66))),
-                                   ),
-                                  (('p'), (((0., 1.26), (0., 0.)),
-                                           ((20.04, 1.26), (20.04, 0.66)),
-                                           ((30.04, 1.26), (30.04, 0.66)),
-                                           ((36.04, 1.26), (36.04, 0.66))),
-                                   ),
-                                  ),
-                          activeTime = (0., 71.5),
-                          sampleRate=1/dt_fixed,
-                          fileName='line_gauges.csv')
-
-
-integral_output=ga.LineIntegralGauges(gauges=((('vof'), (((20.04, 1.26), (20.04, 0.66)),
-                                                         ((30.04, 1.26), (30.04, 0.66)),
-                                                         ((36.04, 1.26), (36.04, 0.66)))),
-                                             ),
-                                      activeTime = (0., 71.5),
-                                      sampleRate=1/dt_fixed,
-                                      fileName='line_integral_gauges.csv')
-
-domain.auxiliaryVariables+=[line_output, integral_output]
-
-
 # ----- Mesh ----- #
 
 he = tank_dim[0]/2900
@@ -223,8 +190,6 @@ parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 
 quad_order = 3
-
-
 
 
 #----------------------------------------------------
@@ -248,9 +213,41 @@ tank.BC.right.setNoSlip()
 #tank.BC.left.setNoSlip()
 #tank.BC.right.setNoSlip()
 
-# -----  GENERATION ZONE  ----- #
+
+# -----  GENERATION ZONE & ABSORPTION ZONE  ----- #
 
 tank.setGenerationZones(flags=3, epsFact_solid=L_leftSpo/2, sign=1, center_x=-L_leftSpo/4, waves=waveinput, windSpeed=windVelocity)
+tank.setAbsorptionZones(flags=1, epsFact_solid=L_rightSpo/2, sign=-1)
+
+
+# ----- Output Gauges ----- #
+
+
+line_output=ga.LineGauges(gauges=((('u', 'v'), (((0., 1.26, 0.), (0., 0., 0.)),
+                                                ((20.04, 1.26, 0.), (20.04, 0.66, 0.)),
+                                                ((30.04, 1.26, 0.), (30.04, 0.66, 0.)),
+                                                ((36.04, 1.26, 0.), (36.04, 0.66, 0.))),
+                                   ),
+                                  (('p'), (((0., 1.26, 0.), (0., 0., 0.)),
+                                           ((20.04, 1.26, 0.), (20.04, 0.66, 0.)),
+                                           ((30.04, 1.26, 0.), (30.04, 0.66, 0.)),
+                                           ((36.04, 1.26, 0.), (36.04, 0.66, 0.))),
+                                   ),
+                                  ),
+                          activeTime = (0., 71.5),
+                          sampleRate=1/dt_fixed,
+                          fileName='line_gauges.csv')
+
+
+integral_output=ga.LineIntegralGauges(gauges=((('vof'), (((20.04, 1.26, 0.), (20.04, 0.66, 0.)),
+                                                         ((30.04, 1.26, 0.), (30.04, 0.66, 0.)),
+                                                         ((36.04, 1.26, 0.), (36.04, 0.66, 0.)))),
+                                             ),
+                                      activeTime = (0., 71.5),
+                                      sampleRate=1/dt_fixed,
+                                      fileName='line_integral_gauges.csv')
+
+domain.auxiliaryVariables += [line_output, integral_output]
 
 
 
@@ -433,7 +430,11 @@ def waveHeight(x,t):
 
 
 def wavePhi(x,t):
-    return x[1]- waveHeight(x,t)
+    if nd==2:
+        return x[1]- waveHeight(x,t)
+    else:
+        return x[2]- waveHeight(x,t)
+
 
 
 def waveVF(x,t):
@@ -442,7 +443,14 @@ def waveVF(x,t):
 
 def signedDistance(x):
     phi_x = x[0]-waterLine_x
-    phi_z = x[1]-waterLine_z
+
+    if nd==2:
+        phi_z = x[1]-waterLine_z
+        return phi_z
+    else:
+        phi_z = x[2]-waterLine_z
+        return phi_z
+
     if phi_x < 0.0:
         if phi_z < 0.0:
             return max(phi_x,phi_z)
