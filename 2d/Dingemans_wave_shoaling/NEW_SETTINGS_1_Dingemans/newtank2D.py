@@ -30,7 +30,7 @@ Ycoeff=[0.08448147, 0.00451131, 0.00032646, 0.00002816,
 Bcoeff=[0.08677594, 0.00070042, -0.00001289,
             0.00000006, 0.00000001]
 waveDir=np.array([1, 0., 0.])
-mwl=waterLevel
+mwl=waterLevel #coordinate of the initial mean level of water surface
 waveHeight=np.array(Ycoeff)
 omega = float(2.0*pi/period)
 wavelength = 8.12
@@ -52,12 +52,12 @@ L_leftSpo = wavelength
 L_rightSpo = wavelength/2
 
 
-b_or = {'bottom': [0., -1.,0.],
-        'right': [1., 0.,0.],
-        'top': [0., 1.,0.],
-        'left': [-1., 0.,0.],
-        'sponge': None,
-        }
+boundaryOrientations = {'bottom': [0., -1.,0.],
+                        'right': [1., 0.,0.],
+                        'top': [0., 1.,0.],
+                        'left': [-1., 0.,0.],
+                        'sponge': None,
+                       }
 boundaryTags = {'bottom': 1,
                 'right': 2,
                 'top': 3,
@@ -80,8 +80,8 @@ vertices=[[0.0,0.0],#0
           [0.0,tank_dim[1]],#11
           [0.0-L_leftSpo,0.0],#12
           [0.0-L_leftSpo,tank_dim[1]],#13
-          [tank_dim[0]+L_rightSpo,0.0],#14
-          [tank_dim[0]+L_rightSpo,tank_dim[1]],#15
+          [tank_dim[0]+L_rightSpo,0.0],#14old new 12
+          [tank_dim[0]+L_rightSpo,tank_dim[1]],#15old new13
          ]
 vertexFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 3, 1, 3,
                      ])
@@ -102,11 +102,13 @@ segments=[[0,1],
           [11,13],
           [13,12],
           [12,0],
-          [9,14],
-          [14,15],
-          [15,10],
+          [9,14], #new
+          [14,15], #new
+          [15,10], #new
          ]
-segmentFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 3, 5, 3, 4, 1, 1, 2, 3,
+segmentFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 5,
+                       3, 5, 3, 4, 1,
+                       1, 2, 3,
                       ])
 
 
@@ -121,7 +123,7 @@ regionFlags=np.array([1,2,3,
 tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       segments=segments, segmentFlags=segmentFlags,
                       regions=regions, regionFlags=regionFlags,
-                      boundaryTags=boundaryTags, boundaryOrientations=b_or)
+                      boundaryTags=boundaryTags, boundaryOrientations=boundaryOrientations)
 
 
 ##########################################
@@ -149,7 +151,7 @@ g =np.array([0.,-9.8,0.])
 # Time stepping and velocity
 #----------------------------------------------------
 
-weak_bc_penalty_constant = 10.0/nu_0
+weak_bc_penalty_constant = 100 #10.0/nu_0
 dt_fixed = period/21.0
 dt_init = min(0.1*dt_fixed,0.001)
 T = 50*period
@@ -202,26 +204,24 @@ applyCorrection=True
 applyRedistancing=True
 freezeLevelSet=False
 
-
 # ----- BOUNDARY CONDITIONS ----- #
 
 tank.BC.top.setOpenAir()
+#tank.BC.left.setFreeSlip()
 tank.BC.left.MonochromaticWaveBoundary(wave=waveinput, waterLevel=waterLevel)
+#tank.BC.left.setTwoPhaseVelocityInlet(U=lefBoundaryVelocity,waterLevel=waterLevel)
 tank.BC.bottom.setNoSlip()
-tank.BC.right.setNoSlip()
-#tank.BC.top.setNoSlip()
-#tank.BC.left.setNoSlip()
-#tank.BC.right.setNoSlip()
+tank.BC.right.setFreeSlip()
+
 
 
 # -----  GENERATION ZONE & ABSORPTION ZONE  ----- #
 
-tank.setGenerationZones(flags=3, epsFact_solid=L_leftSpo/2, sign=1, center_x=-L_leftSpo/4, waves=waveinput, windSpeed=windVelocity)
-tank.setAbsorptionZones(flags=1, epsFact_solid=L_rightSpo/2, sign=-1)
+tank.setGenerationZones(flags=1, epsFact_solid=L_leftSpo/2, sign=1, center_x=-L_leftSpo/4, waves=waveinput, windSpeed=windVelocity)
+tank.setAbsorptionZones(flags=3, epsFact_solid=L_rightSpo/2, sign=-1)
 
 
 # ----- Output Gauges ----- #
-
 
 line_output=ga.LineGauges(gauges=((('u', 'v'), (((0., 1.26, 0.), (0., 0., 0.)),
                                                 ((20.04, 1.26, 0.), (20.04, 0.66, 0.)),
@@ -269,7 +269,6 @@ spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
-applyCorrection=True
 useVF = 1.0
 
 # Input checks
@@ -314,35 +313,8 @@ elif spaceOrder == 2:
 # Numerical parameters
 ns_forceStrongDirichlet = False #True
 backgroundDiffusionFactor=0.01
-"""fROM tRISTAN
-if useMetrics:
-    ns_shockCapturingFactor  = 0.5
-    ns_lag_shockCapturing = True
-    ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.5
-    ls_lag_shockCapturing = True
-    ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.5
-    vof_lag_shockCapturing = True
-    vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.5
-    rd_lag_shockCapturing = False
-    epsFact_density    = 3.0
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
-    redist_Newton = True
-    kappa_shockCapturingFactor = 0.5
-    kappa_lag_shockCapturing = True
-    kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.5
-    dissipation_shockCapturingFactor = 0.5
-    dissipation_lag_shockCapturing = True
-    dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.5
-"""
+
+
 #FROM old settings of Dingemans case
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
