@@ -2,7 +2,7 @@ from math import *
 import numpy as np
 
 from proteus import Domain
-from proteus import SpatialTools as st
+from proteus.mprans import SpatialTools as st
 
 from proteus import MeshTools, AuxiliaryVariables
 
@@ -78,10 +78,10 @@ vertices=[[0.0,0.0],#0
           [tank_dim[0],0.0],#9
           [tank_dim[0],tank_dim[1]],#10
           [0.0,tank_dim[1]],#11
-          [0.0-L_leftSpo,0.0],#12
-          [0.0-L_leftSpo,tank_dim[1]],#13
-          [tank_dim[0]+L_rightSpo,0.0],#14old new 12
-          [tank_dim[0]+L_rightSpo,tank_dim[1]],#15old new13
+          [0.0+L_leftSpo,0.0],#12
+          [0.0+L_leftSpo,tank_dim[1]],#13
+          [tank_dim[0]-L_rightSpo,0.0],#14old new 12
+          [tank_dim[0]-L_rightSpo,tank_dim[1]],#15old new13
          ]
 vertexFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 3, 1, 3,
                      ])
@@ -112,9 +112,9 @@ segmentFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 5,
                       ])
 
 
-regions=[ [ 0.1*tank_dim[0]-L_leftSpo , 0.1*tank_dim[1] ],
+regions=[ [ 0.1*tank_dim[0], 0.1*tank_dim[1] ],
           [ 0.5*tank_dim[0] , tank_dim[1]*0.95 ],
-          [0.95*tank_dim[0]+L_rightSpo, 0.95*tank_dim[1] ],
+          [0.95*tank_dim[0], 0.95*tank_dim[1] ],
         ]
 regionFlags=np.array([1,2,3,
                      ])
@@ -181,8 +181,8 @@ waveinput = wt.MonochromaticWaves(period=period,
 # ----- Mesh ----- #
 
 he = tank_dim[0]/2900
-domain.Mesh.elementSize(he)
-st.buildDomain(domain)
+domain.MeshOptions.elementSize(he)
+st.assembleDomain(domain)
 
 domain.writePoly("mesh")
 triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
