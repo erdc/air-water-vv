@@ -18,7 +18,7 @@ opts=Context.Options([
     ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
     ("speed",0.0,"Speed of current if non-zero"),
-    ("bar_height",0.25,"Initial height of bar center above bottom"),
+    ("bar_height",0.8,"Initial height of bar center above bottom"),
     ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
     ("gen_mesh",False,"Generate new mesh"),
@@ -77,7 +77,7 @@ RBR_angCons  = [1,0,1]
 
 nLevels = 1
 
-he = 0.1 #coarse grid
+he = 0.06
 he *=(0.5)**opts.refinement_level
 
 boundaries = [ 'bottom', 'front', 'right', 'back', 'left', 'top', 'obstacle' ]
@@ -108,7 +108,7 @@ adaptMesh_numIter = 3
 domain.PUMIMesh = MeshAdaptPUMI.MeshAdaptPUMI(hmax=he,hmin=he,
                                               numIter=adaptMesh_numIter,sfConfig="farhad")
 domain.PUMIMesh.loadModelAndMesh("floating_bar_3d.dmg",
-                                 "floating_bar_3d.smb")
+                                 "floating_bar_big.smb")
 
 restrictFineSolutionToAllMeshes=False
 parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.element
