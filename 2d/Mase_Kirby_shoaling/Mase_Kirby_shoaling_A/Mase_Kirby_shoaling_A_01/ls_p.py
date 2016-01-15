@@ -27,7 +27,8 @@ def getDBC_ls(x,flag):
     else:
         return None
 
-dirichletConditions = {0: getDBC_ls}
+dirichletConditions = {0:getDBC_ls}
+#dirichletConditions = {0: lambda x, flag: None}
 
 advectiveFluxBoundaryConditions = {}
 
