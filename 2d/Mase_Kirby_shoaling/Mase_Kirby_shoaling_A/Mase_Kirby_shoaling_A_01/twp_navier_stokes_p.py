@@ -26,6 +26,17 @@ else:
     Closure_1_model = None
 
     
+if hasattr (domain, 'porosityTypes'):
+    porosityTypes = ct.domain.porosityTypes
+    dragAlphaTypes = ct.domain.dragAlphaTypes
+    dragBetaTypes = ct.domain.dragBetaTypes
+    epsFact_solid = ct.domain.epsFact_solid
+else:
+    porosityTypes = None
+    dragAlphaTypes = None
+    dragBetaTypes = None
+    epsFact_solid = None
+
 coefficients = RANS2P.Coefficients(epsFact = ct.epsFact_viscosity,
                                    sigma = 0.0,
                                    rho_0 = ct.rho_0,
@@ -49,10 +60,10 @@ coefficients = RANS2P.Coefficients(epsFact = ct.epsFact_viscosity,
                                    forceStrongDirichlet = ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel = ct.ns_closure,
                                    movingDomain = ct.movingDomain,
-                                   porosityTypes = ct.domain.porosityTypes,
-                                   dragAlphaTypes = ct.domain.dragAlphaTypes,
-                                   dragBetaTypes = ct.domain.dragBetaTypes,
-                                   epsFact_solid = ct.domain.epsFact_solid,
+                                   porosityTypes = porosityTypes,
+                                   dragAlphaTypes = dragAlphaTypes,
+                                   dragBetaTypes = dragBetaTypes,
+                                   epsFact_solid = epsFact_solid,
                                    barycenters = ct.domain.barycenters)
 
 

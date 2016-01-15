@@ -14,7 +14,7 @@ import numpy as np
 
 
 # Wave generator
-windVelocity = np.array([0.0,0.0,0.0])
+windVelocity = [0.,0.,0.]
 inflowHeightMean = 0.47
 period = 1.0
 waveheight = 0.062
@@ -32,17 +32,17 @@ bandFactor = 2.0
 spectName = "PM_mod"
 spectral_params = None
 phi = None
-waves = RandomWaves(Tp,
-                    Hs,
-                    mwl,
-                    depth,
-                    waveDir,
-                    g,
-                    N,
-                    bandFactor,
-                    spectName,
-                    spectral_params,
-                    phi
+waves = RandomWaves(Tp=Tp,
+                    Hs=Hs,
+                    mwl=mwl,
+                    depth=depth,
+                    waveDir=waveDir,
+                    g=g,
+                    N=N,
+                    bandFactor=bandFactor,
+                    spectName=spectName,
+                    spectral_params=spectral_params,
+                    phi=phi
                     )
              
 
@@ -127,10 +127,10 @@ x1 = 10.0
 y1 = 14.5*float(1.0/cot_slope)
 
 
-b_or = {'bottom': [0., -1., 0.],
-        'right': [1., 0., 0.],
-        'top': [0., 1., 0.],
-        'left': [-1., 0., 0.],
+b_or = {'bottom': [0., -1.],
+        'right': [1., 0.],
+        'top': [0., 1.],
+        'left': [-1., 0.],
         'sponge': None,
         }
 
@@ -171,11 +171,10 @@ segmentFlags = np.array([1, 1, 1, 2, 3, 3, 4, 5])
 
 
 regions = [ [ 0.1*L[0] , 0.1*L[1] ],
-            [ xRelaxCenter , 0.5*L[1] ],
             [ 0.95*L[0] , 0.95*L[1] ] ]
 
 
-regionFlags = np.array([1,2,3])
+regionFlags = np.array([1,2])
 
 
 tank = st.CustomShape(domain,
@@ -213,6 +212,13 @@ restrictFineSolutionToAllMeshes = False
 quad_order = 3
 
 
+# Time stepping
+T = 20*period
+dt_fixed = T
+dt_init = 0.001
+runCFL = 0.9
+nDTout = int(round(T/dt_fixed))
+
 # GAUGES  ------------------------------------------------------
 gauge_dx=0.25
 PGL=[]
@@ -231,7 +237,7 @@ gaugeLocations=tuple(map(tuple,PGL))
 columnLines=tuple(map(tuple,LGL)) 
 
 pointGauges = PointGauges(gauges=((('v'), gaugeLocations),
-                                (('p',),    gaugeLocations)),
+                                (('p',), gaugeLocations)),
                   activeTime = (0, 20.0),
                   sampleRate = 0, #0.05
                   fileName = 'combined_gauge_0_0.5_sample_all.txt')
@@ -242,15 +248,7 @@ columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
                                  fileName='column_gauge.csv')
 
 
-domain.auxiliaryVariables += [pointGauges, columnGauge]
-
-
-# Time stepping
-T = 20*period
-dt_fixed = T
-dt_init = 0.001
-runCFL = 0.9
-nDTout = int(round(T/dt_fixed))
+#domain.auxiliaryVariables += [pointGauges, columnGauge]
 
 
 # Numerical parameters
@@ -315,7 +313,7 @@ else:
 ns_nl_atol_res = max(1.0e-10,0.001*he**2)
 vof_nl_atol_res = max(1.0e-10,0.001*he**2)
 ls_nl_atol_res = max(1.0e-10,0.001*he**2)
-rd_nl_atol_res = max(1.0e-10,0.001*he)
+rd_nl_atol_res = max(1.0e-10,0.005*he)
 mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
@@ -348,10 +346,10 @@ waterLine_z = inflowHeightMean
 tank.BC.top.setOpenAir()
 tank.BC.bottom.setFreeSlip()
 
-tank.BC.left.setWaveVelocity(U=waves.u, mwl=mwl, eta=waves.eta, vert_axis=-1, air=1., water=0.)
+tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waves, vert_axis=1, windSpeed=windVelocity, air=1., water=0., smooth=False)
 
 tank.BC.right.setFreeSlip()
-#tank.BC.sponge.setParallelFlag0()
+tank.BC.sponge.setParallelFlag0()
 
 
 def signedDistance(x):
@@ -376,17 +374,17 @@ def theta(x,t):
 def z(x):
     return x[1] - inflowHeightMean
 
+# Solution variables
+def wavePhi(x,t):
+    return x[1] - inflowHeightMean + waves.eta(x,t)
 
-# WaveData
+"""# WaveData
 def waveHeight(x,t):
     return inflowHeightMean + waves.eta(x[0],x[1],x[2],t)
 
 
-# Solution variables
-def wavePhi(x,t):
-    return x[1] - waveHeight(x,t)
 
 
 def waveVF(x,t):
-    return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
+    return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))"""
 
