@@ -3,7 +3,7 @@ The split operator module for air/water flow around a moving rigid cylinder
 """
 from proteus.default_so import *
 from proteus import Context
-name = "caisson2D_freeroll"
+name = "caisson2D_roll_free"
 
 case = __import__(name)
 Context.setFromModule(case)
