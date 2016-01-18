@@ -229,9 +229,8 @@ tank.setAbsorptionZones(flags=3, epsFact_solid=L_rightSpo/2, sign=-1, center_x=t
 # ----- Output Gauges ----- #
 
 
-gaugeLocations=((24.04, 0.66, 0.), (30.04, 0.66, 0.), (34.04, 0.66, 0.))
-columnLines=(((24.04, 0.51, 0.), (24.04, tank_dim[1], 0.)), ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)), ((34.04, 0.3267, 0.), (34.04, tank_dim[1], 0.)))
-
+gaugeLocations=(((0., 0., 0.), (0., tank_dim[1], 0.)), ((24.04, 0.51, 0.), (24.04, tank_dim[1], 0.)), ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)), ((34.04, 0.33, 0.), (34.04, tank_dim[1], 0.)))
+columnLines=(((24.04, 0.51, 0.), (24.04, tank_dim[1], 0.)), ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)), ((34.04, 0.33, 0.), (34.04, tank_dim[1], 0.)))
 
 line_output=ga.LineGauges(gauges=((('u', 'v'), gaugeLocations),
                                   (('p'), gaugeLocations),
@@ -241,8 +240,8 @@ line_output=ga.LineGauges(gauges=((('u', 'v'), gaugeLocations),
                           fileName='line_gauges.csv')
 
 
-fields=['vof']
-integral_output=ga.LineIntegralGauges(gauges=(fields, columnLines),
+fields=(('vof',))
+integral_output=ga.LineIntegralGauges(gauges=((fields, columnLines), ),
                                       activeTime = (0., 71.5),
                                       sampleRate=1/dt_fixed,
                                       fileName='line_integral_gauges.csv')
@@ -397,7 +396,8 @@ waterLine_z = inflowHeightMean
 
 
 def waveHeight(x,t):
-    waterDepth=waveinput.waterDepth(x[0], x[1], x[2], t)
+   # waterDepth=waveinput.waterDepth(x[0], x[1], x[2], t)
+    waterDepth=waveinput.eta(x, t)+waveinput.mwl
     return waterDepth
 
 
