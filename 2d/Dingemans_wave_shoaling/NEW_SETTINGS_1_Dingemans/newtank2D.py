@@ -229,8 +229,13 @@ tank.setAbsorptionZones(flags=3, epsFact_solid=L_rightSpo/2, sign=-1, center_x=t
 # ----- Output Gauges ----- #
 
 
-gaugeLocations=(((0., 0., 0.), (0., tank_dim[1], 0.)), ((24.04, 0.51, 0.), (24.04, tank_dim[1], 0.)), ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)), ((34.04, 0.33, 0.), (34.04, tank_dim[1], 0.)))
-columnLines=(((24.04, 0.51, 0.), (24.04, tank_dim[1], 0.)), ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)), ((34.04, 0.33, 0.), (34.04, tank_dim[1], 0.)))
+gaugeLocations=(((0., 0., 0.), (0., tank_dim[1], 0.)),
+                ((24.04, 0.512, 0.), (24.04, tank_dim[1], 0.)),
+                ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)),
+                ((34.04, 0.365, 0.), (34.04, tank_dim[1], 0.)))
+columnLines=(((24.04, 0.512, 0.), (24.04, tank_dim[1], 0.)),
+             ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)),
+             ((34.04, 0.365, 0.), (34.04, tank_dim[1], 0.)))
 
 line_output=ga.LineGauges(gauges=((('u', 'v'), gaugeLocations),
                                   (('p'), gaugeLocations),
