@@ -48,8 +48,8 @@ nd = 2
 tank_dim = [58.0, 1.26]
 y1=0.06
 y2=0.66
-L_leftSpo = wavelength
-L_rightSpo = wavelength/2
+L_leftSpo = wavelength/2
+L_rightSpo = wavelength
 
 
 boundaryOrientations = {'bottom': [0., -1.,0.],
@@ -230,7 +230,7 @@ tank.setAbsorptionZones(flags=3, epsFact_solid=L_rightSpo/2, sign=-1, center_x=t
 
 
 gaugeLocations=((24.04, 0.66, 0.), (30.04, 0.66, 0.), (34.04, 0.66, 0.))
-columnLines=(((24.04, 0.5295, 0.), (24.04, tank_dim[1], 0.)), ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)), ((34.04, 0.66, 0.), (34.04, tank_dim[1], 0.)))
+columnLines=(((24.04, 0.51, 0.), (24.04, tank_dim[1], 0.)), ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)), ((34.04, 0.3267, 0.), (34.04, tank_dim[1], 0.)))
 
 
 line_output=ga.LineGauges(gauges=((('u', 'v'), gaugeLocations),
