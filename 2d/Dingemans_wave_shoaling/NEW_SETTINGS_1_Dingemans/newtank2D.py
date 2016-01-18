@@ -83,11 +83,15 @@ vertices=[[0.0,0.0],#0
           [tank_dim[0]-L_rightSpo,0.0],#14old new 12
           [tank_dim[0]-L_rightSpo,tank_dim[1]],#15old new13
          ]
-vertexFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 3, 1, 3,
+
+vertexFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                      3, 3,
+                      1, 3, 1, 3,
                      ])
 
 
-segments=[[0,1],
+segments=[[0,12],
+          [12,1],
           [1,2],
           [2,3],
           [3,4],
@@ -95,29 +99,28 @@ segments=[[0,1],
           [5,6],
           [6,7],
           [7,8],
-          [8,9],
+          [8,14],
+          [14,9],
           [9,10],
-          [10,11],
+          [10,15],
+          [15,13],
+          [13,11],
           [11,0],
-          [11,13],
-          [13,12],
-          [12,0],
-          [9,14], #new
-          [14,15], #new
-          [15,10], #new
+          [12,13],
+          [14,15],
          ]
-segmentFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 5,
-                       3, 5, 3, 4, 1,
-                       1, 2, 3,
+
+segmentFlags=np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                       2, 3, 3, 3, 4,
+                       5, 5,
                       ])
 
 
-regions=[ [ 0.1*tank_dim[0], 0.1*tank_dim[1] ],
-          [ 0.5*tank_dim[0] , tank_dim[1]*0.95 ],
-          [0.95*tank_dim[0], 0.95*tank_dim[1] ],
-        ]
-regionFlags=np.array([1,2,3,
-                     ])
+regions = [ [ 0.1*tank_dim[0] , 0.1*tank_dim[1] ],
+            [ 0.5*tank_dim[0] , 0.95*tank_dim[1] ],
+            [ 0.95*tank_dim[0] , 0.95*tank_dim[1] ] ]
+
+regionFlags=np.array([1, 2, 3])
 
 
 tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
@@ -151,7 +154,7 @@ g =np.array([0.,-9.8,0.])
 # Time stepping and velocity
 #----------------------------------------------------
 
-weak_bc_penalty_constant = 100 #10.0/nu_0
+weak_bc_penalty_constant = 10.0/nu_0 #100
 dt_fixed = period/21.0
 dt_init = min(0.1*dt_fixed,0.001)
 T = 50*period
@@ -208,41 +211,38 @@ freezeLevelSet=False
 
 tank.BC.top.setOpenAir()
 #tank.BC.left.setFreeSlip()
-tank.BC.left.MonochromaticWaveBoundary(wave=waveinput, waterLevel=waterLevel)
-#tank.BC.left.setTwoPhaseVelocityInlet(U=lefBoundaryVelocity,waterLevel=waterLevel)
+#tank.BC.left.MonochromaticWaveBoundary(wave=waveinput, waterLevel=waterLevel)
+#tank.BC.left.WaveBC(domain=domain, wave=waveinput, waterLevel=waterLevel)
+tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waveinput)
 tank.BC.bottom.setNoSlip()
 tank.BC.right.setFreeSlip()
-
+tank.BC.sponge.setParallelFlag0()
 
 
 # -----  GENERATION ZONE & ABSORPTION ZONE  ----- #
 
-tank.setGenerationZones(flags=1, epsFact_solid=L_leftSpo/2, sign=1, center_x=-L_leftSpo/4, waves=waveinput, windSpeed=windVelocity)
-tank.setAbsorptionZones(flags=3, epsFact_solid=L_rightSpo/2, sign=-1)
+tank.setGenerationZones(flags=1, epsFact_solid=L_leftSpo/2, sign=1, center_x=L_leftSpo/2, waves=waveinput, windSpeed=windVelocity)
+#tank.setAbsorptionZones(flags=, epsFact_solid=L_leftSpo/2, sign=1, center_x=L_leftSpo/2)
+tank.setAbsorptionZones(flags=3, epsFact_solid=L_rightSpo/2, sign=-1, center_x=tank_dim[0]-L_rightSpo/2)
 
 
 # ----- Output Gauges ----- #
 
-line_output=ga.LineGauges(gauges=((('u', 'v'), (((0., 1.26, 0.), (0., 0., 0.)),
-                                                ((20.04, 1.26, 0.), (20.04, 0.66, 0.)),
-                                                ((30.04, 1.26, 0.), (30.04, 0.66, 0.)),
-                                                ((36.04, 1.26, 0.), (36.04, 0.66, 0.))),
-                                   ),
-                                  (('p'), (((0., 1.26, 0.), (0., 0., 0.)),
-                                           ((20.04, 1.26, 0.), (20.04, 0.66, 0.)),
-                                           ((30.04, 1.26, 0.), (30.04, 0.66, 0.)),
-                                           ((36.04, 1.26, 0.), (36.04, 0.66, 0.))),
-                                   ),
-                                  ),
+
+gaugeLocations=((24.04, 0.66, 0.), (30.04, 0.66, 0.), (34.04, 0.66, 0.))
+columnLines=(((24.04, 0.5295, 0.), (24.04, tank_dim[1], 0.)), ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)), ((34.04, 0.66, 0.), (34.04, tank_dim[1], 0.)))
+
+
+line_output=ga.LineGauges(gauges=((('u', 'v'), gaugeLocations),
+                                  (('p'), gaugeLocations),
+                                 ),
                           activeTime = (0., 71.5),
                           sampleRate=1/dt_fixed,
                           fileName='line_gauges.csv')
 
 
-integral_output=ga.LineIntegralGauges(gauges=((('vof'), (((20.04, 1.26, 0.), (20.04, 0.66, 0.)),
-                                                         ((30.04, 1.26, 0.), (30.04, 0.66, 0.)),
-                                                         ((36.04, 1.26, 0.), (36.04, 0.66, 0.)))),
-                                             ),
+fields=['vof']
+integral_output=ga.LineIntegralGauges(gauges=(fields, columnLines),
                                       activeTime = (0., 71.5),
                                       sampleRate=1/dt_fixed,
                                       fileName='line_integral_gauges.csv')
@@ -391,7 +391,7 @@ elif useRANS == 2:
     ns_closure == 4
 
 # Initial condition
-waterLine_x = 2*(tank_dim[0]+L_leftSpo+L_rightSpo)
+waterLine_x = 2*tank_dim[0]
 waterLine_z = inflowHeightMean
 
 
@@ -433,3 +433,15 @@ def signedDistance(x):
             return phi_x
         else:
             return sqrt(phi_x**2 + phi_z**2)
+
+"""
+def waveVelocity (x, t, comp):
+    Umwb=waveinput.u
+    V=np.zeros(3, dtype=float)
+    xyz=['x','y','z']
+    for i in range(3):
+        V[i]=Umwb{xyz[i]]
+        H=smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
+        return V[i]=H*windVelocity[i]+(1-H)*V[i]
+    return V[comp]
+"""
