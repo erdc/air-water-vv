@@ -10,9 +10,16 @@ domain = Domain.PiecewiseLinearComplexDomain()
 waterLevel = 0.6
 
 # ----- SHAPES ----- #
+frontSponge = 1.
+backSponge = 1.
+rightSponge = 1.
+leftSponge= 1.
 
 tank_dim = [3., 3., 3.]
 tank = st.Tank3D(domain, tank_dim)
+tank.setSponge(front=frontSponge, back=backSponge, right=rightSponge,
+               left=leftSponge)
+tank.setAbsorptionZones(allSponge=True)
 
 Length = 0.594
 Width = 0.416
@@ -50,6 +57,7 @@ tank.BC.left.setFreeSlip()
 tank.BC.back.setFreeSlip()
 tank.BC.right.setFreeSlip()
 tank.BC.top.setOpenAir()
+tank.BC.sponge.setParallelFlag0()
 
 
 

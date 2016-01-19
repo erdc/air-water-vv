@@ -79,8 +79,8 @@ g = [0., -9.81]
 # ------------------
 
 
-
-domain.MeshOptions.he = (caisson2D.dim[-1])/12.0 #coarse grid
+he = caisson2D.dim[-1]/12.
+domain.MeshOptions.elementSize(he, 1.)
 
 
 from math import *
@@ -110,9 +110,9 @@ freezeLevelSet=True
 weak_bc_penalty_constant = 10.0/nu_0#Re
 dt_init=0.001
 T = 10
-nDTout= 40*T
+nDTout= 15*T
 dt_out =  (T-dt_init)/nDTout
-runCFL = 0.33
+runCFL = 0.1
 
 #----------------------------------------------------
 water_depth  = waterLevel
@@ -126,7 +126,7 @@ useRBLES   = 0.0
 useMetrics = 1.0
 useVF = 1.0
 useOnlyVF = False
-useRANS = 1 # 0 -- None
+useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
             # 2 -- K-Omega, 1998
             # 3 -- K-Omega, 1988

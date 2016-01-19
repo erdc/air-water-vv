@@ -33,8 +33,9 @@ free_x = [0., 0., 0.]
 free_r = [0., 0., 1.]
 rotation = pi/12.
 
-tank = st.Tank2D(domain, tank_dim, leftSponge=leftSponge, rightSponge=rightSponge)
+tank = st.Tank2D(domain, tank_dim)
 left = right = False
+tank.setSponge(left=leftSponge, right=rightSponge)
 if leftSponge is not None: left = True
 if rightSponge is not None: right = True
 center_x = tank.coords[0]-leftSponge/2.
@@ -43,7 +44,7 @@ height = 0.029
 mwl = depth = 0.9
 direction = np.array([1., 0., 0.])
 wave = wt.MonochromaticWaves(period, height, mwl, depth, np.array([0., -9.81, 0.]), direction)
-tank.setGenerationZones(2, leftSponge/2., 1., center_x, wave)
+tank.setGenerationZones(left=left, waves=wave)
 tank.setAbsorptionZones(right=right)
 tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
 
@@ -123,7 +124,7 @@ useRBLES   = 0.0
 useMetrics = 1.0
 useVF = 1.0
 useOnlyVF = False
-useRANS = 1 # 0 -- None
+useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
             # 2 -- K-Omega, 1998
             # 3 -- K-Omega, 1988
