@@ -11,6 +11,9 @@ import redist_p as physics
 
 ct = Context.get()
 runCFL = ct.runCFL
+
+nd = ct.domain.nd
+
 nLevels = ct.nLevels
 parallelPartitioningType = ct.parallelPartitioningType
 nLayersOfOverlapForParallel = ct.nLayersOfOverlapForParallel
@@ -56,10 +59,10 @@ massLumping       = False
 numericalFluxType = NumericalFlux.DoNothing    
 conservativeFlux  = None
 subgridError      = RDLS.SubgridError(coefficients=physics.coefficients,
-                                      nd=ct.domain.nd)
+                                      nd=nd)
 
 shockCapturing    = RDLS.ShockCapturing(coefficients=physics.coefficients,
-                                        nd=ct.domain.nd,
+                                        nd=nd,
                                         shockCapturingFactor=ct.rd_shockCapturingFactor,
                                         lag=ct.rd_lag_shockCapturing)
 

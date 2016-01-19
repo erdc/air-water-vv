@@ -27,17 +27,23 @@ else:
 if ct.movingDomain:
     pnList = [("moveMesh_p","moveMesh_n")]+pnList
     
-if tank.useRANS > 0:
+if ct.useRANS > 0:
     pnList += [("kappa_p",
                 "kappa_n")]
     pnList += [("dissipation_p",
                 "dissipation_n")]
 
-# systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
-systemStepControllerType = Sequential_MinAdaptiveModelStep
+if ct.timeDiscretization == 'flcbdf':
+    systemStepControllerType = Sequential_MinFLCBDFModelStep
+    systemStepControllerType = Sequential_MinAdaptiveModelStep
+else:
+
+    systemStepControllerType = Sequential_MinAdaptiveModelStep      # systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
+
 
 needEBQ_GLOBAL = False
 needEBQ = False
+
 
 tnList = [0.0,ct.dt_init]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)] 
 #archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP

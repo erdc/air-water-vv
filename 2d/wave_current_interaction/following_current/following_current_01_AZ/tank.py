@@ -33,15 +33,17 @@ Y = [0.00668842,  # Surface elevation Fourier coefficients for non-dimensionalis
 B = [0.00805507,   # Velocities Fourier coefficients for non-dimensionalised solution, calculated from FFT
      0.00004774, 
      0.00000019,
-     0.]
+     0.00000000]
 
 waveheight = np.array(Y)
 waterLevel = inflowHeightMean
 waveDir = np.array([1,0,0])
 g = np.array([0, -9.81, 0])
+mwl = inflowHeightMean
+
 waves = MonochromaticWaves(period = period,
                            waveHeight = waveheight,
-                           mwl = 0.0,
+                           mwl = mwl,
                            depth = waterLevel,
                            g = g,
                            waveDir = waveDir,
@@ -58,6 +60,8 @@ waves = MonochromaticWaves(period = period,
 genMesh = True
 movingDomain = False
 applyRedistancing = True
+checkMass=False
+freezeLevelSet=False
 useOldPETSc = False
 useSuperlu = False
 spaceOrder = 1
@@ -185,8 +189,7 @@ openSides=False
 openEnd=True
 smoothBottom=False
 smoothObstacle=False
-checkMass=False
-freezeLevelSet=False
+
 
 
 # Gauges
@@ -205,7 +208,7 @@ columnLines=tuple(map(tuple,LGL))
 pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
                                 (('p',),    gaugeLocations)),
                   activeTime = (0, 77.60),
-                  sampleRate = 0.485,
+                  sampleRate = 0.097,
                   fileName = 'combined_gauge_0_0.5_sample_all.txt')
 
 
@@ -220,6 +223,8 @@ columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
 #lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
 
 
+
+#domain.auxiliaryVariables += [pointGauges, columnGauge] 
 
     
         
@@ -340,8 +345,10 @@ waterLine_z = inflowHeightMean
 # Boundary Conditions
 tank.BC.top.setOpenAir()
 tank.BC.bottom.setFreeSlip()
-#tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(U=[0., 0.], eta=waves.eta, vert_axis=-1, air=1., water=0.)
-tank.BC.right.hydrostaticPressureOutletWithDepth(seaLevel=outflowHeightMean, rhoUp=rho_1, rhoDown=rho_0, g=g, refLevel=, pRef=0.0, vert_axis=-1, air=1.0, water=0.0)
+
+tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waves, vert_axis=1, windSpeed=windVelocity, air=1., water=0., smooth=False)
+
+#tank.BC.right.hydrostaticPressureOutletWithDepth(seaLevel=outflowHeightMean, rhoUp=rho_1, rhoDown=rho_0, g=g, refLevel=, pRef=0.0, vert_axis=1, air=1.0, water=0.0)
 
 def signedDistance(x):
     phi_x = x[0]-waterLine_x
