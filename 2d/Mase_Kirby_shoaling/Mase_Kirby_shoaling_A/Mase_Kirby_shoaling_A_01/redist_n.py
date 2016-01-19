@@ -23,7 +23,7 @@ elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 nl_atol_res = ct.rd_nl_atol_res
 tolFac = 0.0
 linTolFac = 0.001
-l_atol_res = 0.001*ct.rd_nl_atol_res
+l_atol_res = 0.01*ct.rd_nl_atol_res #1e-3
 useEisenstatWalker = False
 
 if ct.redist_Newton:

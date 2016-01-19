@@ -32,17 +32,17 @@ bandFactor = 2.0
 spectName = "PM_mod"
 spectral_params = None
 phi = None
-waves = RandomWaves(Tp=Tp,
-                    Hs=Hs,
-                    mwl=mwl,
-                    depth=depth,
-                    waveDir=waveDir,
-                    g=g,
-                    N=N,
-                    bandFactor=bandFactor,
-                    spectName=spectName,
-                    spectral_params=spectral_params,
-                    phi=phi
+waves = RandomWaves(Tp,
+                    Hs,
+                    mwl,
+                    depth,
+                    waveDir,
+                    g,
+                    N,
+                    bandFactor,
+                    spectName,
+                    spectral_params,
+                    phi
                     )
              
 
@@ -117,7 +117,7 @@ domain = Domain.PlanarStraightLineGraphDomain()
 L = [24.0, 1.0]
 he = wavelength/100 #try this first
 domain.MeshOptions.elementSize(he)
-GenerationZoneLength = 0.50*wavelength
+GenerationZoneLength = 2.0*wavelength #0.50*wavelength
 spongeLayer = True
 xSponge = GenerationZoneLength
 xRelaxCenter = xSponge/2.0
@@ -190,7 +190,7 @@ tank = st.CustomShape(domain,
 
 tank.setGenerationZones(flags=1,
                         epsFact_solid=xSponge/2.0,
-                        sign=1,
+                        sign=1.,
                         center_x=xRelaxCenter,
                         waves=waves,
                         windSpeed=windVelocity,
@@ -236,7 +236,7 @@ for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact
 gaugeLocations=tuple(map(tuple,PGL)) 
 columnLines=tuple(map(tuple,LGL)) 
 
-pointGauges = PointGauges(gauges=((('v'), gaugeLocations),
+pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
                                 (('p',), gaugeLocations)),
                   activeTime = (0, 20.0),
                   sampleRate = 0, #0.05
@@ -376,7 +376,7 @@ def z(x):
 
 # Solution variables
 def wavePhi(x,t):
-    return x[1] - inflowHeightMean + waves.eta(x,t)
+    return x[1] - inflowHeightMean - waves.eta(x,t)
 
 """# WaveData
 def waveHeight(x,t):
