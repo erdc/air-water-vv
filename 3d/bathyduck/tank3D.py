@@ -87,6 +87,7 @@ elif spaceOrder == 2:
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
 
+
 # Domain and mesh
 L = (float(6.0*wavelength), 2.0, 1.50)
 
@@ -108,15 +109,19 @@ epsFact_solid_2 = AbsorptionZoneLength/2.0
 
 nLevels = 1
 weak_bc_penalty_constant = 100.0
+
+
 quasi2D=False
 if quasi2D:#make tank one element wide
     L = (L[0],he,L[2])
+
 
 #parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
 parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 
 structured=False
+
 
 gauge_dx=5.0
 PGL=[]
@@ -302,8 +307,11 @@ else:
     from proteus.Domain import  PiecewiseLinearComplexDomain
     domain = PiecewiseLinearComplexDomain(fileprefix="frfDomain3D")
     domain.boundaryTags = boundaryTags
+
+
 zmin = np.array(domain.vertices)[:,2].min()
 inflowHeightMean = zmin + depth
+
 
 # Time stepping
 T=70.
@@ -311,6 +319,7 @@ dt_fixed = 1.
 dt_init = min(0.001*dt_fixed,0.001*he)
 runCFL=0.33
 nDTout = int(round(T/dt_fixed))
+
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
@@ -414,7 +423,7 @@ def z(x):
     return x[2] - inflowHeightMean
 
 def ramp(t):
-  t0=1. #ramptime
+  t0=.1 #ramptime
   if t<t0:
     return t/t0
   else:
@@ -425,8 +434,10 @@ h = inflowHeightMean - domain_vertices[:,2].min()# - transect[0][1] if lower lef
 sigma = omega - k*inflowVelocityMean[0]
 
 
-from proteus import WaveTools as wt
+from proteus.WaveTools import TimeSeries
+#from proteus import WaveTools as wt
 
+"""
 waveDir = np.array([-1,0,0])
 if opts.wave_type == 'linear':
     waves = wt.MonochromaticWaves(period = period, # Peak period
@@ -500,10 +511,30 @@ elif  opts.wave_type == 'time-series':
                             waveDir = waveDir,
                             g = np.array(g)         #accelerationof gravity
                         )
+"""
 
+timeSeriesFile = "Duck_series.txt"
+skiprows = 0
+N = 32
+mwl = inflowHeightMean
+waveDir = np.array([-1,0,0])
+rec_direct = True
+window_params = None
+timeSeriesPosition = [0., 0., 0.]
 
+tseries = TimeSeries(timeSeriesFile,
+                     skiprows,
+                     timeSeriesPosition,
+                     depth, #Need to set the depth
+                     N,          #Dummy
+                     mwl,        #mean water level
+                     waveDir,
+                     g,         #accelerationof gravity
+                     rec_direct,
+                     window_params,
+                     )
 
-
+"""
 if  opts.wave_type == 'time-series':
     def waveHeight(x,t):
         return inflowHeightMean + tseries.reconstruct_direct(0.,x[1],x[2],t,64)*ramp(t)#+ tseries
@@ -522,6 +553,25 @@ else:
         return waves.u(x[0],x[1],x[2],t,"y")
     def waveVelocity_w(x,t):
         return waves.u(x[0],x[1],x[2],t,"z")
+"""
+
+
+def waveHeight(x,t):
+    return inflowHeightMean + tseries.etaDirect(x,t)*ramp(t)#+ tseries
+
+
+def waveVelocity_u(x,t):
+    return  tseries.uDirect(x,t)[0]*ramp(t)#+ tseries
+
+
+def waveVelocity_v(x,t):
+    return  tseries.uDirect(x,t)[1]*ramp(t)#+ tseries
+
+
+def waveVelocity_w(x,t):
+    return  tseries.uDirect(x,t)[2]*ramp(t)#+ tseries    return waves.u(x[0],x[1],x[2],t,"z")
+
+
 
 #solution variables
 
