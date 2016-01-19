@@ -346,6 +346,7 @@ waterLine_z = inflowHeightMean
 tank.BC.top.setOpenAir()
 tank.BC.bottom.setFreeSlip()
 
+#tank.BC.left.setFreeSlip()
 tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waves, vert_axis=1, windSpeed=windVelocity, air=1., water=0., smooth=False)
 
 tank.BC.right.setFreeSlip()
