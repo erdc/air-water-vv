@@ -8,7 +8,9 @@ from proteus import Context
 from twp_navier_stokes_p import *
 
 ct = Context.get()
+domain = ct.domain
 nd = ct.domain.nd
+
 runCFL = ct.runCFL
 nLevels = ct.nLevels
 parallelPartitioningType = ct.parallelPartitioningType
@@ -37,13 +39,13 @@ numericalFluxType = None
 conservativeFlux  = None
 
 numericalFluxType = RANS2P.NumericalFlux
-subgridError = RANS2P.SubgridError(coefficients,
-                                   ct.domain.nd,
+subgridError = RANS2P.SubgridError(coefficients=coefficients,
+                                   nd=nd,
                                    lag = ct.ns_lag_subgridError,
                                    hFactor = ct.hFactor)
-shockCapturing = RANS2P.ShockCapturing(coefficients,
-                                       ct.domain.nd,
-                                       ct.ns_shockCapturingFactor,
+shockCapturing = RANS2P.ShockCapturing(coefficients=coefficients,
+                                       nd=nd,
+                                       shockCapturingFactor = ct.ns_shockCapturingFactor,
                                        lag = ct.ns_lag_shockCapturing)
 
 fullNewtonFlag = True
@@ -76,10 +78,10 @@ linearSolverConvergenceTest = 'r-true'
 tolFac = 0.0
 linTolFac = 0.00001
 nl_atol_res = ct.ns_nl_atol_res
-l_atol_res = 0.0001*ct.ns_nl_atol_res #1e-5
+l_atol_res = 0.001*ct.ns_nl_atol_res #1e-5
 useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
 
-#auxiliaryVariables = [ct.pointGauges]
+auxiliaryVariables = [ct.pointGauges]

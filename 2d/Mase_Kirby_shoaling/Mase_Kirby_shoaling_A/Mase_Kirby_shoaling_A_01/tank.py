@@ -117,7 +117,7 @@ domain = Domain.PlanarStraightLineGraphDomain()
 L = [24.0, 1.0]
 he = wavelength/100 #try this first
 domain.MeshOptions.elementSize(he)
-GenerationZoneLength = 2.0*wavelength #0.50*wavelength
+GenerationZoneLength = 0.50*wavelength
 spongeLayer = True
 xSponge = GenerationZoneLength
 xRelaxCenter = xSponge/2.0
@@ -190,8 +190,7 @@ tank = st.CustomShape(domain,
 
 tank.setGenerationZones(flags=1,
                         epsFact_solid=xSponge/2.0,
-                        sign=1.,
-                        center_x=xRelaxCenter,
+                        center=[xSponge, 0],
                         waves=waves,
                         windSpeed=windVelocity,
                         dragAlphaTypes=0.5/1.005e-6,
@@ -199,7 +198,17 @@ tank.setGenerationZones(flags=1,
                         porosityTypes=1.)
 
 
-weak_bc_penalty_constant = 100.0
+# Physical parameters
+rho_0 = 998.2
+nu_0 = 1.004e-6
+
+rho_1 = 1.205
+nu_1 = 1.500e-5 
+
+sigma_01 = 0.0
+
+
+weak_bc_penalty_constant = 10.0/nu_0
 nLevels = 1
 parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
@@ -214,10 +223,11 @@ quad_order = 3
 
 # Time stepping
 T = 20*period
-dt_fixed = T
+dt_fixed = T/20.0  
 dt_init = 0.001
 runCFL = 0.9
 nDTout = int(round(T/dt_fixed))
+
 
 # GAUGES  ------------------------------------------------------
 gauge_dx=0.25
@@ -239,7 +249,7 @@ columnLines=tuple(map(tuple,LGL))
 pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
                                 (('p',), gaugeLocations)),
                   activeTime = (0, 20.0),
-                  sampleRate = 0, #0.05
+                  sampleRate = 0.05
                   fileName = 'combined_gauge_0_0.5_sample_all.txt')
 
 fields = ('vof',)
@@ -248,39 +258,39 @@ columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
                                  fileName='column_gauge.csv')
 
 
-#domain.auxiliaryVariables += [pointGauges, columnGauge]
+domain.auxiliaryVariables += [pointGauges, columnGauge]
 
 
 # Numerical parameters
 ns_forceStrongDirichlet = False    #True
-backgroundDiffusionFactor = 0.0
+backgroundDiffusionFactor = 0.01
 if useMetrics:
-    ns_shockCapturingFactor  = 0.25
+    ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor = 0.35
+    ls_shockCapturingFactor = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
-    vof_shockCapturingFactor = 0.35
+    ls_sc_beta = 1.5
+    vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
-    rd_shockCapturingFactor = 0.75
+    vof_sc_beta = 1.5
+    rd_shockCapturingFactor = 0.5
     rd_lag_shockCapturing = False
     epsFact_density = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 1.5
-    epsFact_consrv_diffusion = 10.0
+    epsFact_redistance = 0.33
+    epsFact_consrv_diffusion = 1.0
     redist_Newton = True
-    kappa_shockCapturingFactor = 0.1
+    kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.1
+    kappa_sc_beta = 1.5
+    dissipation_shockCapturingFactor = 0.5
     dissipation_lag_shockCapturing = True#False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = 1.5
 else:
     ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
@@ -313,8 +323,8 @@ else:
 ns_nl_atol_res = max(1.0e-10,0.001*he**2)
 vof_nl_atol_res = max(1.0e-10,0.001*he**2)
 ls_nl_atol_res = max(1.0e-10,0.001*he**2)
-rd_nl_atol_res = max(1.0e-10,0.005*he)
-mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
+rd_nl_atol_res = max(1.0e-10,0.01*he)
+mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
@@ -327,16 +337,6 @@ elif useRANS == 2:
     ns_closure = 4
    
  
-# Physical parameters
-rho_0 = 998.2
-nu_0 = 1.004e-6
-
-rho_1 = 1.205
-nu_1 = 1.500e-5 
-
-sigma_01 = 0.0
-
-
 # Initial condition
 waterLine_x = 2*L[0]
 waterLine_z = inflowHeightMean
@@ -345,10 +345,7 @@ waterLine_z = inflowHeightMean
 # Boundary conditions
 tank.BC.top.setOpenAir()
 tank.BC.bottom.setFreeSlip()
-
-#tank.BC.left.setFreeSlip()
 tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waves, vert_axis=1, windSpeed=windVelocity, air=1., water=0., smooth=False)
-
 tank.BC.right.setFreeSlip()
 tank.BC.sponge.setParallelFlag0()
 
@@ -375,17 +372,8 @@ def theta(x,t):
 def z(x):
     return x[1] - inflowHeightMean
 
-# Solution variables
+
 def wavePhi(x,t):
     return x[1] - inflowHeightMean - waves.eta(x,t)
 
-"""# WaveData
-def waveHeight(x,t):
-    return inflowHeightMean + waves.eta(x[0],x[1],x[2],t)
-
-
-
-
-def waveVF(x,t):
-    return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))"""
 

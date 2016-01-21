@@ -27,10 +27,10 @@ else:
 
     
 if hasattr (domain, 'porosityTypes'):
-    porosityTypes = ct.domain.porosityTypes
-    dragAlphaTypes = ct.domain.dragAlphaTypes
-    dragBetaTypes = ct.domain.dragBetaTypes
-    epsFact_solid = ct.domain.epsFact_solid
+    porosityTypes = domain.porosityTypes
+    dragAlphaTypes = domain.dragAlphaTypes
+    dragBetaTypes = domain.dragBetaTypes
+    epsFact_solid = domain.epsFact_solid
 else:
     porosityTypes = None
     dragAlphaTypes = None

@@ -45,5 +45,5 @@ needEBQ_GLOBAL = False
 needEBQ = False
 
 
-tnList = [0.0,0.001,1] #ct.dt_init]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)] 
+tnList = [0.0,ct.dt_init]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)] 
 
