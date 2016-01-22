@@ -84,4 +84,4 @@ maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
 
-auxiliaryVariables = [ct.pointGauges]
+auxiliaryVariables = ct.domain.auxiliaryVariables

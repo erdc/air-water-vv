@@ -124,7 +124,7 @@ xRelaxCenter = xSponge/2.0
 epsFact_solid = xSponge/2.0
 cot_slope = 20.0
 x1 = 10.0
-y1 = 14.5*float(1.0/cot_slope)
+y1 = 14.0*float(1.0/cot_slope)
 
 
 b_or = {'bottom': [0., -1.],
@@ -191,6 +191,7 @@ tank = st.CustomShape(domain,
 tank.setGenerationZones(flags=1,
                         epsFact_solid=xSponge/2.0,
                         center=[xSponge, 0],
+                        orientation=[1, 0, 0],
                         waves=waves,
                         windSpeed=windVelocity,
                         dragAlphaTypes=0.5/1.005e-6,
@@ -223,42 +224,46 @@ quad_order = 3
 
 # Time stepping
 T = 20*period
-dt_fixed = T/20.0  
+dt_fixed = T  
 dt_init = 0.001
 runCFL = 0.9
 nDTout = int(round(T/dt_fixed))
 
 
 # GAUGES  ------------------------------------------------------
-gauge_dx=0.25
+gauge_dx=2 #0.25
 PGL=[]
 LGL=[]
-for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact 
+for i in range(0, int(L[0]/gauge_dx)): #+1 only if gauge_dx is an exact 
   if gauge_dx*i<x1:
       a = 0.0
   elif gauge_dx*i>=x1: 
-      a= (1/cot_slope)*(gauge_dx*i-x1)+0.001
- # print a , gauge_dx*i
-  
-  LGL.append([(gauge_dx*i,a,0),(gauge_dx*i,L[1],0)])
-  PGL.append([gauge_dx*i,a,0])
+      a = (1/cot_slope)*(gauge_dx*i-x1) 
+ 
+  LGL.append([[gauge_dx*i,a,0],[gauge_dx*i,L[1],0]])
+  PGL.append([gauge_dx*i,a,0])                          
 
-gaugeLocations=tuple(map(tuple,PGL)) 
-columnLines=tuple(map(tuple,LGL)) 
+
+gaugeLocations=tuple(map(tuple,PGL))
+
+columnLines=tuple(map(tuple,LGL))
+
 
 pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
                                 (('p',), gaugeLocations)),
                   activeTime = (0, 20.0),
-                  sampleRate = 0.05
+                  sampleRate = 0.05,
                   fileName = 'combined_gauge_0_0.5_sample_all.txt')
 
-fields = ('vof',)
+fields = (('vof',))
 
 columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
+                                 activeTime = (0, 20.0),
+                                 sampleRate = 0.,
                                  fileName='column_gauge.csv')
 
 
-domain.auxiliaryVariables += [pointGauges, columnGauge]
+domain.auxiliaryVariables += [pointGauges] 
 
 
 # Numerical parameters
