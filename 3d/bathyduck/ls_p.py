@@ -10,10 +10,8 @@ coefficients = NCLS.Coefficients(V_model=0,RD_model=3,ME_model=2,
                                  epsFact=epsFact_consrv_heaviside,sc_uref=ls_sc_uref,sc_beta=ls_sc_beta,movingDomain=movingDomain)
 
 def getDBC_ls(x,flag):
-    if flag == boundaryTags['left']:
+    if flag == boundaryTags['right']:
         return wavePhi
-#    elif flag == boundaryTags['right']:
-#        return  outflowPhi
     else:
         return None
 
@@ -24,6 +22,6 @@ diffusiveFluxBoundaryConditions = {0:{}}
 
 class PerturbedSurface_phi:
     def uOfXT(self,x,t):
-        return signedDistance(x)#wavePhi(x,t)
+        return signedDistance(x)
 
 initialConditions  = {0:PerturbedSurface_phi()}

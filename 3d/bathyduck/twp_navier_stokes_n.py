@@ -27,8 +27,8 @@ numericalFluxType = None
 conservativeFlux  = None
 
 numericalFluxType = RANS2P.NumericalFlux
-subgridError = RANS2P.SubgridError(coefficients,nd,lag=ns_lag_subgridError,hFactor=hFactor)
-shockCapturing = RANS2P.ShockCapturing(coefficients,nd,ns_shockCapturingFactor,lag=ns_lag_shockCapturing)
+subgridError = RANS2P.SubgridError(coefficients,nd,lag=ns_lag_subgridError,hFactor=hFactor,nStepsToDelay=1)
+shockCapturing = RANS2P.ShockCapturing(coefficients,nd,ns_shockCapturingFactor,lag=ns_lag_shockCapturing,nStepsToDelay=1)
 
 fullNewtonFlag = True
 multilevelNonlinearSolver = Newton
