@@ -49,19 +49,27 @@ hull_center = (0.0,
 
 
 #debug
-L=(1.5*hull_length,
- 3.0*hull_beam,
- 3.0*hull_draft)
+# L=(1.5*hull_length,
+#  3.0*hull_beam,
+#  3.0*hull_draft)
 
-x_ll = (-0.75*hull_length,
-        -L[1]/2.0,
-        0.0)
+# x_ll = (-0.75*hull_length,
+#         -L[1]/2.0,
+#         0.0)
 
-waterLevel   = 1.5*hull_draft
+# L=(3.0*hull_length,
+#    3.05*hull_length,
+#    3.0*hull_draft)
 
-hull_center = (0.0,
-              0.0,
-              waterLevel)
+# x_ll = (-0.75*hull_length,
+#          -L[1]/2.0,
+#          0.0)
+
+# waterLevel   = 1.5*hull_draft
+
+# hull_center = (0.0,
+#               0.0,
+#               waterLevel)
 
 #set up barycenters for force calculation
 barycenters = numpy.zeros((8,3),'d')
@@ -79,8 +87,8 @@ RBR_angCons  = [1,0,1]
 
 nLevels = 1
 
-he = hull_draft/1.0 #32
-he *=0.5 #4 way on diamond, 8 way on garnet 256-1024 mpi tasks
+he = hull_draft/0.75 #32
+#he *=0.5 #4 way on diamond, 8 way on garnet 256-1024 mpi tasks
 #he *=0.5 #2048 - mesh3206851
 #he *=0.5 #2048 - mesh3206851
 #vessel = 'wigley-gmsh'
@@ -280,15 +288,15 @@ smoothBottom = False
 smoothObstacle = False
 movingDomain=False#True
 checkMass=False
-applyCorrection=True
+applyCorrection=False
 applyRedistancing=True
 freezeLevelSet=True
 
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-Fr = 0.25
-#Fr = 0.51
+#Fr = 0.25
+Fr = 0.51
 #Fr = 0.0
 Um = Fr*sqrt(fabs(g[2])*hull_length)
 Re = hull_length*Um/nu_0
@@ -300,9 +308,9 @@ else:
     residence_time = 1.0
 dt_init=0.001
 T = 10*residence_time
-nDTout=200
+nDTout=100
 dt_out =  (T-dt_init)/nDTout
-runCFL = 0.33
+runCFL = 0.9
 
 #RANS bc info
 kInflow = 0.003*Um*Um
@@ -363,12 +371,12 @@ nDTout             = %i
 
 #  Discretization -- input options
 useOldPETSc=False
-useSuperlu = True # set to False if running in parallel with petsc.options
+useSuperlu = False # set to False if running in parallel with petsc.options
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
-useVF = 1.0
+useVF = 0.0
 useOnlyVF = False
 useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
@@ -413,32 +421,32 @@ elif spaceOrder == 2:
 
 
 # Numerical parameters
-ns_forceStrongDirichlet = False
+ns_forceStrongDirichlet = True
 
 if useMetrics:
-    ns_shockCapturingFactor  = 0.9
+    ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
+    ls_shockCapturingFactor  = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.9
+    vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.9
+    rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
     redist_Newton = False
-    kappa_shockCapturingFactor = 0.9
+    kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True
     kappa_sc_uref = 1.0
     kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.9
+    dissipation_shockCapturingFactor = 0.5
     dissipation_lag_shockCapturing = True
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.0
@@ -470,17 +478,17 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-12,0.001*he**2)
-vof_nl_atol_res = max(1.0e-12,0.001*he**2)
-ls_nl_atol_res = max(1.0e-12,0.001*he**2)
-mcorr_nl_atol_res = max(1.0e-12,0.001*he**2)
+ns_nl_atol_res = max(1.0e-12,0.01*he**2)
+vof_nl_atol_res = max(1.0e-12,0.01*he**2)
+ls_nl_atol_res = max(1.0e-12,0.01*he**2)
+mcorr_nl_atol_res = max(1.0e-12,0.01*he**2)
 rd_nl_atol_res = max(1.0e-12,0.01*he)
-kappa_nl_atol_res = max(1.0e-12,0.001*he**2)
-dissipation_nl_atol_res = max(1.0e-12,0.001*he**2)
-mesh_nl_atol_res = max(1.0e-12,0.001*he**2)
+kappa_nl_atol_res = max(1.0e-12,0.01*he**2)
+dissipation_nl_atol_res = max(1.0e-12,0.01*he**2)
+mesh_nl_atol_res = max(1.0e-12,0.01*he**2)
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 
 if useRANS == 1:
     ns_closure = 3
