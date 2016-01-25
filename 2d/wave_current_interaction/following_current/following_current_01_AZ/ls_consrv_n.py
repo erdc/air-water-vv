@@ -9,6 +9,9 @@ from proteus import Context
 import ls_consrv_p as physics
 
 ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+
 runCFL = ct.runCFL
 nLevels = ct.nLevels
 parallelPartitioningType = ct.parallelPartitioningType
