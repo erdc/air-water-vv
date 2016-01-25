@@ -2,8 +2,8 @@
 #SBATCH -J wavetank	     #Job Name	
 #SBATCH -o oe.wavetank.asm.o%j   #Output and Error File
 #SBATCH -n 12		     #Number of mpi asks
-#SBATCH -p development	     #Queue
-#SBATCH -t 00:25:00	     #Run Time
+#SBATCH -p normal	     #Queue
+#SBATCH -t 48:00:00	     #Run Time
 #SBATCH --mail-user=steve.a.mattis@gmail.com	#email
 #SBATCH --mail-type=begin				#when to email
 #SBATCH --mail-type=end                               #when to email 
@@ -14,4 +14,4 @@ set -x
 source /home1/01082/smattis/src/proteus/envConfig
 mkdir $SLURM_JOB_NAME.$SLURM_JOB_ID
 #/usr/local/bin/ibrun /scratch/01082/smattis/src/proteus-hashdist-11-2015/proteus/stampede.gnu/bin/python /scratch/01082/smattis/src/proteus-hashdist-11-2015/proteus/stampede.gnu/bin/parun tank_so.py  -l 3 -v -D $SLURM_JOB_NAME.$SLURM_JOB_ID -O ../../../inputTemplates/petsc.options.asm -o context.options -p
-ibrun parun tank_so.py  -l 3 -v -D $SLURM_JOB_NAME.$SLURM_JOB_ID -O petsc.options.asm -o context.options #-p
+ibrun parun tank_so.py  -l 3 -v -D $SLURM_JOB_NAME.$SLURM_JOB_ID -O ../../petsc.options.asm -o context.options #-p

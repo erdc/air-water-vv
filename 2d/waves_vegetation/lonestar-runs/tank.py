@@ -19,7 +19,7 @@ opts=Context.Options([
     ("peak_wavelength",3.91,"Peak wavelength in [m]"),
     ("parallel", False, "Run in parallel"),
     ("gauges", True, "Enable gauges"),
-    ("tank_height", 1.0, "height of wave tank"])
+    ("tank_height", 1.0, "height of wave tank")])
 
 #wave generator
 windVelocity = (0.0,0.0)
@@ -154,7 +154,7 @@ elif spaceOrder == 2:
 
 #for debugging, make the tank short
 L = (45.4,opts.tank_height)
-he = float(wavelength)/130.0 #100.0 #50.0#0.0#100
+he = 0.025 #float(wavelength)/130.0 #100.0 #50.0#0.0#100
 
 GenerationZoneLength = wavelength
 AbsorptionZoneLength= 45.4-37.9
@@ -240,17 +240,19 @@ else:
         nnx=ceil(L[0]/he)+1
         nny=ceil(L[1]/he)+1
     elif spongeLayer:
-        vertices=[[0.0,                                                   0.0                 ],#0
-                  [5.4,                                                   0.0                 ],#1
-                  [5.4 + 17.2,                                            17.2/44.0           ],#2
-                  [5.4 + 17.2 + 6.1,                                      17.2/44.0 + 6.1/20.0  ],#3
-                  [5.4 + 17.2 + 6.1 + 1.2,                                17.2/44.0 + 6.1/20.0  ],#4
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8,                          17.2/44.0 + 6.1/20.0  ],#5
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2,                    17.2/44.0 + 6.1/20.0  ],#6 -- sponge
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 20.95,            17.2/44.0 + 6.1/20.0 + 20.95/20.0],#7
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + 20.95,            17.2/44.0 + 6.1/20.0 + 20.95/20.0+0.2],#8
-                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2,                    19.5/44.0 + 1.5],#9 -- sponge
-                  [0.0,                                                   19.5/44.0 + 1.5]]#10
+        #tp = opts.tank_height
+        bp = 20.0*(opts.tank_height-0.2)
+        vertices=[[0.0,                                                   0.0                 ],#0 begin wave paddle bottom
+                  [5.4,                                                   0.0                 ],#1 end wave paddle bottom, begin incline 1
+                  [5.4 + 17.2,                                            17.2/44.0           ],#2 end incline 1, begin incline 2
+                  [5.4 + 17.2 + 6.1,                                      17.2/44.0 + 6.1/20.0  ],#3 end incline 2, begin pre veg platform
+                  [5.4 + 17.2 + 6.1 + 1.2,                                17.2/44.0 + 6.1/20.0  ],#4 end pre veg platform, begin veg zone
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8,                          17.2/44.0 + 6.1/20.0  ],#5 end veg zone, begin post veg platform
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2,                    17.2/44.0 + 6.1/20.0  ],#6 -- sponge, end post veg platorm, begin slope bottom
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + bp,            17.2/44.0 + 6.1/20.0 + bp/20.0],#7 end slope bottom
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2 + bp,            17.2/44.0 + 6.1/20.0 + bp/20.0+0.2],#8 end slope top
+                  [5.4 + 17.2 + 6.1 + 1.2 + 9.8 + 1.2,                    19.5/44.0 + 1.5],#9 -- sponge begin sponge top
+                  [0.0,                                                   19.5/44.0 + 1.5]]#10 begin wave paddle top
 
         vertexFlags=[boundaryTags['bottom'],#0
                      boundaryTags['bottom'],#1
@@ -304,7 +306,7 @@ else:
         domain.writePLY("mesh")
         domain.writeAsymptote("mesh")
         triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
-
+        print triangleOptions
         logEvent("""Mesh generated using: triangle -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
         porosityTypes      = numpy.array([1.0,
                                           1.0,
@@ -354,10 +356,10 @@ else:
 
         logEvent("""Mesh generated using: triangle -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=1.0  #480.0 #40*period
-dt_fixed = period/100.0#2.0*0.5/20.0#T/2.0#period/21.0
+T=200.0 #480.0  #480.0 #40*period
+dt_fixed = period/30.0#2.0*0.5/20.0#T/2.0#period/21.0
 dt_init = min(0.001*dt_fixed,0.001)
-runCFL=0.90
+runCFL=10.90
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
