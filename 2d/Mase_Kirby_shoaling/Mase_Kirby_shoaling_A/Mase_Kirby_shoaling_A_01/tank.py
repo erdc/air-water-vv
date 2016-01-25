@@ -252,7 +252,7 @@ columnLines=tuple(map(tuple,LGL))
 pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
                                 (('p',), gaugeLocations)),
                   activeTime = (0, 20.0),
-                  sampleRate = 0.05,
+                  sampleRate = 0.,
                   fileName = 'combined_gauge_0_0.5_sample_all.txt')
 
 fields = (('vof',))
