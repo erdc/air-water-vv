@@ -14,10 +14,11 @@ import numpy as np
 
 
 # Wave generator
-windVelocity = np.array([0.0, 0.0, 0.0])
+windVelocity = [0.0, 0.0, 0.0]
 inflowHeightMean = 1.0
 period = 1.94
 omega = 2.0*math.pi/period
+waveHeight = 0.0158
 wavelength = 7.42 #=5.0 without the current
 k = 2.0*math.pi/wavelength
 rampTime = 2.0*period
@@ -25,35 +26,45 @@ meanFrameVelocity = 2.825 #calculated from FFT
 outflowHeightMean = inflowHeightMean
 netcurrentVelocity = wavelength/period-meanFrameVelocity
 
-Y = [0.00668842,  # Surface elevation Fourier coefficients for non-dimensionalised solution, calculated from FFT
-     0.00008619, 
-     0.00000106,
-     0.00000001]
+Ycoeff = [0.00528973,  # Surface elevation Fourier coefficients for non-dimensionalised solution, calculated from FFT
+          0.00005395, 
+          0.00000053,
+          0.00000001,
+          0.00000000,
+          0.00000000,
+          0.00000000,
+          0.00000000]
 
-B = [0.00805507,   # Velocities Fourier coefficients for non-dimensionalised solution, calculated from FFT
-     0.00004774, 
-     0.00000019,
-     0.00000000]
+Bcoeff = [0.00637152,   # Velocities Fourier coefficients for non-dimensionalised solution, calculated from FFT
+          0.00002990, 
+          0.00000009,
+          0.00000000,
+          0.00000000,
+          0.00000000,
+          0.00000000,
+          0.00000000]
 
-waveheight = np.array(Y)
+
 waterLevel = inflowHeightMean
+depth = waterLevel
 waveDir = np.array([1,0,0])
+waveType = "Fenton"
 g = np.array([0, -9.81, 0])
 mwl = inflowHeightMean
 
-waves = MonochromaticWaves(period = period,
-                           waveHeight = waveheight,
-                           mwl = mwl,
-                           depth = waterLevel,
-                           g = g,
-                           waveDir = waveDir,
-                           wavelength = wavelength,
-                           waveType = "Fenton",
-                           Ycoeff = Y,
-                           Bcoeff = B,
-                           meanVelocity = ([0.,0.,0.]),
-                           phi0 = 0.)
-
+waves = MonochromaticWaves(period,
+                           waveHeight,
+                           mwl,
+                           depth,
+                           g,
+                           waveDir,
+                           wavelength,
+                           waveType,
+                           Ycoeff,
+                           Bcoeff,
+                           meanVelocity = [0.,0.,0.],
+                           phi0=0.,
+                           )
 
 
 #  Discretization -- input options  
@@ -64,6 +75,7 @@ checkMass=False
 freezeLevelSet=False
 useOldPETSc = False
 useSuperlu = False
+timeDiscretization = 'be'
 spaceOrder = 1
 useHex = False
 useRBLES = 0.0
@@ -147,29 +159,30 @@ epsFact_solid = xSponge/2.0"""
 #epsFact_solid_2 = AbsorptionZoneLength/2.0
 
 
-tank = st.Tank2D(domain, L, leftSponge=leftSponge, rightSponge=rightSponge)
+
+tank = st.Tank2D(domain, L)
 left = right = False
+
+tank.setSponge(left=leftSponge, right=rightSponge)
 if leftSponge is not None: left = True
 if rightSponge is not None: right = True
 
-
-tank.setAbsorptionZones(left=left, right=right,
-                        dragAlphaTypes=0.5/1.005e-6,
-                        dragBetaTypes=0.,
-                        porosityTypes=1.)
-
-# I can remove completely the arguments if I am using the deault values
-
-"""genzone = tank.setGenerationZones(indice=[1],
-                                  epsFact_solid=xSponge/2.0,
-                                  waves=waves,
-                                  wind=0.,
-                                  dragAlphaTypes=0.5/1.005e-6,
-                                  dragBetaTypes=0.,
-                                  porosityTypes=1.)"""
+tank.setGenerationZones(left=left, waves=waves)
+tank.setAbsorptionZones(right=right)
 
 
-weak_bc_penalty_constant = 100.0
+
+# Physical parameters                                                     
+rho_0 = 998.2
+nu_0  = 1.004e-6
+
+rho_1 = 1.205
+nu_1  = 1.500e-5 
+
+sigma_01 = 0.0
+
+
+weak_bc_penalty_constant = 10.0/nu_0
 nLevels = 1
 parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
@@ -183,22 +196,23 @@ restrictFineSolutionToAllMeshes = False
 quad_order = 3
 
 
-# Boundary conditions and other flags
-openTop=False
-openSides=False
-openEnd=True
-smoothBottom=False
-smoothObstacle=False
+
+# Time stepping
+T=40.0 * period
+dt_fixed = T
+dt_init = min(0.1*dt_fixed,0.001)
+runCFL=0.9
+nDTout = int(round(T/dt_fixed))
 
 
 
 # Gauges
-gauge_dx=0.37
+gauge_dx=4 #0.37
 PGL=[]
 LGL=[]
 for i in range(0,int(L[0]/gauge_dx)): #+1 only if gauge_dx is an exact 
   PGL.append([gauge_dx*i,0.5,0])
-  LGL.append([(gauge_dx*i,0.0,0),(gauge_dx*i,L[1],0)])
+  LGL.append([[gauge_dx*i,0.0,0],[gauge_dx*i,L[1],0]])
  
 
 gaugeLocations=tuple(map(tuple,PGL)) 
@@ -212,7 +226,7 @@ pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
                   fileName = 'combined_gauge_0_0.5_sample_all.txt')
 
 
-fields = ('vof',)
+fields = (('vof',))
 
 columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
                                  fileName='column_gauge.csv')
@@ -224,7 +238,7 @@ columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
 
 
 
-#domain.auxiliaryVariables += [pointGauges, columnGauge] 
+domain.auxiliaryVariables += [pointGauges]
 
     
         
@@ -241,44 +255,38 @@ epsFact_solidTypes = np.array([0.0,epsFact_solid_2,0.0])"""
 
 
         
-# Time stepping
-T=40.0 * period
-dt_fixed = T
-dt_init = min(0.1*dt_fixed,0.1)
-runCFL=0.9
-nDTout = int(round(T/dt_fixed))
 
 
 # Numerical parameters
 ns_forceStrongDirichlet = False #True
-backgroundDiffusionFactor = 0.0
+backgroundDiffusionFactor = 0.01
 if useMetrics:
-    ns_shockCapturingFactor  = 0.25
+    ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor = 0.35
+    ls_shockCapturingFactor = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
-    vof_shockCapturingFactor = 0.35
+    ls_sc_beta = 1.5
+    vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
-    rd_shockCapturingFactor = 0.75
+    vof_sc_beta = 1.5
+    rd_shockCapturingFactor = 0.5
     rd_lag_shockCapturing = False
     epsFact_density = 3.0
     epsFact_viscosity = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 1.5
-    epsFact_consrv_diffusion = 10.0
+    epsFact_redistance = 0.33
+    epsFact_consrv_diffusion = 1.0
     redist_Newton = True
-    kappa_shockCapturingFactor = 0.1
+    kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.1
+    kappa_sc_beta = 1.5
+    dissipation_shockCapturingFactor = 0.5
     dissipation_lag_shockCapturing = True#False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = 1.5
 else:
     ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True
@@ -308,10 +316,10 @@ else:
     dissipation_sc_beta = 1.0
 
 
-ns_nl_atol_res = max(1.0e-10,0.00001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.00001*he**2)
-ls_nl_atol_res = max(1.0e-10,0.0001*he**2)
-rd_nl_atol_res = max(1.0e-10,0.005*he)
+ns_nl_atol_res = max(1.0e-10,0.001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.001*he**2)
+ls_nl_atol_res = max(1.0e-10,0.001*he**2)
+rd_nl_atol_res = max(1.0e-10,0.01*he)
 mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
@@ -325,16 +333,6 @@ elif useRANS == 2:
     ns_closure = 4
 
     
-# Physical parameters                                                     
-rho_0 = 998.2
-nu_0  = 1.004e-6
-
-rho_1 = 1.205
-nu_1  = 1.500e-5 
-
-sigma_01 = 0.0
-                                                      
-
 
 # Initial condition
 waterLine_x = 2*L[0]
@@ -348,7 +346,17 @@ tank.BC.bottom.setFreeSlip()
 
 tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waves, vert_axis=1, windSpeed=windVelocity, air=1., water=0., smooth=False)
 
-#tank.BC.right.hydrostaticPressureOutletWithDepth(seaLevel=outflowHeightMean, rhoUp=rho_1, rhoDown=rho_0, g=g, refLevel=, pRef=0.0, vert_axis=1, air=1.0, water=0.0)
+#tank.BC.right.setTwoPhaseVelocityInlet(U=[waves.u, waves.u], waterLevel=outflowHeightMean, vert_axis=1, air=1., water=0.) """The same error between U and b_or as it was in Mase_Kirby case"""
+
+#tank.BC.right.hydrostaticPressureOutletWithDepth(seaLevel=outflowHeightMean, rhoUp=rho_1, rhoDown=rho_0, g=g, refLevel=inflowHeightMean, pRef=0.0, vert_axis=1, air=1.0, water=0.0)  """I am getting nan when I am using this type of BC"""
+
+#tank.BC.right.setHydrostaticPressureOutlet(rho=rho_1, g=g, refLevel=outflowHeightMean, vof=1., pRef=0.0, vert_axis=1) """I am getting nan when I am using this type of BC"""
+
+
+
+tank.BC.right.setFreeSlip()
+
+tank.BC.sponge.setParallelFlag0()
 
 def signedDistance(x):
     phi_x = x[0]-waterLine_x
@@ -381,7 +389,7 @@ def z(x):
 h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
     
 
-def waveHeight(x,t):
+"""def waveHeight(x,t):
    waterDepth = inflowHeightMean 
    for i in range(0,int(len(Y))):  
        waterDepth += Y[i]*cos((i+1)*theta(x,t))/k
@@ -401,7 +409,7 @@ def waveVelocity_v(x,t):
    for i in range(0,int(len(B))): 
      wv += sqrt(abs(g[1])/k)*(i+1)*B[i]*sinh((i+1)*k*(z(x)+h))/cosh((i+1)*k*h)*sin((i+1)*theta(x,t)) 
 
-   return wv*ramp(t)
+   return wv*ramp(t)"""
 
 
 def wavePhi(x,t):
@@ -412,7 +420,7 @@ def waveVF(x,t):
     return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
 
 
-def twpflowVelocity_u(x,t):
+"""def twpflowVelocity_u(x,t):
     waterspeed =  waveVelocity_u(x,t)
     H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
     u = H*windVelocity[0] + (1.0-H)*waterspeed
@@ -461,9 +469,9 @@ def outflowVel(x,t):
  
 
 def zeroVel(x,t):
-    return 0.0
+    return 0.0"""
  
 
-
+tank.BC.left.ls_dirichlet = wavePhi
 
 

@@ -10,6 +10,9 @@ import vof_p as physics
 
 
 ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+
 runCFL = ct.runCFL
 nLevels = ct.nLevels
 parallelPartitioningType = ct.parallelPartitioningType
@@ -61,9 +64,8 @@ levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest         = 'r-true'
 
 tolFac      = 0.0
-nl_atol_res = ct.vof_nl_atol_res
-
 linTolFac   = 0.001
+nl_atol_res = ct.vof_nl_atol_res
 l_atol_res = 0.001*ct.vof_nl_atol_res
 
 useEisenstatWalker = False

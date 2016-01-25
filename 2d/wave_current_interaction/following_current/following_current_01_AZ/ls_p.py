@@ -22,7 +22,7 @@ coefficients = NCLS.Coefficients(V_model=int(ct.movingDomain)+0,
                                  sc_beta=ct.ls_sc_beta,
                                  movingDomain=ct.movingDomain)
  
-def getDBC_ls(x,flag):
+"""def getDBC_ls(x,flag):
     if flag == ct.boundaryTags['left']:
         return ct.wavePhi
 #    elif flag == boundaryTags['right']:
@@ -30,9 +30,10 @@ def getDBC_ls(x,flag):
     else:
         return None
 
-dirichletConditions = {0:getDBC_ls}
+dirichletConditions = {0:getDBC_ls}"""
 
-#dirichletConditions = {0: lambda x, flag: None}
+
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].ls_dirichlet}
 
 advectiveFluxBoundaryConditions =  {}
 
