@@ -1,6 +1,5 @@
 from proteus import Domain
 from proteus.mprans import SpatialTools as st
-import ode
 from math import *
 import numpy as np
 # ----- DOMAIN ----- #
@@ -10,16 +9,16 @@ domain = Domain.PiecewiseLinearComplexDomain()
 waterLevel = 0.6
 
 # ----- SHAPES ----- #
-frontSponge = 1.
-backSponge = 1.
-rightSponge = 1.
-leftSponge= 1.
+frontSponge = 2.
+backSponge = 2.
+rightSponge = None
+leftSponge = None
 
-tank_dim = [3., 3., 3.]
+tank_dim = [5., 1.5, 1.5]
 tank = st.Tank3D(domain, tank_dim)
 tank.setSponge(front=frontSponge, back=backSponge, right=rightSponge,
                left=leftSponge)
-tank.setAbsorptionZones(allSponge=True)
+tank.setAbsorptionZones(front=frontSponge, back=backSponge, right=rightSponge, left=leftSponge)
 
 Length = 0.594
 Width = 0.416
@@ -133,7 +132,7 @@ useRBLES   = 0.0
 useMetrics = 1.0
 useVF = 1.0
 useOnlyVF = False
-useRANS = 0 # 0 -- None
+useRANS = 1 # 0 -- None
             # 1 -- K-Epsilon
             # 2 -- K-Omega, 1998
             # 3 -- K-Omega, 1988
