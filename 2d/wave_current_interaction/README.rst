@@ -24,7 +24,7 @@ following figure.
    :width: 100%
    :align: center
 
-where, lambda1, lambda2, lambda3 are the wave lengths in the case
+where, lambda0, lambda1, lambda2 are the wave lengths in the case
 without a current, an opposing current and a following current,
 respectively and the H0, H1 ,H2 are the corresponding wave heights.
 Also, the relationship between the wave lengths and the wave heights
@@ -35,14 +35,13 @@ wave/current interaction, where the modification of a linear regular
 wave by a uniform steady current is modelled. The first case consists
 of a regular wave with a following current of 1 m/s and the second
 case to an opposing current of 0.5 m/s to the same regular wave as in
-the first case.  The numerical domain of both cases consists of a 2D
-rectangular numerical flume with height of 2.0 m and a length of
-60.0 m. The mean water depth is equal to 1.0 m. The flux parameters of
-the modified waves due to a uniform current are imposed at the left
-boundary of the domain and the flux parameters are defined using
-Fenton's method (Fenton, 1988). Atmospheric conditions have been
-assigned to the top boundary of the domain, the bottom boundary acts
-as a free-slip wall.
+the first case. The numerical domain of both cases consists of a 2D
+rectangular numerical flume with height of 1.50 m and a length depending 
+on the wavelength. The mean water depth is equal to 1.0 m. The flux parameters 
+of the modified waves due to a uniform current are imposed at the left boundary 
+of the domain and the flux parameters are defined using Fenton's method (Fenton, 1988). 
+Atmospheric conditions have been assigned to the top boundary of the domain, 
+the bottom boundary acts as a free-slip wall.
 
 This test case demonstrates the ability of PROTEUS to simulate the
 wave/current interaction in a 2D configuration.
