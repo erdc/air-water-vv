@@ -18,7 +18,9 @@ windVelocity = [0.0, 0.0, 0.0]
 inflowHeightMean = 1.0
 period = 1.94
 omega = 2.0*math.pi/period
-waveHeight = 0.0158
+
+waveHeight = 0.0125
+
 wavelength = 7.42 #=5.0 without the current
 k = 2.0*math.pi/wavelength
 rampTime = 2.0*period
@@ -30,17 +32,11 @@ Ycoeff = [0.00528973,  # Surface elevation Fourier coefficients for non-dimensio
           0.00005395, 
           0.00000053,
           0.00000001,
-          0.00000000,
-          0.00000000,
-          0.00000000,
           0.00000000]
 
 Bcoeff = [0.00637152,   # Velocities Fourier coefficients for non-dimensionalised solution, calculated from FFT
           0.00002990, 
           0.00000009,
-          0.00000000,
-          0.00000000,
-          0.00000000,
           0.00000000,
           0.00000000]
 
@@ -52,17 +48,17 @@ waveType = "Fenton"
 g = np.array([0, -9.81, 0])
 mwl = inflowHeightMean
 
-waves = MonochromaticWaves(period,
-                           waveHeight,
-                           mwl,
-                           depth,
-                           g,
-                           waveDir,
-                           wavelength,
-                           waveType,
-                           Ycoeff,
-                           Bcoeff,
-                           meanVelocity = [0.,0.,0.],
+waves = MonochromaticWaves(period=period,
+                           waveHeight=waveHeight,
+                           mwl=mwl,
+                           depth=depth,
+                           g=g,
+                           waveDir=waveDir,
+                           wavelength=wavelength,
+                           waveType=waveType,
+                           Ycoeff=Ycoeff,
+                           Bcoeff=Bcoeff,
+                           meanVelocity = [1.,0.,0.],
                            phi0=0.,
                            )
 
@@ -135,7 +131,7 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 # Shape
 L = [float(7.0*wavelength),1.50]
-he = wavelength/200 # Background refinement
+he = wavelength/100 # Background refinement
 domain.MeshOptions.elementSize(he)
 
 # Refinement parameters
@@ -143,27 +139,13 @@ domain.MeshOptions.elementSize(he)
 #refinementLevel = (4 , 2) #refinemnt level for zone 1 and zone 2 and 4 respectively zone 3 has the basic refinement level
 
 #Left boundary imposed velocity
-leftSponge = 7.42    # generationzonelength=wavelength
-rightSponge = 14.84  # absorptionzonelength=wavelength*2.0
-
-"""GenerationZoneLength = wavelength
-spongeLayer = True
-xSponge = GenerationZoneLength
-xRelaxCenter = xSponge/2.0
-epsFact_solid = xSponge/2.0"""
-
-
-#zone 2
-#xSponge_2 = L[0]-AbsorptionZoneLength
-#xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-#epsFact_solid_2 = AbsorptionZoneLength/2.0
-
-
+leftSponge = 7.42   
+rightSponge = 14.84  
 
 tank = st.Tank2D(domain, L)
 left = right = False
 
-tank.setSponge(left=leftSponge, right=rightSponge)
+tank.setSponge(left=leftSponge, right=rightSponge)   
 if leftSponge is not None: left = True
 if rightSponge is not None: right = True
 
@@ -241,21 +223,6 @@ columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
 domain.auxiliaryVariables += [pointGauges]
 
     
-        
-        
-"""porosityTypes      = numpy.array([1.0,
-                                  1.0,
-                                  1.0])
-dragAlphaTypes = numpy.array([0.0,
-                              0.5/1.004e-6,                                     
-                              0.0])
-dragBetaTypes = numpy.array([0.0,0.0,0.0])
-
-epsFact_solidTypes = np.array([0.0,epsFact_solid_2,0.0])"""
-
-
-        
-
 
 # Numerical parameters
 ns_forceStrongDirichlet = False #True
@@ -346,17 +313,20 @@ tank.BC.bottom.setFreeSlip()
 
 tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waves, vert_axis=1, windSpeed=windVelocity, air=1., water=0., smooth=False)
 
-#tank.BC.right.setTwoPhaseVelocityInlet(U=[waves.u, waves.u], waterLevel=outflowHeightMean, vert_axis=1, air=1., water=0.) """The same error between U and b_or as it was in Mase_Kirby case"""
+
+#tank.BC.right.setTwoPhaseVelocityInlet(U=[1., 0.], waterLevel=outflowHeightMean, vert_axis=1, air=1., water=0.) 
 
 #tank.BC.right.hydrostaticPressureOutletWithDepth(seaLevel=outflowHeightMean, rhoUp=rho_1, rhoDown=rho_0, g=g, refLevel=inflowHeightMean, pRef=0.0, vert_axis=1, air=1.0, water=0.0)  """I am getting nan when I am using this type of BC"""
 
 #tank.BC.right.setHydrostaticPressureOutlet(rho=rho_1, g=g, refLevel=outflowHeightMean, vof=1., pRef=0.0, vert_axis=1) """I am getting nan when I am using this type of BC"""
 
+#tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waves, vert_axis=1, windSpeed=windVelocity, air=1., water=0., smooth=False)
 
-
-tank.BC.right.setFreeSlip()
+tank.BC.right.setNoSlip()
 
 tank.BC.sponge.setParallelFlag0()
+
+
 
 def signedDistance(x):
     phi_x = x[0]-waterLine_x
@@ -380,11 +350,14 @@ def ramp(t):
  else:
    return 1
 
+
 def theta(x,t):
     return k*x[0] - omega*t + pi/2.0
 
+
 def z(x):
     return x[1] - inflowHeightMean
+
 
 h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
     
@@ -412,12 +385,17 @@ def waveVelocity_v(x,t):
    return wv*ramp(t)"""
 
 
+
+
 def wavePhi(x,t):
     return x[1] - inflowHeightMean
 
 
 def waveVF(x,t):
     return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
+
+
+
 
 
 """def twpflowVelocity_u(x,t):
