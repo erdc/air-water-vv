@@ -29,15 +29,14 @@ else:
     levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'dissipation_'
-levelNonlinearSolverConvergenceTest = 'r'#'rits'
-linearSolverConvergenceTest         = 'r'#'rits'
+levelNonlinearSolverConvergenceTest = 'rits'#'r'
+linearSolverConvergenceTest         = 'rits'#'r'
 
 tolFac = 0.0
-linTolFac =0.0001
+linTolFac =0.0
 l_atol_res = 0.001*dissipation_nl_atol_res
 nl_atol_res = dissipation_nl_atol_res
 useEisenstatWalker = False#True
 
 maxNonlinearIts = 50
 maxLineSearches = 0
-

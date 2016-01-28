@@ -13,18 +13,18 @@ coefficients = RDLS.Coefficients(applyRedistancing=applyRedistancing,
                                  epsFact=epsFact_redistance,
                                  nModelId=2,
                                  rdModelId=3,
-		                 useMetrics=useMetrics)
+                                 useMetrics=useMetrics)
 
 def getDBC_rd(x,flag):
     pass
-    
+
 dirichletConditions     = {0:getDBC_rd}
 weakDirichletConditions = {0:RDLS.setZeroLSweakDirichletBCsSimple}
 
 advectiveFluxBoundaryConditions =  {}
 diffusiveFluxBoundaryConditions = {0:{}}
 
-class PHI_IC:       
+class PHI_IC:
     def uOfXT(self,x,t):
         return wavePhi(x,t)
 

@@ -21,8 +21,10 @@ if movingDomain:
 dissipation_model_flag = 1
 if useRANS == 2:
     dissipation_model_flag=2
+elif useRANS == 3:
+    dissipation_model_flag=3
 coefficients = Dissipation.Coefficients(V_model=0,ME_model=ME_model,LS_model=LS_model,RD_model=RD_model,kappa_model=kappa_model,
-                                  dissipation_model_flag=dissipation_model_flag,#1 -- K-epsilon, 2 -- K-omega
+                                  dissipation_model_flag=dissipation_model_flag,#1 -- K-epsilon, 2 -- K-omega 1998, 3 -- K-omega 1988
                                   useMetrics=useMetrics,
                                   rho_0=rho_0,nu_0=nu_0,
                                   rho_1=rho_1,nu_1=nu_1,
@@ -33,28 +35,45 @@ coefficients = Dissipation.Coefficients(V_model=0,ME_model=ME_model,LS_model=LS_
 
 
 dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*L[1])
-if useRANS == 2:
+if useRANS >= 2:
     dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
 def getDBC_dissipation(x,flag):
     if flag == boundaryTags['left']:
         return lambda x,t:dissipationInflow
-    if flag == boundaryTags['right']:
-        return lambda x,t:0.0
+    if flag in [boundaryTags['front'], boundaryTags['back']]:
+        if openSides:
+            return lambda x,t:dissipationInflow
 
 dirichletConditions = {0:getDBC_dissipation}
 #fluxBoundaryConditions = {0:'outFlow'}
 
 def getAFBC_dissipation(x,flag):
     if flag == boundaryTags['right']:
-        return None
-    if flag != boundaryTags['left']:
-        return lambda x,t: 0.0
+        return None#outflow
+    elif flag == boundaryTags['top']:
+        if openTop:
+            return None#outflow
+        else:
+            return None#lambda x,t: 0.0
+    elif flag in [boundaryTags['front'], boundaryTags['back']]:
+        if openSides:
+            return None#outflow
+        else:
+            return None#lambda x,t: 0.0
+    elif flag == boundaryTags['obstacle']:
+        return None#outflow
+    elif flag == boundaryTags['bottom']:
+        return None#outflow
 def getDFBC_dissipation(x,flag):
+    if flag == boundaryTags['left']:
+        return None#weak Dirichlet
+    if flag == boundaryTags['obstacle']:
+        return lambda x,t: 0.0 #outflow
     if flag == boundaryTags['right']:
-        return lambda x,t: 0.0
-    if flag != boundaryTags['left']:
-        return lambda x,t: 0.0
-    
+        return lambda x,t: 0.0 #outflow
+    if flag in [boundaryTags['front'],boundaryTags['back'],boundaryTags['top'],boundaryTags['bottom']]:
+        return lambda x,t: 0.0#outflow or no flow
+
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_dissipation}
 diffusiveFluxBoundaryConditions = {0:{0:getDFBC_dissipation}}
@@ -66,5 +85,5 @@ class ConstantIC:
         self.cval=cval
     def uOfXT(self,x,t):
         return self.cval
-   
+
 initialConditions  = {0:ConstantIC(cval=dissipationInflow*0.001)}

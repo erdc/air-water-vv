@@ -14,7 +14,7 @@ else:
 
 coefficients = VOF.Coefficients(LS_model=LS_model,V_model=0,RD_model=RD_model,ME_model=1,
                                 checkMass=False,useMetrics=useMetrics,
-                                epsFact=epsFact_vof,sc_uref=vof_sc_uref,sc_beta=vof_sc_beta)
+                                epsFact=epsFact_vof,sc_uref=vof_sc_uref,sc_beta=vof_sc_beta,movingDomain=movingDomain)
 
 def getDBC_vof(x,flag):
     if openTop and flag == boundaryTags['top']:
@@ -22,7 +22,10 @@ def getDBC_vof(x,flag):
     elif openSides and (flag == boundaryTags['front'] or flag == boundaryTags['back']):
         return outflowVF
     elif flag == boundaryTags['right']:
-        return outflowVF
+        if openEnd:
+            return outflowVF
+        else:
+            return None
     elif openSides and (flag == boundaryTags['front'] or flag == boundaryTags['back']):
         return outflowVF
     elif flag == boundaryTags['left']:
@@ -42,7 +45,10 @@ def getAFBC_vof(x,flag):
         else:
             return lambda x,t: 0.0
     elif flag == boundaryTags['right']:
-        return None
+        if openEnd:
+            return None
+        else:
+            return lambda x,t: 0.0
     elif flag == boundaryTags['left']:
         return None
     elif openSides and (flag == boundaryTags['front'] or flag == boundaryTags['back']):

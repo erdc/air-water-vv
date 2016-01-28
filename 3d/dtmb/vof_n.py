@@ -12,6 +12,7 @@ numericalFluxType = VOF.NumericalFlux
 conservativeFlux  = None
 subgridError      = VOF.SubgridError(coefficients=coefficients,nd=nd)
 shockCapturing    = VOF.ShockCapturing(coefficients,nd,shockCapturingFactor=vof_shockCapturingFactor,lag=vof_lag_shockCapturing)
+#shockCapturing    = VOF.ShockCapturing(coefficients,nd,shockCapturingFactor=0.0,lag=vof_lag_shockCapturing)
 
 fullNewtonFlag = True
 multilevelNonlinearSolver = Newton
@@ -38,8 +39,8 @@ levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest         = 'r-true'
 
 tolFac      = 0.0
-linTolFac   = 0.0001
-l_atol_res = 0.001*vof_nl_atol_res
+linTolFac   = 0.01
+l_atol_res = 0.01*vof_nl_atol_res
 nl_atol_res = vof_nl_atol_res
 useEisenstatWalker = False#True
 

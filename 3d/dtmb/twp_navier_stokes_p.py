@@ -33,12 +33,13 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    epsFact_density=epsFact_density,
                                    stokes=False,
                                    useVF=useVF,
-				   useRBLES=useRBLES,
-				   useMetrics=useMetrics,
+                                   useRBLES=useRBLES,
+                                   useMetrics=useMetrics,
                                    eb_adjoint_sigma=1.0,
                                    eb_penalty_constant=weak_bc_penalty_constant,
                                    forceStrongDirichlet=ns_forceStrongDirichlet,
-                                   turbulenceClosureModel=ns_closure)
+                                   turbulenceClosureModel=ns_closure,
+                                   movingDomain=movingDomain)
 
 def getDBC_p(x,flag):
     if openTop and flag == boundaryTags['top']:
@@ -55,7 +56,7 @@ def getDBC_u(x,flag):
         return twpflowVelocity_u#no slip
     elif flag == boundaryTags['obstacle']:
         return lambda x,t: 0.0#no slip
-    
+
 def getDBC_v(x,flag):
     if flag == boundaryTags['left']:
         return twpflowVelocity_v#inflow
@@ -81,7 +82,10 @@ def getAFBC_p(x,flag):
     if flag == boundaryTags['left']:
         return twpflowFlux#inflow
     elif flag == boundaryTags['right']:
-        return None#outflow
+        if openEnd:
+            return None#outflow
+        else:
+            return lambda x,t: 0.0
     elif flag == boundaryTags['top']:
         if openTop:
             return None#outflow
@@ -101,7 +105,10 @@ def getAFBC_u(x,flag):
     if flag == boundaryTags['left']:
         return None#weak Dirichlet
     elif flag == boundaryTags['right']:
-        return None#outflow
+        if openEnd:
+            return None#outflow
+        else:
+            return lambda x,t: 0.0
     elif flag == boundaryTags['top']:
         if openTop:
             return None#outflow
@@ -119,7 +126,10 @@ def getAFBC_v(x,flag):
     if flag == boundaryTags['left']:
         return None#weak Dirichlet
     elif flag == boundaryTags['right']:
-        return None#outflow
+        if openEnd:
+            return None#outflow
+        else:
+            return lambda x,t: 0.0
     elif flag == boundaryTags['top']:
         if openTop:
             return None#outflow
