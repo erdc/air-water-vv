@@ -88,6 +88,8 @@ RBR_angCons  = [1,0,1]
 nLevels = 1
 
 he = hull_draft/0.75 #32
+he *= 0.5 #
+he *= 0.5 #
 #he *=0.5 #4 way on diamond, 8 way on garnet 256-1024 mpi tasks
 #he *=0.5 #2048 - mesh3206851
 #he *=0.5 #2048 - mesh3206851
@@ -309,6 +311,9 @@ else:
 dt_init=0.001
 T = 10*residence_time
 nDTout=100
+#debut
+#T = 0.01#
+#nDTout=3
 dt_out =  (T-dt_init)/nDTout
 runCFL = 0.9
 

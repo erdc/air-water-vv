@@ -323,14 +323,14 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-12,0.001*he**2)
-vof_nl_atol_res = max(1.0e-12,0.001*he**2)
-ls_nl_atol_res = max(1.0e-12,0.001*he**2)
-mcorr_nl_atol_res = max(1.0e-12,0.0001*he**2)
-rd_nl_atol_res = max(1.0e-12,0.01*he)
-kappa_nl_atol_res = max(1.0e-12,0.001*he**2)
-dissipation_nl_atol_res = max(1.0e-12,0.001*he**2)
-mesh_nl_atol_res = max(1.0e-12,0.001*he**2)
+ns_nl_atol_res = max(1.0e-12,0.01*he**2)
+vof_nl_atol_res = max(1.0e-12,0.01*he**2)
+ls_nl_atol_res = max(1.0e-12,0.01*he**2)
+mcorr_nl_atol_res = max(1.0e-12,0.01*he**2)
+rd_nl_atol_res = max(1.0e-12,0.1*he)
+kappa_nl_atol_res = max(1.0e-12,0.01*he**2)
+dissipation_nl_atol_res = max(1.0e-12,0.01*he**2)
+mesh_nl_atol_res = max(1.0e-12,0.01*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
