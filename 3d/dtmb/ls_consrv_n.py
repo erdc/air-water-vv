@@ -33,6 +33,8 @@ if useSuperlu:
     multilevelLinearSolver = LU
     levelLinearSolver      = LU
 
+nonlinearSolverConvergenceTest = 'rits'
+levelNonlinearSolverConvergenceTest = 'rits'
 linear_solver_options_prefix = 'mcorr_'
 linearSolverConvergenceTest  = 'r-true'
 

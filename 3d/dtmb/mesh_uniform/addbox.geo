@@ -146,7 +146,7 @@ Function addOneBox
 
   Physical Surface(6) = {top[]};
  
-  Physical Volume(2) = {vol[]};
+  Physical Volume(1) = {vol[]};
 
   // Delete redundant entities
   Coherence; 
@@ -284,7 +284,7 @@ Function addBoxes
 
   Physical Surface(6) = {top[]};
  
-  Physical Volume(2) = {vol[]};
+  Physical Volume(1) = {vol[]};
 
   // Delete redundant entities
   Coherence; 

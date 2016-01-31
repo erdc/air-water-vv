@@ -34,20 +34,20 @@ Function addHull
   Physical Surface(7) = {1,2,3,4,5,6,7,8,9,10,11,12,13}; 
 
   // Set Characteristic lengths on hull
-  Characteristic Length {3}  = hcl/1.5;    // Sonar Dome
-  Characteristic Length {1}  = hcl/1.5;      // Keel
-  Characteristic Length {13} = hcl/1.5;      // Keel
+  Characteristic Length {3}  = hcl;    // Sonar Dome
+  Characteristic Length {1}  = hcl;      // Keel
+  Characteristic Length {13} = hcl;      // Keel
 
-  Characteristic Length {4}    = hcl/1.5;    // Bow Deck
-  Characteristic Length {5,7}  = hcl/1.5;    // Bow Deck
-  Characteristic Length {2,6}  = hcl/1.5;    // Bow Deck
-  Characteristic Length {8,12} = hcl/1.5;    // Bow Deck
+  Characteristic Length {4}    = hcl;    // Bow Deck
+  Characteristic Length {5,7}  = hcl;    // Bow Deck
+  Characteristic Length {2,6}  = hcl;    // Bow Deck
+  Characteristic Length {8,12} = hcl;    // Bow Deck
 
-  Characteristic Length {10}    = hcl/1.5;   // Stern upper   keel
-  Characteristic Length {16}    = hcl/1.5;   // Stern medium  keel
-  Characteristic Length {14}    = hcl/1.5;   // Stern lower   keel
-  Characteristic Length {9,11}  = hcl/1.5;   // Stern upper   sides
-  Characteristic Length {15,17} = hcl/1.5;   // Stern upper   sides
+  Characteristic Length {10}    = hcl;   // Stern upper   keel
+  Characteristic Length {16}    = hcl;   // Stern medium  keel
+  Characteristic Length {14}    = hcl;   // Stern lower   keel
+  Characteristic Length {9,11}  = hcl;   // Stern upper   sides
+  Characteristic Length {15,17} = hcl;   // Stern upper   sides
    
 Return
 
@@ -68,7 +68,7 @@ Function addRef
   Field[1].ZMin = -0.1;
   Field[1].ZMax =  0.05;
 
-  Field[1].VIn  =  0.66*hcl;
+  Field[1].VIn  =  hcl;
   Field[1].VOut = 99.9;
 
   Field[2] = Box;
@@ -98,7 +98,7 @@ Function addRef
   Field[11].ZMin =  0.00;
   Field[11].ZMax =  0.60;
 
-  Field[11].VIn  =  1.5*hcl;
+  Field[11].VIn  =  hcl;
   Field[11].VOut = 99.9;
 
   // Stern box 2
@@ -128,7 +128,7 @@ Function addRef
   Field[13].ZMin =  0.20;
   Field[13].ZMax =  0.30;
 
-  Field[13].VIn  = 0.5*hcl;
+  Field[13].VIn  = hcl;
   Field[13].VOut = 99.9;
   
   // Stern box 2
@@ -143,7 +143,7 @@ Function addRef
   Field[31].ZMin =  0.20;
   Field[31].ZMax =  0.40;
 
-  Field[31].VIn  =  0.7*hcl;
+  Field[31].VIn  =  hcl;
   Field[31].VOut = 99.9;
 
   Field[32] = Box;
@@ -157,7 +157,7 @@ Function addRef
   Field[32].ZMin =  -0.20;
   Field[32].ZMax =   0.30;
 
-  Field[32].VIn  =  0.8*hcl;
+  Field[32].VIn  =  hcl;
   Field[32].VOut = 99.9;
     
   // Combine

@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -A ERDCV00898ENQ
+#PBS -l walltime=048:00:00
+#PBS -l select=64:ncpus=36:mpiprocs=36
+#PBS -q standard
+#PBS -N dtmb
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/dtmb.$PBS_JOBID
+cp -r mesh* ${WORKDIR}/dtmb.$PBS_JOBID
+cp *.py $WORKDIR/dtmb.$PBS_JOBID
+cp topaz.pbs $WORKDIR/dtmb.$PBS_JOBID
+cp $HOME/air-water-vv/inputTemplates/petsc.options.asm $WORKDIR/dtmb.$PBS_JOBID
+cd  $WORKDIR/dtmb.$PBS_JOBID
+mpiexec_mpt -n ${BC_MPI_TASKS_ALLOC}  parun dtmb_so.py -p -l 5 -F -O petsc.options.asm

@@ -1,0 +1,18 @@
+#!/bin/bash
+#PBS -A ERDCV00898ENQ
+#PBS -l walltime=024:00:00
+#PBS -l select=16:ncpus=36:mpiprocs=36
+#PBS -q standard
+#PBS -N wigleyc33
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/wigleyc33.$PBS_JOBID
+cp *.py $WORKDIR/wigleyc33.$PBS_JOBID
+cp topaz.pbs $WORKDIR/wigleyc33.$PBS_JOBID
+cp $HOME/air-water-vv/inputTemplates/petsc.options.asm $WORKDIR/wigleyc33.$PBS_JOBID
+cd  $WORKDIR/wigleyc33.$PBS_JOBID
+mpiexec_mpt -n ${BC_MPI_TASKS_ALLOC}  parun wigley_so.py -p -l 5 -O petsc.options.asm -F 

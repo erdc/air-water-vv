@@ -5,8 +5,9 @@ Mesh.RandomFactor = 1e-4;
 Mesh.SaveElementTagType= 2;
 Mesh.QualityType = 1;
 Mesh.Optimize = 1;
+//Mesh.Smoothing=100;
 //Mesh.QualityType = 1;
-//Mesh.OptimizeNetgen = 1;
+Mesh.OptimizeNetgen = 1;
 
 //Mesh.Algorithm=6;
 //Mesh.Algorithm3D=1;
@@ -71,9 +72,9 @@ z[3] =  0.80;      hz[3] = 0.40;
 z[4] =  2.50;      hz[4] = 1.00;
 
 
-hcl = 0.75*(hz[2]*(hx[2]+hx[3])*(hy[2]+hy[3])/4.0);
+hcl = 0.5;
 
-Mesh.CharacteristicLengthMax=0.25; 
+Mesh.CharacteristicLengthMax=hcl; 
  
 Call addHull;
 Call addOneBox;

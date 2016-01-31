@@ -47,28 +47,21 @@ barycenters[7,:] = hull_cg
 
 vessel = 5415
 genMesh=False
-he=2.0
-#he=1.0
-#he=0.5
-#he = 0.375
-#he=0.25
-#he=0.125
-if he == 2.0:
-    #src_dir = 'mesh22927'
-    src_dir = 'mesh141487'
-elif he == 1.0:
-    src_dir = 'mesh249914' #128
+he = 1.0#new
+he = 0.5#new
+he = 0.25#new
+he = 0.125#new
+if he == 1.0:
+    src_dir = 'mesh13177'#new
 elif he == 0.5:
-    src_dir = 'mesh300031'
-    #src_dir = 'mesh274984' #128
-elif he == 0.375:
-    src_dir = 'mesh1127217' #1024
+    src_dir = 'mesh89988'#new
 elif he == 0.25:
-    #src_dir = 'mesh470168' #256
-    #src_dir = 'mesh3961173' #1256
+    src_dir = 'mesh664534'#new
+elif he == 0.125:
+    src_dir = 'mesh4907899'#new
+elif he == 0.625:
     src_dir = 'mesh1127217'#'1686606'
 elif he == 0.125:
-    #src_dir = 'mesh1487782'
     src_dir = 'mesh2034287' #1024
 import os
 import shutil
@@ -76,8 +69,8 @@ import glob
 from proteus import Comm
 comm = Comm.get()
 if comm.isMaster():
-    logEvent("Reading Mesh: ./mesh/"+src_dir)
-    for filename in glob.glob(os.path.join('./mesh/'+src_dir, 'mesh.*')):
+    logEvent("Reading Mesh: ./mesh_uniform/"+src_dir)
+    for filename in glob.glob(os.path.join('./mesh_uniform/'+src_dir, 'mesh.*')):
         shutil.copy(filename,'.')
 comm.barrier()
 #debug
@@ -285,7 +278,7 @@ smoothBottom = False
 smoothObstacle = False
 movingDomain=False#True
 checkMass=False
-applyCorrection=False
+applyCorrection=True
 applyRedistancing=True
 freezeLevelSet=True
 
@@ -436,9 +429,9 @@ if useMetrics:
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
+    epsFact_redistance = 0.66
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True
     kappa_sc_uref = 1.0

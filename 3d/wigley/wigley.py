@@ -290,15 +290,15 @@ smoothBottom = False
 smoothObstacle = False
 movingDomain=False#True
 checkMass=False
-applyCorrection=False
+applyCorrection=True
 applyRedistancing=True
 freezeLevelSet=True
 
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-#Fr = 0.25
-Fr = 0.51
+Fr = 0.25
+#Fr = 0.51
 #Fr = 0.0
 Um = Fr*sqrt(fabs(g[2])*hull_length)
 Re = hull_length*Um/nu_0
@@ -315,7 +315,7 @@ nDTout=100
 #T = 0.01#
 #nDTout=3
 dt_out =  (T-dt_init)/nDTout
-runCFL = 0.9
+runCFL = 0.33
 
 #RANS bc info
 kInflow = 0.003*Um*Um
@@ -446,7 +446,7 @@ if useMetrics:
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True
     kappa_sc_uref = 1.0
@@ -493,7 +493,7 @@ dissipation_nl_atol_res = max(1.0e-12,0.01*he**2)
 mesh_nl_atol_res = max(1.0e-12,0.01*he**2)
 
 #turbulence
-ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 
 if useRANS == 1:
     ns_closure = 3
