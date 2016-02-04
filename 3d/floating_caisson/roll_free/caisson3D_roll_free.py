@@ -1,48 +1,141 @@
-from proteus import Domain
+import sys
+from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from math import *
 import numpy as np
+
+
+opts=Context.Options([
+    # predefined test cases
+    ("test_case", None, "case number"),
+    ("test_type", 3, "type of test: 1=heave, 2=pitch, or 3=roll"),
+    ("water_level", 0.6, "Height of free surface above bottom"),
+    # tank
+    ("tank_dim", (5., 1.5, 1.5), "Dimensions of the tank"),
+    ("tank_sponge", (2., 0.), "Length of absorption zones (front/back, left/right)"),
+    #caisson
+    ("caisson_dim", (0.594, 0.416, 0.640), "Dimensions of the bar"),
+    ("free_x", (0.0, 0.0, 0.0), "Translational DOFs"),
+    ("free_r", (1.0, 0.0, 0.0), "Rotational DOFs"),
+    ("VCG", 0.175, "vertical position of the barycenter of the caisson"),
+    ("draft", 0.425, "Draft of the caisson"),
+    ("Ixx", 4.956, "Inertia tensor: xx-component"),
+    ("Iyy", 6.620, "Inertia tensor: yy-component"),
+    ("Izz", 5.515, "Inertia tensor: zz-component"),
+    ("rotation_angle", np.pi/12., "Initial rotation angle (in radians)"),
+    ("rotation_axis", (1.,0.,0.), "Axis for initial rotation"),
+    # numerical options
+    #("gen_mesh", True ,"Generate new mesh"),
+    ("refinement_level", 1 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("T", 10.0 ,"Simulation time"),
+    ("dt_init", 0.001 ,"Initial time step"),
+    ("cfl", 0.33 ,"Target cfl"),
+    ("nsave",  20,"Number of time steps to save per second"),
+    ("parallel", True ,"Run in parallel")])
+
+
+# ----- CONTEXT ----- #
+
+# general options
+waterLevel = opts.water_level
+
+# tank options
+tank_dim = opts.tank_dim
+tank_sponge = opts.tank_sponge
+
+# caisson options
+dim = opts.caisson_dim
+VCG = opts.VCG
+draft = opts.draft
+Ixx = opts.Ixx
+Iyy = opts.Iyy
+Izz = opts.Izz
+free_x = opts.free_x
+free_r = opts.free_r
+rotation_angle = opts.rotation_angle
+rotation_axis = opts.rotation_axis
+
+
+# PREDEFINED CASES
+
+case = opts.test_case
+test = opts.test_type
+if case is not None:
+    # dimension of caisson
+    dim1 = (0.594, 0.416, 0.640)
+    dim2 = (0.594, 0.608, 0.640)
+    dim3 = (1.143, 0.900, 0.640)
+    dims = [dim1,  dim1,  dim2,  dim2,  dim2,  dim2,  dim3, dim3,  dim3,  dim3]
+    # vertical center of gravity
+    VCGs = [0.191, 0.201, 0.188, 0.189, 0.189, 0.203, None,  0.178, 0.183, 0.200]
+    # Draft
+    drafts = [0.425, 0.500, 0.350, 0.351, 0.425, 0.500, 0.1942, 0.350, 0.425, 0.500]
+    # components of mass matrix
+    Ixx =  [4.956, 5.356, 9.089, 9.789, 9.789, 11.089, None, 28.944, 32.544, 37.044]
+    Iyy =  [6.620, 7.220, 8.848, 9.448, 9.448, 10.648, None, 47.389, 54.689, 62.889]
+    Izz =  [5.515, 6.215, 9.307, 10.807, 10.807, 12.307, None, 58.050, 68.550, 79.050]
+    # rotation options
+    free_x = opts.free_x
+    free_r = opts.free_r
+    # get right value from index of test case
+    if 1 <= case <= 10:
+        ind = case-1
+        dim = dims[ind]
+        VCG = VCGs[ind]
+        draft = drafts[ind]
+        Ixx = Ixx[ind]
+        Iyy = Iyy[ind]
+        Izz = Izz[ind]
+        if test == 1:
+            free_x = (0., 0., 1.)
+            free_r = (0., 0., 0.)
+        elif test == 2:
+            free_x = (0., 0., 0.)
+            free_r = (0., 1., 0.)
+            rotation_axis = (0., 1., 0.)
+        elif test == 3:
+            free_x = (0., 0., 0.)
+            free_r = (1., 0., 0.)
+            rotation_axis = (1., 0., 0.)
+    else:
+        sys.exit()
+
+coords = (tank_dim[0]/2., tank_dim[1]/2., waterLevel+dim[2]/2.-draft)
+barycenter = (coords[0], coords[1], coords[2]-dim[2]/2.+VCG)
+
+
+
+
 # ----- DOMAIN ----- #
 
 domain = Domain.PiecewiseLinearComplexDomain()
 
-waterLevel = 0.6
 
 # ----- SHAPES ----- #
-frontSponge = 2.
-backSponge = 2.
-rightSponge = None
-leftSponge = None
 
-tank_dim = [5., 1.5, 1.5]
+front = back = tank_sponge[0]
+right = left = tank_sponge[1]
+fbt = rlt = False
+if front and back:
+    fbt = True
+if right and left:
+    rlt = True
+
 tank = st.Tank3D(domain, tank_dim)
-tank.setSponge(front=frontSponge, back=backSponge, right=rightSponge,
-               left=leftSponge)
-tank.setAbsorptionZones(front=frontSponge, back=backSponge, right=rightSponge, left=leftSponge)
+tank.setSponge(front=front, back=back, right=right, left=left)
+tank.setAbsorptionZones(front=fbt, back=fbt, right=rlt, left=rlt)
 
-Length = 0.594
-Width = 0.416
-Height = 0.640
-Draft = 0.425
-VCG = 0.191
-Ixx = 4.956
-Iyy = 6.620
-Izz = 5.515
-mass = 15
-
-caisson_dim = [Length, Width, Height]
-caisson_coords = [tank.dim[0]/2., tank.dim[1]/2., waterLevel+Height/2.-Draft]
-caisson3D = st.Cuboid(domain, dim=caisson_dim, coords=caisson_coords)
+caisson3D = st.Cuboid(domain, dim=dim, coords=coords)
 caisson3D.setRigidBody()
-caisson3D.setConstraints(free_x=[0., 0., 0.], free_r=[0., 1., 0.])
-caisson3D.setBarycenter([caisson3D.coords[0],
-                         caisson3D.coords[1],
-                         caisson3D.coords[2]-caisson3D.dim[2]/2.+VCG])
+caisson3D.setBarycenter(barycenter)
+caisson3D.setConstraints(free_x=free_x, free_r=free_r)
+# mass is not real mass ---> inerta tensor provided and scaled by mass
+mass = 15
 caisson3D.setMass(mass)
 caisson3D.It = np.array([[Ixx, 0., 0.],
                          [0., Iyy, 0.],
                          [0., 0., Izz]])/caisson3D.mass
-caisson3D.rotate(pi/12, axis=[0., 1., 0.])  # initial position for free oscillation
+caisson3D.rotate(rotation_angle, rotation_axis)
 caisson3D.setRecordValues(pos=True, rot=True, F=True, M=True)
 
 # ----- BOUNDARY CONDITIONS ----- #
@@ -56,7 +149,7 @@ tank.BC.left.setFreeSlip()
 tank.BC.back.setFreeSlip()
 tank.BC.right.setFreeSlip()
 tank.BC.top.setOpenAir()
-tank.BC.sponge.setParallelFlag0()
+tank.BC.sponge.setNonMaterial()
 
 
 
@@ -77,9 +170,9 @@ g = [0., 0., -9.81]
 
 
 
-
-he = (caisson3D.dim[2])/2.0 #coarse grid
-domain.MeshOptions.elementSize(he, 2.)
+refinement_level = opts.refinement_level
+he = (caisson3D.dim[2])/2.0*(0.5**refinement_level)
+domain.MeshOptions.elementSize(he)
 st.assembleDomain(domain)
 
 
@@ -115,11 +208,11 @@ freezeLevelSet=True
 # Time stepping and velocity
 #----------------------------------------------------
 weak_bc_penalty_constant = 10.0/nu_0#Re
-dt_init=0.001
-T = 5
-nDTout=100
+dt_init = opts.dt_init
+T = opts.T
+nDTout = opts.T*opts.nsave
 dt_out =  (T-dt_init)/nDTout
-runCFL = 0.33
+runCFL = opts.cfl
 
 #----------------------------------------------------
 
