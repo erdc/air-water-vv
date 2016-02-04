@@ -19,9 +19,7 @@ opts=Context.Options([
     ("free_r", (1.0, 0.0, 0.0), "Rotational DOFs"),
     ("VCG", 0.175, "vertical position of the barycenter of the caisson"),
     ("draft", 0.425, "Draft of the caisson"),
-    ("Ixx", 4.956, "Inertia tensor: xx-component"),
-    ("Iyy", 6.620, "Inertia tensor: yy-component"),
-    ("Izz", 5.515, "Inertia tensor: zz-component"),
+    ("It", (4.956, 6.620, 5.515), "Inertia tensor: Ixx, Iyy, and Izz components"),
     ("rotation_angle", np.pi/12., "Initial rotation angle (in radians)"),
     ("rotation_axis", (1.,0.,0.), "Axis for initial rotation"),
     # numerical options
@@ -47,9 +45,7 @@ tank_sponge = opts.tank_sponge
 dim = opts.caisson_dim
 VCG = opts.VCG
 draft = opts.draft
-Ixx = opts.Ixx
-Iyy = opts.Iyy
-Izz = opts.Izz
+Ixx, Iyy, Izz = opts.It
 free_x = opts.free_x
 free_r = opts.free_r
 rotation_angle = opts.rotation_angle
@@ -210,7 +206,7 @@ freezeLevelSet=True
 weak_bc_penalty_constant = 10.0/nu_0#Re
 dt_init = opts.dt_init
 T = opts.T
-nDTout = opts.T*opts.nsave
+nDTout = int(opts.T*opts.nsave)
 dt_out =  (T-dt_init)/nDTout
 runCFL = opts.cfl
 
