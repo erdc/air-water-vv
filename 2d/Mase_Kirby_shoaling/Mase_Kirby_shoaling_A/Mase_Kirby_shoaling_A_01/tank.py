@@ -7,6 +7,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 from proteus.WaveTools import RandomWaves
 from proteus.mprans import SpatialTools as st
+from proteus.mprans import BoundaryConditions as BC
 from proteus import MeshTools, AuxiliaryVariables
 import proteus.MeshTools
 import ode
@@ -224,7 +225,7 @@ quad_order = 3
 
 # Time stepping
 T = 20*period
-dt_fixed = T  
+dt_fixed = 0.05 #T  
 dt_init = 0.001
 runCFL = 0.9
 nDTout = int(round(T/dt_fixed))
@@ -350,9 +351,9 @@ waterLine_z = inflowHeightMean
 # Boundary conditions
 tank.BC.top.setOpenAir()
 tank.BC.bottom.setFreeSlip()
-tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waves, vert_axis=1, windSpeed=windVelocity, air=1., water=0., smooth=False)
+tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waves, vert_axis=1, windSpeed=windVelocity, air=1., water=0.)
 tank.BC.right.setFreeSlip()
-tank.BC.sponge.setParallelFlag0()
+tank.BC.sponge.setNonMaterial()
 
 
 def signedDistance(x):
