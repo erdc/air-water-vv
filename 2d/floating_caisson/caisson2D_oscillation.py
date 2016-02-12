@@ -1,59 +1,105 @@
-from proteus import Domain
+from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
-import ode
 from math import *
 import numpy as np
+
+
+
+opts=Context.Options([
+    # predefined test cases
+    ("water_level", 0.9, "Height of free surface above bottom"),
+    # tank
+    ("tank_dim", (5., 1.2,), "Dimensions of the tank"),
+    ("tank_sponge", (2., 2.), "Length of absorption zones (front/back, left/right)"),
+    # waves
+    ("waves", False, "Generate waves (True/False)"),
+    ("wave_period", 0.8, "Period of the waves"),
+    ("wave_height", 0.029, "Height of the waves"),
+    ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
+    # caisson
+    ("caisson_dim", (0.3, 0.1), "Dimensions of the caisson"),
+    ("caisson_coords", None, "Dimensions of the caisson"),
+    ("caisson_width", 0.9, "Width of the caisson"),
+    ("free_x", (0.0, 0.0, 0.0), "Translational DOFs"),
+    ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
+    ("VCG", None, "vertical position of the barycenter of the caisson"),
+    ("draft", 0.425, "Draft of the caisson"),
+    ("inertia", 0.236, "Inertia of the caisson"),
+    ("rotation_angle", np.pi/12., "Initial rotation angle (in radians)"),
+    # numerical options
+    #("gen_mesh", True ,"Generate new mesh"),
+    ("refinement_level", 0 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("T", 10.0 ,"Simulation time"),
+    ("dt_init", 0.001 ,"Initial time step"),
+    ("cfl", 0.33 ,"Target cfl"),
+    ("nsave",  20,"Number of time steps to save per second"),
+    ("parallel", True ,"Run in parallel")])
+
+
+
+# ----- CONTEXT ------ #
+
+# general options
+waterLevel = opts.water_level
+
+# waves
+if opts.waves is True:
+    period = opts.wave_period
+    height = opts.wave_height
+    mwl = depth = opts.water_level
+    direction = opts.wave_dir
+    wave = wt.MonochromaticWaves(period, height, mwl, depth,
+                                 np.array([0., -9.81, 0.]), direction)
+
+# tank options
+tank_dim = opts.tank_dim
+tank_sponge = opts.tank_sponge
+
+# caisson options
+dim = opts.caisson_dim
+VCG = opts.VCG
+if VCG is None:
+    VCG = dim[1]/2.
+draft = opts.draft
+free_x = opts.free_x
+free_r = opts.free_r
+rotation = opts.rotation_angle
+if opts.caisson_coords is None:
+    coords = [tank_dim[0]/2., waterLevel]
+else:
+    coords = opts.caisson_coords
+barycenter = (coords[0], coords[1]-dim[1]/2.+VCG)
+inertia = opts.inertia
+width = opts.caisson_width
+caisson_mass = 15  # mass is actually not used (cancelled in inertia -> see below)
+
+
+
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
 
-waterLevel = 0.9
 
-# nd = 2
-rho_0=998.2
-nu_0 =1.004e-6
-rho_1=1.205
-nu_1 =1.500e-5
-sigma_01=0.0
-g = [0., -9.81]
-# ------------------
 # ----- SHAPES ----- #
 
-tank_dim = [5., 1.2]
-leftSponge = 2.
-rightSponge = 2.
-
-caisson_dim = [.3, .1]
-caisson_coords = [tank_dim[0]/2., waterLevel]
-inertia = 0.236
-width = 0.9
-caisson_mass = 15
-free_x = [0., 0., 0.]
-free_r = [0., 0., 1.]
-rotation = pi/12.
-
 tank = st.Tank2D(domain, tank_dim)
-left = right = False
-tank.setSponge(left=leftSponge, right=rightSponge)
-if leftSponge is not None: left = True
-if rightSponge is not None: right = True
-center_x = tank.coords[0]-leftSponge/2.
-period = 0.8
-height = 0.029
-mwl = depth = 0.9
-direction = np.array([1., 0., 0.])
-wave = wt.MonochromaticWaves(period, height, mwl, depth, np.array([0., -9.81, 0.]), direction)
-tank.setGenerationZones(left=left, waves=wave)
+tank.setSponge(left=tank_sponge[0], right=tank_sponge[1])
+if tank_sponge[0]: left = True
+if tank_sponge[1]: right = True
+if opts.waves is True:
+    tank.setGenerationZones(left=left, waves=wave)
+    tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
+else:
+    tank.setAbsorptionZones(left=left)
 tank.setAbsorptionZones(right=right)
-tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
 
-
-caisson3D = st.Rectangle(domain, dim=caisson_dim, coords=caisson_coords)
+caisson3D = st.Rectangle(domain, dim=dim, coords=coords)
 caisson3D.setRigidBody()
 caisson3D.setMass(caisson_mass)
 caisson3D.setConstraints(free_x=free_x, free_r=free_r)
-caisson3D.rotate(rotation)  # initial position for free oscillation
+if rotation:
+    caisson3D.rotate(rotation)  # initial position for free oscillation
 caisson3D.It = inertia/caisson3D.mass/width
 caisson3D.setRecordValues(pos=True, rot=True, F=True, M=True)
 
@@ -65,7 +111,7 @@ for bc in caisson3D.BC_list:
 tank.BC.top.setOpenAir()
 tank.BC.bottom.setNoSlip()
 tank.BC.right.setNoSlip()
-tank.BC.sponge.setParallelFlag0()
+tank.BC.sponge.setNonMaterial()
 
 
 
@@ -76,8 +122,16 @@ tank.BC.sponge.setParallelFlag0()
 ##########################################
 
 
+rho_0=998.2
+nu_0 =1.004e-6
+rho_1=1.205
+nu_1 =1.500e-5
+sigma_01=0.0
+g = [0., -9.81]
 
 
+refinement_level = opts.refinement_level
+he = (caisson3D.dim[-1])/12.0*(0.5**refinement_level)
 domain.MeshOptions.he = (caisson3D.dim[-1])/12.0 #coarse grid
 
 
@@ -106,14 +160,13 @@ freezeLevelSet=True
 # Time stepping and velocity
 #----------------------------------------------------
 weak_bc_penalty_constant = 10.0/nu_0#Re
-dt_init=0.001
-T = 10
-nDTout= 40*T
+dt_init = opts.dt_init
+T = opts.T
+nDTout = int(opts.T*opts.nsave)
 dt_out =  (T-dt_init)/nDTout
-runCFL = 0.33
+runCFL = opts.cfl
 
 #----------------------------------------------------
-water_depth  = waterLevel
 
 #  Discretization -- input options
 useOldPETSc=False
