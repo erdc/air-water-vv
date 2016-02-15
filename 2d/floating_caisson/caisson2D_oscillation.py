@@ -110,6 +110,7 @@ for bc in caisson3D.BC_list:
 
 tank.BC.top.setOpenAir()
 tank.BC.bottom.setNoSlip()
+tank.BC.left.setNoSlip()
 tank.BC.right.setNoSlip()
 tank.BC.sponge.setNonMaterial()
 
@@ -132,7 +133,7 @@ g = [0., -9.81]
 
 refinement_level = opts.refinement_level
 he = (caisson3D.dim[-1])/12.0*(0.5**refinement_level)
-domain.MeshOptions.he = (caisson3D.dim[-1])/12.0 #coarse grid
+domain.MeshOptions.he = he #coarse grid
 
 
 from math import *
