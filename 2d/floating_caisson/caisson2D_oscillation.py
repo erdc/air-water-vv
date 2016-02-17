@@ -89,7 +89,6 @@ if tank_sponge[0]: left = True
 if tank_sponge[1]: right = True
 if opts.waves is True:
     tank.setGenerationZones(left=left, waves=wave)
-    tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
 else:
     tank.setAbsorptionZones(left=left)
 tank.setAbsorptionZones(right=right)
@@ -110,7 +109,10 @@ for bc in caisson3D.BC_list:
 
 tank.BC.top.setOpenAir()
 tank.BC.bottom.setNoSlip()
-tank.BC.left.setNoSlip()
+if opts.waves is True:
+    tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
+else:
+    tank.BC.left.setNoSlip()
 tank.BC.right.setNoSlip()
 tank.BC.sponge.setNonMaterial()
 
