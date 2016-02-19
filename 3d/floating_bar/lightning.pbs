@@ -1,0 +1,17 @@
+#!/bin/bash
+#PBS -A ERDCV00898ENQ
+#PBS -l walltime=024:00:00
+#PBS -l select=8:ncpus=24:mpiprocs=24
+#PBS -q standard
+#PBS -N bar
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+cd $PBS_O_WORKDIR
+cp *.py $JOBDIR
+cp lightning.pbs $JOBDIR
+cp $HOME/air-water-vv/inputTemplates/petsc.options.asm $JOBDIR
+cd $JOBDIR
+aprun -n 192  parun floating_bar_so.py -l 5 -O petsc.options.asm -F -C "cfl=0.33 bar_height=0.4 gen_mesh=True refinement_level=2 parallel=True nsave=1000 dt_init=0.001 free_r=(0.0,0.0,0.0)"

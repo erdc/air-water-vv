@@ -1,6 +1,7 @@
 from math import *
 from proteus import Domain
-from proteus.Gauges import PointGauges, LineGauges, LineGauges_phi
+from proteus.Gauges import PointGauges, LineGauges
+#, LineGauges_phi
 
 import proteus.MeshTools
 from proteus.default_n import *
@@ -87,7 +88,7 @@ pointGauges = PointGauges(gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))), 
 
 lineGauges = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825': ((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))}, linePoints=20)
 #'lineGauge_x/H=1.653':((0.99,0.0,0.0),(0.99,1.8,0.0))
-lineGauges_phi = LineGauges_phi(lineGauges.endpoints, linePoints=20)
+#lineGauges_phi = LineGauges_phi(lineGauges.endpoints, linePoints=20)
 
 if useHex:
     nnx = 4 * Refinement + 1
