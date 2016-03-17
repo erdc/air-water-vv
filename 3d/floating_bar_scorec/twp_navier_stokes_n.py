@@ -11,7 +11,8 @@ triangleOptions = ct.triangleOptions
 
 femSpaces = {0:ct.basis,
              1:ct.basis,
-             2:ct.basis}
+             2:ct.basis,
+             3:ct.basis}
 
 massLumping       = False
 numericalFluxType = None
@@ -26,7 +27,7 @@ multilevelNonlinearSolver = NonlinearSolvers.Newton
 levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
-linearSmoother    = LinearSolvers.SimpleNavierStokes2D
+linearSmoother    = LinearSolvers.SimpleNavierStokes3D
 
 matrix = SparseMatrix
 
@@ -52,5 +53,5 @@ nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
-#conservativeFlux = {0:'pwl-bdm-opt'}
+conservativeFlux = {0:'pwl-bdm-opt'}
 auxiliaryVariables=[ct.bar]
