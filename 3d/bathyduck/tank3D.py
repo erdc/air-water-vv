@@ -5,10 +5,13 @@ from proteus.default_n import *
 from proteus.Profiling import logEvent
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
-from proteus import Gauges
 from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 from proteus import Comm
 from proteus import Context
+from proteus.WaveTools import TimeSeries
+from proteus.Domain import InterpolatedBathymetryDomain, PiecewiseLinearComplexDomain
+from proteus.MeshTools import InterpolatedBathymetryMesh
+
 comm = Comm.init()
 opts=Context.Options([
     ("wave_type", 'single-peaked', "type of waves generated: 'linear', 'Nonlinear', 'single-peaked', 'double-peaked', 'time-series'"),
@@ -20,37 +23,37 @@ opts=Context.Options([
     ("parallel", False, "Run in parallel"),
     ("gauges", False, "Enable gauges")])
 
-#wave generatorx
-windVelocity = (0.0,0.0,0.0)
+# Wave generator
+windVelocity = [0., 0., 0.]
 depth = 7.0
-inflowVelocityMean = (0.0,0.0,0.0)
+inflowVelocityMean = [0., 0., 0.]
 period = opts.peak_period
 omega = 2.0*math.pi/period
 waveheight = opts.wave_height
-amplitude = waveheight/ 2.0
+amplitude = waveheight/2.0
 wavelength = opts.peak_wavelength
 k = -2.0*math.pi/wavelength
 
 
-
-#  Discretization -- input options
-
-genMesh=True#False
-movingDomain=False
-applyRedistancing=True
-useOldPETSc=False
-useSuperlu=not opts.parallel
-timeDiscretization='be'#'vbdf'#'be','flcbdf'
+# Discretization -- input options
+genMesh = True #False
+movingDomain = False
+applyRedistancing = True
+useOldPETSc = False
+useSuperlu = not opts.parallel
+timeDiscretization = 'be'  #'vbdf'#'be','flcbdf'
 spaceOrder = 1
-useHex     = False
-useRBLES   = 0.0
+useHex = False
+useRBLES = 0.0
 useMetrics = 1.0
-applyCorrection=True
+applyCorrection = True
 useVF = 1.0
 useOnlyVF = False
 useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
             # 2 -- K-Omega
+
+
 # Input checks
 if spaceOrder not in [1,2]:
     print "INVALID: spaceOrder" + spaceOrder
@@ -64,7 +67,8 @@ if useMetrics not in [0.0, 1.0]:
     print "INVALID: useMetrics"
     sys.exit()
 
-#  Discretization
+
+# Discretization
 nd = 3
 if spaceOrder == 1:
     hFactor=1.0
@@ -89,31 +93,10 @@ elif spaceOrder == 2:
 
 
 # Domain and mesh
-L = (float(6.0*wavelength), 2.0, 1.50)
-
-he = 1.0
-
-GenerationZoneLength = wavelength*1.0
-AbsorptionZoneLength= wavelength*2.0
-spongeLayer = False
-levee=spongeLayer
-slopingSpongeLayer=spongeLayer
-xSponge = GenerationZoneLength
-xRelaxCenter = xSponge/2.0
-epsFact_solid = xSponge/2.0
-#zone 2
-xSponge_2 = L[0]-AbsorptionZoneLength
-ySponge_3= L[1]-AbsorptionZoneLength
-xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-epsFact_solid_2 = AbsorptionZoneLength/2.0
+he = 0.2  #wavelength/50.0     
 
 nLevels = 1
 weak_bc_penalty_constant = 100.0
-
-
-quasi2D=False
-if quasi2D:#make tank one element wide
-    L = (L[0],he,L[2])
 
 
 #parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
@@ -121,36 +104,6 @@ parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 
 structured=False
-
-
-gauge_dx=5.0
-PGL=[]
-LGL=[]
-for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact
-  PGL.append([gauge_dx*i,L[1]/2.0,0.5])
-  LGL.append([(gauge_dx*i,L[1]/2.0,0),(gauge_dx*i,L[1]/2.0,L[2])])
-
-
-gaugeLocations=tuple(map(tuple,PGL))
-columnLines=tuple(map(tuple,LGL))
-
-
-pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
-                                (('p',),    gaugeLocations)),
-                  activeTime = (0, 1000.0),
-                  sampleRate = 0,
-                  fileName = 'combined_gauge_0_0.5_sample_all.txt')
-
-
-fields = ('vof',)
-
-columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
-                                 fileName='column_gauge.csv')
-
-#lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_y=0':((0.0,0.0,0.0),(L[0],0.0,0.0))},linePoints=24)
-
-#lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
-
 
 if genMesh:
     if useHex:
@@ -166,32 +119,18 @@ if genMesh:
         ymin=bathy[:,8].min()
         zmax=bathy[:,9].max()
         zmin=bathy[:,9].min()
-        #uncomment to plot
-        #from matplotlib import  pyplot as plt
-        #from mpl_toolkits.mplot3d import Axes3D
-        #fig = plt.figure()
-        #ax = fig.add_subplot(111, projection='3d')
-        #ax.scatter(bathy[:,7], bathy[:,8], bathy[:,9],c=bathy[:,10],linewidths=0)
-        #
+        
         #reset to domain of interest
-        xmin = 70.0
-        xmax = 300.0
-        ymin = 700.0
-        ymax = 1000.0
-        #
-        #debugging domain (quasi 2DV)
-        xmin = 425.0#65.0
+        xmin = 60.0 #425.0
         xmax = 450.0
-        #xmax = 150.0
         ymin = 900.0
-        ymax = 900 + he
+        ymax = 900.0 + 5.0*he
         #
         boundaries=['empty','left','right','bottom','top','front','back']
         boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
         #
         #process 2D domain
         #
-        from proteus.Domain  import InterpolatedBathymetryDomain, PiecewiseLinearComplexDomain
         bathy_points = np.vstack((bathy[:,7],bathy[:,8],bathy[:,9])).transpose()
         domain2D = InterpolatedBathymetryDomain(vertices=[[xmin,ymin],[xmin,ymax],[xmax,ymax],[xmax,ymin]],
                                               vertexFlags=[boundaryTags['left'],boundaryTags['left'],boundaryTags['right'],boundaryTags['right']],
@@ -203,8 +142,8 @@ if genMesh:
                                               units='m',
                                               bathy = bathy_points)
         domain2D.writePoly(domain2D.name)
+
         #now adaptively refine 2D mesh to interpolate bathy to desired accuracy
-        from proteus.MeshTools import  InterpolatedBathymetryMesh
         mesh2D = InterpolatedBathymetryMesh(domain2D,
                                             triangleOptions="gVApq30Dena%8.8f" % ((1000.0**2)/2.0,),
                                             atol=1.0e-1,
@@ -296,7 +235,7 @@ if genMesh:
         domain.writePLY("frfDomain3D")
         triangleOptions="KVApq1.4q12feena%21.16e" % ((he**3)/6.0,)
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
-        porosityTypes      = numpy.array([1.0])
+        porosityTypes = numpy.array([1.0])
         dragAlphaTypes = numpy.array([0.0])
         dragBetaTypes = numpy.array([0.0])
         epsFact_solidTypes = np.array([0.0])
@@ -314,9 +253,9 @@ inflowHeightMean = zmin + depth
 
 
 # Time stepping
-T=70.
+T = 70.
 dt_fixed = 1.
-dt_init = min(0.001*dt_fixed,0.001*he)
+dt_init = 0.001
 runCFL=0.33
 nDTout = int(round(T/dt_fixed))
 
@@ -379,6 +318,7 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
+
 ns_nl_atol_res = max(1.0e-10,0.001*he**2)
 vof_nl_atol_res = max(1.0e-10,0.001*he**2)
 ls_nl_atol_res = max(1.0e-10,0.001*he**2)
@@ -387,40 +327,40 @@ mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
-#turbulence
+
+# Turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
     ns_closure == 4
-# Water
+
+
+# Physical Parameters
 rho_0 = 998.2
 nu_0  = 1.004e-6
-
-# Air
 rho_1 = 1.205
 nu_1  = 1.500e-5
+sigma_01 = 0.
+g = np.array([0., 0., -9.8])
 
-# Surface tension
-sigma_01 = 0.0
-
-# Gravity
-g = np.array([0.0,0.0,-9.8])
 
 # Initial condition
-waterLine_x =  2*L[0]
 waterLine_z =  inflowHeightMean
-waterLine_y =  2*L[1]
+
 
 def signedDistance(x):
     phi_z = x[2]-waterLine_z
     return phi_z
 
+
 def theta(x,t):
     return k*x[0] - omega*t + math.pi/2.0
 
+
 def z(x):
     return x[2] - inflowHeightMean
+
 
 def ramp(t):
   t0=.1 #ramptime
@@ -429,89 +369,11 @@ def ramp(t):
   else:
     return 1
 
+
 domain_vertices = numpy.array(domain.vertices)
 h = inflowHeightMean - domain_vertices[:,2].min()# - transect[0][1] if lower left hand corner is not at z=0
 sigma = omega - k*inflowVelocityMean[0]
 
-
-from proteus.WaveTools import TimeSeries
-#from proteus import WaveTools as wt
-
-"""
-waveDir = np.array([-1,0,0])
-if opts.wave_type == 'linear':
-    waves = wt.MonochromaticWaves(period = period, # Peak period
-                                  waveHeight = waveheight, # Height
-                                  depth = depth, # Depth
-                                  mwl = inflowHeightMean, # Sea water level
-                                  waveDir = waveDir, # waveDirection
-                                  g = g, # Gravity vector, defines the vertical
-                                  waveType="Linear")
-elif opts.wave_type == 'Nonlinear':
-    waves = wt.MonochromaticWaves(period = period, # Peak period
-                                  waveHeight = waveheight, # Height
-                                  wavelength = wavelength,
-                                  depth = depth, # Depth
-                                  mwl = inflowHeightMean, # Sea water level
-                                  waveDir = waveDir, # waveDirection
-                                  g = g, # Gravity vector, defines the vertical
-                                  waveType="Fenton",
-                                  Ycoeff = [0.04160592, #Surface elevation Fourier coefficients for non-dimensionalised solution
-                                       0.00555874,
-                                       0.00065892,
-                                       0.00008144,
-                                       0.00001078,
-                                       0.00000151,
-                                       0.00000023,
-                                       0.00000007],
-                                  Bcoeff = [0.05395079,
-                                       0.00357780,
-                                       0.00020506,
-                                       0.00000719,
-                                       -0.00000016,
-                                       -0.00000005,
-                                       0.00000000,
-                                       0.00000000])
-elif opts.wave_type == 'single-peaked':
-    waves = wt.RandomWaves(
-                            Hs = waveheight, # Height
-                            d = depth, # Depth
-                            fp = 1./period, #peak Frequency
-                            bandFactor = 2.0, #fmin=fp/Bandfactor, fmax = Bandfactor * fp
-                            N = 101, #No of frequencies for signal reconstruction
-                            mwl = inflowHeightMean, # Sea water level
-                            waveDir = waveDir, # waveDirection
-                            g = g, # Gravity vector, defines the vertical
-                            gamma=3.3,
-                            spec_fun = wt.JONSWAP)
-elif opts.wave_type == 'double-peaked':
-    waves = wt.DoublePeakedRandomWaves(
-                                        Hs = waveheight, # Height
-                                        d = depth, # Depth
-                                        fp = 1./period, #peak Frequency
-                                        bandFactor = 2.0, #fmin=fp/Bandfactor, fmax = Bandfactor * fp
-                                        N = 101, #No of frequencies for signal reconstruction
-                                        mwl = inflowHeightMean, # Sea water level
-                                        waveDir = waveDir, # waveDirection
-                                        g = g, # Gravity vector, defines the vertical
-                                        gamma=10.0,
-                                        spec_fun = wt.JONSWAP,
-                                        Tp_2 = opts.peak_period2)
-elif  opts.wave_type == 'time-series':
-    tseries = wt.timeSeries(rec_direct = True,
-                            timeSeriesFile= "Duck_series.txt",
-                            skiprows = 0,
-                            d =h, #Need to set the depth
-                            Npeaks = 1, #Dummy
-                            bandFactor = [2.0], #Dummy
-                            peakFrequencies = [1.0],#Dummy
-                            N = 32,          #Dummy
-                            Nwaves = 20, # Dummy
-                            mwl =inflowHeightMean,        #mean water level
-                            waveDir = waveDir,
-                            g = np.array(g)         #accelerationof gravity
-                        )
-"""
 
 timeSeriesFile = "Duck_series.txt"
 skiprows = 0
@@ -525,35 +387,14 @@ timeSeriesPosition = [0., 0., 0.]
 tseries = TimeSeries(timeSeriesFile,
                      skiprows,
                      timeSeriesPosition,
-                     depth, #Need to set the depth
-                     N,          #Dummy
-                     mwl,        #mean water level
+                     depth,     #Need to set the depth
+                     N,         #Dummy
+                     mwl,       #mean water level
                      waveDir,
-                     g,         #accelerationof gravity
+                     g,         #acceleration of gravity
                      rec_direct,
                      window_params,
                      )
-
-"""
-if  opts.wave_type == 'time-series':
-    def waveHeight(x,t):
-        return inflowHeightMean + tseries.reconstruct_direct(0.,x[1],x[2],t,64)*ramp(t)#+ tseries
-
-    def waveVelocity_u(x,t):
-        return  tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","x")*ramp(t)#+ tseries
-
-    def waveVelocity_w(x,t):
-        return  tseries.reconstruct_direct(0.,x[1],x[2],t,64,"U","z")*ramp(t)#+ tseries
-else:
-    def waveHeight(x,t):
-        return inflowHeightMean + waves.eta(x[0],x[1],x[2],t)
-    def waveVelocity_u(x,t):
-        return waves.u(x[0],x[1],x[2],t,"x")
-    def waveVelocity_v(x,t):
-        return waves.u(x[0],x[1],x[2],t,"y")
-    def waveVelocity_w(x,t):
-        return waves.u(x[0],x[1],x[2],t,"z")
-"""
 
 
 def waveHeight(x,t):
@@ -572,14 +413,13 @@ def waveVelocity_w(x,t):
     return  tseries.uDirect(x,t)[2]*ramp(t)#+ tseries    return waves.u(x[0],x[1],x[2],t,"z")
 
 
-
-#solution variables
-
 def wavePhi(x,t):
     return x[2] - waveHeight(x,t)
 
+
 def waveVF(x,t):
     return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
+
 
 def twpflowVelocity_u(x,t):
     waterspeed = waveVelocity_u(x,t)
@@ -587,71 +427,14 @@ def twpflowVelocity_u(x,t):
     u = H*windVelocity[0] + (1.0-H)*waterspeed
     return u
 
+
 def twpflowVelocity_v(x,t):
     return 0.0
+
 
 def twpflowVelocity_w(x,t):
     waterspeed = waveVelocity_w(x,t)
     H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
     return H*windVelocity[2]+(1.0-H)*waterspeed
 
-def twpflowFlux(x,t):
-    return -twpflowVelocity_u(x,t)
 
-def outflowVF(x,t):
-    return smoothedHeaviside(epsFact_consrv_heaviside*he,x[2] - inflowHeightMean)
-
-def outflowPressure(x,t):
-  if x[2]>inflowHeightMean:
-    return (L[2]-x[2])*rho_1*abs(g[2])
-  else:
-    return (L[2]-inflowHeightMean)*rho_1*abs(g[2])+(inflowHeightMean-x[2])*rho_0*abs(g[2])
-
-def waterVelocity(x,t):
-   if x[2]>inflowHeightMean:
-     return 0.0
-   else:
-     ic=inflowVelocityMean[0]
-     return ic
-
-def zeroVel(x,t):
-    return 0.0
-
-from collections import  namedtuple
-
-RelaxationZone = namedtuple("RelaxationZone","center_x sign u v w")
-
-class RelaxationZoneWaveGenerator(AV_base):
-    """ Prescribe a velocity penalty scaling in a material zone via a Darcy-Forchheimer penalty
-
-    :param zones: A dictionary mapping integer material types to Zones, where a Zone is a named tuple
-    specifying the x coordinate of the zone center and the velocity components
-    """
-    def __init__(self,zones):
-        assert isinstance(zones,dict)
-        self.zones = zones
-    def calculate(self):
-        for l,m in enumerate(self.model.levelModelList):
-            for eN in range(m.coefficients.q_phi.shape[0]):
-                mType = m.mesh.elementMaterialTypes[eN]
-                if self.zones.has_key(mType):
-                    for k in range(m.coefficients.q_phi.shape[1]):
-                        t = m.timeIntegration.t
-                        x = m.q['x'][eN,k]
-                        m.coefficients.q_phi_solid[eN,k] = self.zones[mType].sign*(self.zones[mType].center_x - x[0])
-                        m.coefficients.q_velocity_solid[eN,k,0] = self.zones[mType].u(x,t)
-                        m.coefficients.q_velocity_solid[eN,k,1] = self.zones[mType].v(x,t)
-                        m.coefficients.q_velocity_solid[eN,k,2] = self.zones[mType].w(x,t)
-        m.q['phi_solid'] = m.coefficients.q_phi_solid
-        m.q['velocity_solid'] = m.coefficients.q_velocity_solid
-
-rzWaveGenerator = RelaxationZoneWaveGenerator(zones={1:RelaxationZone(xRelaxCenter,
-                                                                      1.0,
-                                                                      twpflowVelocity_u,
-                                                                      twpflowVelocity_v,
-                                                                      twpflowVelocity_w),
-                                                    2:RelaxationZone(xRelaxCenter_2,
-                                                                     -1.0,
-                                                                     zeroVel,
-                                                                     zeroVel,
-                                                                     zeroVel) })
