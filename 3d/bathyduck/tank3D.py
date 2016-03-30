@@ -20,7 +20,7 @@ opts=Context.Options([
     ("peak_period", 1.0/0.09, "Peak period [s]"),
     ("peak_period2", 6.0, "Second peak period (only used in double-peaked case)[s]"),
     ("peak_wavelength",10.0,"Peak wavelength in [m]"),
-    ("parallel", False, "Run in parallel"),
+    ("parallel", True, "Run in parallel"),
     ("gauges", False, "Enable gauges")])
 
 # Wave generator
@@ -40,7 +40,7 @@ genMesh = True #False
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = not opts.parallel
+useSuperlu = False #not opts.parallel
 timeDiscretization = 'be'  #'vbdf'#'be','flcbdf'
 spaceOrder = 1
 useHex = False
