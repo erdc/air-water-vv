@@ -70,6 +70,7 @@ bar_inertia = [[(L[1]**2+L[2]**2)/12.0, 0.0                    , 0.0            
                [0.0                   , (L[0]**2+L[2]**2)/12.0 , 0.0                   ],
                [0.0                   , 0.0                    , (L[0]**2+L[1]**2)/12.0]]
 
+bar_taper = 0.25
 RBR_linCons  = [1,1,0]
 RBR_angCons  = [1,0,1]
 
@@ -132,20 +133,20 @@ vertices.append([bar_center[0] + 0.5*bar_length,
                  bar_center[1] - 0.5*bar_width,
                  bar_center[2] - 0.5*bar_height])
 vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
+vertices.append([bar_center[0] - 0.5*bar_length*bar_taper,
+                 bar_center[1] - 0.5*bar_width*bar_taper,
                  bar_center[2] + 0.5*bar_height])
 vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
+vertices.append([bar_center[0] - 0.5*bar_length*bar_taper,
+                 bar_center[1] + 0.5*bar_width*bar_taper,
                  bar_center[2] + 0.5*bar_height])
 vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
+vertices.append([bar_center[0] + 0.5*bar_length*bar_taper,
+                 bar_center[1] + 0.5*bar_width*bar_taper,
                  bar_center[2] + 0.5*bar_height])
 vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
+vertices.append([bar_center[0] + 0.5*bar_length*bar_taper,
+                 bar_center[1] - 0.5*bar_width*bar_taper,
                  bar_center[2] + 0.5*bar_height])
 vertexFlags.append(boundaryTags['obstacle'])
 
@@ -396,14 +397,37 @@ class RigidBar(AuxiliaryVariables.AV_base):
         #self.tank.setPosition((0.5,0.5,0.6))
         #self.contactgroup = ode.JointGroup()
         self.M = ode.Mass()
-        self.totalMass = density*bar_dim[0]*bar_dim[1]*bar_dim[2]
-        self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2])
+        mf = 0.1
+        bar_center = [bar_center[0], bar_center[1], bar_center[2]-0.5*(1.0-mf)*bar_dim[2]]
+        self.totalMass = density*bar_dim[0]*bar_dim[1]*bar_dim[2]*mf
+        self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2]*mf)
         #bar body
         self.body = ode.Body(self.world)
         self.body.setMass(self.M)
         self.body.setFiniteRotationMode(1)
         #bar geometry
         self.bar = ode.GeomBox(self.space,bar_dim)
+        vertices = [[0.0,0.0,0.0],#0
+                    [0.0,bar_dim[1],0.0],#1
+                    [bar_dim[0], bar_dim[1],0.0],#2
+                    [bar_dim[0], 0.0,0.0],#3
+                    [0.0,0.0,bar_dim[2]],#4
+                    [0.0,bar_dim[1],bar_dim[2]],#5
+                    [bar_dim[0], bar_dim[1],bar_dim[2]],#6
+                    [bar_dim[0], 0.0,bar_dim[2]]]#7
+        faces = [[0,1,3],#bottom 1
+                 [1,2,3],#bottom 2
+                 [0,4,1],#left 1
+                 [4,5,1],#left 2
+                 [1,5,2],#back 1
+                 [5,6,2],#back 2
+                 [2,6,3],#right 1
+                 [6,7,3],#right 2
+                 [3,7,0],#front 1
+                 [7,4,0]]
+        self.tm_data = ode.TriMeshData()
+	self.tm_data.build(vertices, faces)
+        self.bar = ode.GeomTriMesh(self.tm_data, self.space)
         self.bar.setBody(self.body)
         self.bar.setPosition(bar_center)
         self.boxsize = (bar_dim[0],bar_dim[1],bar_dim[2])
@@ -544,4 +568,4 @@ position_last = {7}""".format(Fstar,F,self.last_F,dt,velocity,velocity_last,posi
                                                                                                             self.h[1],
                                                                                                             self.h[2]))
 
-bar = RigidBar(density=0.5*(rho_0+rho_1),bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters,he=he,cfl_target=0.9*opts.cfl,dt_init=opts.dt_init)
+bar = RigidBar(density=rho_0,bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters,he=he,cfl_target=0.9*opts.cfl,dt_init=opts.dt_init)
