@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -A ERDCV00898R40
 #PBS -l walltime=024:00:00
-#PBS -l select=128:ncpus=36:mpiprocs=36
+#PBS -l select=1:ncpus=36:mpiprocs=36
 #PBS -q standard
 #PBS -N bar
 #PBS -j oe
@@ -16,4 +16,4 @@ cp *.py $WORKDIR/floating_bar.$PBS_JOBID
 cp topaz.pbs $WORKDIR/floating_bar.$PBS_JOBID
 cp $HOME/air-water-vv/inputTemplates/petsc.options.asm $WORKDIR/floating_bar.$PBS_JOBID
 cd  $WORKDIR/floating_bar.$PBS_JOBID
-mpiexec_mpt -n ${BC_MPI_TASKS_ALLOC}  parun floating_bar_so.py -p -l 5 -O petsc.options.asm -F -C "cfl=0.33 bar_height=0.6 gen_mesh=True refinement_level=4 parallel=True nsave=501 dt_init=0.001 free_r=(1.0,1.0,0.0)"
+mpiexec_mpt -n ${BC_MPI_TASKS_ALLOC} parun floating_bar_so.py -p -l 5 -O petsc.options.asm -F -C "cfl=0.33 bar_height=0.7 gen_mesh=True refinement_level=2 parallel=True T=10.0 nsave=201 dt_init=0.001 free_r=(1.0,1.0,0.0)"
