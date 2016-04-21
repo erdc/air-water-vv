@@ -40,7 +40,7 @@ if useMetrics not in [0.0, 1.0]:
     print "INVALID: useMetrics"
     sys.exit()
 
-#  Discretization   
+#  Discretization
 nd = 2
 if spaceOrder == 1:
     hFactor = 1.0
@@ -86,7 +86,7 @@ pointGauges = PointGauges(gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))), 
                           sampleRate=0,
                           fileName='combined_gauge_0_0.5_sample_all.csv')
 
-lineGauges = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825': ((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))}, linePoints=20)
+#lineGauges = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825': ((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))}, linePoints=20)
 #'lineGauge_x/H=1.653':((0.99,0.0,0.0),(0.99,1.8,0.0))
 #lineGauges_phi = LineGauges_phi(lineGauges.endpoints, linePoints=20)
 
@@ -125,17 +125,17 @@ else:
         #            vertices.append(gaugeCoordinates)
         #            vertexFlags.append(pointGauges.flags[gaugeName])
 
-        for gaugeName, gaugeLines in lineGauges.linepoints.iteritems():
-            for gaugeCoordinates in gaugeLines:
-                vertices.append(gaugeCoordinates)
-                vertexFlags.append(lineGauges.flags[gaugeName])
+#        for gaugeName, gaugeLines in lineGauges.linepoints.iteritems():
+#            for gaugeCoordinates in gaugeLines:
+#                vertices.append(gaugeCoordinates)
+#                vertexFlags.append(lineGauges.flags[gaugeName])
         domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
                                                       vertexFlags=vertexFlags,
                                                       segments=segments,
                                                       segmentFlags=segmentFlags,
                                                       regions=regions,
                                                       regionFlags=regionFlags)
-        #go ahead and add a boundary tags member 
+        #go ahead and add a boundary tags member
         domain.boundaryTags = boundaryTags
         domain.writePoly("mesh")
         domain.writePLY("mesh")
@@ -255,4 +255,3 @@ def signedDistance(x):
             return phi_x
         else:
             return sqrt(phi_x ** 2 + phi_z ** 2)
-

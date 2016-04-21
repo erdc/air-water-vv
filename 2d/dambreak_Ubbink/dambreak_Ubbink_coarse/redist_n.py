@@ -4,8 +4,8 @@ from dambreak_Ubbink_coarse import *
 
 nl_atol_res = rd_nl_atol_res
 tolFac = 0.0
-linTolFac = 0.0
-l_atol_res = 0.001*rd_nl_atol_res
+linTolFac = 0.01
+l_atol_res = 0.1*rd_nl_atol_res
 
 if redist_Newton:
     timeIntegration = NoIntegration
@@ -34,9 +34,9 @@ else:
     linearSolverConvergenceTest = 'r-true'
 
 femSpaces = {0:basis}
-       
+
 massLumping       = False
-numericalFluxType = DoNothing    
+numericalFluxType = DoNothing
 conservativeFlux  = None
 subgridError      = RDLS.SubgridError(coefficients,nd)
 shockCapturing    = RDLS.ShockCapturing(coefficients,nd,shockCapturingFactor=rd_shockCapturingFactor,lag=rd_lag_shockCapturing)
