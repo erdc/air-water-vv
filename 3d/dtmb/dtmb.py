@@ -48,9 +48,9 @@ barycenters[7,:] = hull_cg
 vessel = 5415
 genMesh=False
 he = 1.0#new
-he = 0.5#new
-he = 0.25#new
-he = 0.125#new
+#he = 0.5#new
+#he = 0.25#new
+#he = 0.125#new
 if he == 1.0:
     src_dir = 'mesh13177'#new
 elif he == 0.5:
@@ -90,7 +90,8 @@ nLevels = 1
 
 boundaryTags = { 'bottom': 1, 'front':2, 'right':3, 'back': 4, 'left':5, 'top':6, 'obstacle':7}
 if vessel is 5415:
-    domain = Domain.MeshTetgenDomain(fileprefix="mesh")
+    domain = Domain.GMSH_3D_Domain(geofile="assembly",name="dtmb",he=he)
+#    domain = Domain.MeshTetgenDomain(fileprefix="mesh")
     domain.boundaryTags = boundaryTags
 else:
     vertices=[[x_ll[0],x_ll[1],x_ll[2]],#0
