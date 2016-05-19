@@ -157,6 +157,7 @@ class ShapeRANS(Shape):
         Gives the inertia of the shape from an axis and a pivot
         (!) The inertia tensor of the shape must be set
         (!) This is calculated using the local coordinate system of shape
+        (!) If pivot is different from barycenter, a transformation is applied
         """
         assert self.It is not None, 'No inertia tensor! (' + self.name + ')'
         if pivot is None:
@@ -1080,6 +1081,10 @@ class RigidBody(AuxiliaryVariables.AV_base):
         
         #---------------------------------------------------------------    
         def overturning_static_case(self, floating):
+            """
+            Set moment calculation and rotation around barycenter OR pivot != barycenter.
+            :param floating : if True pivot == barycenter.
+            """
             if floating == True:
                 self.pivot_friction = self.Shape.barycenter
             else:
@@ -1106,8 +1111,8 @@ class RigidBody(AuxiliaryVariables.AV_base):
         #---------------------------------------------------------------    
         def overturning_dynamic_case(self, h_used):
             """
-            Set a dynamic friction.
-            :param h_used : which pinot is used, 1 or 2
+            Set moment calculation and rotation around a pivot != barycenter.
+            :param h_used : which pivot is used, 1 or 2
             """
             if h_used==2:
                 self.pivot_friction = np.array((self.Shape.vertices[1][0], self.Shape.vertices[1][1], 0.0), dtype=float) #h2
