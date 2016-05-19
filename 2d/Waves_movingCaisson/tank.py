@@ -110,93 +110,49 @@ he = waveinput.wavelength/opts.refinement_level # MESH SIZE
 # ----- SHAPES ----- #
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-if opts.caisson:
-    L_leftSpo  = waveinput.wavelength
-    L_rightSpo = waveinput.wavelength
+L_leftSpo  = waveinput.wavelength
+L_rightSpo = waveinput.wavelength
 
-    hs=opts.hs
-    slope1=opts.slope1
-    slope2=opts.slope2
-
-#-Caisson
-    dimx=opts.dimx
-    dimy=opts.dimy
-    b=dimx
-
-#-Tank
-    x1=L_leftSpo
-    x2=x1+(hs/slope1)
-
-    xc1=x2+0.20
-    xc2=xc1+b
-    yc1=yc2=hs
-
-    x3=xc2+0.20
-    x4=x3+(hs/slope2)
-    x5=x4+L_rightSpo
-    tank_dim = [x5, 1.0]
-
-    boundaryOrientations = {'bottom': [0., -1.,0.],
-                            'right': [1., 0.,0.],
-                            'top': [0., 1.,0.],
-                            'left': [-1., 0.,0.],
-                            'sponge': None,
-                            'porousLayer': None,
-                            'moving_porousLayer': None,
-                           }
-    boundaryTags = {'bottom': 1,
-                    'right': 2,
-                    'top': 3,
-                    'left': 4,
-                    'sponge': 5,
-                    'porousLayer': 6,
-                    'moving_porousLayer': 7,
-                       }
-
-else:
-    L_leftSpo  = waveinput.wavelength
-    L_rightSpo = waveinput.wavelength
-
-    hs=opts.hs
-    slope1=opts.slope1
-    slope2=opts.slope2
+hs=opts.hs
+slope1=opts.slope1
+slope2=opts.slope2
 
 #-Caisson
-    dimx=opts.dimx
-    dimy=opts.dimy
-    b=dimx
+dimx=opts.dimx
+dimy=opts.dimy
+b=dimx
 
 #-Tank
-    x1=L_leftSpo
-    x2=x1+1.*waveinput.wavelength
-    x3=x2+(hs/slope1)
+x1=L_leftSpo
+x2=x1+1.*waveinput.wavelength
+x3=x2+(hs/slope1)
 
-    xc1=x3+0.20
-    xc2=xc1+b
-    yc1=yc2=hs
+xc1=x3+0.20
+xc2=xc1+b
+yc1=yc2=hs
 
-    x4=xc2+0.20
-    x5=x4+(hs/slope2)
-    x6=x5+1.*waveinput.wavelength
-    x7=x6+L_rightSpo
-    tank_dim = [x7, 1.0]
+x4=xc2+0.20
+x5=x4+(hs/slope2)
+x6=x5+1.*waveinput.wavelength
+x7=x6+L_rightSpo
+tank_dim = [x7, 1.0]
 
-    boundaryOrientations = {'bottom': [0., -1.,0.],
-                            'right': [1., 0.,0.],
-                            'top': [0., 1.,0.],
-                            'left': [-1., 0.,0.],
-                            'sponge': None,
-                            'porousLayer': None,
-                            'moving_porousLayer': None,
-                           }
-    boundaryTags = {'bottom': 1,
-                    'right': 2,
-                    'top': 3,
-                    'left': 4,
-                    'sponge': 5,
-                    'porousLayer': 6,
-                    'moving_porousLayer': 7,
+boundaryOrientations = {'bottom': [0., -1.,0.],
+                        'right': [1., 0.,0.],
+                        'top': [0., 1.,0.],
+                        'left': [-1., 0.,0.],
+                        'sponge': None,
+                        'porousLayer': None,
+                        'moving_porousLayer': None,
                        }
+boundaryTags = {'bottom': 1,
+                'right': 2,
+                'top': 3,
+                'left': 4,
+                'sponge': 5,
+                'porousLayer': 6,
+                'moving_porousLayer': 7,
+               }
 
 
 ##############################################################################################################################################################################################################
@@ -296,46 +252,50 @@ else:
     
     vertices=[[0.0, 0.0],#0
               [x1,  0.0],#1
-              [x2,  hs ],#2
+              [x2,  0.0],#2
               [x3,  hs ],#3
-              [x4,  0.0],#4
+              [x4,  hs ],#4
               [x5,  0.0],#5
-              [x5,    tank_dim[1]],#6
-              [x4,    tank_dim[1]],#7
-              [x1,    tank_dim[1]],#8
-              [0.0,   tank_dim[1]],#9
-              [xc1, yc1],#10
-              [xc2, yc2],#11
+              [x6,  0.0],#6
+              [x7,  0.0],#7
+              [x7,    tank_dim[1]],#8
+              [x6,    tank_dim[1]],#9
+              [x1,    tank_dim[1]],#10
+              [0.0,   tank_dim[1]],#11
+              [xc1, yc1],#12
+              [xc2, yc2],#13
               ]
 
-    vertexFlags=np.array([1, 1,  
+    vertexFlags=np.array([1, 1, 1, 
                           6, 6, 
-                          1, 1, 
+                          1, 1, 1,
                           3, 3, 3, 3,
                           7, 7,
                          ])
 
     segments=[[0,1],
               [1,2],
+              [2,3],
 
-              [3,4],
               [4,5],
               [5,6],
               [6,7],
               [7,8],
               [8,9],
-              [9,0],
+              [9,10],
+              [10,11],
+              [11,0],
 
-              [1,8],
-              [4,7],
-              [1,4],
-              [2,10],
-              [11,3],
+              [1,10],
+              [6,9],
+              [2,5],
+              [3,12],
+              [13,4],
              ]
 
-    segmentFlags=np.array([1, 
+    segmentFlags=np.array([1, 1,
                            6, 6, 
-                           1, 
+                           1, 1,
                            2, 3, 3, 3, 4,
                            5, 5,
                            1,
@@ -343,9 +303,9 @@ else:
                           ])
 
 regions = [ [ 0.90*x1 , 0.10*tank_dim[1] ],
-            [ 0.90*x2 , 0.90*tank_dim[1] ],
+            [ 0.90*x2 , 0.10*tank_dim[1] ],
             [ xc1 , 0.50*hs ],
-            [ 0.95*x5 , 0.95*tank_dim[1] ] ]
+            [ 0.95*x7 , 0.95*tank_dim[1] ] ]
 
 regionFlags=np.array([1, 2, 3, 4])
 
@@ -355,7 +315,6 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       segments=segments, segmentFlags=segmentFlags,
                       regions=regions, regionFlags=regionFlags,
                       boundaryTags=boundaryTags, boundaryOrientations=boundaryOrientations)
-
 
 ##################################################################################################################################################################################################################
 # POROUS MEDIA
@@ -438,19 +397,17 @@ if opts.movingDomain==True:
 ########################################################################################################################################################################################################################################################################################################################################################
 
 
-
 tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
                         orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
                         waves=waveinput, windSpeed=windVelocity,
                         )
-tank.setPorousZones(flags=3, epsFact_solid=float((x4-x1)/2.),
+tank.setPorousZones(flags=3, epsFact_solid=float((x5-x2)/2.),
                     dragAlpha=dragAlpha, dragBeta=dragBeta,
                     porosity=porosity,
                    )
 tank.setAbsorptionZones(flags=4, epsFact_solid=float(L_rightSpo/2.),
-                        orientation=[-1., 0.], center=(float(x5-L_rightSpo/2.), 0., 0.),
+                        orientation=[-1., 0.], center=(float(x7-L_rightSpo/2.), 0., 0.),
                         )
-
 
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
