@@ -5,7 +5,12 @@ size(f)
 size(S)
 figure()
 hold on
-plot(f, 2*S)
+smooth_fac = floor(0.02*length(f));
+S = smoothdata(S,smooth_fac);
+if length(f)  ~= length(S)
+    f = [f;0];
+end
+plot(f, S)
 plot(true_spectrum(:,1), true_spectrum(:,2))
 xlabel('f(Hz)');
 ylabel('S(f)');
