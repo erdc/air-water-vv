@@ -1,10 +1,11 @@
 % Reads in free surface elevations and true spectra created by WaveTools
-[f, S] = read_data('waves3D.csv',5);
+[f, S] = read_data('waves3D.csv',2);
 true_spectrum = csvread('true_spectrum.csv');
 size(f)
+size(S)
 figure()
 hold on
-plot(f, S)
+plot(f, 2*S)
 plot(true_spectrum(:,1), true_spectrum(:,2))
 xlabel('f(Hz)');
 ylabel('S(f)');

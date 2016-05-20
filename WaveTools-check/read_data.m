@@ -13,8 +13,12 @@
 %------------------------------------------------------
 
 function [f, S] = read_data(filename, avg_over)
-A = csvread(filename,1,0);
+A = csvread(filename,0,0);
 time = A(:,1);
 data = A(:,2);
-[f, df, S] = fft_gauge(time,data, avg_over);
+%[f, df, S] = fft_gauge(time,data, avg_over);
+[S, f] = powerspec(data, length(time), time(2)-time(1), 1);
+f = f/(2*pi);
+S(f>2) = [];
+f(f>2) = [];
 end
