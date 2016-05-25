@@ -7,21 +7,30 @@ from proteus import (StepControl,
 import vof_p as physics
 from proteus.mprans import VOF
 from proteus import Context
+
 ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+mesh = domain.MeshOptions
 
+# time stepping
 runCFL = ct.runCFL
-nLevels = ct.nLevels
-parallelPartitioningType = ct.parallelPartitioningType
-nLayersOfOverlapForParallel = ct.nLayersOfOverlapForParallel
-restrictFineSolutionToAllMeshes = ct.restrictFineSolutionToAllMeshes
-triangleOptions = ct.triangleOptions
-
 timeIntegration = TimeIntegration.BackwardEuler_cfl
 stepController  = StepControl.Min_dt_controller
 
-femSpaces = {0: ct.basis}
+# mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+
+
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
+femSpaces = {0: ct.basis}
 
 massLumping       = False
 numericalFluxType = VOF.NumericalFlux
@@ -65,4 +74,5 @@ useEisenstatWalker = False#True
 
 maxNonlinearIts = 50
 maxLineSearches = 0
+
 #auxiliaryVariables = [ct.integral_output]

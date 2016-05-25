@@ -4,26 +4,26 @@ from twp_navier_stokes_p import *
 from proteus import Context
 
 ct = Context.get()
-domain=ct.domain
+domain = ct.domain
 nd = ct.domain.nd
-mesh=domain.MeshOptions
+mesh = domain.MeshOptions
 
+#time stepping
 runCFL = ct.runCFL
 timeIntegration = TimeIntegration.BackwardEuler_cfl
 stepController  = StepControl.Min_dt_controller
 
+# mesh options
 nLevels = ct.nLevels
 parallelPartitioningType = mesh.parallelPartitioningType
 nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
 triangleOptions = mesh.triangleOptions
 
+
+
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
-
-
-triangleOptions = mesh.triangleOptions
-
 
 femSpaces = {0:ct.basis,
              1:ct.basis,
@@ -36,8 +36,14 @@ numericalFluxType = None
 conservativeFlux  = None
 
 numericalFluxType = RANS2P.NumericalFlux
-subgridError = RANS2P.SubgridError(coefficients,ct.domain.nd,lag=ct.ns_lag_subgridError,hFactor=ct.hFactor)
-shockCapturing = RANS2P.ShockCapturing(coefficients,ct.domain.nd,ct.ns_shockCapturingFactor,lag=ct.ns_lag_shockCapturing)
+subgridError = RANS2P.SubgridError(coefficients=coefficients,
+                                   nd=nd,
+                                   lag=ct.ns_lag_subgridError,
+                                   hFactor=ct.hFactor)
+shockCapturing = RANS2P.ShockCapturing(coefficients=coefficients,
+                                       nd=nd,
+                                       shockCapturingFactor=ct.ns_shockCapturingFactor,
+                                       lag=ct.ns_lag_shockCapturing)
 
 fullNewtonFlag = True
 multilevelNonlinearSolver = NonlinearSolvers.Newton
@@ -74,5 +80,4 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
-auxiliaryVariables = [ct.point_output, #ct.line_output
-                      ]
+auxiliaryVariables = ct.domain.auxiliaryVariables + [ct.point_output]

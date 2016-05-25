@@ -3,16 +3,14 @@ from proteus.mprans import RANS2P
 import numpy as np
 from proteus import Context
 
-
 ct = Context.get()
 domain = ct.domain
 nd = domain.nd
-mesh=domain.MeshOptions
+mesh = domain.MeshOptions
 
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
 T = ct.T  # might not be necessary
-
 
 LevelModelType = RANS2P.LevelModel
 if ct.useOnlyVF:
@@ -32,17 +30,17 @@ else:
     Closure_0_model = None
     Closure_1_model = None
 
-if hasattr (domain, 'porosityTypes'):
-    porosityTypes=domain.porosityTypes
-    dragAlphaTypes=domain.dragAlphaTypes
-    dragBetaTypes=domain.dragBetaTypes
-    epsFact_solid=domain.epsFact_solid
+# for absorption zones (defined as regions)
+if hasattr(domain, 'porosityTypes'):
+    porosityTypes = domain.porosityTypes
+    dragAlphaTypes = domain.dragAlphaTypes
+    dragBetaTypes = domain.dragBetaTypes
+    epsFact_solid = domain.epsFact_solid
 else:
-    porosityTypes=None
-    dragAlphaTypes=None
-    dragBetaTypes=None
-    epsFact_solid=None
-
+    porosityTypes = None
+    dragAlphaTypes = None
+    dragBetaTypes = None
+    epsFact_solid = None
 
 coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
@@ -67,12 +65,11 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ct.ns_closure,
                                    movingDomain=ct.movingDomain,
-                                   barycenters=ct.domain.barycenters,
                                    porosityTypes=porosityTypes,
                                    dragAlphaTypes=dragAlphaTypes,
                                    dragBetaTypes=dragBetaTypes,
                                    epsFact_solid=epsFact_solid,
-                                   )
+                                   barycenters=ct.domain.barycenters)
 
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet,
@@ -93,29 +90,34 @@ if nd == 3:
     diffusiveFluxBoundaryConditions[3] = {3: lambda x, flag: domain.bc[flag].w_diffusive}
 
 
-"""
+
+
+
 class PerturbedSurface_p:
     def __init__(self,waterLevel):
-        self.waterLevel=waterLevel
+        self.waterLevel=ct.waterLevel
     def uOfXT(self,x,t):
         if ct.signedDistance(x) < 0:
             return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1] - (self.waterLevel - x[1])*ct.rho_0*ct.g[1]
         else:
             return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1]
-"""
 
-class P_IC:
-    def uOfXT(self,x,t):
-        return ct.twpflowPressure_init(x,t)
-
-class AtRest:
-    def uOfXT(self,x,t):
+class U_IC:
+    def uOfXT(self, x, t):
         return 0.0
 
+class V_IC:
+    def uOfXT(self, x, t):
+        return 0.0
 
+class W_IC:
+    def uOfXT(self, x, t):
+        return 0.0
 
-initialConditions = {0:P_IC(),
-                     1:AtRest(),
-                     2:AtRest()}
+initialConditions = {0: PerturbedSurface_p(ct.waterLine_z),
+                     1: U_IC(),
+                     2: V_IC()}
+if nd == 3:
+    initialConditions[3] = W_IC()
 
 

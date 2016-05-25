@@ -7,21 +7,30 @@ from proteus import (StepControl,
                      NumericalFlux)
 import ls_consrv_p as physics
 from proteus import Context
+
 ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+mesh = domain.MeshOptions
 
+#time stepping
 runCFL = ct.runCFL
-nLevels = ct.nLevels
-parallelPartitioningType = ct.parallelPartitioningType
-nLayersOfOverlapForParallel = ct.nLayersOfOverlapForParallel
-restrictFineSolutionToAllMeshes = ct.restrictFineSolutionToAllMeshes
-triangleOptions = ct.triangleOptions
-
 timeIntegrator  = TimeIntegration.ForwardIntegrator
 timeIntegration = TimeIntegration.NoIntegration
 
-femSpaces = {0: ct.basis}
+#mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+
+
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
+femSpaces = {0: ct.basis}
 
 subgridError      = None
 massLumping       = False

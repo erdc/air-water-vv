@@ -1,12 +1,14 @@
 from proteus.default_p import *
 from proteus.mprans import RDLS
 from proteus import Context
-ct = Context.get()
 
+ct = Context.get()
 domain = ct.domain
 nd = domain.nd
+mesh = domain.MeshOptions
 
-genMesh = ct.genMesh
+
+genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
 T = ct.T
 
@@ -34,6 +36,6 @@ diffusiveFluxBoundaryConditions = {0: {}}
 
 class PHI_IC:
     def uOfXT(self, x, t):
-        return ct.signedDistance(x)
+        return x[nd-1] - ct.waterLevel
 
 initialConditions  = {0: PHI_IC()}

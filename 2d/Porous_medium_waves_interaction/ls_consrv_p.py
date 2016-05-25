@@ -1,12 +1,14 @@
 from proteus.default_p import *
 from proteus.mprans import MCorr
 from proteus import Context
+
 ct = Context.get()
-
 domain = ct.domain
-nd = domain.nd
+nd = ct.domain.nd
+mesh = domain.MeshOptions
 
-genMesh = ct.genMesh
+
+genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
 T = ct.T
 
@@ -18,7 +20,7 @@ coefficients = MCorr.Coefficients(LSModel_index=int(ct.movingDomain)+2,
                                   VOFModel_index=int(ct.movingDomain)+1,
                                   applyCorrection=ct.applyCorrection,
                                   nd=nd,
-                                  checkMass=False,
+                                  checkMass=True,
                                   useMetrics=ct.useMetrics,
                                   epsFactHeaviside=ct.epsFact_consrv_heaviside,
                                   epsFactDirac=ct.epsFact_consrv_dirac,

@@ -6,7 +6,8 @@ from proteus import Context
 ct = Context.get()
 domain = ct.domain
 nd = domain.nd
-mesh=domain.MeshOptions
+mesh = domain.MeshOptions
+
 
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
@@ -24,7 +25,7 @@ coefficients = VOF.Coefficients(LS_model=int(ct.movingDomain)+LS_model,
                                 V_model=int(ct.movingDomain)+0,
                                 RD_model=int(ct.movingDomain)+RD_model,
                                 ME_model=int(ct.movingDomain)+1,
-                                checkMass=False,
+                                checkMass=True,
                                 useMetrics=ct.useMetrics,
                                 epsFact=ct.epsFact_vof,
                                 sc_uref=ct.vof_sc_uref,
@@ -39,6 +40,6 @@ diffusiveFluxBoundaryConditions = {0: {}}
 
 class VF_IC:
     def uOfXT(self, x, t):
-        return smoothedHeaviside(ct.epsFact_consrv_heaviside*ct.he,ct.signedDistance(x))
+        return smoothedHeaviside(ct.epsFact_consrv_heaviside*mesh.he,x[nd-1]-ct.waterLevel)
 
 initialConditions = {0: VF_IC()}

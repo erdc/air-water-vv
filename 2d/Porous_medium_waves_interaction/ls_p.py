@@ -1,12 +1,14 @@
 from proteus.default_p import *
 from proteus.mprans import NCLS
 from proteus import Context
-ct = Context.get()
 
+ct = Context.get()
 domain = ct.domain
 nd = domain.nd
+mesh = domain.MeshOptions
 
-genMesh = ct.genMesh
+
+genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
 T = ct.T
 
@@ -22,24 +24,14 @@ coefficients = NCLS.Coefficients(V_model=int(ct.movingDomain)+0,
                                  sc_beta=ct.ls_sc_beta,
                                  movingDomain=ct.movingDomain)
 
-
-def getDBC_ls(x,flag):
-    if flag == ct.boundaryTags['left']:
-        return ct.wavePhi
-    else:
-        return None
-
-
-dirichletConditions = {0:getDBC_ls}
+dirichletConditions = {0: lambda x, flag: None}
 
 advectiveFluxBoundaryConditions = {}
 
 diffusiveFluxBoundaryConditions = {0: {}}
 
-
-
 class PHI_IC:
     def uOfXT(self, x, t):
-        return ct.signedDistance(x)
+        return x[nd-1] - ct.waterLevel
 
 initialConditions = {0: PHI_IC()}
