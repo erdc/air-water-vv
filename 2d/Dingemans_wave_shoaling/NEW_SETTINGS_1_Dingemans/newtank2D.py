@@ -2,12 +2,14 @@ from math import *
 import numpy as np
 
 from proteus import Domain
-from proteus.mprans import SpatialTools as st
+#from proteus.
+import mpransSpatialTools as st
 
 from proteus import MeshTools, AuxiliaryVariables
 
 from proteus import Gauges as ga
-from proteus import WaveTools as wt
+#from proteus
+import WaveTools as wt
 
 from proteus.Profiling import logEvent
 from proteus.default_n import *
@@ -174,7 +176,7 @@ waveinput = wt.MonochromaticWaves(period=period,
                                   g=g,
                                   waveDir=waveDir,
                                   wavelength=wavelength,
-                                  waveType="Fenton",
+                                  waveType='Fenton',
                                   Ycoeff = Ycoeff,
                                   Bcoeff = Bcoeff,
                                   )
@@ -213,7 +215,7 @@ tank.BC.top.setOpenAir()
 #tank.BC.left.setFreeSlip()
 #tank.BC.left.MonochromaticWaveBoundary(wave=waveinput, waterLevel=waterLevel)
 #tank.BC.left.WaveBC(domain=domain, wave=waveinput, waterLevel=waterLevel)
-tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waveinput)
+tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1, windSpeed=windVelocity, smooth=True)
 tank.BC.bottom.setNoSlip()
 tank.BC.right.setFreeSlip()
 tank.BC.sponge.setParallelFlag0()
@@ -227,7 +229,7 @@ tank.setAbsorptionZones(flags=3, epsFact_solid=L_rightSpo/2, sign=-1, center_x=t
 
 
 # ----- Output Gauges ----- #
-
+"""
 
 gaugeLocations=(((0., 0., 0.), (0., tank_dim[1], 0.)),
                 ((24.04, 0.512, 0.), (24.04, tank_dim[1], 0.)),
@@ -252,7 +254,7 @@ integral_output=ga.LineIntegralGauges(gauges=((fields, columnLines), ),
                                       fileName='line_integral_gauges.csv')
 
 domain.auxiliaryVariables += [line_output, integral_output]
-
+"""
 
 
 #  Discretization -- input options
@@ -377,18 +379,20 @@ else:
 
 
 
-ns_nl_atol_res = max(1.0e-10,0.001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.001*he**2)
-ls_nl_atol_res = max(1.0e-10,0.001*he**2)
-rd_nl_atol_res = max(1.0e-10,0.005*he)
-mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
-kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
-dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
+ns_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
+vof_nl_atol_res = max(1.0e-12,0.001*hdomain.MeshOptions.he**2)
+ls_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
+rd_nl_atol_res = max(1.0e-12,0.005*domain.MeshOptions.he)
+mcorr_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
+kappa_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
+dissipation_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
+mesh_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
+
 
 
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:

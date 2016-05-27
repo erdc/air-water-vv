@@ -32,7 +32,7 @@ waves = WT.RandomWaves( Tp = period, # Peak period
                         mwl = inflowHeightMean, # Sea water level
                         waveDir = waveDir, # waveDirection
                         g = g, # Gravity vector, defines the vertical
-                        gamma=3.3
+                        gamma=3.3,
                         spec_fun = WT.JONSWAP)
 
 

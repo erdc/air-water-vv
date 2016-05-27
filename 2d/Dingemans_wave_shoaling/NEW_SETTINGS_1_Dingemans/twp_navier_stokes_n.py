@@ -73,5 +73,4 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
-#auxiliaryVariables = ct.domain.auxiliaryVariables
-
+#auxiliaryVariables = [ct.line_output]

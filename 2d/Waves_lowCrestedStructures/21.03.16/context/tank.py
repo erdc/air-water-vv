@@ -13,7 +13,7 @@ opts=Context.Options([
     #("tank_dim", [10.,10.], "Initial tank dimensions"),
     # waves
     ("wave_period", 2., "Period of the waves"), # Choose periods=[1., 1.5, 2.]
-    ("wave_height", 0.03, "Height of the waves"), # Choose waveHeights=[0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12]
+    ("wave_height", 0.12, "Height of the waves"), # Choose waveHeights=[0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12]
     # breakwater
     ("b", 0.25, "Top base of the breakwater"), # Choose b=[0.25, 0.80]
     ("hs", 0.25, "Height of the breakwater"),
@@ -22,7 +22,7 @@ opts=Context.Options([
     ('porosity', 0.4, "Porosity of the medium"),
     ('d50', 0.058, "Mean diameter of the medium"),
     # numerical options
-    ("refinement_level", 50 ,"he=walength/refinement_level"),
+    ("refinement_level", 100 ,"he=walength/refinement_level"),
     ("cfl", 0.9 ,"Target cfl"),
     ("freezeLevelSet", False, "No motion to the levelset"),
     ("useVF", 0.0, "For density and viscosity smoothing"),
@@ -202,7 +202,7 @@ Beta=Beta1*voidFrac/((porosity**3)*d15)
 
 #Proteus scale in viscosity, so i need to divide alpha and beta by nu_0
 dragAlpha=porosity*Alpha/nu_0
-dragBeta=Beta/nu_0
+dragBeta=0. #Beta/nu_0
 
 
 # ----- BOUNDARY CONDITIONS ----- #
