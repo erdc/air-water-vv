@@ -35,26 +35,61 @@ with open (filename, 'rb') as csvfile:
                 row2.append(j)
         a.append(row2)
         nRows+=1
-# Choose which time step to plot  
-    print('Number of rows : '+ str(nRows))
-    line = int(raw_input('Enter which line (time step) to plot : '))
-    pressure=a[line-1][1:]  
- # Plot pressure in space
-    import matplotlib.pyplot as plt
-    plt.plot(probes,pressure)
-    plt.xlabel('probes location [m]')    
-    plt.ylabel('pressure[Pa]')
-    plt.show()
-    savefig('pressure_in_space_%d.png' %(line))
 
+#####################################################################################
+
+#Choose to plot in time or in space
+    choose=(raw_input('Plotting pressure in time or in space? (ENTER t or s) : '))
+
+    if choose=='s':  
+# Choose which time step to plot  
+        pressure=[]
+        print('Number of rows : '+ str(nRows))
+        line = int(raw_input('Enter which line (time step) to plot : '))
+        pressure=a[line-1][1:]  
+ # Plot pressure in space
+        import matplotlib.pyplot as plt
+        plt.plot(probes,pressure)
+        plt.xlabel('probes location [m]')    
+        plt.ylabel('pressure[Pa]')
+        plt.suptitle('timestep = %d [sec]' %(float(time[line-2])))
+        plt.show()
+        savefig('pressure_in_space_%d.png' %(line))
+
+    if choose=='t':    
 # Choose which probes to plot  
-    print('Number of probes : '+ str(len(probes)))
-    x = int(raw_input('Enter which probes to plot : '))
-    pressure2=a[x-1]  
- # Plot pressure in time
-    import matplotlib.pyplot as plt
-    plt.plot(time,pressure2)
-    plt.xlabel('time step [sec]')    
-    plt.ylabel('pressure [Pa]')
-    plt.show()
-    savefig('pressure_in_space_%d.png' %(x))
+        print('Number of probes : '+ str(len(probes)))
+        x = int(raw_input('Enter which probes to plot : ')) 
+        pressure2=[]
+        for k in range(1,nRows):
+            pressure2.append(a[k][x])    
+# Plot pressure in time
+        import matplotlib.pyplot as plt
+        plt.plot(time,pressure2)
+        plt.xlabel('time step [sec]')    
+        plt.ylabel('pressure [Pa]')
+        plt.suptitle('probe = %d [m]' %(float(probes[x-1])))
+        plt.ylim((4650,5200))
+        plt.show()
+        savefig('pressure_in_time_%d.png' %(x))
+
+#####################################################################################
+
+# Print an output file
+    info = open('probes.txt','w')
+    string1=str(probes)
+    string2=string1.replace('[',' ')
+    string3=string2.replace(']',' ')   
+    string4=string3.replace(',','\t') 
+    info.write(str('x')+'\t'+string4+'\n')
+    for j in range(1,nRows):
+        string5=str(a[j])
+        string6=string5.replace('[',' ')
+        string7=string6.replace(']',' ')   
+        string8=string7.replace(',','\t')   
+        info.write(string8+'\n')
+    info.close()
+
+
+
+

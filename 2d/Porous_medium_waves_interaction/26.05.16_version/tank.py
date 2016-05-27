@@ -21,7 +21,8 @@ opts=Context.Options([
     # numerical options
     ("refinement_level", 100. ,"he=walength/refinement_level"),
     ("cfl", 0.9 ,"Target cfl"),
-    ("freezeLevelSet", not True, "No motion to the levelset"),
+    ("freezeLevelSet", True, "No motion to the levelset"),
+    ("conservative_Flux", not True, 'For porous interface problem should be set eqaul to False'),
     ("useVF", 0.0, "For density and viscosity smoothing"),
     ])
 
