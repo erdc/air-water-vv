@@ -66,7 +66,12 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ct.ns_closure,
                                    movingDomain=ct.movingDomain,
-                                   barycenters=ct.domain.barycenters)
+                                   barycenters=ct.domain.barycenters,
+                                   porosityTypes=porosityTypes,
+                                   dragAlphaTypes=dragAlphaTypes,
+                                   dragBetaTypes=dragBetaTypes,
+                                   epsFact_solid=epsFact_solid,
+                                   )
 
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet,

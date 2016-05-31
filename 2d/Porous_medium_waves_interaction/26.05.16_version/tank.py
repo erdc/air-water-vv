@@ -15,13 +15,14 @@ opts=Context.Options([
     ("wave_height", 0.025, "Height of the waves"),
     # porous medium 
     ('porosity', 0.4, "Porosity of the medium"),
-    ('d50', None, "Mean diameter of the medium"),
-    ('d15', 0.0102, "15% grading curve diameter of the medium"),
-    ('Resistance', 'Ergun', 'Ergun or Engelund or Shih'),
+    ('d_grain', 0.0102, "grain size"),
+    ('aDarcy', 150, "Ergun Recommended values"),
+    ('bForc', 0.0, "Forchheimer term is 0 for this case"),
     # numerical options
     ("refinement_level", 100. ,"he=walength/refinement_level"),
     ("cfl", 0.9 ,"Target cfl"),
-    ("freezeLevelSet", not True, "No motion to the levelset"),
+    ("freezeLevelSet", True, "No motion to the levelset"),
+    ("conservative_Flux", not True, 'For porous interface problem should be set eqaul to False'),
     ("useVF", 0.0, "For density and viscosity smoothing"),
     ])
 
@@ -161,7 +162,7 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
 # POROUS MEDIA
 ##################################################################################################################################################################################################################
 
-
+"""
 porosity=opts.porosity
 voidFrac=1.0-porosity
 
@@ -170,6 +171,8 @@ if d50==None:
     d15=opts.d15
 else:
     d15=d50/1.2
+aDarcy = 150.
+bFoc = 0.
 
 #----- SHIH
 if opts.Resistance=='Shih':
@@ -202,7 +205,7 @@ if opts.Resistance=='Engelund':
 #Proteus scale in viscosity, so i need to divide alpha and beta by nu_0
 dragAlpha=(porosity**2)*1.96*(10**6) #(porosity**2)*Alpha/nu_0
 dragBeta=0.0#(porosity**3)*Beta/nu_0
-
+"""
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
@@ -224,11 +227,11 @@ tank.BC.porousLayer.setNonMaterial()
 tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
                         orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
                         waves=waveinput, windSpeed=windVelocity,
-                        )
+"""                        )
 tank.setPorousZones(flags=3, dragAlpha=dragAlpha, dragBeta=dragBeta,
                     porosity=porosity,
                    )
-
+"""
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
 ############################################################################################################################################################################

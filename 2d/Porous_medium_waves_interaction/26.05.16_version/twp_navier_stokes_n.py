@@ -79,8 +79,6 @@ nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
-conservativeFlux = {0:'pwl-bdm-opt'}
-if ct.opts.caisson:
-    auxiliaryVariables = ct.domain.auxiliaryVariables + [ct.pressureGauges,ct.overtoppingGauges,ct.loadingsGauges]
-else:
-    auxiliaryVariables = ct.domain.auxiliaryVariables + [ct.pressureGauges]
+if ct.opts.conservative_Flux==True:
+    conservativeFlux = {0:'pwl-bdm-opt'}
+auxiliaryVariables = ct.domain.auxiliaryVariables + [ct.point_output]

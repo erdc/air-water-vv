@@ -192,31 +192,7 @@ waveinput = wt.MonochromaticWaves(period=period,
                                  )
 """
 
-# ----- Mesh ----- #
 
-he = tank_dim[0]/2900
-domain.MeshOptions.elementSize(he)
-st.assembleDomain(domain)
-
-domain.writePoly("mesh")
-triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
-logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
-restrictFineSolutionToAllMeshes=False
-parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
-nLayersOfOverlapForParallel = 0
-
-quad_order = 3
-
-
-#----------------------------------------------------
-# Boundary conditions and other flags
-#----------------------------------------------------
-
-
-checkMass=False
-applyCorrection=True
-applyRedistancing=True
-freezeLevelSet=True #False
 
 # ----- BOUNDARY CONDITIONS ----- #
 
@@ -246,26 +222,50 @@ gaugeLocations=(((0., 0., 0.), (0., tank_dim[1], 0.)),
                 ((24.04, 0.512, 0.), (24.04, tank_dim[1], 0.)),
                 ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)),
                 ((34.04, 0.365, 0.), (34.04, tank_dim[1], 0.)))
-columnLines=(((24.04, 0.512, 0.), (24.04, tank_dim[1], 0.)),
-             ((30.04, 0.66, 0.), (30.04, tank_dim[1], 0.)),
-             ((34.04, 0.365, 0.), (34.04, tank_dim[1], 0.)))
+
 
 line_output=ga.LineGauges(gauges=((('u', 'v'), gaugeLocations),
                                   (('p'), gaugeLocations),
                                  ),
                           activeTime = (0., 71.5),
-                          sampleRate=1/dt_fixed,
+                          sampleRate=0.,#1/dt_fixed,
                           fileName='line_gauges.csv')
 
 
 fields=(('vof',))
-integral_output=ga.LineIntegralGauges(gauges=((fields, columnLines), ),
+integral_output=ga.LineIntegralGauges(gauges=((fields, gaugeLocations), ),
                                       activeTime = (0., 71.5),
-                                      sampleRate=1/dt_fixed,
+                                      sampleRate=0.,#1/dt_fixed,
                                       fileName='line_integral_gauges.csv')
 
 domain.auxiliaryVariables += [line_output, integral_output]
 
+
+# ----- Mesh ----- #
+
+he = tank_dim[0]/2900
+domain.MeshOptions.elementSize(he)
+st.assembleDomain(domain)
+
+domain.writePoly("mesh")
+triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
+logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
+restrictFineSolutionToAllMeshes=False
+parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
+nLayersOfOverlapForParallel = 0
+
+quad_order = 3
+
+
+#----------------------------------------------------
+# Boundary conditions and other flags
+#----------------------------------------------------
+
+
+checkMass=False
+applyCorrection=True
+applyRedistancing=True
+freezeLevelSet=True #False
 
 
 #  Discretization -- input options
@@ -393,7 +393,7 @@ else:
 ns_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 vof_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 ls_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-rd_nl_atol_res = max(1.0e-12,0.005*domain.MeshOptions.he)
+rd_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he)
 mcorr_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 kappa_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 dissipation_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
