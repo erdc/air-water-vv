@@ -8,12 +8,12 @@ import numpy as np
 
 opts=Context.Options([
     # predefined test cases
-    ("water_level", 1., "Height of free surface above bottom"), 
+    ("water_level", 1., "Height of free surface above bottom"),
     # waves
     ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
-    ("wave_period", 1.94, "Period of the waves"), 
+    ("wave_period", 1.94, "Period of the waves"),
     ("wave_height", 0.025, "Height of the waves"),
-    # porous medium 
+    # porous medium
     ('porosity', 0.4, "Porosity of the medium"),
     ('d50', None, "Mean diameter of the medium"),
     ('d15', 0.0102, "15% grading curve diameter of the medium"),
@@ -74,7 +74,7 @@ if opts.waveType=='Linear':
 #---------Domain Dimension
 
 nd = 2
-he = waveinput.wavelength/opts.refinement_level # MESH SIZE	
+he = waveinput.wavelength/opts.refinement_level # MESH SIZE
 
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
@@ -178,7 +178,7 @@ if opts.Resistance=='Shih':
     term2=(gAbs/(nu_0**2.))**(2./3.)
     term3=(d15**2.)
     Alpha1=1684+term1*term2*term3 #Shih
-    Alpha=Alpha1*nu_0*(voidFrac**2)/((porosity**3)*(d15**2)) 
+    Alpha=Alpha1*nu_0*(voidFrac**2)/((porosity**3)*(d15**2))
 
     term1=-5.10*(10**-3.)
     term2=(gAbs/(nu_0**2.))**(1./3.)
@@ -201,7 +201,7 @@ if opts.Resistance=='Engelund':
     Beta=Beta1*voidFrac/((porosity**3)*d15)
 
 #Proteus scale in viscosity, so i need to divide alpha and beta by nu_0
-dragAlpha=(porosity**3)*1.96*(10**6) #(porosity**2)*Alpha/nu_0
+dragAlpha=(porosity**2)*1.96*(10**6) #(porosity**2)*Alpha/nu_0
 dragBeta=0.0#(porosity**3)*Beta/nu_0
 
 
@@ -256,7 +256,7 @@ domain.auxiliaryVariables += [ point_output,
 ######################################################################################################################################################################################################################
 
 he = he
-domain.MeshOptions.he = he 
+domain.MeshOptions.he = he
 
 
 from math import *
@@ -299,7 +299,7 @@ useRANS = 0 # 0 -- None
 
 genMesh=True
 
-# By DEFAULT on the other files.py -->  fullNewtonFlag = True 
+# By DEFAULT on the other files.py -->  fullNewtonFlag = True
 #                                       multilevelNonlinearSolver & levelNonlinearSolver == NonlinearSolvers.Newton
 
 useOldPETSc=False # if TRUE  --> multilevelLinearSolver & levelLinearSolver == LinearSolvers.PETSc
@@ -367,7 +367,7 @@ if useMetrics:
     ls_sc_beta  = 1.5 # 1 is fully nonlinear, 2 is linear
     vof_shockCapturingFactor = 0.5 # numerical diffusion of level set (smoothening volume of fraction)
     vof_lag_shockCapturing = True # less nonlinear but less stable
-    vof_sc_uref = 1.0 
+    vof_sc_uref = 1.0
     vof_sc_beta = 1.5
     rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
@@ -441,7 +441,7 @@ def waveHeight(x,t):
 
 def wavePhi(x,t):
     [nd-1]- waveHeight(x,t)
-    
+
 
 def waveVF(x,t):
     return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
