@@ -147,7 +147,7 @@ class initialVelocity_u:
         pass
     def uOfXT(self,x,t):
       if signedDistance(x) < 0:
-        return twpflowVelocity_u(x,0)
+        return netcurrentVelocity
       else: 
         return 0.0
 

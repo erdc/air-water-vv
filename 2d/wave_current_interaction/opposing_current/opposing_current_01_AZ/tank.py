@@ -12,7 +12,6 @@ import WaveTools
 #wave generator
 windVelocity = (0.0, 0.0)
 inflowHeightMean = 1.0
-inflowVelocityMean = (1.0, 0.0)
 period = 1.94
 omega = 2.0*math.pi/period
 waveheight = 0.042  #=0.025 without the current 
@@ -21,7 +20,7 @@ wavelength = 3.382 #=5.0 without the current
 k = 2.0*math.pi/wavelength
 rampTime=5.0*period
 meanFrameVelocity=2.244 #calculated from FFT
-outflowHeight=inflowHeightMean
+outflowHeightMean=inflowHeightMean
 netcurrentVelocity=wavelength/period-meanFrameVelocity
 
 
@@ -454,7 +453,7 @@ def outflowVF(x,t):
     return smoothedHeaviside(epsFact_consrv_heaviside*he,outflowPhi(x,t))
 
 def outflowVel(x,t):
-    waterspeed = outflowVelocityMean[0]
+    waterspeed = netcurrentVelocity
     H = smoothedHeaviside(epsFact_consrv_heaviside*he,outflowPhi(x,t)-epsFact_consrv_heaviside*he)
     u = (1.0-H)*waterspeed
     return u
