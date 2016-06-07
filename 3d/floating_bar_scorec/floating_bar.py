@@ -10,6 +10,7 @@ from proteus.Profiling import logEvent
 from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
+from proteus.MeshAdaptPUMI import MeshAdaptPUMI
 
 from proteus import Context
 opts=Context.Options([
@@ -17,11 +18,11 @@ opts=Context.Options([
     ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
     ("speed",0.0,"Speed of current if non-zero"),
-    ("bar_height",0.4,"Initial height of bar center above bottom"),
+    ("bar_height",0.25,"Initial height of bar center above bottom"),
     ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
-    ("gen_mesh",True,"Generate new mesh"),
-    ("T",10.0,"Simulation time"),
+    ("gen_mesh",False,"Generate new mesh"),
+    ("T",1.0,"Simulation time"),
     ("dt_init",0.001,"Initial time step"),
     ("cfl",0.33,"Target cfl"),
     ("nsave",100,"Number of time steps to  save"),
@@ -76,113 +77,41 @@ RBR_angCons  = [1,0,1]
 
 nLevels = 1
 
-he = (bar_height)/2.0 #coarse grid
+he = 0.1 #coarse grid
 he *=(0.5)**opts.refinement_level
-genMesh=opts.gen_mesh
 
-boundaryTags = { 'bottom': 1, 'front':2, 'right':3, 'back': 4, 'left':5, 'top':6, 'obstacle':7}
+boundaries = [ 'bottom', 'front', 'right', 'back', 'left', 'top', 'obstacle' ]
+boundaryTags = dict([(key,i+1) for (i,key) in enumerate(boundaries)])
 
-#tank
-vertices=[[x_ll[0],x_ll[1],x_ll[2]],#0
-          [x_ll[0]+L[0],x_ll[1],x_ll[2]],#1
-          [x_ll[0]+L[0],x_ll[1]+L[1],x_ll[2]],#2
-          [x_ll[0],x_ll[1]+L[1],x_ll[2]],#3
-          [x_ll[0],x_ll[1],x_ll[2]+L[2]],#4
-          [x_ll[0]+L[0],x_ll[1],x_ll[2]+L[2]],#5
-          [x_ll[0]+L[0],x_ll[1]+L[1],x_ll[2]+L[2]],#6
-          [x_ll[0],x_ll[1]+L[1],x_ll[2]+L[2]]]#7
-vertexFlags=[boundaryTags['left'],
-             boundaryTags['right'],
-             boundaryTags['right'],
-             boundaryTags['left'],
-             boundaryTags['left'],
-             boundaryTags['right'],
-             boundaryTags['right'],
-             boundaryTags['left']]
-facets=[[[0,1,2,3]],
-        [[0,1,5,4]],
-        [[1,2,6,5]],
-        [[2,3,7,6]],
-        [[3,0,4,7]],
-        [[4,5,6,7]]]
-facetFlags=[boundaryTags['bottom'],
-            boundaryTags['front'],
-            boundaryTags['right'],
-            boundaryTags['back'],
-            boundaryTags['left'],
-            boundaryTags['top']]
-regions=[[x_ll[0]+0.5*L[0],x_ll[1]+0.5*L[1],x_ll[2]+0.5*L[2]]]
-regionFlags=[1.0]
-holes=[]
-#bar
-nStart = len(vertices)
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
+faceMap = { 'front'     : [1],
+            'right'     : [2],
+            'back'      : [3],
+            'left'      : [4],
+            'bottom'    : [5],
+            'top'       : [6],
+            'obstacle'  : [7,8,9,10,11,12] }
 
-#todo, add initial rotation of bar
-facets.append([[nStart,nStart+1,nStart+2,nStart+3]])#1
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart,nStart+1,nStart+5,nStart+4]])#2
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+1,nStart+2,nStart+6,nStart+5]])#3
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+2,nStart+3,nStart+7,nStart+6]])#4
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+3,nStart,nStart+4,nStart+7]])#5
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+4,nStart+5,nStart+6,nStart+7]])#6
-facetFlags.append(boundaryTags['obstacle'])
-holes.append(bar_center)
-domain = Domain.PiecewiseLinearComplexDomain(vertices=vertices,
-                                             vertexFlags=vertexFlags,
-                                             facets=facets,
-                                             facetFlags=facetFlags,
-                                             regions=regions,
-                                             regionFlags=regionFlags,
-                                             holes=holes)
-#go ahead and add a boundary tags member
-domain.boundaryTags = boundaryTags
-from proteus import Comm
-comm = Comm.get()
-if comm.isMaster():
-    domain.writePoly("mesh")
-else:
-    domain.polyfile="mesh"
-comm.barrier()
-triangleOptions="VApq1.35q12feena%21.16e" % ((he**3)/6.0,)
-logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
+faceList = []
+for boundary in boundaries:
+  if boundary in faceMap:
+    faceList.append(faceMap[boundary])
+  else:
+    faceList.append([])
+
+domain = Domain.PUMIDomain(dim=3)
+domain.faceList = faceList
+
+adaptMesh = True
+adaptMesh_nSteps = 10
+adaptMesh_numIter = 3
+
+domain.PUMIMesh = MeshAdaptPUMI.MeshAdaptPUMI(hmax=he,hmin=he,
+                                              numIter=adaptMesh_numIter,sfConfig="farhad")
+domain.PUMIMesh.loadModelAndMesh("floating_bar_3d.dmg",
+                                 "floating_bar_3d.smb")
+
 restrictFineSolutionToAllMeshes=False
-parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
+parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.element
 nLayersOfOverlapForParallel = 0
 
 quad_order = 3

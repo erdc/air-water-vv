@@ -10,24 +10,24 @@ from proteus.Profiling import logEvent
 from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
+from proteus.MeshAdaptPUMI import MeshAdaptPUMI
 
 from proteus import Context
 opts=Context.Options([
-    ("bar_dim", (0.33,0.33,0.2), "Dimensions of the bar"),
+    ("bar_dim", (0.33,0.2,0.33), "Dimensions of the bar"),
     ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
-    ("speed",0.0,"Speed of current if non-zero"),
-    ("bar_height",0.4,"Initial height of bar center above bottom"),
+    ("bar_height",0.8,"Initial height of bar center above bottom"),
     ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
     ("gen_mesh",True,"Generate new mesh"),
-    ("T",10.0,"Simulation time"),
+    ("T",1.0,"Simulation time"),
     ("dt_init",0.001,"Initial time step"),
     ("cfl",0.33,"Target cfl"),
     ("nsave",100,"Number of time steps to  save"),
     ("parallel",True,"Run in parallel"),
-    ("free_x",(0.0,0.0,1.0),"Free translations"),
-    ("free_r",(1.0,1.0,0.0),"Free rotations")])
+    ("free_x",(0.0,1.0,0.0),"Free translations"),
+    ("free_r",(0.0,0.0,1.0),"Free rotations")])
 
 #----------------------------------------------------
 # Physical properties
@@ -40,12 +40,12 @@ nu_1 =1.500e-5
 
 sigma_01=0.0
 
-g=[0.0,0.0,-9.81]
+g=[0.0,-9.81]
 
 #----------------------------------------------------
 # Domain - mesh - quadrature
 #----------------------------------------------------
-nd = 3
+nd = 2
 
 (bar_length,bar_width,bar_height)  = opts.bar_dim
 
@@ -55,8 +55,7 @@ x_ll = (0.0,0.0,0.0)
 
 waterLevel   =  opts.water_surface_height
 
-bar_center = (0.5*L[0],0.5*L[1],opts.bar_height)
-speed = opts.speed
+bar_center = (0.5*L[0],opts.bar_height,0.5*L[2])
 
 #set up barycenters for force calculation
 barycenters = numpy.zeros((8,3),'d')
@@ -76,113 +75,40 @@ RBR_angCons  = [1,0,1]
 
 nLevels = 1
 
-he = (bar_height)/2.0 #coarse grid
+he = (bar_height)/10.0 #coarse grid
 he *=(0.5)**opts.refinement_level
 genMesh=opts.gen_mesh
 
-boundaryTags = { 'bottom': 1, 'front':2, 'right':3, 'back': 4, 'left':5, 'top':6, 'obstacle':7}
+boundaries = [ 'bottom', 'front', 'right', 'back', 'left', 'top', 'obstacle' ]
+boundaryTags = dict([(key,i+1) for (i,key) in enumerate(boundaries)])
 
-#tank
-vertices=[[x_ll[0],x_ll[1],x_ll[2]],#0
-          [x_ll[0]+L[0],x_ll[1],x_ll[2]],#1
-          [x_ll[0]+L[0],x_ll[1]+L[1],x_ll[2]],#2
-          [x_ll[0],x_ll[1]+L[1],x_ll[2]],#3
-          [x_ll[0],x_ll[1],x_ll[2]+L[2]],#4
-          [x_ll[0]+L[0],x_ll[1],x_ll[2]+L[2]],#5
-          [x_ll[0]+L[0],x_ll[1]+L[1],x_ll[2]+L[2]],#6
-          [x_ll[0],x_ll[1]+L[1],x_ll[2]+L[2]]]#7
-vertexFlags=[boundaryTags['left'],
-             boundaryTags['right'],
-             boundaryTags['right'],
-             boundaryTags['left'],
-             boundaryTags['left'],
-             boundaryTags['right'],
-             boundaryTags['right'],
-             boundaryTags['left']]
-facets=[[[0,1,2,3]],
-        [[0,1,5,4]],
-        [[1,2,6,5]],
-        [[2,3,7,6]],
-        [[3,0,4,7]],
-        [[4,5,6,7]]]
-facetFlags=[boundaryTags['bottom'],
-            boundaryTags['front'],
-            boundaryTags['right'],
-            boundaryTags['back'],
-            boundaryTags['left'],
-            boundaryTags['top']]
-regions=[[x_ll[0]+0.5*L[0],x_ll[1]+0.5*L[1],x_ll[2]+0.5*L[2]]]
-regionFlags=[1.0]
-holes=[]
-#bar
-nStart = len(vertices)
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] - 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] - 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] + 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
-vertices.append([bar_center[0] + 0.5*bar_length,
-                 bar_center[1] - 0.5*bar_width,
-                 bar_center[2] + 0.5*bar_height])
-vertexFlags.append(boundaryTags['obstacle'])
+faceMap = { 'left'     : [1],
+            'bottom'   : [2],
+            'right'    : [3],
+            'top'      : [4],
+            'obstacle' : [5,6,7,8] }
 
-#todo, add initial rotation of bar
-facets.append([[nStart,nStart+1,nStart+2,nStart+3]])#1
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart,nStart+1,nStart+5,nStart+4]])#2
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+1,nStart+2,nStart+6,nStart+5]])#3
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+2,nStart+3,nStart+7,nStart+6]])#4
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+3,nStart,nStart+4,nStart+7]])#5
-facetFlags.append(boundaryTags['obstacle'])
-facets.append([[nStart+4,nStart+5,nStart+6,nStart+7]])#6
-facetFlags.append(boundaryTags['obstacle'])
-holes.append(bar_center)
-domain = Domain.PiecewiseLinearComplexDomain(vertices=vertices,
-                                             vertexFlags=vertexFlags,
-                                             facets=facets,
-                                             facetFlags=facetFlags,
-                                             regions=regions,
-                                             regionFlags=regionFlags,
-                                             holes=holes)
-#go ahead and add a boundary tags member
-domain.boundaryTags = boundaryTags
-from proteus import Comm
-comm = Comm.get()
-if comm.isMaster():
-    domain.writePoly("mesh")
-else:
-    domain.polyfile="mesh"
-comm.barrier()
-triangleOptions="VApq1.35q12feena%21.16e" % ((he**3)/6.0,)
-logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
+faceList = []
+for boundary in boundaries:
+  if boundary in faceMap:
+    faceList.append(faceMap[boundary])
+  else:
+    faceList.append([])
+
+domain = Domain.PUMIDomain(dim=2)
+domain.faceList = faceList
+
+adaptMesh = True
+adaptMesh_nSteps = 50
+adaptMesh_numIter = 3
+
+domain.PUMIMesh = MeshAdaptPUMI.MeshAdaptPUMI(hmax=he,hmin=he,
+                                              numIter=adaptMesh_numIter,sfConfig="farhad")
+domain.PUMIMesh.loadModelAndMesh("floating_bar.dmg",
+                                 "floating_bar_high.smb")
+
 restrictFineSolutionToAllMeshes=False
-parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
+parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.element
 nLayersOfOverlapForParallel = 0
 
 quad_order = 3
@@ -212,7 +138,7 @@ dt_out =  (T-dt_init)/nDTout
 runCFL = opts.cfl
 
 #----------------------------------------------------
-water_depth  = waterLevel-x_ll[2]
+water_depth  = waterLevel-x_ll[1]
 
 #  Discretization -- input options
 useOldPETSc=False
@@ -241,7 +167,7 @@ if useMetrics not in [0.0, 1.0]:
     sys.exit()
 
 #  Discretization
-nd = 3
+nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
@@ -342,9 +268,9 @@ elif useRANS >= 2:
 
 def twpflowPressure_init(x,t):
     p_L = 0.0
-    phi_L = L[2] - waterLevel
-    phi = x[2] - waterLevel
-    return p_L -g[2]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
+    phi_L = L[1] - waterLevel
+    phi = x[1] - waterLevel
+    return p_L -g[1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))
 
 import ode
@@ -375,8 +301,8 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.world = ode.World()
         #self.world.setERP(0.8)
         #self.world.setCFM(1E-5)
-        self.world.setGravity(g)
-        self.g = np.array([g[0],g[1],g[2]])
+        self.world.setGravity([g[0],g[1],0.0])
+        self.g = np.array([g[0],g[1],0.0])
         self.space = ode.Space()
         eps_x = L[0]- 0.75*L[0]
         eps_y = L[1]- 0.75*L[1]
@@ -386,15 +312,6 @@ class RigidBar(AuxiliaryVariables.AV_base):
         #ode.GeomPlane(self.space, (0,1,0) ,x_ll[1]+eps_y),
         #                  ode.GeomPlane(self.space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
         #mass/intertial tensor of rigid bar
-        #eps_x = L[0]- 0.45*L[0]
-        #eps_y = L[1]- 0.45*L[1]
-        #self.tankWalls = [ode.GeomPlane(space, (1,0,0) ,x_ll[0]+eps_x),
-        #                  ode.GeomPlane(space, (-1,0,0),-(x_ll[0]+L[0]-eps_x)),
-        #                  ode.GeomPlane(space, (0,1,0) ,x_ll[1]+eps_y),
-        #                  ode.GeomPlane(space, (0,-1,0) ,-(x_ll[1]+L[1]-eps_y))]
-        #self.tank = ode.GeomBox(self.space,(0.45,0.45,0.3))
-        #self.tank.setPosition((0.5,0.5,0.6))
-        #self.contactgroup = ode.JointGroup()
         self.M = ode.Mass()
         self.totalMass = density*bar_dim[0]*bar_dim[1]*bar_dim[2]
         self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2])
@@ -422,7 +339,6 @@ class RigidBar(AuxiliaryVariables.AV_base):
         self.bar_dim = bar_dim
         self.last_F = np.zeros(3,'d')
         self.last_M = np.zeros(3,'d')
-
     def attachModel(self,model,ar):
         self.model=model
         self.ar=ar
@@ -454,7 +370,12 @@ class RigidBar(AuxiliaryVariables.AV_base):
         except:
             dt = self.dt_init
         F = self.model.levelModelList[-1].coefficients.netForces_p[7,:] + self.model.levelModelList[-1].coefficients.netForces_v[7,:];
+        F[2] = 0.0
+        F *= self.bar_dim[2]
         M = self.model.levelModelList[-1].coefficients.netMoments[7,:]
+        M[0] = 0.0
+        M[1] = 0.0
+        M *= self.bar_dim[2]
         logEvent("x Force " +`self.model.stepController.t_model_last`+" "+`F[0]`)
         logEvent("y Force " +`self.model.stepController.t_model_last`+" "+`F[1]`)
         logEvent("z Force " +`self.model.stepController.t_model_last`+" "+`F[2]`)
@@ -514,6 +435,7 @@ position_last = {7}""".format(Fstar,F,self.last_F,dt,velocity,velocity_last,posi
                                          Mstar[1]*opts.free_r[1],
                                          Mstar[2]*opts.free_r[2]))
                     #self.space.collide((self.world,self.contactgroup), near_callback)
+                    print "Mass ",self.body.getMass()," Force ",self.body.getForce()
                     self.world.step(dt/float(nSteps))
         #self.contactgroup.empty()
         self.last_F[:] = F
