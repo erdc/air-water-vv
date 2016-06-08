@@ -60,6 +60,10 @@ if ct.useSuperlu:
 
 linear_solver_options_prefix = 'mcorr_'
 linearSolverConvergenceTest  = 'r-true'
+if not physics.applyCorrection:
+    nonlinearSolverConvergenceTest = 'rits'
+    levelNonlinearSolverConvergenceTest = 'rits'
+    maxNonlinearIts=0
 
 tolFac = 0.0
 linTolFac = 0.001

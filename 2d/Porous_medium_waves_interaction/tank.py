@@ -237,12 +237,13 @@ T = 50.*period
 
 gauge_dx=0.25
 probes=np.linspace(0., tank_dim[0], (tank_dim[0]/gauge_dx)+1)
+#probes=np.linspace(0., 1.0 , (1.0/gauge_dx)+1)
 PG=[]
 zProbes=waterLevel*0.5
 for i in probes:
     PG.append((i, zProbes, 0.),)
 
-point_output=ga.PointGauges(gauges=((('p'),PG),
+point_output=ga.PointGauges(gauges=((('p',),PG),
                                  ),
                           activeTime = (0., T),
                           sampleRate=0.,
@@ -305,7 +306,7 @@ genMesh=True
 useOldPETSc=False # if TRUE  --> multilevelLinearSolver & levelLinearSolver == LinearSolvers.PETSc
                   # if FALSE --> multilevelLinearSolver & levelLinearSolver == LinearSolvers.KSP_petsc4py
 
-useSuperlu = False #if TRUE --> multilevelLinearSolver & levelLinearSolver == LinearSolvers.LU
+useSuperlu = True #if TRUE --> multilevelLinearSolver & levelLinearSolver == LinearSolvers.LU
 
 spaceOrder = 1
 useHex     = False # used for discretization, if 1.0 --> CubeGaussQuadrature
@@ -374,7 +375,7 @@ if useMetrics:
     epsFact_density    = 3.0 # control width of water/air transition zone
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0 # affects smoothing diffusion in mass conservation
+    epsFact_consrv_diffusion = 100.0 # affects smoothing diffusion in mass conservation
     redist_Newton = True
     kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True # False
@@ -461,4 +462,3 @@ def signedDistance(x):
             return phi_x
         else:
             return sqrt(phi_x**2 + phi_z**2)
-
