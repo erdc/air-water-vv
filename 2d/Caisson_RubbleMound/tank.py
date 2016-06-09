@@ -12,9 +12,9 @@ opts=Context.Options([
     ("water_level", 0.425, "Height of free surface above bottom"), # Choose waterLevels=[0.425, 0.463]
     # waves
     ('waveType', 'Fenton', 'Wavetype for regular waves, Linear or Fenton'),
-    ("wave_period", 0.5, "Period of the waves"), # Choose periods=[0.5, 0.8, 1.1, 1.5]
+    ("wave_period", 0.5, "Period of the waves"), # Choose periods=[0.5, 0.8, 1.1, 1.5, 2.8, 3.9, 4.0]
     ("wave_height", 0.025, "Height of the waves"), # # Choose for d=0.425-->[0.025, 0.075, 0.125, 0.234]. Choose for d=0.463-->[0.025, 0.075, 0.125, 0.254].
-    ('wavelength', 1.393, 'Wavelength only if Fenton is activated'), # Choose for d=0.425-->[0.4, 1.0, 1.8, 2.9]. Choose for d=0.463-->[0.4, 1.0, 1.8, 3.0].
+    ('wavelength', 0.4, 'Wavelength only if Fenton is activated'), # Choose for d=0.425-->[0.4, 1.0, 1.8, 2.9]. Choose for d=0.463-->[0.4, 1.0, 1.8, 2.9, 3.0, 5.7, 5.9, 8.8, 9.4].
     ('Ycoeff', [0.19167938     ,  0.01943414     ,  0.00299676     ,  0.00055096     ,  0.00011165  ,  0.00002413     ,  0.00000571     ,  0.00000251], 'Ycoeff only if Fenton is activated'), 
     ('Bcoeff', [0.19063009     ,  0.00072851     ,  0.00002905     ,  0.00000131     ,  0.00000006  ,  0.00000000     ,  0.00000000     ,  0.00000000], 'Bcoeff only if Fenton is activated'), 
     # Geometry of the tank - left lower boundary at (0.,0.,0.)
@@ -38,7 +38,7 @@ opts=Context.Options([
     ("m_static", 0.0, "Static friction factor between caisson and rubble mound"),
     ("m_dynamic", 0.0, "Dynamic friction factor between caisson and rubble mound"),
     # numerical options
-    ("refinement_level", 100. ,"he=walength/refinement_level"),
+    ("refinement_level", 200. ,"he=walength/refinement_level"),
     ("cfl", 0.9 ,"Target cfl"),
     ("freezeLevelSet", True, "No motion to the levelset"),
     ("useVF", 0.0, "For density and viscosity smoothing"),
@@ -163,7 +163,7 @@ if opts.caisson:
     coords=[xc1+b/2., hs+dimy/2.] # For bodyDimensions and barycenter
     VCG=dim[1]/2.                 # For barycenter
     width=1.0                      # The 3rd dimension
-    density=1440 #kg/m3
+    density=100000 #kg/m3
     volume=dimx*dimy*width
     mass=density*volume
     It=(dimx**2.+dimy**2.)/12.
@@ -405,7 +405,7 @@ tank.setAbsorptionZones(flags=4, epsFact_solid=float(L_rightSpo/2.),
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
 ############################################################################################################################################################################
-T = 40*period
+T = 20.*period
 
 PG=[]
 LG=[]
@@ -419,11 +419,11 @@ LG4=[]
 
 z_probes = waterLevel*0.5
 PG=[(0.0,z_probes,0.), (xc1-0.73,z_probes,0.), (xc1+0.53,z_probes,0.), (xc1+1.03,z_probes,0.), (xc1+1.23,z_probes,0.)]
-pressureGauges=ga.PointGauges(gauges=((('p'),PG),
+pressureGauges=ga.PointGauges(gauges=((('p',),PG),
                                  ),
                           activeTime = (0., T),
                           sampleRate=0.,
-                          fileName='pressureGauges.csv')
+                          fileName='pressureProbes.csv')
 
 
 VG=[((0.0,0.,0.),(0.0,tank_dim[1],0.)),
@@ -431,13 +431,14 @@ VG=[((0.0,0.,0.),(0.0,tank_dim[1],0.)),
     ((xc1+0.53,0.,0.),(xc1+0.53,tank_dim[1],0.)),
     ((xc1+1.03,0.,0.),(xc1+1.03,tank_dim[1],0.)), 
     ((xc1+1.23,0.,0.),(xc1+1.23,tank_dim[1],0.))]
+
 VG=tuple(map(tuple,VG))
 fields=(('vof',))
 vof_probes=ga.LineIntegralGauges(gauges=((fields, VG),
                                                ),
                                       activeTime = (0., T),
                                       sampleRate=0.,
-                                      fileName='vof_gauges.csv')
+                                      fileName='waveProbes.csv')
 
 
 if opts.caisson:
@@ -456,15 +457,15 @@ if opts.caisson:
     probes=np.linspace(yc1, tank_dim[1], (tank_dim[1]-yc1)/dx+1)    
     for i in probes:
         LG.append((xc1,i,0.),)
-    overtoppingGauges=ga.PointGauges(gauges=((('u', 'v'), LG),),
+    overtoppingGauges=ga.PointGauges(gauges=((('u',), LG),),
                               activeTime = (0., T),
                               sampleRate=0.,
-                              fileName='overtoppingGauges.csv')
+                              fileName='overtoppingVelGauges.csv')
     
     vofGauges=ga.PointGauges(gauges=(((('vof'),), LG),),
                               activeTime = (0., T),
                               sampleRate=0.,
-                              fileName='vofGauges.csv')
+                              fileName='overtoppingVofGauges.csv')
 
 
 #-------------Wave loading---------------------------------------------------#
@@ -485,13 +486,13 @@ if opts.caisson:
     for i in probes4:
         LG4.append((xc4,i,0.),)  
 
-    loadingsGauges=ga.PointGauges(gauges=((('p'), LG1),
-                                         (('p'), LG2),
-                                         (('p'), LG3),
-                                         (('p'), LG4),),
+    loadingsGauges=ga.PointGauges(gauges=((('p',), LG1),
+                                         (('p',), LG2),
+                                         (('p',), LG3),
+                                         (('p',), LG4),),
                               activeTime = (0., T),
                               sampleRate=0.,
-                              fileName='loadingsGauges.csv')
+                              fileName='loadingGauges.csv')
 
 
     domain.auxiliaryVariables += [pressureGauges,vof_probes,overtoppingGauges,vofGauges,
