@@ -9,6 +9,10 @@ import numpy as np
 opts=Context.Options([
     # predefined test cases
     ("water_level", 1., "Height of free surface above bottom"), 
+    # Geometry of the tank
+    ('Lgen',2.,'Length of generation zone in terms of waveLengths'),
+    ('Ldom',5.,'Length of domain in terms of waveLengths'),
+    ('Labs',5.,'Length of absorption zone in terms of waveLengths'),
     # waves
     ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
     ("wave_period", 1.94, "Period of the waves"), 
@@ -77,19 +81,18 @@ if opts.waveType=='Linear':
 nd = 2
 he = waveinput.wavelength/opts.refinement_level # MESH SIZE	
 
+wl=waveinput.wavelength
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # ----- SHAPES ----- #
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-L_leftSpo  = waveinput.wavelength
-L_rightSpo = waveinput.wavelength
-
+L_leftSpo  = opts.Lgen*wl
 
 #-Tank
 x1=L_leftSpo
-x2=x1+5.*waveinput.wavelength
-x3=x2+5.*waveinput.wavelength
+x2=x1+opts.Ldom*wl
+x3=x2+opts.Labs*wl
 tank_dim = [x3, 2.0]
 
 boundaryOrientations = {'bottom': [0., -1.,0.],
