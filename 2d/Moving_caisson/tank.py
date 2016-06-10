@@ -10,6 +10,11 @@ import numpy as np
 opts=Context.Options([
     # predefined test cases
     ("water_level", 0.325, "Height of free surface above bottom"), 
+    # Geometry
+    ('Lgen', 1.0, 'Genaration zone in terms of wave lengths'),
+    ('Labs', 2.0, 'Absorption zone in terms of wave lengths'),
+    ('Ls', 1.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
+    ('Lend', 1.0, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
     # waves
     ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
     ("wave_period", 1.30, "Period of the waves"), 
@@ -106,14 +111,15 @@ if opts.waveType=='Fenton':
 nd = 2
 he = waveinput.wavelength/opts.refinement_level # MESH SIZE	
 
+wl = waveinput.wavelength
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # ----- SHAPES ----- #
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
 if opts.caisson:
-    L_leftSpo  = waveinput.wavelength
-    L_rightSpo = waveinput.wavelength
+    L_leftSpo  = opts.Lgen*wl
+    L_rightSpo = opts.Labs*wl
 
     hs=opts.hs
     slope1=opts.slope1
@@ -126,7 +132,7 @@ if opts.caisson:
 
 #-Tank
     x1=L_leftSpo
-    x2=x1+1.0*waveinput.wavelength
+    x2=x1+opts.Ls*wl
     x3=x2+(hs/slope1)
 
     xc1=x3+0.20
@@ -135,7 +141,7 @@ if opts.caisson:
 
     x4=xc2+0.20
     x5=x4+(hs/slope2)
-    x6=x5+1.0*waveinput.wavelength
+    x6=x5+opts.Lend*wl
     x7=x6+L_rightSpo
     tank_dim = [x7, 1.0]
 
@@ -157,8 +163,8 @@ if opts.caisson:
                        }
 
 else:
-    L_leftSpo  = waveinput.wavelength
-    L_rightSpo = waveinput.wavelength
+    L_leftSpo  = opts.Lgen*wl
+    L_rightSpo = opts.Labs*wl
 
     hs=opts.hs
     slope1=opts.slope1
@@ -171,7 +177,7 @@ else:
 
 #-Tank
     x1=L_leftSpo
-    x2=x1+1.*waveinput.wavelength
+    x2=x1+opts.Ls*wl
     x3=x2+(hs/slope1)
 
     xc1=x3+0.20
@@ -180,7 +186,7 @@ else:
 
     x4=xc2+0.20
     x5=x4+(hs/slope2)
-    x6=x5+1.*waveinput.wavelength
+    x6=x5+opts.Lend*wl
     x7=x6+L_rightSpo
     tank_dim = [x7, 1.0]
 
