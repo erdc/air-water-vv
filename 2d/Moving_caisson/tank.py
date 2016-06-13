@@ -10,6 +10,11 @@ import numpy as np
 opts=Context.Options([
     # predefined test cases
     ("water_level", 0.325, "Height of free surface above bottom"), 
+    # Geometry
+    ('Lgen', 1.0, 'Genaration zone in terms of wave lengths'),
+    ('Labs', 2.0, 'Absorption zone in terms of wave lengths'),
+    ('Ls', 1.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
+    ('Lend', 1.0, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
     # waves
     ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
     ("wave_period", 1.30, "Period of the waves"), 
@@ -17,21 +22,24 @@ opts=Context.Options([
     ('wavelength', 2.121, 'Wavelength only if Fenton is activated'), 
     ('Ycoeff', [0.21107604, 0.07318902, 0.02782228, 0.01234846, 0.00618291, 0.00346483, 0.00227917, 0.00194241], 'Ycoeff only if Fenton is activated'), 
     ('Bcoeff', [0.23112932, 0.03504843, 0.00431442, 0.00036993, 0.00004245, 0.00001877, 0.00000776, 0.00000196], 'Bcoeff only if Fenton is activated'), 
-    # breakwater
+    # rubble mound
     ("hs", 0.175, "Height of the breakwater"),
     ("slope1", 1./3., "Slope1 of the breakwater"),
     ("slope2", 1./2., "Slope2 of the breakwater"),
     ('porosity', 0.4, "Porosity of the medium"),
     ('d50', 0.020, "Mean diameter of the medium"),
     ('d15', None, "15% grading curve diameter of the medium"),
+    ('Resistance', 'Shih', 'Ergun or Engelund or Shih'),
     # caisson
     ("caisson", True, "Switch on/off caisson"),
     ('dimx', 0.300, 'X-dimension of the caisson'), 
     ('dimy', 0.385, 'Y-dimension of the caisson'), 
     ('width', 1.0, 'Z-dimension of the caisson'),
+    ('mass', 64.8/0.4, 'Mass of the caisson [kg]'),
     ('caissonBC', 'FreeSlip', 'Caisson boundaries: NoSlip or FreeSlip'),
-    ("rotation", not True, "Initial position for free oscillation"),
-    ("friction", True, "Switch on/off friction module"),
+    ("rotation", False, "Initial position for free oscillation"),
+    ("friction", True, "Switch on/off friction module for sliding"),
+    ("overturning", True, "Switch on/off overturning module"),
     ("m_static", 0.500, "Static friction factor between caisson and rubble mound"),
     ("m_dynamic", 0.500, "Dynamic friction factor between caisson and rubble mound"),
     # numerical options
@@ -40,7 +48,7 @@ opts=Context.Options([
     ("freezeLevelSet", True, "No motion to the levelset"),
     ("useVF", 1.0, "For density and viscosity smoothing"),
     ('movingDomain', True, "Moving domain and mesh option"),
-    ('conservativeFlux', not True,'Fix post-processing velocity bug for porous interface'),
+    ('conservativeFlux', False,'Fix post-processing velocity bug for porous interface'),
     ])
 
 
@@ -106,14 +114,15 @@ if opts.waveType=='Fenton':
 nd = 2
 he = waveinput.wavelength/opts.refinement_level # MESH SIZE	
 
+wl = waveinput.wavelength
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # ----- SHAPES ----- #
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
 if opts.caisson:
-    L_leftSpo  = waveinput.wavelength
-    L_rightSpo = waveinput.wavelength
+    L_leftSpo  = opts.Lgen*wl
+    L_rightSpo = opts.Labs*wl
 
     hs=opts.hs
     slope1=opts.slope1
@@ -126,7 +135,7 @@ if opts.caisson:
 
 #-Tank
     x1=L_leftSpo
-    x2=x1+1.0*waveinput.wavelength
+    x2=x1+opts.Ls*wl
     x3=x2+(hs/slope1)
 
     xc1=x3+0.20
@@ -135,7 +144,7 @@ if opts.caisson:
 
     x4=xc2+0.20
     x5=x4+(hs/slope2)
-    x6=x5+1.0*waveinput.wavelength
+    x6=x5+opts.Lend*wl
     x7=x6+L_rightSpo
     tank_dim = [x7, 1.0]
 
@@ -157,8 +166,8 @@ if opts.caisson:
                        }
 
 else:
-    L_leftSpo  = waveinput.wavelength
-    L_rightSpo = waveinput.wavelength
+    L_leftSpo  = opts.Lgen*wl
+    L_rightSpo = opts.Labs*wl
 
     hs=opts.hs
     slope1=opts.slope1
@@ -171,7 +180,7 @@ else:
 
 #-Tank
     x1=L_leftSpo
-    x2=x1+1.*waveinput.wavelength
+    x2=x1+opts.Ls*wl
     x3=x2+(hs/slope1)
 
     xc1=x3+0.20
@@ -180,7 +189,7 @@ else:
 
     x4=xc2+0.20
     x5=x4+(hs/slope2)
-    x6=x5+1.*waveinput.wavelength
+    x6=x5+opts.Lend*wl
     x7=x6+L_rightSpo
     tank_dim = [x7, 1.0]
 
@@ -213,7 +222,7 @@ if opts.caisson:
     coords=[xc1+b/2., hs+dimy/2.] # For bodyDimensions and barycenter
     VCG=dim[1]/2.                 # For barycenter
     width=opts.width                     # The 3rd dimension
-    mass=64.8/0.4 #64.8 #kg
+    mass=opts.mass #kg
     volume=float(dimx*dimy*width)
     density=float(mass/volume) #kg/m3
     I=mass*(dimx**2.+dimy**2.)/12.
@@ -231,8 +240,9 @@ if opts.caisson:
     m_dynamic=opts.m_dynamic # Dynamic friction
 
     if opts.movingDomain==True:
-        free_x=(1.0, 1.0, 0.0) # Translational DOFs
-        free_r=(0.0, 0.0, 1.0) # Rotational DOFs
+        free_x=(1.0, 1.0, 0.0) # Translational DOFs 
+        if opts.overturning==True:
+            free_r=(0.0, 0.0, 1.0) # Rotational DOFs
    
     caisson2D.setMass(mass)
     caisson2D.setConstraints(free_x=free_x, free_r=free_r)
@@ -378,23 +388,33 @@ if d50==None:
 else:
     d15=d50/1.2
 
-term1=3.12*(10**-3.)
-term2=(gAbs/(nu_0**2.))**(2./3.)
-term3=(d15**2.)
-Alpha1=1684+term1*term2*term3 #Shih
-#Alpha1=150 #Ergun
-#Alpha1=360 #Engelund
+#----- SHIH
+if opts.Resistance=='Shih':
+    term1=3.12*(10**-3.)
+    term2=(gAbs/(nu_0**2.))**(2./3.)
+    term3=(d15**2.)
+    Alpha1=1684+term1*term2*term3 #Shih
+    Alpha=Alpha1*nu_0*(voidFrac**2)/((porosity**3)*(d15**2)) 
 
-term1=-5.10*(10**-3.)
-term2=(gAbs/(nu_0**2.))**(1./3.)
-term3=(d15)
-Beta1=1.72+1.57*exp(term1*term2*term3) #Shih
-#Beta1=1.75 #Ergun
-#Beta1=3.6 #Engelund
+    term1=-5.10*(10**-3.)
+    term2=(gAbs/(nu_0**2.))**(1./3.)
+    term3=(d15)
+    Beta1=1.72+1.57*exp(term1*term2*term3) #Shih
+    Beta=Beta1*voidFrac/((porosity**3)*d15)
 
-#Alpha=Alpha1*nu_0*(voidFrac**3)/((porosity**2)*(d15**2))  #Engelund
-Alpha=Alpha1*nu_0*(voidFrac**2)/((porosity**3)*(d15**2))  #Ergun
-Beta=Beta1*voidFrac/((porosity**3)*d15)
+#----- ERGUN
+if opts.Resistance=='Ergun':
+    Alpha1=150 #Ergun
+    Beta1=1.75 #Ergun
+    Alpha=Alpha1*nu_0*(voidFrac**2)/((porosity**3)*(d15**2))
+    Beta=Beta1*voidFrac/((porosity**3)*d15)
+
+#----- ENGELUND
+if opts.Resistance=='Engelund':
+    Alpha1=360 #Ergun
+    Beta1=3.6 #Ergun
+    Alpha=Alpha1*nu_0*(voidFrac**3)/((porosity**2)*(d15**2))
+    Beta=Beta1*voidFrac/((porosity**3)*d15)
 
 #Proteus scale in viscosity, so i need to divide alpha and beta by nu_0
 dragAlpha=(porosity**2)*Alpha/nu_0
