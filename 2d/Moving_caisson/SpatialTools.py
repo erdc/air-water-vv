@@ -1083,7 +1083,10 @@ class RigidBody(AuxiliaryVariables.AV_base):
             if floating == True:
                 self.pivot_friction = self.Shape.barycenter
             else:
-                self.pivot_friction = np.array((0.5*(self.Shape.vertices[0][0]+self.Shape.vertices[1][0]), 0.5*(self.Shape.vertices[0][1]+self.Shape.vertices[1][1]), 0.0), dtype=float)
+                if self.F[0] > 0:
+                    self.pivot_friction = np.array((self.Shape.vertices[1][0], self.Shape.vertices[1][1], 0.0), dtype=float) #h2
+                else:
+                    self.pivot_friction = np.array((self.Shape.vertices[0][0], self.Shape.vertices[0][1], 0.0), dtype=float) #h1
             # angular acceleration from moment
             self.rp = (self.pivot_friction-self.Shape.Domain.barycenters[1])
             rpx, rpy, rpz = self.rp
