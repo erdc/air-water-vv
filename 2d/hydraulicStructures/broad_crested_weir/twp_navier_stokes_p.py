@@ -32,8 +32,8 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    epsFact_density=epsFact_density,
                                    stokes=False,
                                    useVF=useVF,
-				   useRBLES=useRBLES,
-				   useMetrics=useMetrics,
+				                   useRBLES=useRBLES,
+				                   useMetrics=useMetrics,
                                    eb_adjoint_sigma=1.0,
                                    forceStrongDirichlet=ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ns_closure)
@@ -62,8 +62,6 @@ def getAFBC_p(x,flag):
     return createBoundaryCondition(x,flag,BCType)
 
 
-
-
 def getAFBC_u(x,flag):
     BCType = "uAdvective"
     return createBoundaryCondition(x,flag,BCType)
@@ -77,11 +75,17 @@ def getAFBC_v(x,flag):
 
 def getDFBC_u(x,flag):
     BCType = "uDiffusive"    
+    #[temp] test
+    if flag == boundaryTags['left'] or  boundaryTags['bottom']:
+        return lambda x,t: 0.0
     return createBoundaryCondition(x,flag,BCType)
 
     
 def getDFBC_v(x,flag):
     BCType = "vDiffusive"
+    #[temp] test
+    if flag == boundaryTags['top'] or boundaryTags['right']:
+        return lambda x,t: 0.0
     return createBoundaryCondition(x,flag,BCType)
 
 advectiveFluxBoundaryConditions =  {0:getAFBC_p,

@@ -1,0 +1,386 @@
+----------------------------------------------
+~ The Current Plan & Questions Related to It ~
+----------------------------------------------
+How well can Gmsh handle itself?
+
+- (A) Can it handle intersecting segments in the geometry
+      of the problem? That is, given multiple segments which
+      intersect, can it still triangulate and build proper holes/regions?
+- (B) Failing that, can it handle segments which lie on top of 
+      each other?  That is, shapes which don't intersect but are
+      tangent to one another over a segment.
+- (C) Further, does it have proper handles to take the segments we
+      define and then create the appropriate mesh?
+- (D) Finally, does it have proper handles so that while doing (C)
+      it can also be given areas to refine which can have intersecting
+      shapes to the geometry?
+
+If (D) fails, then the region segmenting logic should be moved into
+the domain's sphere of influence (in assembleDomain via optional extra
+arguments for a list of refinement cuts and 'x' or 'y' or 'z' designation
+which allows it to be extended to any single dimension).
+-
+The first attempt would be to build it for 2D, with only 'x'.  Then allow
+the second argument to be 'x' or 'y' based on simple refactoring.
+Finally, a larger refactoring would be needed to work it into 3D work by
+using facets based on the same principle.
+
+If (C) fails, then all the others fail as well for my purposes. The
+python interface needs to have the ability to handle these issues,
+so if it can't use Gmsh's amazing powers I have to do the fixes noted
+above and below instead.
+
+If (A) and (B) both fail, then the focus should be on creating obstacle
+tanks with more general shapes (an easy slanted shore tank, tanks which
+can extrude obstacles from the top and bottom, maybe even the sides...)
+but using external shapes for floating holes and objects.
+
+If either (A) or (B) succeed (along with C), then the only focus is to
+make tanks with different floors and such (and potentially not even 
+that, if we can just build a rectangle and cut out a triangular portion)
+- while using built in shapes to build connected obstacles and holes too.
+-
+The exact implementation would differ based on whether we're aiming to
+make easy cuts using overlapping shapes (which is less worried about
+exact values, but does worry more about removing extraneous areas).
+See paper notes for the issues.  However, in both cases there are ways
+to do that.
+
+
+--------------------------------
+Previous BCW Questions Answered
+--------------------------------
+
+Weak Boundary Condition (?) Penalties?
+-----------
+Weak Boundary Conditions are good to set, but check what happens
+when we tweak them.
+
+Gauges
+-------------
+Gauges don't go into Context, and are being looked into.
+
+Refinement
+---------------
+'he' should be the way to go for Context, with refinement more of a level of 
+how much to adjust he (in the he*0.5^refinement kind of way)
+
+CFL
+----------------
+CFL's are fine.
+
+Strong Dirichlet
+--------------------
+ns_forceStrongDirichlet = False is preferred and we should see how hurt
+ones which set it to True are by changing it.
+
+Numerical Parameters
+---------------------
+We should find a regime which works for all the models in the set.
+
+Outflow
+-------------------
+The AV case has a clear outflowHeight.  The other two have...
+outflowHeight = -L[1]
+Is this just to make it clearly out of bounds?  How should I build this 
+into new code?
+
+At the moment I'm looking to put an outflow height into the Context options.
+Is it wrong to have the default be -(L[0]^2 + L[1]^2)?
+
+r and rits
+---------------
+'r' is advised, but check if it's failing at all - if it is, then 'rits' 
+does have a purpose and we should figure out why.
+
+
+timeOrder
+----------------
+What is the difference between:
+- timeOrder = 2        {used in BASE and VM... and some AV uses}
+- timeOrdersline = 2   {used in AV only, and only in one point}
+I feel like this was a miswritten (misremembered) name, and that
+I can change it to timeOrdersline without fear - but I'm not sure.
+
+It probably is just miswritten.
+
+WaveTools and the wave(?) functions in AV
+-------------------------------
+The basic question is what waves are desired, and what different wave types
+are - how can I be sure that I'm picking good fits, basically.
+
+BoundaryConditions
+------------------------
+I'm also still working out how the SpatialTools style of boundary
+conditions works (what order things need to be set in place)
+
+----------------------------------------
+Current State
+----------------------------------------
+The code executes for BASE, VM, and AV.
+
+For BASE and VM, the code replicates the old behavior except
+for a bit of behavior in VM's failure state (it doesn't seem to
+time step properly - perhaps due to the diffusion issues of BASE).
+
+For AV, the code has some glaring differences, although
+in general the old behavior is kept.  It is unclear if this
+stems from the main tank.py file or from implementations
+of its physics and numerics (and unintented interactions between
+that and the new main file) elsewhere.
+
+Gauges are set in an ad-hoc way (using the code used in BASE
+for BASE/VM, and the code originally used in AV for the AV
+test).  I'd prefer to use the AV setting, although Gauges
+are a problematic piece of code either way.
+
+Since the code is able to follow the very basic functionality
+of the three (running as many steps as they did, making the same mesh,
+and having basic weir flowing behavior), progress will
+continue on merging Gauge and Other File implementations while 
+waiting for better ideas on the problematic nature of 
+Gauges and of the AV differences.
+
+The following steps:
+* Remove the dependency on ad-hoc secondary file setup by 
+cleanly merging the whole directory logic.
+* Removing the ad-hoc implementations of Gauges for one 
+unified and adaptable implementation - preferably of
+Proteus' gauges.
+* Finalizing the structure of the Context options to move
+some useless options into the base code and move more 
+high level options (perhaps Gauge positioning and some other
+broad design properties of the VM and AV cases) up into
+useable options.
+* Building complete Default Context text files for the VM
+and AV cases (running without any changes will assume BASE
+as its default input) off of the finalized Context structure.
+* Refactoring around the various [temp] comments in the code
+which indicate potential issues or messes.
+* and as always TEST TEST TEST
+
+-- (June 20): Whole directory merge begun.  The code is able to run
+BASE conditions with the same behavior, and VM doesn't break but does
+have different behavior.  I suspect the behavior is related to the
+boundary conditions.
+Further actions may be delayed by Boundary Conditions, and specifically
+the chance to use Proteus-MPRANS' BoundaryConditions.py for a more unified
+way of doing things.
+This MPRANS BoundaryConditions.py also has the RelaxationWaveGenerator
+from the AV case.
+It also might consolidate how to represent open top systems, removing yet more
+logic from broad_crested_weir.py
+
+-- (June 22): Boundary Conditions continue to delay whole directory merge.
+Slow progress on minor fixes & merges has been made while trying to track
+down the "warning, diffusion term..." bug in the old boundary condition
+setup (to understand its cause before a naive replacement).
+Progress is instead aimed towards the smaller goal of replacing
+RelaxationWaveGenerator in bcw_testAV.  This has also hit issues due to
+changes in how the generator works which are not documented and may require
+a large change in how the context and everything is set up.  
+ShapeRANS has some examples which might shed insight into how to build this.
+(in setAbsorptionZones and the other one)
+
+-- (June 23): New goal setup, pending Chris.
+WHEREAS: SpatialTools and BoundaryConditions (and their mprans equivs) are
+         written to provide useful modules for Proteus users, and
+WHEREAS: These tools compartmentalize the setup of problems, allow for more
+         modular testing, reduce the repetition of basic setup logic in codes,
+         and
+WHEREAS: These tools need to be tested and checked for concerns of useability
+         and ease for the user.
+the new goals include:
+* Moving segmentation, vertex, and so on logic from broad_crested_weir.py into
+  a ShapeRANS based Shape class (tentatively to be named ShapeBroadCrestedWeir2D)
+  which can then process a domain (via assembleDomain), build the relaxation
+  wave zones and other sponge layer details (via methods in ShapeRANS), and 
+  generally supports a slightly cleaner setup procedure.
+* This will include a restructuring of all boundary conditions into ones set
+  up by the new Shape class (as they are built into Tank2D), which will
+  free up a lot of the secondary _p.py file logic and build it all from
+  Proteus instead of the various scattered if blocks there.
+  --
+  This will require a discussion on the proper theoretical boundary conditions
+  (and the waves needed for some of them) as it is building them from scratch. 
+  See the BCW Boundary Condition Map to help work that out.
+* Testing.
+  (specifically cranking it through AV to make sure all the bells and whistles
+  work, since it will need to handle sponge layers)
+  (also, specifically checking for the boundary condition warnings previously
+  obtained, which may go away due to a fixed boundary condition setup)
+* A refactoring pass for Context options, since the tools need specific
+  context options and the move to a Shape based object oriented logic will
+  change how some context options fit in.
+  This is also a place to fold in redundant minor variables (like porosity
+  levels and so on which will probably be handled by the Shape tools and 
+  rearrange the code structure after they're gone)
+* Finally, a return to Gauges to implement a flexible setup based around
+  Proteus.Gauges.py, and a refactoring of the Context options to allow however
+  much customization we want the user to be able to have.
+* More Testing is important here, because Gauges are finicky.
+* Finally, refactoring passes to clean up the less significant [temp] comments
+  which are scattered throughout the code, plus the likely dozens more which
+  will be set up as hack-y solutions are glued on during the Gauge and Shape
+  transitions.  This will flesh out documentation, reorganize things to be
+  more readable, remove some repeats, and add in more customization.
+  (of course, this will follow with more stress testing and making sure the 
+  changes don't break anything) 
+
+Note: There is a branch which has updated documentation on these tools.
+
+--------------------------
+Differences in files other than the main one
+--------------------------
+BC.py
+-- BASE only
+
+broad_crested_weir_so.py
+-- Identical for BASE,VM.
+-- tank_so.py from AV does not have lines 33-38, ending at
+-- -- the tnList.  Otherwise is identical except for names.
+
+dissipation_n.py / dissipation_p.py
+-- Identical for BASE,VM. Not in AV... but if 
+it used a RANS value > 0 it would require them
+(presumably in a similar setup as BASE,VM?  For now, 
+we'll assume AV is just missing them - but consider 
+going back and checking if it needs to change)------------------- [X]
+
+garnet.pbs / hydra.pbs
+-- Only in BASE,VM.  Just different names and garnet has
+-- -- a longer walltime allowance for the VM case.
+
+kappa_n.py / kappa_p.py
+-- Identical for BASE,VM. Not in AV (see dissipation discussion above)---[X]
+
+ls_consrv_n.py
+-- AV adds in:
+-- -- nonlinearSolverConvergenceTest = 'r'--------[X]
+-- Also, AV sets:
+-- -- linTolFac = 0.01
+-- -- while the others have 0.0
+-- Otherwise, identical but for names.
+
+ls_consrv_p.py
+-- Identical except for names. -------------------[X]
+
+ls_n.py
+-- AV adds in:
+-- -- nonlinearSolverConvergenceTest = 'r'---------- [X]
+-- Also, sets:
+-- -- linTolFac = 0.1
+-- -- while the others have 0.0
+-- Otherwise they match, though.
+
+ls_p.py
+-- AV has an extra coefficient in NCLS.Coefficients:
+-- -- movingDomain=movingDomain ----------------------- [X]
+-- Also, while BASE,VM have
+-- -- return lambda x,t: x[1] - waterLine_z
+-- -- for both 'right' and 'left' DBC
+-- -- AV has
+-- -- return wavePhi (which is identically  x[1] - waterLine_z)
+-- -- for 'left', and commented out bits for the 'right' response
+-- -- (so the right side is different, but left is shared)
+
+redist_n.py
+-- BASE,VM add on a call:
+-- -- auxiliaryVariables=[lineGauges_phi]
+-- AV sets:
+-- -- runCFL = 2.0
+-- -- psitc['nStepsMax']=50
+-- The others have 1.0 and 25 instead.
+-- AV also changes the solvers to:
+-- -- nonlinearSolverConvergenceTest = 'r'
+-- -- levelNonlinearSolverConvergenceTest = 'r'
+-- -- linearSolverConvergenceTest = 'r-true'
+-- -- (and when not redist_Newton)
+-- -- linearSolverConvergenceTest = 'r-true'
+-- while the others are identical except 'rits' instead of 'r' in 
+-- -- every case.
+
+redist_p.py
+-- for RDLS.Coefficients, AV adds:
+-- -- backgroundDiffusionFactor=backgroundDiffusionFactor    [X]
+
+setBCfunction.py   
+-- BASE only
+
+twp_navier_stokes_n.py
+-- AV calls their variable:
+-- -- timeOrdersline=2
+-- -- instead of "timeOrder=2" like the others
+-- additionally, it sets solvers to:
+-- -- nonlinearSolverConvergenceTest = 'r'
+-- -- levelNonlinearSolverConvergenceTest = 'r'
+-- -- linearSolverConvergenceTest = 'r-true'
+-- -- (instead of the same, but 'rits' instead of 'r')
+-- furthermore, it sets smaller tolerances:
+-- -- linTolFac = 0.001
+-- -- l_atol_res = 0.001*ns_nl_atol_res
+-- -- (in BASE,VM these are 0.01 instead of 0.001)
+-- finally, AV declares:
+-- -- auxiliaryVariables=[pointGauges,rzWaveGenerator]
+
+twp_navier_stokes_p.py
+-- MAJOR LOGIC CHANGES
+
+[now we have a section of alternate twp_navier_stokes_p.py
+setups for BASE.  These might give insight into the intent and
+similarities between BASE,VM,AV - esp. as some take a similar
+structure:
+-- twp_navier_stokes_p.old.py
+-- -- follows the "just use if blocks" style closer
+-- -- to VM and AV
+-- -- still imports BC.py
+
+-- twp_navier_stokes_p.new.py
+-- -- Appears to import BC.py
+-- -- follows a different if block setup
+-- -- simpler, possibly closer to VM and AV
+
+-- twp_navier_stokes_p_freeSlip_manually.py
+-- -- identical to ....old.py
+
+-- twp_navier_stokes_p_freeSlip_auto.py
+-- -- has some additional logic compared to ....old.py
+-- -- (but isn't just .new.py either)
+]
+
+vof_n.py
+-- AV again sets a nonzero tolerance:
+-- -- linTolFac = 0.1
+-- -- (instead of the 0.0 the others have)
+-- and adds in
+-- -- nonlinearSolverConvergenceTest = 'r'    [X]
+-- and finally puts in 
+-- -- auxiliaryVariables = [columnGauge]
+
+vof_p.py
+-- MAJOR LOGIC CHANGES
+-- (in boundary conditions only this time, though)
+-- (also, a minor addition of movingDomain coefficient in AV)
+
+[there's also vof_p_previous.py in BASE,VM
+which shows what vof_p used to be before the setBCfunction change!
+Again, this can give us insight and help in adapting.]
+
+-----------------------------------------------------------
+SOME CLOSED ISSUES THAT SHED LIGHT
+-----------------------------------------------------------
+
+https://github.com/erdc-cm/air-water-vv/issues/18
+
+---------------------------------------
+useful debugging tool
+-----------------------------------------------------
+script filename
+[code]
+exit
+(to log in all the results - in particular, to catch
+all those print statements that don't get logged)
+awk '!seen[$0]++' filename   (to catch logs and remove duplicate lines,
+    		  	     like those C based warnings - it leaves one
+			     behind, so you know where it happened, but
+			     removes the rest so you aren't swamped)

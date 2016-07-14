@@ -21,12 +21,18 @@ def getDBC_vof(x,flag):
    if flag == boundaryTags['top']:
        BCType = "vofDirichlet"
        return createBoundaryCondition(x,flag,BCType)
+   #[temp] test
+   if flag == boundaryTags['left']:
+       return lambda x,t: 0.0
  
 
 dirichletConditions = {0:getDBC_vof}
 
 def getAFBC_vof(x,flag):
        BCType = "vofAdvective"
+       #[temp] test
+       if flag == boundaryTags['right'] or flag == boundaryTags['bottom']:
+           return lambda x,t: 0.0
        return createBoundaryCondition(x,flag,BCType)
 
 advectiveFluxBoundaryConditions = {0:getAFBC_vof}

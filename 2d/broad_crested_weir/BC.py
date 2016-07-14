@@ -2,7 +2,12 @@ class boundaryConditions:
 
 # Checking for entering the correct BC type
     def BCTypeCheck(self,BCType):
-        boundaryList = ["pDirichlet","uDirichlet","vDirichlet", "wDirichlet","pAdvective","uAdvective","vAdvective","wAdvective","uDiffusive","vDiffusive","wDiffusive","vofDirichlet","vofAdvective"]
+        boundaryList = ["pDirichlet","uDirichlet","vDirichlet", "wDirichlet",
+                        "pAdvective","uAdvective","vAdvective","wAdvective",
+                        "uDiffusive","vDiffusive","wDiffusive",
+                        "vofDirichlet",
+                        "vofAdvective"
+                        ]
         if BCType not in boundaryList:
             print("Boundary condition type not valid")
             exit(1)
@@ -13,8 +18,8 @@ class boundaryConditions:
         return None    
     def constantValue(self,value):
         return lambda x,t: value
-    def linear(self,a1,a0,i):
-        return lambda x,t: a1*x[i]+a0
+    def linear(self,a0,a1,i):
+        return lambda x,t: a0 + a1*x[i]
 
 
 
@@ -27,12 +32,14 @@ class boundaryConditions:
         Returns Advective conditions as zero, leaving the rest not defined
         """
         self.BCTypeCheck(BCType)
-        if ("Advective" in BCType):
+        if ("Advective" in BCType) and ("vof" not in BCType):
             BC=self.constantValue(0.0)
-            return BC
+        elif (BCType is "vofDirichlet"):
+            BC=self.constantValue(1.0)
         else:
-            BC=self.empty()
-            return BC
+            return self.empty()
+
+
 
     def noSlip(self,BCType):
         """Imposes a noSlipCondition
@@ -43,10 +50,13 @@ class boundaryConditions:
         self.BCTypeCheck(self,BCType)
         if (BCType is "uDirichlet") or (BCType is "vDirichlet") or (BCType is "wDirichlet") or ("Advective" in BCType):
             BC=self.constantValue(0.0)
+            if "vof" in BCType:
+                BC = self.empty()
             return BC
+        elif (BCType is "vofDirichlet"):
+            BC=self.constantValue(1.0)
         else:
-            BC=self.empty()
-            return BC
+            return self.empty()
 #: U=0
     def twoPhaseVelocityInlet(self,BCType,x,U,seaLevel,b_or,vert_axis=1,air=1.0,water=0.0):
         """Imposes a velocity profile lower than the sea level and an open boundary for higher than the sealevel
@@ -77,25 +87,31 @@ class boundaryConditions:
         if x[vert_axis]<seaLevel:
             if BCType is "uDirichlet":
                 return self.constantValue(u)
-            if BCType is "vDirichlet":
+            elif BCType is "vDirichlet":
                 return self.constantValue(v)
-            if BCType is "wDirichlet":
+            elif BCType is "wDirichlet":
                 return self.constantValue(w)
-            if BCType is "pAdvective":
+            elif BCType is "pAdvective":
                 return self.constantValue(u_p)
-        elif x[vert_axis]>seaLevel:
+            elif BCType is "vofDirichlet":
+                return self.constantValue(water) 
+            else: return self.empty()
+  
+        elif x[vert_axis]>=seaLevel:
             if (BCType is "uDirichlet") and( u==0.):
                 return self.constantValue(0.0)
-            if (BCType is "vDirichlet") and (v==0.):
+            elif (BCType is "vDirichlet") and (v==0.):
                 return self.constantValue(0.0)
-            if (BCType is "wDirichlet") and (w==0.):
+            elif (BCType is "wDirichlet") and (w==0.):
                 return self.constantValue(0.0)
-            if "Diffusive" in BCType:
+            elif "Diffusive" in BCType:
                 return self.constantValue(0.0)
-        else:
-            return self.empty()
+            elif BCType is "vofDirichlet":
+                return self.constantValue(air) 
+            else: return self.empty()
+            
 
-    def hydrostaticPressureOutlet(self,BCType,rho,g,refLevel,b_or,pRef=0.0,vert_axis=1):
+    def hydrostaticPressureOutlet(self,BCType,rho,g,refLevel,b_or,pRef=0.0,vert_axis=1,air = 1.0):
         """Imposes a hydrostatic pressure profile and  open boundary conditions
         Takes the following arguments
         BCType: Type of boundary condition 
@@ -110,25 +126,26 @@ class boundaryConditions:
         If the boundary is aligned with one of the main axes, sets the tangential velocity components to zero as well
         THIS CONDITION IS BEST USED FOR BOUNDARIES AND GRAVITY ALIGNED WITH ONE OF THE MAIN AXES
         """
-        self.BCTypeCheck(BCType)#
-        a1 = -rho*abs(g[vert_axis])
-        a2 = pRef + refLevel*rho*abs(g[vert_axis])
+        self.BCTypeCheck(BCType)
+        a0 = pRef - rho*g[vert_axis]*refLevel
+        a1 = rho*g[vert_axis]
 # This is the normal velocity, based on the boundary orientation
         if BCType is "pDirichlet":
-            return self.linear(a1,a2,vert_axis)
-        if (BCType is "uDirichlet") and( b_or[0]==0):
+            return self.linear(a0,a1,vert_axis)
+        elif (BCType is "uDirichlet") and( b_or[0]==0):
             return self.constantValue(0.)
-        if (BCType is "vDirichlet") and (b_or[1]==0):
+        elif (BCType is "vDirichlet") and (b_or[1]==0):
             return self.constantValue(0.)
-        if (BCType is "wDirichlet") and (b_or[2]==0):
+        elif (BCType is "wDirichlet") and (b_or[2]==0):
             return self.constantValue(0.)
-        if "Diffusive" in BCType:
-            return self.constantValue(0.0)
-        else:
-            return self.empty()
+        elif "Diffusive" in BCType:
+            return self.constantValue(0.0)        
+        elif BCType is "vofDirichlet":
+            return self.constantValue(air)        
+        else: return self.empty()
                
 
-    def hydrostaticPressureOutletWithDepth(self,BCType,x,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef=0.0,vert_axis=1):
+    def hydrostaticPressureOutletWithDepth(self,BCType,x,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef=0.0,vert_axis=1,air=1.0,water=0.0):
         """Imposes a hydrostatic pressure profile and open boundary conditions with a known otuflow depth
         Takes the following arguments
         BCType: Type of boundary condition 
@@ -146,15 +163,16 @@ class boundaryConditions:
         THIS CONDITION IS BEST USED FOR BOUNDARIES AND GRAVITY ALIGNED WITH ONE OF THE MAIN AXES
         """
         self.BCTypeCheck(BCType)
-        BC = self.hydrostaticPressureOutlet(BCType,rhoUp,g,refLevel,b_or,pRef,vert_axis)
+        BC = self.hydrostaticPressureOutlet(BCType,rhoUp,g,refLevel,b_or,pRef,vert_axis,air)
         if BCType is "pDirichlet" and x[vert_axis]<seaLevel:
-            a1 = -rhoDown*abs(g[vert_axis])
-            a2 = pRef + (refLevel-seaLevel)*rhoUp*abs(g[vert_axis])
-            return self.linear(a1,a2,vert_axis)
-        else:
-            return BC
-    def forcedOutlet(self,BCType,x,U,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef=0.0,vert_axis=1):
-        """Imposes a known velocit & pressure profile at the outflow
+            a0 = pRef - rhoUp*g[vert_axis]*(refLevel - seaLevel) - rhoDown*g[vert_axis]*seaLevel
+            a1 = rhoDown*g[vert_axis]
+            return self.linear(a0,a1,vert_axis)
+        elif BCType is "vofDirichlet" and x[vert_axis]<seaLevel:
+            return self.constantValue(water)
+        else: return BC
+    def forcedOutlet(self,BCType,x,U,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef=0.0,vert_axis=1,air=1.,water=0.):
+        """Imposes a known velocity & pressure profile at the outflow
         Takes the following arguments
         BCType: Type of boundary condition 
         BCType: Type of boundary condition 
@@ -171,15 +189,13 @@ class boundaryConditions:
         THIS CONDITION IS BEST USED FOR BOUNDARIES AND GRAVITY ALIGNED WITH ONE OF THE MAIN AXES
         """
         self.BCTypeCheck(BCType)
-        BC1 = self.hydrostaticPressureOutletWithDepth(BCType,x,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef,vert_axis)
-        BC2 = self.twoPhaseVelocityInlet(BCType,x,-U,seaLevel,b_or,vert_axis,air,water)
+        BC1 = self.hydrostaticPressureOutletWithDepth(BCType,x,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef,vert_axis,air,water)
+        BC2 = self.twoPhaseVelocityInlet(BCType,x,U,seaLevel,b_or,vert_axis,air,water)
         if "Dirichlet" in BCType:
-            if BCType is "pDirichlet":
-                return BC1
-            else:
+            if BCType is ("uDirichlet" or "vDirichlet" or "wDirichlet" or "vofDirichlet"):
                 return BC2
-        else:
-            return self.empty()
+            else: return BC1
+
             
 
                 

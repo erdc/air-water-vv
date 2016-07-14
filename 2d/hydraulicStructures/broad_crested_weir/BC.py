@@ -2,7 +2,12 @@ class boundaryConditions:
 
 # Checking for entering the correct BC type
     def BCTypeCheck(self,BCType):
-        boundaryList = ["pDirichlet","uDirichlet","vDirichlet", "wDirichlet","pAdvective","uAdvective","vAdvective","wAdvective","uDiffusive","vDiffusive","wDiffusive","vofDirichlet","vofAdvective"]
+        boundaryList = ["pDirichlet","uDirichlet","vDirichlet", "wDirichlet",
+                        "pAdvective","uAdvective","vAdvective","wAdvective",
+                        "uDiffusive","vDiffusive","wDiffusive",
+                        "vofDirichlet",
+                        "vofAdvective"
+                        ]
         if BCType not in boundaryList:
             print("Boundary condition type not valid")
             exit(1)
@@ -167,7 +172,7 @@ class boundaryConditions:
             return self.constantValue(water)
         else: return BC
     def forcedOutlet(self,BCType,x,U,seaLevel,rhoUp,rhoDown,g,refLevel,b_or,pRef=0.0,vert_axis=1,air=1.,water=0.):
-        """Imposes a known velocit & pressure profile at the outflow
+        """Imposes a known velocity & pressure profile at the outflow
         Takes the following arguments
         BCType: Type of boundary condition 
         BCType: Type of boundary condition 
