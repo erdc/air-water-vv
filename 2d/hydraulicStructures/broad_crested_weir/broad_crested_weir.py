@@ -2,17 +2,14 @@
 A Broad Crested Weir
 """
 import numpy as np
-from math import *
-from collections import namedtuple
-import proteus.MeshTools
-from proteus import Domain, WaveTools
+from math import ceil
+from proteus import (Domain, Context,
+                     FemTools as ft,
+                     MeshTools, WaveTools)
 from proteus.mprans import SpatialTools
-from proteus.default_n import *
-from proteus.Profiling import logEvent
-from proteus.ctransportCoefficients import smoothedHeaviside
-from proteus.ctransportCoefficients import smoothedHeaviside_integral
-from proteus import Context
-from weir_tank import ShapeWeirTank2D
+from proteus.Profiling import logEvent #[temp] useful to have around for later people, even if it isn't used
+# from proteus.ctransportCoefficients import smoothedHeaviside #[temp] probably can be removed
+from weir_tank import TankWithObstacles2D #[temp] to be removed
 
 opts = Context.Options([
     # options
@@ -33,8 +30,8 @@ opts = Context.Options([
     ("refinement_levels", None,
      "list of refinement levels for each variable mesh zone"),
     # dimensions & time stepping
-    ("tank_dim", (3.5, 0.7), "(width,height) of the tank"),
-    ("obstacle_dim", (0.5, 0.401), "(width,height) of the weir/ obstacle"),
+    ("tank_dim", (3.5, 0.7), "(width, height) of the tank"),
+    ("obstacle_dim", (0.5, 0.401), "(width, height) of the weir/obstacle"),
     ("obstacle_start", 2.0, "x coordinate of start of obstacle"),
     ("sim_time", 10.0, "Simulation time"),
     ("dt_fixed", 0.02, ""),
@@ -76,39 +73,36 @@ movingDomain = False
 
 # discretization input checks
 if spaceOrder not in [1, 2]:
-    print "INVALID: spaceOrder" + str(spaceOrder)
-    sys.exit()
+    raise ValueError("INVALID: spaceOrder(" + str(spaceOrder) +")")
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + str(useRBLES)
-    sys.exit()
+    raise ValueError("INVALID: useRBLES(" + str(useRBLES) +")")
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
-    sys.exit()
+    raise ValueError("INVALID: useMetrics(" + str(useMetrics) + ")")
 
 # discretization
 nd = 2
 if spaceOrder == 1:
     hFactor = 1.0
     if useHex:
-        basis = C0_AffineLinearOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd, 2)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd - 1, 2)
+        basis = ft.C0_AffineLinearOnCubeWithNodalBasis
+        elementQuadrature = ft.CubeGaussQuadrature(nd, 2)
+        elementBoundaryQuadrature = ft.CubeGaussQuadrature(nd - 1, 2)
     else:
-        basis = C0_AffineLinearOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd, 3)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 3)
+        basis = ft.C0_AffineLinearOnSimplexWithNodalBasis
+        elementQuadrature = ft.SimplexGaussQuadrature(nd, 3)
+        elementBoundaryQuadrature = ft.SimplexGaussQuadrature(nd - 1, 3)
 elif spaceOrder == 2:
     hFactor = 0.5
     if useHex:
-        basis = C0_AffineLagrangeOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd, 4)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd - 1, 4)
+        basis = ft.C0_AffineLagrangeOnCubeWithNodalBasis
+        elementQuadrature = ft.CubeGaussQuadrature(nd, 4)
+        elementBoundaryQuadrature = ft.CubeGaussQuadrature(nd - 1, 4)
     else:
-        basis = C0_AffineQuadraticOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd, 4)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 4)
+        basis = ft.C0_AffineQuadraticOnSimplexWithNodalBasis
+        elementQuadrature = ft.SimplexGaussQuadrature(nd, 4)
+        elementBoundaryQuadrature = ft.SimplexGaussQuadrature(nd - 1, 4)
 
 # turbulence
 # (1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega)
@@ -276,7 +270,6 @@ structured = False
 
 #[temp]
 generating_waves = #needs to be set [the waves for AV]
-trivial_waves = #also needs to be set [constant flow, if possible]
 
 if useHex:
     nny = ceil(L[1]/he) + 1
@@ -290,17 +283,17 @@ else:
     else:
         domain = Domain.PlanarStraightLineGraphDomain()
 
-        tank = ShapeWeirTank2D(domain = domain,
-                               dim = L,
-                               obstacle_intersects = obstacle_intersects,
-                               obstacle_points = obstacle_points,
-                               floating_obstacles = None,
-                               floating_centers = None,
-                               special_boundaries = {[yp_airvent_point,
+        tank = TankWithObstacles2D(domain = domain,
+                                   dim = L,
+                                   obstacle_intersects = obstacle_intersects,
+                                   obstacle_points = obstacle_points,
+                                   floating_obstacles = None,
+                                   floating_centers = None,
+                                   special_boundaries = {[yp_airvent_point,
                                                       yn_airvent_point]: 'airvent'},
-                               coords = None,
-                               from_0 = True)
-        tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave = trivial_waves,
+                                   coords = None,
+                                   from_0 = True)
+        tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave = trivial_waves, #[temp] Probably not viable :(
                                                        wind_speed = windVelocity)
         tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel = waterLine_z,
                                                             rhoUp = rho_1,
@@ -388,7 +381,7 @@ if useMetrics:
         = epsFact_consrv_heaviside \
         = epsFact_vof \
         = epsFact_density \
-        = 3.0
+        = 3.0 #[temp] this epsFact_consrv_heaviside is "ecH" expected in WaveTools, etc.
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
     redist_Newton = False
@@ -414,9 +407,14 @@ else:
     vof_sc_beta = 1.0
     rd_shockCapturingFactor = 0.9
     rd_lag_shockCapturing = False
-    epsFact_density = epsFact_consrv_dirac = 1.5
-    epsFact_viscosity = epsFact_curvature = epsFact_density
-    epsFact_consrv_heaviside = epsFact_vof = epsFact_density
+    epsFact_density = epsFact_consrv_dirac \
+                    = epsFact_viscosity \
+                    = epsFact_curvature \
+                    = epsFact_density \
+                    = epsFact_consrv_heaviside \
+                    = epsFact_vof \
+                    = epsFact_density \
+                    = 1.5 #[temp] this epsFact_consrv_heaviside is "ecH" expected in WaveTools, etc.
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
     redist_Newton = False

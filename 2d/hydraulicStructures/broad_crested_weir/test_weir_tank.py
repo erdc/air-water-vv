@@ -21,7 +21,7 @@ from proteus.mprans.SpatialTools import (Rectangle as RectangleRANS,
                                          Tank2D,
                                          Tank3D,
                                          RigidBody)
-from weir_tank import ShapeWeirTank2D
+from weir_tank import TankWithObstacles2D
 
 comm = Comm.init()
 Profiling.procID = comm.rank()
@@ -41,9 +41,9 @@ def create_weir_tank(domain,dim=(0.,0.), obstacle_intersects=None,
                      obstacle_points=None, floating_obstacles=None,
                      floating_centers=None,special_boundaries=None,
                      coords=(0.,0.), from_0=True):
-    return ShapeWeirTank2D(domain, dim, obstacle_intersects, obstacle_points,
-                           floating_obstacles, floating_centers,
-                           special_boundaries, coords, from_0)
+    return TankWithObstacles2D(domain, dim, obstacle_intersects, obstacle_points,
+                               floating_obstacles, floating_centers,
+                               special_boundaries, coords, from_0)
 
 def create_elaborate_weir(domain):
     """Builds a complicated geometry"""
@@ -87,9 +87,9 @@ def create_elaborate_weir(domain):
                         [0.7,-0.2]]
     coords = (0.,0.)
     from_0 = False
-    return ShapeWeirTank2D(domain, dim, obstacle_intersects, obstacle_points,
-                           floating_obstacles, floating_centers,
-                           special_boundaries, coords, from_0)
+    return TankWithObstacles2D(domain, dim, obstacle_intersects, obstacle_points,
+                               floating_obstacles, floating_centers,
+                               special_boundaries, coords, from_0)
 
 class TestWeirTank(unittest.TestCase):
 

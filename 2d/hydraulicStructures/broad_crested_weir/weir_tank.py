@@ -44,7 +44,7 @@ from proteus.mprans.SpatialTools import Tank2D
 # [temp] refactor imports at the end to avoid having too many
 
 
-class ShapeWeirTank2D(Tank2D):
+class TankWithObstacles2D(Tank2D):
     """Build the Weir-Tank geometry & regions of interest.
     
     Parameters
@@ -92,7 +92,7 @@ class ShapeWeirTank2D(Tank2D):
                  floating_obstacles=None, floating_centers=None,
                  special_boundaries=None,
                  coords=(0., 0.), from_0=True):
-        super(ShapeWeirTank2D, self).__init__(domain, nd=2)
+        super(TankWithObstacles2D, self).__init__(domain, nd=2)
         self.__class__.count += 1
         self.name = '2D_weir' + str(self.__class__.count)
         self.dim = L, H = np.array(dim)
