@@ -64,26 +64,26 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 tank = st.Tank2D(domain, tank_dim)
 
-tank.setSponge(left=tank_sponge[0], right=tank_sponge[1])
+tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 left = False
 right = False
 if opts.generation is True:    
     if tank_sponge[0]: left = True
-    tank.setGenerationZones(left=left, waves=wave)
+    tank.setGenerationZones(x_n=left, waves=wave)
 if opts.absorption is True:
     if tank_sponge[1]: right = True
-    tank.setAbsorptionZones(right=right)
+    tank.setAbsorptionZones(x_p=right)
 
 # ----- BOUNDARY CONDITIONS ----- #
 
-tank.BC.top.setOpenAir()
-tank.BC.bottom.setNoSlip()
+tank.BC['y+'].setAtmosphere()
+tank.BC['y-'].setNoSlip()
 if opts.generation is True:
-    tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
+    tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
 else:
-    tank.BC.left.setNoSlip()
-tank.BC.right.setNoSlip()
-tank.BC.sponge.setNonMaterial()
+    tank.BC['x-'].setNoSlip()
+tank.BC['x+'].setNoSlip()
+tank.BC['sponge'].setNonMaterial()
 
 ##########################################
 # Numerical Options and other parameters #
@@ -150,16 +150,13 @@ useRANS = 0 # 0 -- None
             # 3 -- K-Omega, 1988
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
-    sys.exit()
+    raise ValueError("INVALID: spaceOrder(" + str(spaceOrder) + ")")
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
-    sys.exit()
+    raise ValueError("INVALID: useRBLES(" + str(useRBLES) + ")")
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
-    sys.exit()
+    raise ValueError("INVALID: useMetrics(" + str(useMetrics) + ")")
 
 #  Discretization
 nd = 2
@@ -289,4 +286,4 @@ def twpflowPressure_init(x, t):
     return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi)))
 
-tank.BC.top.p_dirichlet = twpflowPressure_init
+tank.BC['y+'].p_dirichlet = twpflowPressure_init
