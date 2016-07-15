@@ -201,7 +201,7 @@ if useMetrics:
     rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
+    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = ecH = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
     redist_Newton = True
@@ -228,7 +228,7 @@ else:
     rd_shockCapturingFactor  = 0.9
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
+    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = ecH = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
     redist_Newton = False#True
@@ -283,7 +283,7 @@ def twpflowPressure_init(x, flag):
     p_L = 0.0
     phi_L = tank.dim[nd-1] - waterLevel
     phi = x[nd-1] - waterLevel
-    return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi_L)
-                                                         -smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi)))
+    return p_L -g[nd-1]*(rho_0 * (phi_L - phi) + (rho_1 -rho_0) * (smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi_L)
+                                                                   - smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi)))
 
 tank.BC['y+'].p_dirichlet.uOfX = twpflowPressure_init
