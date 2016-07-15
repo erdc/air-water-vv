@@ -279,11 +279,11 @@ gaugeArray=ga.LineIntegralGauges(gauges=((fields, PG),),
                               fileName='gaugeArray.csv')
 
 
-def twpflowPressure_init(x, t):
+def twpflowPressure_init(x, flag):
     p_L = 0.0
     phi_L = tank.dim[nd-1] - waterLevel
     phi = x[nd-1] - waterLevel
     return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi)))
 
-tank.BC['y+'].p_dirichlet = twpflowPressure_init
+tank.BC['y+'].p_dirichlet.uOfX = twpflowPressure_init
