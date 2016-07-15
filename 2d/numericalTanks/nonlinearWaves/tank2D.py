@@ -1,8 +1,16 @@
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
-from math import *
 import numpy as np
+from math import *
+from proteus import MeshTools, AuxiliaryVariables
+import proteus.MeshTools
+from proteus import Domain
+from proteus.Profiling import logEvent
+from proteus.default_n import *
+from proteus.ctransportCoefficients import smoothedHeaviside
+from proteus.ctransportCoefficients import smoothedHeaviside_integral
+
 
 
 opts=Context.Options([
@@ -20,7 +28,7 @@ opts=Context.Options([
     ("wave_height", 0.15, "Height of the waves"),
     ("depth",1.,"Wave depth"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
-    ("wavelength", 8.74, "Wavelenght"),
+    ("wavelength", 8.74, "Wavelength"),
     ("waveType","Fenton","WaveType can be' Linear' or 'Fenton'"),
     ("Ycoeff",(0.05285227, 0.00777215, 0.00103578, 0.00014615, 0.00002224, 0.00000360, 0.00000062, 0.00000021), "YCoeff array from Fenton calculation tool"),
     ("Bcoeff",(0.06693872, 0.00481371, 0.00028641, 0.00000865, 0.00000056, 0.00000010, 0.00000000, 0.0000000),   "Bcoeff array from calculation tool"),
@@ -28,7 +36,7 @@ opts=Context.Options([
     # probe dx
     ("dxProbe",0.25, "Probe spacing"),
     #("gen_mesh", True ,"Generate new mesh"),
-    ("refLevel", 100 ,"Refinement level with respect to the wavelenght"),
+    ("refLevel", 100 ,"Refinement level with respect to the wavelength"),
     ("T", 60.0 ,"Simulation time"),
     ("dt_init", 0.001 ,"Initial time step"),
     ("cfl", 0.33 ,"Target cfl"),
@@ -49,7 +57,6 @@ mwl = opts.water_level
 depth = opts.depth
 direction = opts.wave_dir
 wave = wt.MonochromaticWaves(period, height, mwl, depth,opts.g, direction,opts.wavelength,opts.waveType,opts.Ycoeff, opts.Bcoeff)
-
 # tank options
 tank_dim = opts.tank_dim
 tank_sponge = opts.tank_sponge
@@ -102,17 +109,6 @@ g = [0., -9.81]
 he = opts.wavelength/opts.refLevel
 domain.MeshOptions.he = he #coarse grid
 
-
-from math import *
-from proteus import MeshTools, AuxiliaryVariables
-import numpy
-import proteus.MeshTools
-from proteus import Domain
-from proteus.Profiling import logEvent
-from proteus.default_n import *
-from proteus.ctransportCoefficients import smoothedHeaviside
-from proteus.ctransportCoefficients import smoothedHeaviside_integral
-
 st.assembleDomain(domain)
 
 #----------------------------------------------------
@@ -163,22 +159,22 @@ nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
+        basis=C0_AffineLinearOnCubeWithNodalBasis
+        elementQuadrature = CubeGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
     else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
-         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
+        basis=C0_AffineLinearOnSimplexWithNodalBasis
+        elementQuadrature = SimplexGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
+        #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
 elif spaceOrder == 2:
     hFactor=0.5
     if useHex:
-	basis=C0_AffineLagrangeOnCubeWithNodalBasis
+        basis=C0_AffineLagrangeOnCubeWithNodalBasis
         elementQuadrature = CubeGaussQuadrature(nd,4)
         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
     else:
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
+        basis=C0_AffineQuadraticOnSimplexWithNodalBasis
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
 
@@ -279,7 +275,7 @@ gaugeArray=ga.LineIntegralGauges(gauges=((fields, PG),),
                               fileName='gaugeArray.csv')
 
 
-def twpflowPressure_init(x, flag):
+def twpflowPressure_init(x, t):
     p_L = 0.0
     phi_L = tank.dim[nd-1] - waterLevel
     phi = x[nd-1] - waterLevel

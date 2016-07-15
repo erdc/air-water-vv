@@ -6,7 +6,6 @@ import os
 from proteus.default_so import *
 from proteus import Context
 
-
 # Create context from main module
 name_so = os.path.basename(__file__)
 if '_so.py' in name_so[-6:]:

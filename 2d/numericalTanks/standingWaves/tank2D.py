@@ -1,8 +1,16 @@
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
-from math import *
 import numpy as np
+from math import *
+from proteus import MeshTools, AuxiliaryVariables
+import proteus.MeshTools
+from proteus import Domain
+from proteus.Profiling import logEvent
+from proteus.default_n import *
+from proteus.ctransportCoefficients import smoothedHeaviside
+from proteus.ctransportCoefficients import smoothedHeaviside_integral
+
 
 
 opts=Context.Options([
@@ -60,26 +68,26 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 tank = st.Tank2D(domain, tank_dim)
 
-tank.setSponge(left=tank_sponge[0], right=tank_sponge[1])
+tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 left = False
 right = False
 if opts.generation is True:    
     if tank_sponge[0]: left = True
-    tank.setGenerationZones(left=left, waves=wave)
+    tank.setGenerationZones(x_n=left, waves=wave)
 if opts.absorption is True:
     if tank_sponge[1]: right = True
-    tank.setAbsorptionZones(right=right)
+    tank.setAbsorptionZones(x_p=right)
 
 # ----- BOUNDARY CONDITIONS ----- #
 
-tank.BC.top.setOpenAir()
-tank.BC.bottom.setNoSlip()
+tank.BC['y+'].setAtmosphere()
+tank.BC['y-'].setNoSlip()
 if opts.generation is True:
-    tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
+    tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
 else:
-    tank.BC.left.setNoSlip()
-tank.BC.right.setNoSlip()
-tank.BC.sponge.setNonMaterial()
+    tank.BC['x-'].setNoSlip()
+tank.BC['x+'].setNoSlip()
+tank.BC['sponge'].setNonMaterial()
 
 ##########################################
 # Numerical Options and other parameters #
@@ -97,17 +105,6 @@ g = [0., -9.81]
 #refinement_level = opts.refinement_level
 he = opts.wavelength/opts.refLevel
 domain.MeshOptions.he = he #coarse grid
-
-
-from math import *
-from proteus import MeshTools, AuxiliaryVariables
-import numpy
-import proteus.MeshTools
-from proteus import Domain
-from proteus.Profiling import logEvent
-from proteus.default_n import *
-from proteus.ctransportCoefficients import smoothedHeaviside
-from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 st.assembleDomain(domain)
 
@@ -146,38 +143,35 @@ useRANS = 0 # 0 -- None
             # 3 -- K-Omega, 1988
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
-    sys.exit()
+    raise ValueError("INVALID: spaceOrder(" + str(spaceOrder) + ")")
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
-    sys.exit()
+    raise ValueError("INVALID: useRBLES(" + str(useRBLES) + ")")
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
-    sys.exit()
+    raise ValueError("INVALID: useMetrics(" + str(useMetrics) + ")")
 
 #  Discretization
 nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
+        basis=C0_AffineLinearOnCubeWithNodalBasis
+        elementQuadrature = CubeGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
     else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
-         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
+        basis=C0_AffineLinearOnSimplexWithNodalBasis
+        elementQuadrature = SimplexGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
+        #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
 elif spaceOrder == 2:
     hFactor=0.5
     if useHex:
-	basis=C0_AffineLagrangeOnCubeWithNodalBasis
+        basis=C0_AffineLagrangeOnCubeWithNodalBasis
         elementQuadrature = CubeGaussQuadrature(nd,4)
         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
     else:
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
+        basis=C0_AffineQuadraticOnSimplexWithNodalBasis
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
 
@@ -200,7 +194,7 @@ if useMetrics:
     rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
+    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = ecH = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
     redist_Newton = True
@@ -227,7 +221,7 @@ else:
     rd_shockCapturingFactor  = 0.9
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
+    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = ecH = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
     redist_Newton = False#True
@@ -278,7 +272,7 @@ def twpflowPressure_init(x, t):
     p_L = 0.0
     phi_L = tank.dim[nd-1] - waterLevel
     phi = x[nd-1] - waterLevel
-    return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi_L)
-                                                         -smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi)))
+    return p_L -g[nd-1]*(rho_0 * (phi_L - phi) + (rho_1 -rho_0) * (smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi_L)
+                                                                   - smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi)))
 
-tank.BC.top.p_dirichlet = twpflowPressure_init
+tank.BC['y+'].p_dirichlet.uOfX = twpflowPressure_init
