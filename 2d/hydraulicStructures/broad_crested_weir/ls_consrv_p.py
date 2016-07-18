@@ -1,15 +1,21 @@
-from proteus import *
 from proteus.default_p import *
-from broad_crested_weir import *
+from proteus import Context
 from proteus.mprans import MCorr
+ct = Context.get()
 
 LevelModelType = MCorr.LevelModel
 
-coefficients = MCorr.Coefficients(LSModel_index=2,V_model=0,me_model=4,VOFModel_index=1,
-                                  applyCorrection=applyCorrection,nd=nd,checkMass=False,useMetrics=useMetrics,
-                                  epsFactHeaviside=epsFact_consrv_heaviside,
-                                  epsFactDirac=epsFact_consrv_dirac,
-                                  epsFactDiffusion=epsFact_consrv_diffusion)
+coefficients = MCorr.Coefficients(LSModel_index=2,
+                                  V_model=0,
+                                  me_model=4,
+                                  VOFModel_index=1,
+                                  applyCorrection=ct.applyCorrection,
+                                  nd=ct.domain.nd,
+                                  checkMass=False,
+                                  useMetrics=ct.useMetrics,
+                                  epsFactHeaviside=ct.ecH,
+                                  epsFactDirac=ct.epsFact_consrv_dirac,
+                                  epsFactDiffusion=ct.epsFact_consrv_diffusion)
 
 class zero_phi:
     def __init__(self):

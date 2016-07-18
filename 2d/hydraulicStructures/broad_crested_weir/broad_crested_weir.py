@@ -2,7 +2,7 @@
 A Broad Crested Weir
 """
 import numpy as np
-from math import ceil
+from math import ceil, sqrt
 from proteus import (Domain, Context,
                      FemTools as ft,
                      MeshTools, WaveTools)
@@ -10,6 +10,7 @@ from proteus.mprans import SpatialTools
 from proteus.Profiling import logEvent #[temp] useful to have around for later people, even if it isn't used
 # from proteus.ctransportCoefficients import smoothedHeaviside #[temp] probably can be removed
 from weir_tank import TankWithObstacles2D #[temp] to be removed
+from proteus.mprans.SpatialTools import Tank2D #[temp] temporarily not a good thing, as the long term short term plan is TankWithObstacles2D from weir_tank.  The long term long term plan brings back importing from here, but not yet
 
 opts = Context.Options([
     # options
@@ -25,9 +26,9 @@ opts = Context.Options([
     ("cfl", 0.9, "Target CFL"),
     # [temp] runCFL. I don't know what this means by target, but other context options label it as such (and take it to runCFL)
     # refinement
-    ("refinement_x_borders", None, "list of cuts for variable meshes"),
+    ("refinement_x_borders", [], "list of cuts for variable meshes"),
     # [temp] I don't like this description. Get a better one.
-    ("refinement_levels", None,
+    ("refinement_levels", [],
      "list of refinement levels for each variable mesh zone"),
     # dimensions & time stepping
     ("tank_dim", (3.5, 0.7), "(width, height) of the tank"),
@@ -116,7 +117,7 @@ else:
 
 # parallel
 nLevels = 1
-parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
+parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 
 # sponge layers
@@ -193,8 +194,8 @@ L = opts.tank_dim
 obst_x_start = opts.obstacle_start
 obst_x_end = obst_x_start + obst_width
 obstacle = (obst_x_start, obst_height, obst_x_end)
-obstacle_intersects = (obst_x_start, obst_x_end)
-obstacle_points = ((obst_x_start, obst_height), (obst_x_end, obst_height))
+obstacle_intersects = [obst_x_start, obst_x_end]
+obstacle_points = [[obst_x_start, obst_height], [obst_x_end, obst_height]]
 
 # waterline
 waterLine_x = obst_x_start + opts.init_water_over_obst
@@ -226,50 +227,38 @@ if air_vent:
     yp_airvent_point = (obst_x_end, airvent_y2)
     yn_airvent_point = (obst_x_end, airvent_y1)
     obstacle_points += (yp_airvent_point, yn_airvent_point)
+    airvent_boundaries = {[yp_airvent_point,yn_airvent_point]: 'airvent'}
+else:
+    airvent_boundaries = []
 
 # refinement
+weak_bc_penalty_constant = 100.0 #[temp] this belongs somewhere else
 he = L[0] / float(4 * refinement - 1)
-if variable_mesh:
-    x_refine = opts.refinement_x_borders
-    x_refine_level = opts.refinement_levels
-    weak_bc_penalty_constant = 100.0
-else:
+x_refine = opts.refinement_x_borders
+x_refine_level = opts.refinement_levels
+if not variable_mesh:
     he *= 0.5
 
 # mesh inputs
 structured = False
 
 # ----------------------------------------------------
-# gauges
-# ----------------------------------------------------
-#
-# # ##### Still a bit of a hack job, but based on the Proteus Gauges.
-# #       The goal will be to pull these options to the context and
-# #       let the different types of gauges be generated based on
-# #       individual problem setup.
-# point_gauges = PointGauges(gauges=((('p', 'u', 'v'), ((0.05, 0.65, 0.0),)),),
-#                            activeTime=None,
-#                            sampleRate=0,
-#                            fileName='point_gauge_1.csv')
-# # LineGauges(gauges=((('u0',),(((0,0,0),(1,1,1)),)),),
-# line_gauges = LineGauges(
-#     gauges=((('p', 'u', 'v'), (((3.4, 0.0, 0.0), (3.4, 0.1, 0.0)),)),),
-#     activeTime=None,
-#     sampleRate=0,
-#     fileName='line_gauge_1.csv')
-# line_gauges_phi = LineGauges(
-#     gauges=((('phid',), (((3.4, 0.0, 0.0), (3.4, 0.1, 0.0)),)),),
-#     activeTime=None,
-#     sampleRate=0,
-#     fileName='line_gauge_1_phi.csv')
-# # #### What is/where is phi? Gauges can't find it.  For now we're switching to 'phid' as an attribute actually considered by redist and all.  However, this can easily be changed later on as the system is refit - this is just testing that the basic syntax can be fit into the code like this
-
-# ----------------------------------------------------
 # mesh
 # ----------------------------------------------------
 
 #[temp]
-generating_waves = #needs to be set [the waves for AV]
+if opts.waves:
+    generating_waves = WaveTools.MonochromaticWaves(
+        period = 2,
+        waveHeight = 0.018,
+        mwl = inflowHeightMean,
+        depth = waterLine_z,
+        g = g + [0.], #[temp] an awkward hack
+        waveDir = (1.,0.,0.),
+        wavelength = 0.5,
+        meanVelocity = np.array([inflow_velocity,0.,0.])
+    )
+#needs to be set [the waves for AV]
 
 if useHex:
     nny = ceil(L[1]/he) + 1
@@ -283,35 +272,39 @@ else:
     else:
         domain = Domain.PlanarStraightLineGraphDomain()
 
-        tank = TankWithObstacles2D(domain = domain,
-                                   dim = L,
-                                   obstacle_intersects = obstacle_intersects,
-                                   obstacle_points = obstacle_points,
-                                   floating_obstacles = None,
-                                   floating_centers = None,
-                                   special_boundaries = {[yp_airvent_point,
-                                                      yn_airvent_point]: 'airvent'},
-                                   coords = None,
-                                   from_0 = True)
-        tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave = trivial_waves, #[temp] Probably not viable :(
-                                                       wind_speed = windVelocity)
+        # tank = TankWithObstacles2D(domain = domain,
+        #                            dim = L,
+        #                            obstacle_intersects = obstacle_intersects,
+        #                            obstacle_points = obstacle_points,
+        #                            floating_obstacles = None,
+        #                            floating_centers = None,
+        #                            special_boundaries = airvent_boundaries,
+        #                            coords = None,
+        #                            from_0 = True)
+        tank = Tank2D(domain=domain,
+                      dim=L,
+                      coords=None,
+                      from_0=True)
+        tank.BC['x-'].setTwoPhaseVelocityInlet(U = np.array([inflow_velocity,0.,0.]),
+                                               waterLevel = waterLine_z) #[temp] need to figure out a better API for this split of BC's.
         tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel = waterLine_z,
                                                             rhoUp = rho_1,
                                                             rhoDown = rho_0,
                                                             g = g,
                                                             refLevel= L[1])
-        tank.setSponge(left=GenerationZoneLength,
-                       right=AbsorptionZoneLength)
-        tank.setGenerationZones(waves=generating_waves,
-                                windSpeed=windVelocity,
-                                left=True,
-                                dragAlpha=dragAlpha,
-                                dragBeta=dragBeta,
-                                porosity=porosity)
-        tank.setAbsorptionZones(right=True,
-                                dragAlpha=dragAlpha,
-                                dragBeta=dragBeta,
-                                porosity=porosity) #[temp] should porosity and drags be zone specific (different between gen and abs)?
+        if sponge_layers:
+            tank.setSponge(x_n=GenerationZoneLength,
+                           x_p=AbsorptionZoneLength)
+            tank.setGenerationZones(waves=generating_waves,
+                                    wind_speed=windVelocity,
+                                    x_n=True,
+                                    dragAlpha=dragAlpha,
+                                    dragBeta=dragBeta,
+                                    porosity=porosity)
+            tank.setAbsorptionZones(x_p=True,
+                                    dragAlpha=dragAlpha,
+                                    dragBeta=dragBeta,
+                                    porosity=porosity) #[temp] should porosity and drags be zone specific (different between gen and abs)?
         tank.attachPointGauges('twp',
                                gauges=((('p', 'u', 'v'), ((0.05, 0.65, 0.0),)),),
                                activeTime=None,
@@ -327,21 +320,23 @@ else:
                               activeTime=None,
                               sampleRate=0,
                               fileName='line_gauge_1_phi.csv')
-        tank.setHorizontalVariableMesh(region_boundaries = x_refine)
+        # tank.setHorizontalVariableMesh(region_boundaries = x_refine) #[temp] temporarily as we test the 2D tank
         #[temp] here we will set the airvent condition.  Each variable change that we need can be made like so:
         #[temp] tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0.
         #[temp] (with different names and different lambda function, of course)
-        tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (L[1]-x[1])*rho_1*abs(g[1])
-        ## actually, outflow pressure, which is  (L[1]-x[1])*rho_1*abs(g[1])
-        tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0
-        tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0
-        tank.BC['airvent'].v_diffusive.uOfXT = lambda x, t: 0
-        tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1
-        tank.BC['airvent'].setTank()
+        if air_vent:
+            tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (L[1]-x[1])*rho_1*abs(g[1])
+            ## actually, outflow pressure, which is  (L[1]-x[1])*rho_1*abs(g[1])
+            tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0
+            tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0
+            tank.BC['airvent'].v_diffusive.uOfXT = lambda x, t: 0
+            tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1
+            tank.BC['airvent'].setTank()
         #[temp] end of airvent conditions
-        tank.constructShape()
+        #tank.constructShape()
+        tank.setDimensions(L)
         SpatialTools.assembleDomain(domain)
-        trigArea = 0.5 * he ^ 2
+        trigArea = 0.5 * he ** 2
         domain.regionConstraints = map(lambda level: trigArea * level ** 2,
                                        x_refine_level)
 
@@ -378,7 +373,7 @@ if useMetrics:
         = epsFact_viscosity \
         = epsFact_curvature \
         = epsFact_density \
-        = epsFact_consrv_heaviside \
+        = ecH \
         = epsFact_vof \
         = epsFact_density \
         = 3.0 #[temp] this epsFact_consrv_heaviside is "ecH" expected in WaveTools, etc.
@@ -411,7 +406,7 @@ else:
                     = epsFact_viscosity \
                     = epsFact_curvature \
                     = epsFact_density \
-                    = epsFact_consrv_heaviside \
+                    = ecH \
                     = epsFact_vof \
                     = epsFact_density \
                     = 1.5 #[temp] this epsFact_consrv_heaviside is "ecH" expected in WaveTools, etc.
@@ -463,65 +458,65 @@ def signedDistance(x):
             else:
                 return min(sqrt(phi_x ** 2 + phi_z ** 2), phi_z_outflow)
 
+# [temp] all below is deprecated now
+# def outflowPressure(x, t):
+#     return (L[1] - x[1]) * rho_1 * abs(g[1]) #[deptemp] I might have taken the only use of it above, and thus made this declaration irrelevant
+#
+#
+# # solution variables
+# # [deptemp] AV only functions.  That was _AV's name for the set.
+#
+# def wavePhi(x, t):
+#     return x[1] - inflowHeightMean
+#
+#
+# def waveVF(x, t):
+#     return smoothedHeaviside(epsFact_consrv_heaviside * he, wavePhi(x, t))
+#
+#
+# def twpflowVelocity_u(x, t):
+#     waterspeed = inflow_velocity
+#     H = smoothedHeaviside(epsFact_consrv_heaviside * he, wavePhi(x, t)
+#                           - epsFact_consrv_heaviside * he)
+#     u = H * windVelocity[0] + (1.0 - H) * waterspeed
+#     return u
+#
+#
+# def twpflowVelocity_v(x, t):
+#     waterspeed = 0.0
+#     H = smoothedHeaviside(epsFact_consrv_heaviside * he, wavePhi(x, t)
+#                           - epsFact_consrv_heaviside * he)
+#     return H * windVelocity[1] + (1.0 - H) * waterspeed
+#
+#
+# def twpflowVelocity_w(x, t):
+#     return 0.0
+#
+#
+# def twpflowFlux(x, t):
+#     return -twpflowVelocity_u(x, t)
+#
+#
+# def outflowPhi(x, t):
+#     return x[1] - outflowHeightMean
+#
+#
+# def outflowVF(x, t):
+#     return smoothedHeaviside(epsFact_consrv_heaviside * he, outflowPhi(x, t))
+#
+#
+# def outflowVel(x, t):
+#     waterspeed = outflow_velocity
+#     H = smoothedHeaviside(epsFact_consrv_heaviside * he, outflowPhi(x, t)
+#                           - epsFact_consrv_heaviside * he)
+#     u = (1.0 - H) * waterspeed
+#     return u
+#
+#
+# def zeroVel(x, t):
+#     return 0.0
 
-def outflowPressure(x, t):
-    return (L[1] - x[1]) * rho_1 * abs(g[1]) #[temp] I might have taken the only use of it above, and thus made this declaration irrelevant
-
-
-# solution variables
-# [temp] AV only functions.  That was _AV's name for the set.
-
-def wavePhi(x, t):
-    return x[1] - inflowHeightMean
-
-
-def waveVF(x, t):
-    return smoothedHeaviside(epsFact_consrv_heaviside * he, wavePhi(x, t))
-
-
-def twpflowVelocity_u(x, t):
-    waterspeed = inflow_velocity
-    H = smoothedHeaviside(epsFact_consrv_heaviside * he, wavePhi(x, t)
-                          - epsFact_consrv_heaviside * he)
-    u = H * windVelocity[0] + (1.0 - H) * waterspeed
-    return u
-
-
-def twpflowVelocity_v(x, t):
-    waterspeed = 0.0
-    H = smoothedHeaviside(epsFact_consrv_heaviside * he, wavePhi(x, t)
-                          - epsFact_consrv_heaviside * he)
-    return H * windVelocity[1] + (1.0 - H) * waterspeed
-
-
-def twpflowVelocity_w(x, t):
-    return 0.0
-
-
-def twpflowFlux(x, t):
-    return -twpflowVelocity_u(x, t)
-
-
-def outflowPhi(x, t):
-    return x[1] - outflowHeightMean
-
-
-def outflowVF(x, t):
-    return smoothedHeaviside(epsFact_consrv_heaviside * he, outflowPhi(x, t))
-
-
-def outflowVel(x, t):
-    waterspeed = outflow_velocity
-    H = smoothedHeaviside(epsFact_consrv_heaviside * he, outflowPhi(x, t)
-                          - epsFact_consrv_heaviside * he)
-    u = (1.0 - H) * waterspeed
-    return u
-
-
-def zeroVel(x, t):
-    return 0.0
-
-#[temp] deprecated wave stuff in comment
+#[deptemp] deprecated wave stuff in comment
 # relaxation zone
 
 # RelaxationZone = namedtuple("RelaxationZone", "center_x sign u v w")

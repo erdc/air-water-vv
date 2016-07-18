@@ -1,109 +1,78 @@
-from proteus import *
 from proteus.default_p import *
-from broad_crested_weir import *
 from proteus.mprans import RANS2P
-from setBCfunction import *
+from proteus import Context
+
+ct = Context.get()
+domain = ct.domain
+
+mesh = domain.MeshOptions
+genMesh = mesh.genMesh
+movingDomain = ct.movingDomain
 
 LevelModelType = RANS2P.LevelModel
-if useOnlyVF:
+if ct.useOnlyVF:
     LS_model = None
 else:
     LS_model = 2
-if useRANS >= 1:
+if ct.useRANS >= 1:
     Closure_0_model = 5; Closure_1_model=6
-    if useOnlyVF:
+    if ct.useOnlyVF:
         Closure_0_model=2; Closure_1_model=3
 else:
     Closure_0_model = None
     Closure_1_model = None
        
-coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
+coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
-                                   rho_0 = rho_0,
-                                   nu_0 = nu_0,
-                                   rho_1 = rho_1,
-                                   nu_1 = nu_1,
-                                   g=g,
-                                   nd=nd,
+                                   rho_0 = ct.rho_0,
+                                   nu_0 = ct.nu_0,
+                                   rho_1 = ct.rho_1,
+                                   nu_1 = ct.nu_1,
+                                   g=ct.g,
+                                   nd=domain.nd,
+                                   ME_model=0,
                                    VF_model=1,
                                    LS_model=LS_model,
                                    Closure_0_model=Closure_0_model,
                                    Closure_1_model=Closure_1_model,
-                                   epsFact_density=epsFact_density,
+                                   epsFact_density=ct.epsFact_density,
                                    stokes=False,
-                                   useVF=useVF,
-				                   useRBLES=useRBLES,
-				                   useMetrics=useMetrics,
+                                   useVF=ct.useVF,
+				                   useRBLES=ct.useRBLES,
+				                   useMetrics=ct.useMetrics,
                                    eb_adjoint_sigma=1.0,
-                                   forceStrongDirichlet=ns_forceStrongDirichlet,
-                                   turbulenceClosureModel=ns_closure)
+                                   eb_penalty_constant = ct.weak_bc_penalty_constant,
+                                   forceStrongDirichlet=ct.ns_forceStrongDirichlet,
+                                   turbulenceClosureModel=ct.ns_closure)
 
 
 
-def getDBC_p(x,flag):
-    BCType = "pDirichlet"
-    return createBoundaryCondition(x,flag,BCType)
+dirichletConditions = {
+    0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
+    1: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
+    2: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()
+}
 
-def getDBC_u(x,flag):
-    BCType = "uDirichlet"
-    return createBoundaryCondition(x,flag,BCType)
+advectiveFluxBoundaryConditions =  {
+    0: lambda x, flag: domain.bc[flag].p_advective.init_cython(),
+    1: lambda x, flag: domain.bc[flag].u_advective.init_cython(),
+    2: lambda x, flag: domain.bc[flag].v_advective.init_cython()
+}
 
-
-def getDBC_v(x,flag):
-    BCType = "vDirichlet"
-    return createBoundaryCondition(x,flag,BCType)
-
-dirichletConditions = {0:getDBC_p,
-                       1:getDBC_u,
-                       2:getDBC_v}
-
-def getAFBC_p(x,flag):
-    BCType = "pAdvective"
-    return createBoundaryCondition(x,flag,BCType)
-
-
-def getAFBC_u(x,flag):
-    BCType = "uAdvective"
-    return createBoundaryCondition(x,flag,BCType)
-
-
-    
-def getAFBC_v(x,flag):
-    BCType = "vAdvective"
-    return createBoundaryCondition(x,flag,BCType)
-
-
-def getDFBC_u(x,flag):
-    BCType = "uDiffusive"    
-    #[temp] test
-    if flag == boundaryTags['left'] or  boundaryTags['bottom']:
-        return lambda x,t: 0.0
-    return createBoundaryCondition(x,flag,BCType)
-
-    
-def getDFBC_v(x,flag):
-    BCType = "vDiffusive"
-    #[temp] test
-    if flag == boundaryTags['top'] or boundaryTags['right']:
-        return lambda x,t: 0.0
-    return createBoundaryCondition(x,flag,BCType)
-
-advectiveFluxBoundaryConditions =  {0:getAFBC_p,
-                                    1:getAFBC_u,
-                                    2:getAFBC_v}
-
-diffusiveFluxBoundaryConditions = {0:{},
-                                   1:{1:getDFBC_u},
-                                   2:{2:getDFBC_v}}
+diffusiveFluxBoundaryConditions = {
+    0: {},
+    1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython(),
+    2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()
+}
 
 class PerturbedSurface_p:
     def __init__(self,waterLevel):
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
-        if signedDistance(x) < 0:
-            return -(L[1] - self.waterLevel)*rho_1*g[1] - (self.waterLevel - x[1])*rho_0*g[1]
+        if ct.signedDistance(x) < 0:
+            return -(ct.L[1] - self.waterLevel)*ct.rho_1*ct.g[1] - (self.waterLevel - x[1])*ct.rho_0*ct.g[1]
         else:
-            return -(L[1] - self.waterLevel)*rho_1*g[1]
+            return -(ct.L[1] - self.waterLevel)*ct.rho_1*ct.g[1]
 
 class AtRest:
     def __init__(self):
@@ -112,6 +81,6 @@ class AtRest:
         return 0.0
 
 
-initialConditions = {0:PerturbedSurface_p(waterLine_z),
+initialConditions = {0:PerturbedSurface_p(ct.waterLine_z),
                      1:AtRest(),
                      2:AtRest()}

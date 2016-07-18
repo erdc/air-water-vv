@@ -90,9 +90,9 @@ class TankWithObstacles2D(Tank2D):
     def __init__(self, domain, dim=(0., 0.),
                  obstacle_intersects=None, obstacle_points=None,
                  floating_obstacles=None, floating_centers=None,
-                 special_boundaries=None,
+                 special_boundaries=[],
                  coords=(0., 0.), from_0=True):
-        super(TankWithObstacles2D, self).__init__(domain, nd=2)
+        super(TankWithObstacles2D, self).__init__(domain)
         self.__class__.count += 1
         self.name = '2D_weir' + str(self.__class__.count)
         self.dim = L, H = np.array(dim)
@@ -143,15 +143,14 @@ class TankWithObstacles2D(Tank2D):
                 self.BC[name] = self.BC_class(shape=self,name=name)
                 self.boundaryTags[name] = next_tag_index
                 next_tag_index += 1
-#[deptemp] An easy way to deal with this is to use the trick tridelat mentioned on github to define the boundary condition in the main .py file. If a person wants to add in a new boundary type with a special condition, it will be easier for them to just set it there (or just use one of the given names in here... that's a tricky and valid use I hadn't thought of) instead of basically having to set it there and then clumsily pass it through whatever API I can make for them.  So this note is basically to tell myself not to sweat this.  It's actually a really nice short and intuitive bit of code for the .py file, not something to worry about.
 
         self.BC_list = self.BC.values()
         for i in range(4):
              self.BC_list[i].setTank()
 
         self.BC['y-'].setFreeSlip()
-        self.BC['y+'].setOpenAir()
-        #[temp] and x conditions which will be later overwritten, either by the sponge layers or manually.
+        self.BC['y+'].setAtmosphere()
+
         self.BC['x-'].setFreeSlip()
         self.BC['x+'].setFreeSlip()
 
@@ -223,9 +222,13 @@ class TankWithObstacles2D(Tank2D):
         override: Optional[boolean]
             If set to True (False is default) this
         """
+        if self.segments is None:
+            self.segments = []
+        if self.segmentFlags is None:
+            self.segmentFlags = []
         if not override:
             for i in range(len(segments)):
-                self.segments += segments[i]
+                self.segments += [segments[i],]
                 desired_flag = segmentFlags[i]
                 index_0, index_1 = segments[i]
                 test1 = (self.vertices[index_0], self.vertices[index_1])
@@ -236,7 +239,7 @@ class TankWithObstacles2D(Tank2D):
                     desired_flag = self.boundaryTags[self.special_boundaries[test2]]
                 self.vertexFlags[index_0] = desired_flag
                 self.vertexFlags[index_1] = desired_flag
-                self.segmentFlags += desired_flag
+                self.segmentFlags += [desired_flag,]
         else:
             self.segments += segments
             self.segmentFlags += segmentFlags
@@ -362,9 +365,9 @@ class TankWithObstacles2D(Tank2D):
         else:
             new_segments += [[1, 2], ]
             new_segmentFlags += [self.boundaryTags['x+'], ]
-        for obstacle in self.floating_obstacles:
-            self._constructFloatingObstacleFrame(obstacle)
-
+        if self.floating_obstacles:
+            for obstacle in self.floating_obstacles:
+                self._constructFloatingObstacleFrame(obstacle)
         self._addSegments(new_segments, new_segmentFlags)
 
     def _constructAdditionalFramework(self):
@@ -446,16 +449,18 @@ class TankWithObstacles2D(Tank2D):
         regionFlags = []
 
         if self.spongeLayers['x-']:
-            regions += [self.x0 - np.finfo(float).eps,
-                        self.y1 - np.finfo(float).eps]
+            regions += [[self.x0 - np.finfo(float).eps,
+                         self.y1 - np.finfo(float).eps]]
             regionFlags += ['x-']
         if self.spongeLayers['x+']:
-            regions += [self.x1 + np.finfo(float).eps,
-                        self.y1 - np.finfo(float).eps]
-        regionFlags += ['x+']
+            regions += [[self.x1 + np.finfo(float).eps,
+                         self.y1 - np.finfo(float).eps]]
+            regionFlags += ['x+']
         if not self.region_boundaries:
-            regions += [self.x0 + np.finfo(float).eps,
-                        self.y1 - np.finfo(float).eps]
+            regions += [[self.x0 + np.finfo(float).eps,
+                         self.y1 - np.finfo(float).eps]]
+            # #[temp] to see if it fixes - a long term fix is needed later
+            # regions[-1][1] = self.y1 - 0.1
             regionFlags += [1]
         else:
             region_num = 1
@@ -464,10 +469,10 @@ class TankWithObstacles2D(Tank2D):
                     halfway_height = [self.vertices[segment[0]][1]
                                       + self.vertices[segment[1]][1]
                                       ] * 0.5
-                    x_n_side = [x - np.finfo(float).eps,
-                                halfway_height]
-                    x_p_side = [x + np.finfo(float).eps,
-                                halfway_height]
+                    x_n_side = [[x - np.finfo(float).eps,
+                                 halfway_height]]
+                    x_p_side = [[x + np.finfo(float).eps,
+                                 halfway_height]]
                     regions += [x_n_side, x_p_side]
                     regionFlags += [region_num, region_num + 1]
                 region_num += 1
@@ -475,8 +480,8 @@ class TankWithObstacles2D(Tank2D):
         if self.floating_centers:
             for hole in self.floating_centers:
                 holes += hole
+            self.setHoles(holes)
 
-        self.setHoles(holes)
         self.setRegions(regions, regionFlags)
 
     def constructShape(self):
@@ -528,12 +533,3 @@ class TankWithObstacles2D(Tank2D):
                                  + ' is not within the tank.')
         self.region_boundaries += region_boundaries
         self.region_boundaries.sort()
-
-    def setGauges(self, gauges):
-        """
-
-        Parameters
-        ----------
-        gauges
-
-        """
