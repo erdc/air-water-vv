@@ -1,4 +1,4 @@
-\from proteus.default_p import *
+from proteus.default_p import *
 from proteus.mprans import RDLS
 from proteus import Context
 
@@ -22,8 +22,7 @@ coefficients = RDLS.Coefficients(applyRedistancing=ct.applyRedistancing,
                                  epsFact=ct.epsFact_redistance,
                                  nModelId=int(ct.movingDomain)+2,
                                  rdModelId=int(ct.movingDomain)+3,
-                                 useMetrics=ct.useMetrics,
-                                 backgroundDiffusionFactor=ct.backgroundDiffusionFactor)
+                                 useMetrics=ct.useMetrics)
 
 def getDBC_rd(x, flag):
     pass

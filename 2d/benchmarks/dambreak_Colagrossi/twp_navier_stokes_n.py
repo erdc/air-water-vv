@@ -1,4 +1,8 @@
-from proteus import StepControl, TimeIntegration, NonlinearSolvers, LinearSolvers
+from proteus import (StepControl,
+                     TimeIntegration,
+                     NonlinearSolvers,
+                     LinearSolvers,
+                     LinearAlgebraTools)
 from proteus.default_n import *
 from twp_navier_stokes_p import *
 from proteus import Context
@@ -10,15 +14,15 @@ mesh = domain.MeshOptions
 
 #time stepping
 runCFL = ct.runCFL
-if timeDiscretization=='vbdf':
+if ct.timeDiscretization=='vbdf':
     timeIntegration = VBDF
     timeOrder=2
     stepController  = Min_dt_cfl_controller
-elif timeDiscretization=='flcbdf':
+elif ct.timeDiscretization=='flcbdf':
     timeIntegration = FLCBDF
     #stepController = FLCBDF_controller_sys
     stepController  = Min_dt_cfl_controller
-    time_tol = 10.0*ns_nl_atol_res
+    time_tol = 10.0*ct.ns_nl_atol_res
     atol_u = {1:time_tol,2:time_tol}
     rtol_u = {1:time_tol,2:time_tol}
 else:
@@ -86,4 +90,5 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
+
 auxiliaryVariables = ct.domain.auxiliaryVariables['twp']

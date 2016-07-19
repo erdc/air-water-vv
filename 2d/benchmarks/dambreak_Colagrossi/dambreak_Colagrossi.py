@@ -4,11 +4,11 @@ Dambreak flow - Collagrosi and Landrini (2003)
 import numpy as np
 from math import sqrt
 from proteus import (Domain, Context,
-                     Femtools as ft,
-                     SpatialTools as st,
+                     FemTools as ft,
+                     #SpatialTools as st,
                      MeshTools as mt,
                      WaveTools as wt)
-from proteus.mprans import SpatialTools
+from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
 from proteus.mprans.SpatialTools import Tank2D
 
@@ -24,7 +24,7 @@ opts=Context.Options([
     # probe dx
     ("dxProbe",0.25, "Probe spacing"),
     # refinement
-    ("refinement", 100 ,"Refinement level"),
+    ("refinement", 16 ,"Refinement level"),
     ("cfl", 0.33 ,"Target cfl"),
     # run time
     ("T", 60.0 ,"Simulation time"),
@@ -105,6 +105,9 @@ elif spaceOrder == 2:
 # Numerical Options and Other Parameters #
 ##########################################
 
+weak_bc_penalty_constant = 100.0
+nLevels = 1
+
 # ----- PHYSICAL PROPERTIES ----- #
 
 # Water
@@ -138,23 +141,23 @@ domain = Domain.PlanarStraightLineGraphDomain()
 tank = Tank2D(domain, tank_dim)
 
 # ----- GAUGES ----- #
-
-tank.attachPointGauges(
-    'twp',
-    gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
-              (('p',), ((0.5, 0.5, 0),))),
-    activeTime=(0, 0.5),
-    sampleRate=0,
-    fileName='combined_gauge_0_0.5_sample_all.csv'
-)
-
-tank.attachLineGauges(
-    'vof',
-    gauges = ((('vof',),((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))),),
-    activeTime = (0., opts.T),
-    sampleRate = 0,
-    fileName = 'lineGauge.csv'
-) #[temp] artifacts point towards this being for some twp feature, not the vof points here, but it's unclear which (p,u,v?)
+#
+# tank.attachPointGauges(
+#     'twp',
+#     gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
+#               (('p',), ((0.5, 0.5, 0),))),
+#     activeTime=(0, 0.5),
+#     sampleRate=0,
+#     fileName='combined_gauge_0_0.5_sample_all.csv'
+# )
+#
+# tank.attachLineGauges(
+#     'vof',
+#     gauges = ((('vof',),((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))),),
+#     activeTime = (0., opts.T),
+#     sampleRate = 0,
+#     fileName = 'lineGauge.csv'
+# ) #[temp] artifacts point towards this being for some twp feature, not the vof points here, but it's unclear which (p,u,v?)
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
@@ -186,9 +189,10 @@ if useMetrics:
     vof_sc_beta = 1.0
     rd_shockCapturingFactor = 0.5
     rd_lag_shockCapturing = False
-    epsFact_density = 1.5
-    epsFact_viscosity = epsFact_curvature = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = \
-        epsFact_density
+    epsFact_density = epsFact_viscosity = epsFact_curvature \
+                    = epsFact_vof = ecH \
+                    = epsFact_consrv_dirac = epsFact_density \
+                    = 1.5
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 0.1
     redist_Newton = True
@@ -214,9 +218,10 @@ else:
     vof_sc_beta = 1.0
     rd_shockCapturingFactor = 0.9
     rd_lag_shockCapturing = False
-    epsFact_density = 1.5
-    epsFact_viscosity = epsFact_curvature = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = \
-        epsFact_density
+    epsFact_density = epsFact_viscosity = epsFact_curvature \
+        = epsFact_vof = ecH \
+        = epsFact_consrv_dirac = epsFact_density \
+        = 1.5
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
     redist_Newton = False
