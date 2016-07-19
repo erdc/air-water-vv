@@ -49,6 +49,9 @@ tank_dim = opts.tank_dim
 #     Discretization Input Options       #
 ##########################################
 
+#[temp] temporary location
+backgroundDiffusionFactor = 0.01
+
 refinement = opts.refinement
 genMesh = opts.gen_mesh
 movingDomain = False
