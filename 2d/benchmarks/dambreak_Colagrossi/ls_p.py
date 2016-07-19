@@ -25,13 +25,11 @@ coefficients = NCLS.Coefficients(V_model=int(ct.movingDomain)+0,
                                  movingDomain=ct.movingDomain)
 
 dirichletConditions = {0: lambda x, flag: None}
-
 advectiveFluxBoundaryConditions = {}
-
 diffusiveFluxBoundaryConditions = {0: {}}
 
-class PHI_IC:
-    def uOfXT(self, x, t):
-        return x[nd-1] - ct.waterLevel
+class PerturbedSurface_phi:
+    def uOfXT(self,x,t):
+        return ct.signedDistance(x)
 
-initialConditions = {0: PHI_IC()}
+initialConditions  = {0:PerturbedSurface_phi()}

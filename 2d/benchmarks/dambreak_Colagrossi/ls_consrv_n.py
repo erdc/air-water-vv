@@ -25,8 +25,6 @@ nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
 triangleOptions = mesh.triangleOptions
 
-
-
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
@@ -59,13 +57,17 @@ if ct.useSuperlu:
     levelLinearSolver      = LinearSolvers.LU
 
 linear_solver_options_prefix = 'mcorr_'
+nonlinearSolverConvergenceTest  = 'rits'
+levelNonlinearSolverConvergenceTest  = 'rits'
 linearSolverConvergenceTest  = 'r-true'
 
 tolFac = 0.0
-linTolFac = 0.001
-l_atol_res = 0.001*ct.mcorr_nl_atol_res
+linTolFac = 0.01
+l_atol_res = 0.01*ct.mcorr_nl_atol_res
 nl_atol_res = ct.mcorr_nl_atol_res
 useEisenstatWalker = False#True
 
 maxNonlinearIts = 50
 maxLineSearches = 0
+
+auxiliaryVariables = ct.domain.auxiliaryVariables['ls_consrv']

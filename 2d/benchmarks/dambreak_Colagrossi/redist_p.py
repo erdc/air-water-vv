@@ -1,4 +1,4 @@
-from proteus.default_p import *
+\from proteus.default_p import *
 from proteus.mprans import RDLS
 from proteus import Context
 
@@ -34,8 +34,8 @@ weakDirichletConditions = {0: RDLS.setZeroLSweakDirichletBCsSimple}
 advectiveFluxBoundaryConditions = {}
 diffusiveFluxBoundaryConditions = {0: {}}
 
-class PHI_IC:
-    def uOfXT(self, x, t):
-        return x[nd-1] - ct.waterLevel
+class PerturbedSurface_phi:
+    def uOfXT(self,x,t):
+        return ct.signedDistance(x)
 
-initialConditions  = {0: PHI_IC()}
+initialConditions  = {0:PerturbedSurface_phi()}

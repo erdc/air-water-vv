@@ -1,4 +1,3 @@
-from proteus import *
 from proteus.default_p import *
 from proteus.mprans import Dissipation
 from proteus import Context
@@ -43,12 +42,9 @@ coefficients = Dissipation.Coefficients(V_model=int(ct.movingDomain)+0,
                                         sc_uref=ct.dissipation_sc_uref,
                                         sc_beta=ct.dissipation_sc_beta)
 
-
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].dissipation_dirichlet.init_cython()}
 advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].dissipation_advective.init_cython()}
 diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].dissipation_diffusive.init_cython()}}
-
-
 
 class ConstantIC:
     def __init__(self, cval=0.):
@@ -56,9 +52,7 @@ class ConstantIC:
     def uOfXT(self, x, t):
         return self.cval
 
-kInflow = 0.
-dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*ct.tank.dim[nd-1])
+dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*L[1])
 if ct.useRANS >= 2:
     dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
-
-initialConditions = {0: ConstantIC(cval=dissipationInflow*0.001)}
+initialConditions  = {0:ConstantIC(cval=dissipationInflow*0.001)}

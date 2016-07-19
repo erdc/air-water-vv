@@ -18,7 +18,7 @@ restrictFineSolutionToAllMeshes = ct.restrictFineSolutionToAllMeshes
 triangleOptions = ct.triangleOptions
 
 timeIntegration = TimeIntegration.BackwardEuler_cfl
-stepController  = StepControl.Min_dt_controller
+stepController  = StepControl.Min_dt_cfl_controller
 
 femSpaces = {0: ct.basis}
 elementQuadrature = ct.elementQuadrature
@@ -55,10 +55,12 @@ levelNonlinearSolverConvergenceTest = 'rits'
 linearSolverConvergenceTest         = 'rits'
 
 tolFac = 0.0
-linTolFac =0.0
+linTolFac =0.0001
 l_atol_res = 0.001*ct.dissipation_nl_atol_res
 nl_atol_res = ct.dissipation_nl_atol_res
 useEisenstatWalker = False
 
 maxNonlinearIts = 50
 maxLineSearches = 0
+
+auxiliaryVariables = ct.domain.auxiliaryVariables['dissipation']

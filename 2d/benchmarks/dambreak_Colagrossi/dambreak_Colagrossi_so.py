@@ -28,27 +28,28 @@ BC_Base.getContext() #[temp] resituate later
 # List of p/n files
 pnList = []
 
-# moving mesh
-if ct.movingDomain:
-    pnList += [("moveMesh_p", "moveMesh_n")]
+if ct.useOnlyVF:
+    pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
+              ("vof_p", "vof_n")]
+else:
+    pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
+              ("vof_p", "vof_n"),
+              ("ls_p", "ls_n"),
+              ("redist_p", "redist_n"),
+              ("ls_consrv_p", "ls_consrv_n")]
 
-# Navier-Stokes and VOF
-pnList += [("twp_navier_stokes_p", "twp_navier_stokes_n"),
-           ("vof_p", "vof_n")]
-
-# Level set
-if not ct.useOnlyVF:
-    pnList += [("ls_p", "ls_n"),
-               ("redist_p", "redist_n"),
-               ("ls_consrv_p", "ls_consrv_n")]
-
-# Turbulence
 if ct.useRANS > 0:
-    pnList += [("kappa_p", "kappa_n"),
-               ("dissipation_p", "dissipation_n")]
+    pnList.append(("kappa_p",
+                   "kappa_n"))
+    pnList.append(("dissipation_p",
+                   "dissipation_n"))
+name = "dambreak_Colagrossi_p"
 
-#systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
-systemStepControllerType = Sequential_MinAdaptiveModelStep
+if ct.timeDiscretization == 'flcbdf':
+    systemStepControllerType = Sequential_MinFLCBDFModelStep
+    systemStepControllerType = Sequential_MinAdaptiveModelStep
+else:
+    systemStepControllerType = Sequential_MinAdaptiveModelStep
 
 needEBQ_GLOBAL = False
 needEBQ = False

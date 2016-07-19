@@ -34,7 +34,6 @@ multilevelNonlinearSolver = Newton
 levelNonlinearSolver      = Newton
 
 nonlinearSmoother = None
-
 linearSmoother    = SimpleNavierStokes2D
 
 matrix = SparseMatrix

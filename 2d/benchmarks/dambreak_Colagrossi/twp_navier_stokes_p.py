@@ -10,7 +10,7 @@ mesh = domain.MeshOptions
 
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
-T = ct.T  # might not be necessary
+T = ct.T  # might not be necessaryd
 
 LevelModelType = RANS2P.LevelModel
 if ct.useOnlyVF:
@@ -29,18 +29,6 @@ if ct.useRANS >= 1:
 else:
     Closure_0_model = None
     Closure_1_model = None
-
-# for absorption zones (defined as regions)
-if hasattr(domain, 'porosityTypes'):
-    porosityTypes = domain.porosityTypes
-    dragAlphaTypes = domain.dragAlphaTypes
-    dragBetaTypes = domain.dragBetaTypes
-    epsFact_solid = domain.epsFact_solid
-else:
-    porosityTypes = None
-    dragAlphaTypes = None
-    dragBetaTypes = None
-    epsFact_solid = None
 
 coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
@@ -64,12 +52,7 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    eb_penalty_constant=ct.weak_bc_penalty_constant,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ct.ns_closure,
-                                   movingDomain=ct.movingDomain,
-                                   porosityTypes=porosityTypes,
-                                   dragAlphaTypes=dragAlphaTypes,
-                                   dragBetaTypes=dragBetaTypes,
-                                   epsFact_solid=epsFact_solid,
-                                   barycenters=ct.domain.barycenters)
+                                   movingDomain=ct.movingDomain)
 
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
@@ -84,30 +67,21 @@ diffusiveFluxBoundaryConditions = {0: {},
                                    1: {1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
                                    2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}}
 
-if nd == 3:
-    dirichletConditions[3] = lambda x, flag: domain.bc[flag].w_dirichlet.init_cython()
-    advectiveFluxBoundaryConditions[3] = lambda x, flag: domain.bc[flag].w_advective.init_cython()
-    diffusiveFluxBoundaryConditions[3] = {3: lambda x, flag: domain.bc[flag].w_diffusive.init_cython()}
+class PerturbedSurface_p:
+    def __init__(self,waterLevel):
+        self.waterLevel=waterLevel
+    def uOfXT(self,x,t):
+        if ct.signedDistance(x) < 0:
+            return -(L[1] - self.waterLevel)*ct.rho_1*ct.g[1] - (self.waterLevel - x[1])*rho_0*g[1]
+        else:
+            return -(L[1] - self.waterLevel)*ct.rho_1*ct.g[1]
 
-class P_IC:
-    def uOfXT(self, x, t):
-        return ct.twpflowPressure_init(x, t)
-
-class U_IC:
-    def uOfXT(self, x, t):
+class AtRest:
+    def __init__(self):
+        pass
+    def uOfXT(self,x,t):
         return 0.0
 
-class V_IC:
-    def uOfXT(self, x, t):
-        return 0.0
-
-class W_IC:
-    def uOfXT(self, x, t):
-        return 0.0
-
-initialConditions = {0: P_IC(),
-                     1: U_IC(),
-                     2: V_IC()}
-if nd == 3:
-    initialConditions[3] = W_IC()
-
+initialConditions = {0:PerturbedSurface_p(ct.waterLine_z),
+                     1:AtRest(),
+                     2:AtRest()}

@@ -59,4 +59,4 @@ class ConstantIC:
     def uOfXT(self, x, t):
         return self.cval
 
-initialConditions = {0: ConstantIC(cval=0)}
+initialConditions = {0: ConstantIC(cval=kInflow*0.001)}

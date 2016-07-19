@@ -2,11 +2,37 @@ from proteus import *
 from redist_p import *
 from dambreak_Colagrossi_coarse import *
 
-tolFac = 0.0
-nl_atol_res = rd_nl_atol_res
 
-linTolFac = 0.01
-l_atol_res = 0.01*rd_nl_atol_res
+
+femSpaces = {0: basis}
+
+massLumping = False
+numericalFluxType = DoNothing
+conservativeFlux = None
+subgridError = RDLS.SubgridError(coefficients, nd)
+shockCapturing = RDLS.ShockCapturing(coefficients, nd,
+                                     shockCapturingFactor=rd_shockCapturingFactor,
+                                     lag=rd_lag_shockCapturing)
+
+fullNewtonFlag = True
+multilevelNonlinearSolver = Newton
+levelNonlinearSolver = Newton
+
+nonlinearSmoother = NLGaussSeidel
+linearSmoother = None
+
+matrix = SparseMatrix
+
+if useOldPETSc:
+    multilevelLinearSolver = PETSc
+    levelLinearSolver = PETSc
+else:
+    multilevelLinearSolver = KSP_petsc4py
+    levelLinearSolver = KSP_petsc4py
+
+if useSuperlu:
+    multilevelLinearSolver = LU
+    levelLinearSolver = LU
 
 if redist_Newton:
     timeIntegration = NoIntegration
@@ -34,33 +60,11 @@ else:
     levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'r-true'
 
-femSpaces = {0:basis}
-       
-massLumping       = False
-numericalFluxType = DoNothing    
-conservativeFlux  = None
-subgridError      = RDLS.SubgridError(coefficients,nd)
-shockCapturing    = RDLS.ShockCapturing(coefficients,nd,shockCapturingFactor=rd_shockCapturingFactor,lag=rd_lag_shockCapturing)
-
-fullNewtonFlag = True
-multilevelNonlinearSolver  = Newton
-levelNonlinearSolver       = Newton
-
-nonlinearSmoother = NLGaussSeidel
-linearSmoother    = None
-
-matrix = SparseMatrix
-
-if useOldPETSc:
-    multilevelLinearSolver = PETSc
-    levelLinearSolver      = PETSc
-else:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
-
-if useSuperlu:
-    multilevelLinearSolver = LU
-    levelLinearSolver      = LU
 
 linear_solver_options_prefix = 'rdls_'
 
+tolFac = 0.0
+nl_atol_res = rd_nl_atol_res
+
+linTolFac = 0.01
+l_atol_res = 0.01*rd_nl_atol_res

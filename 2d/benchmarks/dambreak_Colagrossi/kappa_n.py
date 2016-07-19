@@ -52,14 +52,16 @@ else:
     levelLinearSolver      = LinearSolvers.LU
 
 linear_solver_options_prefix = 'kappa_'
-levelNonlinearSolverConvergenceTest = 'rits'
-linearSolverConvergenceTest         = 'rits'
+levelNonlinearSolverConvergenceTest = 'rits' #'r'
+linearSolverConvergenceTest         = 'rits' #'r'
 
-tolFac = 0.
-linTolFac = 0.
-l_atol_res = 0.001*ct.kappa_nl_atol_res
+tolFac = 0.0
+linTolFac = 0.0001
+l_atol_res = 0.0001*ct.kappa_nl_atol_res
 nl_atol_res = ct.kappa_nl_atol_res
 useEisenstatWalker = False
 
 maxNonlinearIts = 50
 maxLineSearches = 0
+
+auxiliaryVariables = ct.domain.auxiliaryVariables['kappa']

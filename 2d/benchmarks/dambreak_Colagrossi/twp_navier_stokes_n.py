@@ -10,8 +10,20 @@ mesh = domain.MeshOptions
 
 #time stepping
 runCFL = ct.runCFL
-timeIntegration = TimeIntegration.BackwardEuler_cfl
-stepController  = StepControl.Min_dt_controller
+if timeDiscretization=='vbdf':
+    timeIntegration = VBDF
+    timeOrder=2
+    stepController  = Min_dt_cfl_controller
+elif timeDiscretization=='flcbdf':
+    timeIntegration = FLCBDF
+    #stepController = FLCBDF_controller_sys
+    stepController  = Min_dt_cfl_controller
+    time_tol = 10.0*ns_nl_atol_res
+    atol_u = {1:time_tol,2:time_tol}
+    rtol_u = {1:time_tol,2:time_tol}
+else:
+    timeIntegration = BackwardEuler_cfl
+    stepController  = Min_dt_cfl_controller
 
 # mesh options
 nLevels = ct.nLevels
@@ -20,16 +32,12 @@ nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
 triangleOptions = mesh.triangleOptions
 
-
-
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 femSpaces = {0:ct.basis,
              1:ct.basis,
              2:ct.basis}
-if nd == 3:
-    femSpaces[3] = ct.basis
 
 massLumping       = False
 numericalFluxType = None
@@ -50,12 +58,9 @@ multilevelNonlinearSolver = NonlinearSolvers.Newton
 levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
-if nd == 2:
-    linearSmoother    = LinearSolvers.SimpleNavierStokes2D
-elif nd == 3:
-    linearSmoother    = LinearSolvers.SimpleNavierStokes3D
+linearSmoother    = SimpleNavierStokes2D
 
-matrix = SparseMatrix
+matrix = LinearAlgebraTools.SparseMatrix
 
 if ct.useOldPETSc:
     multilevelLinearSolver = LinearSolvers.PETSc
@@ -69,12 +74,13 @@ if ct.useSuperlu:
     levelLinearSolver      = LinearSolvers.LU
 
 linear_solver_options_prefix = 'rans2p_'
-levelNonlinearSolverConvergenceTest = 'r'
+nonlinearSolverConvergenceTest = 'rits'
+levelNonlinearSolverConvergenceTest = 'rits'
 linearSolverConvergenceTest             = 'r-true'
 
 tolFac = 0.0
-linTolFac = 0.00001
-l_atol_res = 0.001*ct.ns_nl_atol_res
+linTolFac = 0.01
+l_atol_res = 0.01*ct.ns_nl_atol_res
 nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = False#True
 maxNonlinearIts = 50
