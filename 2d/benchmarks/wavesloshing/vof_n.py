@@ -1,59 +1,77 @@
-from proteus import *
-from wavesloshing_laminar_unstruct_coarse import *
-from vof_p import *
+from proteus.default_n import *
+from proteus import (StepControl,
+                     TimeIntegration,
+                     NonlinearSolvers,
+                     LinearSolvers,
+                     LinearAlgebraTools)
+import vof_p as physics
+from proteus.mprans import VOF
+from proteus import Context
 
-if timeDiscretization=='vbdf':
-    timeIntegration = VBDF
+ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+mesh = domain.MeshOptions
+
+# time stepping
+runCFL = ct.runCFL
+if ct.timeDiscretization=='vbdf':
+    timeIntegration = TimeIntegration.VBDF
     timeOrder=2
-    stepController  = Min_dt_cfl_controller
-elif timeDiscretization=='flcbdf':
-    timeIntegration = FLCBDF
+    stepController  = StepControl.Min_dt_cfl_controller
+elif ct.timeDiscretization=='flcbdf':
+    timeIntegration = TimeIntegration.FLCBDF
     #stepController = FLCBDF_controller
-    stepController  = Min_dt_cfl_controller
-    time_tol = 10.0*vof_nl_atol_res
+    stepController  = StepControl.Min_dt_cfl_controller
+    time_tol = 10.0*ct.vof_nl_atol_res
     atol_u = {0:time_tol}
     rtol_u = {0:time_tol}
 else:
-    timeIntegration = BackwardEuler_cfl
-    stepController  = Min_dt_cfl_controller
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
+    stepController  = StepControl.Min_dt_cfl_controller
 
-femSpaces = {0:basis}
+femSpaces = {0:ct.basis}
 
 massLumping       = False
 numericalFluxType = VOF.NumericalFlux
 conservativeFlux  = None
-subgridError      = VOF.SubgridError(coefficients=coefficients,nd=nd)
-shockCapturing    = VOF.ShockCapturing(coefficients,nd,shockCapturingFactor=vof_shockCapturingFactor,lag=vof_lag_shockCapturing)
+subgridError      = VOF.SubgridError(coefficients=physics.coefficients,
+                                     nd=ct.domain.nd)
+shockCapturing    = VOF.ShockCapturing(coefficients=physics.coefficients,
+                                       nd=ct.domain.nd,
+                                       shockCapturingFactor=ct.vof_shockCapturingFactor,
+                                       lag=ct.vof_lag_shockCapturing)
 
 fullNewtonFlag = True
-multilevelNonlinearSolver = Newton
-levelNonlinearSolver      = Newton
+multilevelNonlinearSolver = NonlinearSolvers.Newton
+levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
 linearSmoother    = None
 
-matrix = SparseMatrix
+matrix = LinearAlgebraTools.SparseMatrix
 
-if useOldPETSc:
-    multilevelLinearSolver = PETSc
-    levelLinearSolver      = PETSc
+if ct.useOldPETSc:
+    multilevelLinearSolver = LinearSolvers.PETSc
+    levelLinearSolver      = LinearSolvers.PETSc
 else:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
+    multilevelLinearSolver = LinearSolvers.KSP_petsc4py
+    levelLinearSolver      = LinearSolvers.KSP_petsc4py
 
-if useSuperlu:
-    multilevelLinearSolver = LU
-    levelLinearSolver      = LU
-
+if ct.useSuperlu:
+    multilevelLinearSolver = LinearSolvers.LU
+    levelLinearSolver      = LinearSolvers.LU
 linear_solver_options_prefix = 'vof_'
 levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest         = 'r-true'
 
 tolFac      = 0.0
 linTolFac   = 0.0
-l_atol_res = 0.001*vof_nl_atol_res
-nl_atol_res = vof_nl_atol_res
+l_atol_res = 0.001*ct.vof_nl_atol_res
+nl_atol_res = ct.vof_nl_atol_res
 useEisenstatWalker = True
 
 maxNonlinearIts = 50
 maxLineSearches = 0
+
+auxiliaryVariables = ct.domain.auxiliaryVariables['vof']

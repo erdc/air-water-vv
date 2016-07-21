@@ -1,32 +1,45 @@
-from proteus import *
-from kappa_p import *
+from proteus.default_n import *
+from proteus import (StepControl,
+                     TimeIntegration,
+                     NonlinearSolvers,
+                     LinearSolvers,
+                     LinearAlgebraTools)
+from proteus.mprans import Kappa
+import kappa_p as physics
+from proteus import Context
+ct = Context.get()
+nd = ct.domain.nd
 
-timeIntegration = BackwardEuler_cfl
-stepController  = Min_dt_cfl_controller
+timeIntegration = TimeIntegration.BackwardEuler_cfl
+stepController = StepControl.Min_dt_controller
 
-femSpaces = {0:basis}
+femSpaces = {0:ct.basis}
 
 massLumping       = False
 numericalFluxType = Kappa.NumericalFlux
 conservativeFlux  = None
-subgridError      = Kappa.SubgridError(coefficients=coefficients,nd=nd)
-shockCapturing    = Kappa.ShockCapturing(coefficients,nd,shockCapturingFactor=kappa_shockCapturingFactor,
-                                         lag=kappa_lag_shockCapturing)
+subgridError      = Kappa.SubgridError(coefficients=physics.coefficients,
+                                       nd=nd)
+shockCapturing    = Kappa.ShockCapturing(coefficients=physics.coefficients,
+                                         nd=nd,
+                                         shockCapturingFactor=ct.kappa_shockCapturingFactor,
+                                         lag=ct.kappa_lag_shockCapturing)
 
 fullNewtonFlag  = True
-multilevelNonlinearSolver = Newton
-levelNonlinearSolver      = Newton
+multilevelNonlinearSolver = NonlinearSolvers.Newton
+levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
 linearSmoother    = None
 #printNonlinearSolverInfo = True
-matrix = SparseMatrix
-if not useOldPETSc and not useSuperlu:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
+matrix = LinearAlgebraTools.SparseMatrix
+
+if not ct.useOldPETSc and not ct.useSuperlu:
+    multilevelLinearSolver = LinearSolvers.KSP_petsc4py
+    levelLinearSolver      = LinearSolvers.KSP_petsc4py
 else:
-    multilevelLinearSolver = LU
-    levelLinearSolver      = LU
+    multilevelLinearSolver = LinearSolvers.LU
+    levelLinearSolver      = LinearSolvers.LU
 
 linear_solver_options_prefix = 'kappa_'
 levelNonlinearSolverConvergenceTest = 'r'#'rits'
@@ -34,10 +47,11 @@ linearSolverConvergenceTest         = 'r'#'rits'
 
 tolFac = 0.0
 linTolFac =0.0
-l_atol_res = 0.001*kappa_nl_atol_res
-nl_atol_res = kappa_nl_atol_res
+l_atol_res = 0.001*ct.kappa_nl_atol_res
+nl_atol_res = ct.kappa_nl_atol_res
 useEisenstatWalker = True
 
 maxNonlinearIts = 50
 maxLineSearches = 0
 
+auxiliaryVariables = ct.domain.auxiliaryVariables['kappa']

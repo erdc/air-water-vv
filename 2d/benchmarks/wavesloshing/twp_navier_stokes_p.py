@@ -1,96 +1,74 @@
-from math import *
-from proteus import *
 from proteus.default_p import *
-from wavesloshing_laminar_unstruct_coarse import *
 from proteus.mprans import RANS2P
+import numpy as np
+from math import cos
+from proteus import Context
+
+ct = Context.get()
+domain = ct.domain
+nd = domain.nd
+mesh = domain.MeshOptions
 
 LevelModelType = RANS2P.LevelModel
-if useOnlyVF:
+if ct.useOnlyVF:
     LS_model = None
 else:
     LS_model = 2
-if useRANS >= 1:
-    Closure_0_model = 5; Closure_1_model=6
-    if useOnlyVF:
-        Closure_0_model=2; Closure_1_model=3
+if ct.useRANS >= 1:
+    Closure_0_model = 5
+    Closure_1_model = 6
+    if ct.useOnlyVF:
+        Closure_0_model=2
+        Closure_1_model = 3
 else:
     Closure_0_model = None
     Closure_1_model = None
         
-coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
+coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
-                                   rho_0 = rho_0,
-                                   nu_0 = nu_0,
-                                   rho_1 = rho_1,
-                                   nu_1 = nu_1,
-                                   g=g,
+                                   rho_0=ct.rho_0,
+                                   nu_0=ct.nu_0,
+                                   rho_1=ct.rho_1,
+                                   nu_1=ct.nu_1,
+                                   g=ct.g,
                                    nd=nd,
-                                   VF_model=1,
-                                   LS_model=LS_model,
+                                   ME_model=int(ct.movingDomain)+0,
+                                   VF_model=int(ct.movingDomain)+1,
+                                   LS_model=int(ct.movingDomain)+LS_model,
                                    Closure_0_model=Closure_0_model,
                                    Closure_1_model=Closure_1_model,
-                                   epsFact_density=epsFact_density,
+                                   epsFact_density=ct.epsFact_density,
                                    stokes=False,
-                                   useVF=useVF,
-				   useRBLES=useRBLES,
-				   useMetrics=useMetrics,
+                                   useVF=ct.useVF,
+                                   useRBLES=ct.useRBLES,
+                                   useMetrics=ct.useMetrics,
                                    eb_adjoint_sigma=1.0,
-                                   forceStrongDirichlet=ns_forceStrongDirichlet,
-                                   turbulenceClosureModel=ns_closure)
+                                   eb_penalty_constant=ct.weak_bc_penalty_constant,
+                                   forceStrongDirichlet=ct.ns_forceStrongDirichlet,
+                                   turbulenceClosureModel=ct.ns_closure,
+                                   movingDomain=ct.movingDomain)
 
-def getDBC_p(x,flag):
-    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
-        return lambda x,t: 0.0
-    
-def getDBC_u(x,flag):
-    #return None
-    if flag == boundaryTags['top']:# or x[1] >= L[1] - 1.0e-12:
-        return lambda x,t: 0.0
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
+                       1: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
+                       2: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()}
 
-def getDBC_v(x,flag):
-    return None
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].p_advective.init_cython(),
+                                   1: lambda x, flag: domain.bc[flag].u_advective.init_cython(),
+                                   2: lambda x, flag: domain.bc[flag].v_advective.init_cython()}
 
-dirichletConditions = {0:getDBC_p,
-                       1:getDBC_u,
-                       2:getDBC_v}
-
-def getAFBC_p(x,flag):
-    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
-        return lambda x,t: 0.0
-
-def getAFBC_u(x,flag):
-    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
-        return lambda x,t: 0.0
-
-def getAFBC_v(x,flag):
-    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
-        return lambda x,t: 0.0
-
-def getDFBC_u(x,flag):
-    #return lambda x,t: 0.0
-    if flag != boundaryTags['top']:# or x[1] < L[1] - 1.0e-12:
-        return lambda x,t: 0.0
-    
-def getDFBC_v(x,flag):
-    return lambda x,t: 0.0
-
-advectiveFluxBoundaryConditions =  {0:getAFBC_p,
-                                    1:getAFBC_u,
-                                    2:getAFBC_v}
-
-diffusiveFluxBoundaryConditions = {0:{},
-                                   1:{1:getDFBC_u},
-                                   2:{2:getDFBC_v}}
+diffusiveFluxBoundaryConditions = {0: {},
+                                   1: {1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
+                                   2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}}
 
 class PerturbedSurface_p:
     def __init__(self,waterdepth,amplitude):
         self.waterdepth=waterdepth
         self.amplitude=amplitude
     def uOfXT(self,x,t):
-        if signedDistance(x) < 0:
-            return -(L[1] - self.waterdepth - self.amplitude * math.cos(x[0]))*rho_1*g[1] - (self.waterdepth + self.amplitude * math.cos(x[0]) - x[1])*rho_0*g[1]
+        if ct.signedDistance(x) < 0:
+            return -(L[1] - self.waterdepth - self.amplitude * cos(x[0]))*ct.rho_1*ct.g[1] - (self.waterdepth + self.amplitude * cos(x[0]) - x[1])*ct.rho_0*ct.g[1]
         else:
-            return -(L[1] - x[1])*rho_1*g[1]
+            return -(L[1] - x[1])*ct.rho_1*ct.g[1]
 
 class AtRest:
     def __init__(self):
@@ -98,6 +76,6 @@ class AtRest:
     def uOfXT(self,x,t):
         return 0.0
 
-initialConditions = {0:PerturbedSurface_p(h,A),
+initialConditions = {0:PerturbedSurface_p(h,A), #[temp] from main we need depth and amplitude
                      1:AtRest(),
                      2:AtRest()}

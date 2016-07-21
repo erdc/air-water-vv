@@ -27,7 +27,7 @@ elif ct.timeDiscretization=='flcbdf':
     atol_u = {0:time_tol}
     rtol_u = {0:time_tol}
 else:
-    timeIntegration = TimeIntgration.BackwardEuler_cfl
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
     stepController  = StepControl.Min_dt_cfl_controller
 
 # mesh options
