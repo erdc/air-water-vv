@@ -28,8 +28,6 @@ elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 femSpaces = {0: ct.basis}
-elementQuadrature = ct.elementQuadrature
-elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 massLumping       = False
 numericalFluxType = NumericalFlux.DoNothing

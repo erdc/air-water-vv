@@ -4,7 +4,8 @@ from proteus import (StepControl,
                      LinearSolvers,
                      LinearAlgebraTools)
 from proteus.default_n import *
-from twp_navier_stokes_p import *
+import twp_navier_stokes_p as physics
+from proteus.mprans import RANS2P
 from proteus import Context
 
 ct = Context.get()
@@ -15,19 +16,19 @@ mesh = domain.MeshOptions
 #time stepping
 runCFL = ct.runCFL
 if ct.timeDiscretization=='vbdf':
-    timeIntegration = VBDF
+    timeIntegration = TimeIntegration.VBDF
     timeOrder=2
-    stepController  = Min_dt_cfl_controller
+    stepController  = StepControl.Min_dt_cfl_controller
 elif ct.timeDiscretization=='flcbdf':
-    timeIntegration = FLCBDF
+    timeIntegration = TimeIntegration.FLCBDF
     #stepController = FLCBDF_controller_sys
-    stepController  = Min_dt_cfl_controller
+    stepController  = StepControl.Min_dt_cfl_controller
     time_tol = 10.0*ct.ns_nl_atol_res
     atol_u = {1:time_tol,2:time_tol}
     rtol_u = {1:time_tol,2:time_tol}
 else:
-    timeIntegration = BackwardEuler_cfl
-    stepController  = Min_dt_cfl_controller
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
+    stepController  = StepControl.Min_dt_cfl_controller
 
 # mesh options
 nLevels = ct.nLevels
@@ -44,15 +45,13 @@ femSpaces = {0:ct.basis,
              2:ct.basis}
 
 massLumping       = False
-numericalFluxType = None
-conservativeFlux  = None
 
 numericalFluxType = RANS2P.NumericalFlux
-subgridError = RANS2P.SubgridError(coefficients=coefficients,
+subgridError = RANS2P.SubgridError(coefficients=physics.coefficients,
                                    nd=nd,
                                    lag=ct.ns_lag_subgridError,
                                    hFactor=ct.hFactor)
-shockCapturing = RANS2P.ShockCapturing(coefficients=coefficients,
+shockCapturing = RANS2P.ShockCapturing(coefficients=physics.coefficients,
                                        nd=nd,
                                        shockCapturingFactor=ct.ns_shockCapturingFactor,
                                        lag=ct.ns_lag_shockCapturing)
@@ -62,7 +61,7 @@ multilevelNonlinearSolver = NonlinearSolvers.Newton
 levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
-linearSmoother    = SimpleNavierStokes2D
+linearSmoother    = LinearSolvers.SimpleNavierStokes2D
 
 matrix = LinearAlgebraTools.SparseMatrix
 

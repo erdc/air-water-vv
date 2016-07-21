@@ -14,19 +14,19 @@ nd = ct.domain.nd
 mesh = domain.MeshOptions
 
 if ct.timeDiscretization=='vbdf':
-    timeIntegration = VBDF
+    timeIntegration = TimeIntegration.VBDF
     timeOrder=2
-    stepController  = Min_dt_cfl_controller
+    stepController  = StepControl.Min_dt_cfl_controller
 elif ct.timeDiscretization=='flcbdf':
-    timeIntegration = FLCBDF
+    timeIntegration = TimeIntegration.FLCBDF
     #stepController = FLCBDF_controller
-    stepController  = Min_dt_cfl_controller
+    stepController  = StepControl.Min_dt_cfl_controller
     time_tol = 10.0*ct.ls_nl_atol_res
     atol_u = {0:time_tol}
     rtol_u = {0:time_tol}
 else:
-    timeIntegration = BackwardEuler_cfl
-    stepController  = Min_dt_cfl_controller
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
+    stepController  = StepControl.Min_dt_cfl_controller
 
 # time stepping
 runCFL = ct.runCFL
