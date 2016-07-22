@@ -144,12 +144,12 @@ domain = Domain.PlanarStraightLineGraphDomain()
 #     nnx=4*Refinement+1
 #     nny=2*Refinement+1
 #     hex=True
-#     domain = Domain.RectangularDomain(L)
+#     domain = Domain.RectangularDomain(tank_dim)
 # else:
 #     if structured:
 #         nnx=4*Refinement
 #         nny=2*Refinement
-#         domain = Domain.RectangularDomain(L)
+#         domain = Domain.RectangularDomain(tank_dim)
 #         boundaryTags = domain.boundaryTags
 
 # ----- TANK ----- #
