@@ -165,6 +165,9 @@ tank = Tank2D(domain, tank_dim)
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
+tank.BC['y-'].setFreeSlip()
+tank.BC['x+'].setFreeSlip()
+tank.BC['x-'].setFreeSlip()
 
 # ----- MESH CONSTRUCTION ----- #
 
