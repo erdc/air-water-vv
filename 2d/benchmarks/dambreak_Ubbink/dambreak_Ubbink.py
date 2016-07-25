@@ -15,7 +15,7 @@ from proteus.mprans.SpatialTools import Tank2D
 opts=Context.Options([
     # predefined test cases
     ("water_level", 0.292, "Height of free surface above bottom"),
-    ("water_width", 1.146, "Width of free surface from x- wall"),
+    ("water_width", 0.146, "Width of free surface from x- wall"),
     # tank
     ("tank_dim", (0.584 , 0.584), "Dimensions of the tank"),
     ("obstacle_dim", (0.024, 0.048),"Dimensions of the obstacle"),
