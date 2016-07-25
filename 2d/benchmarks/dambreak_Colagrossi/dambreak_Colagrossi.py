@@ -31,6 +31,7 @@ opts=Context.Options([
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     # run details
+    ("structured", False, "Use a structured mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
     ("nperiod", 10.,"Number of time steps to save per period"),
     ("parallel", True ,"Run in parallel")])
@@ -138,6 +139,18 @@ nDTout = int(round(T / dt_fixed))
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
+
+# if useHex:
+#     nnx=4*Refinement+1
+#     nny=2*Refinement+1
+#     hex=True
+#     domain = Domain.RectangularDomain(tank_dim)
+# else:
+#     if structured:
+#         nnx=4*Refinement
+#         nny=2*Refinement
+#         domain = Domain.RectangularDomain(tank_dim)
+#         boundaryTags = domain.boundaryTags
 
 # ----- TANK ----- #
 
