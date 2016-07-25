@@ -51,7 +51,6 @@ class ShapeRANS(Shape):
         self.m_dynamic = None
         self.friction = None
         self.tolerance = None
-        self.init_pos = None
         self.grainSize = None
         self.free_x = (1, 1, 1)
         self.free_r = (1, 1, 1)
@@ -103,7 +102,7 @@ class ShapeRANS(Shape):
         self.free_x = np.array(free_x)
         self.free_r = np.array(free_r)
 
-    def setFriction(self, friction, m_static, m_dynamic, tolerance, init_pos, grainSize):
+    def setFriction(self, friction, m_static, m_dynamic, tolerance, grainSize, waveDir):
         """
         Sets constraints on the Shape (for moving bodies)
 
@@ -114,8 +113,24 @@ class ShapeRANS(Shape):
         self.m_static = m_static
         self.m_dynamic = m_dynamic
         self.tolerance = tolerance
-        self.init_pos = init_pos
         self.grainSize = grainSize
+        self.waveDir = waveDir
+
+    def setSprings(self, Kx, Ky, Krot, C, Crot):
+        """
+        Sets a system of uniform springs to model soil's reactions (for moving bodies)
+
+        :param Kx: horizontal stiffness 
+        :param Ky: vertical stiffness 
+        :param Krot: rotational stiffness 
+        :param C: damping parameter
+        :param Crot: rotational damping parameter
+        """        
+        self.Kx = Kx
+        self.Ky = Ky
+        self.Krot = Krot
+        self.C = C
+        self.Crot = Crot
 
     def setMass(self, mass):
         """
@@ -195,7 +210,8 @@ class ShapeRANS(Shape):
                         vel_x=False, vel_y=False, vel_z=False, acc=False,
                         acc_x=False, acc_y=False, acc_z=False, angvel_x=False, angvel_y=False, angvel_z=False,
                         ang_acc_x=False, ang_acc_y=False, ang_acc_z=False,
-                        h1=False, h2=False, l3=False, l4=False, pivot_friction=False, ang_disp=False, Mp=False, rp=False, filename=None):
+                        h1=False, h2=False, h3=False, h4=False, l1=False, l2=False, l3=False, l4=False,
+                        pivot_friction=False, ang_disp=False, Mp=False, rp=False, filename=None):
         """
         values to be recorded in a csv file (for rigid bodies)
         """
@@ -231,7 +247,8 @@ class ShapeRANS(Shape):
                                  'Mz', 'inertia', 'vel_x', 'vel_y', 'vel_z',
                                  'acc_x', 'acc_y', 'acc_z', 'angvel_x', 'angvel_y', 'angvel_z',
                                  'ang_acc_x', 'ang_acc_y', 'ang_acc_z',
-                                 'h1', 'h2', 'l3', 'l4', 'pivot_friction', 'ang_disp', 'Mp', 'rp']
+                                 'h1', 'h2', 'h3', 'h4', 'l1', 'l2', 'l3', 'l4',
+                                 'pivot_friction', 'ang_disp', 'Mp', 'rp']
         self.record_names = list(compress(self.record_names, self.record_bool))
         if filename is None:
             self.record_filename = 'record_' + self.name + '.csv'
@@ -998,25 +1015,118 @@ class RigidBody(AuxiliaryVariables.AV_base):
         self.barycenter = np.zeros(3)
         self.i_start = None  # will be retrieved from setValues() of Domain
         self.i_end = None  # will be retrieved from setValues() of Domain
+
+        # added new variables for sliding and overturning modules
         self.m_static = self.Shape.m_static
         self.m_dynamic = self.Shape.m_dynamic
         self.friction = self.Shape.friction
         self.tolerance = self.Shape.tolerance
-        self.init_pos = self.Shape.init_pos
         self.grainSize = self.Shape.grainSize
         self.ang_disp = np.array([0., 0., 0.])
         self.inertia = None
+        self.waveDir = self.Shape.waveDir
 
-    def step(self, dt):
+    def soil_force(self, reaction): 
+        """
+        Calculate force reactions offered  by soil foundation (springs model).
+
+        Parameters
+        ----------
+        reaction : Reaction flag.
+            fx = Horizontal force is returned.
+            fy = Vertical force is returned.
+        """ 
+        # spring
+        Lcais, Hcais = self.Shape.dim
+        Kx = self.Shape.Ky        # Pa
+        Ky = self.Shape.Ky        # Pa
+        Krot = self.Shape.Krot    # N
+        C = self.Shape.C          # Pa s
+        Crot = self.Shape.Crot 
+        l_caisson = Lcais * 0.5
+        pos_x, pos_y, pos_z = self.last_position
+
+      ### Horizontal reaction
+        dx = (pos_x-self.init_barycenter[0])/self.init_barycenter[0]
+        fsx = -Kx*dx*Lcais                 # spring
+        fdx = -C*self.velocity[0]          # damper
+        fx = fsx + fdx
+
+      ### Vertical reaction
+        dy = (pos_y-self.init_barycenter[1])/self.init_barycenter[1]
+        fsy = -Ky*dy*Lcais                 # spring
+        fdy = -10*C*self.velocity[1]       # damper
+        fy = fsy + fdy
+              
+        if reaction == 'fx':
+            return fx  
+        elif reaction == 'fy':
+            return fy
+
+
+    def soil_moment(self, h): 
+        """
+        Calculate moment reactions offered  by soil foundation (springs model).
+
+        Parameters
+        ----------
+        h : Caisson's vertex flag.
+            The choice is between vertices at the bottom layer in contact with the soil foundation.
+            It's used to check position of the caisson and spring deformation.
+            h = 0 represents body in unrotated position.
+            h = 1 represents body in rotated position, vertex_1 inside porous medium, positive rotation.
+            h = 2 represents body in rotated position, vertex_2 inside porous medium, negative rotation.
+        """ 
+        # spring
+        Lcais, Hcais = self.Shape.dim
+        Kx = self.Shape.Ky        # Pa
+        Ky = self.Shape.Ky        # Pa
+        Krot = self.Shape.Krot    # N
+        C = self.Shape.C          # Pa s
+        Crot = self.Shape.Crot 
+        l_caisson = Lcais * 0.5
+        pos_x, pos_y, pos_z = self.last_position
+
+      ### Rotational reaction 
+        if Krot != 0.0:
+            msz = -Krot*self.ang_disp[2]    # spring
+        else:             
+        # ------ left side
+            Def1 = (self.last_h1-self.init_h1)/self.init_h1 # non-dimensional
+            Fspr1 = -Ky*Def1*l_caisson/2. # semplified version, using costant Ky, formula is for the triangle area
+            lever_arm1 = -l_caisson*2./3. 
+            Mspr1 = Fspr1*lever_arm1
+        # ------ right side
+            Def2 = (self.last_h2-self.init_h2)/self.init_h2 # non-dimensional
+            Fspr2 = -Ky*Def2*l_caisson/2. # semplified version, using costant Ky, formula is for the triangle area   
+            lever_arm2 = l_caisson*2./3. 
+            Mspr2 = Fspr2*lever_arm2      
+            # ----- springs total moment 
+            if h == 0:
+                Mspr1 = 0.0
+                Mspr2 = 0.0 
+            elif h == 1:
+                Mspr2 = 0.0
+            elif h == 2:
+                Mspr1 = 0.0 
+            msz = Mspr1 + Mspr2             # spring
+        mdz = -Crot*self.angvel[2]          # damper
+        mz = msz + mdz
+              
+        return mz
+            
+
+    def friction_module(self,dt):  
+        """
+        Calculate sliding motion modelling frictional force.
+
+        Parameters
+        ----------
+        dt : Time step.
+        """   
         nd = self.Shape.Domain.nd
-        # substeps for smoother motion between timesteps
-        self.ang_disp = np.array([0., 0., 0.])
         substeps = 20
-        dt_sub = dt/float(substeps)
-        self.h[:] = np.zeros(3)
-
-################################################################################################################################################################################################################################
-
+        dt_sub = dt/float(substeps)   
         # movement_functions for friction test cases
         Fx, Fy, Fz = self.F
         eps = 0.000000000000000001 # to avoid 0/0
@@ -1036,7 +1146,15 @@ class RigidBody(AuxiliaryVariables.AV_base):
         def static_case(self, sign, Fx, Fv, mass, m):
             """
             Set a static friction.
-            :param m : static friction factor
+
+            Parameters
+            ----------
+            sign : It's function of horizontal force.
+                It's used to calculate frictional force.
+            Fx : Total horizontal force from rigid body calculation (wave loading).
+            Fy : Total vertical force from rigid body calculation (wave loading + weight of the body).    
+            mass : Mass of the rigid body. 
+            m : static friction factor.
             """
             Ftan = -sign*m*abs(Fv)
             self.Ftan = Ftan
@@ -1045,7 +1163,8 @@ class RigidBody(AuxiliaryVariables.AV_base):
                 self.velocity = np.zeros(3)
                 self.h[:] = np.zeros(3)
             else:
-                Fh = Fx+Ftan
+                fs = self.soil_force(reaction='fx')
+                Fh = Fx+Ftan+fs
                 self.acceleration[0] = Fh/mass
                 self.acceleration[1] = 0.0
                 self.acceleration[2] = 0.0
@@ -1058,11 +1177,20 @@ class RigidBody(AuxiliaryVariables.AV_base):
         def dynamic_case(self, sign, Fx, Fv, mass, m):
             """
             Set a dynamic friction.
-            :param m : dynamic friction factor
+
+            Parameters
+            ----------
+            sign : It's function of horizontal force.
+                It's used to calculate frictional force.
+            Fx : Total horizontal force from rigid body calculation (wave loading).
+            Fy : Total vertical force from rigid body calculation (wave loading + weight of the body).   
+            mass : Mass of the rigid body.
+            m : dynamic friction factor.
             """
             Ftan = -sign*m*abs(Fv)
             self.Ftan = Ftan
-            Fh = Fx+Ftan
+            fs = self.soil_force(reaction='fx')
+            Fh = Fx+Ftan+fs
             self.acceleration[0] = Fh/mass
             self.acceleration[1] = 0.0
             self.acceleration[2] = 0.0
@@ -1076,24 +1204,79 @@ class RigidBody(AuxiliaryVariables.AV_base):
                 last_velCheck=self.last_velocity[0]
                 if (last_velCheck*velCheck) < 0.0:
                     self.fromDynamic_toStatic = True
-                    break
+                    break   
+ 
+        #--------------------------------------------------------------- 
+
+        if (Fv*gv)>0:
+        #--- Friction module, static case
+            if self.last_velocity[0] == 0.0 or self.last_fromDynamic_toStatic ==True:
+                static_case(self, sign_static, Fx, Fv, mass, m=self.m_static)
+        #--- Friction module, dynamic case
+            else :
+                dynamic_case(self, sign_dynamic, Fx, Fv, mass, m=self.m_dynamic)
+
+        if (Fv*gv)<0:
+        #--- Floating module, static case
+            if self.last_velocity[0] == 0.0 or self.last_fromDynamic_toStatic ==True:
+                static_case(self, sign_static, Fx, Fv, mass, m=0.0)
+        #--- Floating module, dynamic case
+            else :
+                dynamic_case(self, sign_dynamic, Fx, Fv, mass, m=0.0)    
+
+
+
+
+    def overturning_module(self,dt):
+        """
+        Calculate overturning motion modelling soil foundation reactions.
+
+        Parameters
+        ----------
+        dt : Time step.
+        """  
+        nd = self.Shape.Domain.nd
+        substeps = 20
+        dt_sub = dt/float(substeps)
 
         #---------------------------------------------------------------
-        def overturning_static_case(self, floating):
+        def calculate_rotation(self, floating, h):
+            """
+            Calculate rotation.
+
+            Parameters
+            ----------
+            floating : enable floating body calculation with NO restrictions offered by friction or springs.
+            h : Caisson's vertex flag.
+                The choice is between vertices at the bottom layer in contact with the soil foundation.
+                It's used to check position of the caisson and spring deformation.
+                h = 0 represents body in unrotated position.
+                h = 1 represents body in rotated position, vertex_1 inside porous medium, positive rotation.
+                h = 2 represents body in rotated position, vertex_2 inside porous medium, negative rotation.            
+            """  
             if floating == True:
                 self.pivot_friction = self.Shape.barycenter
-            else:
-                if self.F[0] > 0:
-                    self.pivot_friction = np.array((self.Shape.vertices[1][0], self.Shape.vertices[1][1], 0.0), dtype=float) #h2
-                else:
-                    self.pivot_friction = np.array((self.Shape.vertices[0][0], self.Shape.vertices[0][1], 0.0), dtype=float) #h1
+            else: # medium point in the bottom of the caisson between vertex1 and vertex2
+                self.pivot_friction = np.array((0.5*(self.Shape.vertices[0][0]+self.Shape.vertices[1][0]), 0.5*(self.Shape.vertices[0][1]+self.Shape.vertices[1][1]), 0.0), dtype=float)
+
             # angular acceleration from moment
             self.rp = (self.pivot_friction-self.Shape.Domain.barycenters[1])
             rpx, rpy, rpz = self.rp
             Fx, Fy, Fz = self.F
-            Mpivot = np.array([(rpy*Fz-rpz*Fy), -(rpx*Fz-rpz*Fx), (rpx*Fy-rpy*Fx)])
-            self.Mp = self.M - Mpivot
-            self.inertia = self.Shape.getInertia(self.M, self.pivot_friction)
+            Mpivot = np.array([(rpy*Fz-rpz*Fy), -(rpx*Fz-rpz*Fx), (rpx*Fy-rpy*Fx)]) # moment calculated in pivot
+            Mp = self.M - Mpivot                                                    # moment transformation
+
+            if floating == True:
+                Mspring = np.array([0.0,  0.0,  0.0])        
+            else:    
+                mz = self.soil_moment(h=h)
+                Mspring = np.array([0.0,  0.0, mz])
+
+            # ----- total moment 
+            self.Mp = Mp + Mspring
+
+            # angular acceleration
+            self.inertia = self.Shape.getInertia(self.Mp, self.pivot_friction)
             assert self.inertia != 0, 'Zero inertia: inertia tensor (It)' \
                                       'was not set correctly!'
             self.ang_acc = self.Mp[:]/self.inertia
@@ -1102,93 +1285,63 @@ class RigidBody(AuxiliaryVariables.AV_base):
             for i in range(substeps):
                 self.angvel += self.ang_acc*dt_sub
                 self.ang_disp += self.ang_acc*dt_sub*dt_sub
-
         #---------------------------------------------------------------
-        def overturning_dynamic_case(self, h_used):
-            """
-            Set a dynamic friction.
-            :param h_used : which pinot is used, 1 or 2
-            """
-            self.pivot_friction = np.array((0.5*(self.Shape.vertices[0][0]+self.Shape.vertices[1][0]), 0.5*(self.Shape.vertices[0][1]+self.Shape.vertices[1][1]), 0.0), dtype=float)
-            # angular acceleration from moment
-            self.rp = (self.pivot_friction-self.Shape.Domain.barycenters[1])
-            rpx, rpy, rpz = self.rp
-            Fx, Fy, Fz = self.F
-            Mpivot = np.array([(rpy*Fz-rpz*Fy), -(rpx*Fz-rpz*Fx), (rpx*Fy-rpy*Fx)])
-            self.Mp = self.M - Mpivot
-            self.inertia = self.Shape.getInertia(self.M, self.pivot_friction)
-            assert self.inertia != 0, 'Zero inertia: inertia tensor (It)' \
-                                      'was not set correctly!'
-            self.ang_acc = self.Mp[:]/self.inertia
-            # rotation
-            self.ang_disp = np.array([0., 0., 0.])
-            for i in range(substeps):
-                self.angvel += self.ang_acc*dt_sub
-                self.ang_disp += self.ang_acc*dt_sub*dt_sub
+
+        # Check position and then call calculate rotation
+        # h1 and h2 in the same horizontal line, flat
+        if abs(self.last_h1-self.last_h2) < self.tolerance: 
+
+            # caisson inside rubble mound
+            if self.last_h1 < self.init_h1:
+                transl_x = 0.0
+                transl_y = self.init_h1 - self.last_h1
+                transl_z = 0.0
+                transl = (transl_x, transl_y)
+                self.Shape.translate(transl)                    
+                calculate_rotation(self, floating=False, h=0)     # ----> caisson under the rubble mound: I move it again on the mound!!!
+
+            # caisson on the rubble mound (still in contact)
+            elif self.last_h1 == self.init_h1 or (self.last_h1 - self.init_h1) < self.grainSize:
+                calculate_rotation(self, floating=False, h=0)     # ----> caisson on the rubble mound: I calculate normally rotation 
+
+            # floating caisson (no contact)
+            else:
+                calculate_rotation(self, floating=True, h=0)     # ----> caisson up the rubble mound: FLOATING CASE I calculate normally rotation on barycenter!!!
 
 
-################################################################################################################################################################################################################################
-
-        # movement_check for friction test cases
-
-        if self.friction == True:
-
-######### Friction module
-            if (Fv*gv)>0:
-        #---static case
-                if self.last_velocity[0] == 0.0 or self.last_fromDynamic_toStatic ==True:
-                    static_case(self, sign_static, Fx, Fv, mass, m=self.m_static)
-        #---dynamic case
-                else :
-                    dynamic_case(self, sign_dynamic, Fx, Fv, mass, m=self.m_dynamic)
-
-######### Floating module
-            if (Fv*gv)<0:
-        #---static case
-                if self.last_velocity[0] == 0.0 or self.last_fromDynamic_toStatic ==True:
-                    static_case(self, sign_static, Fx, Fv, mass, m=0.0)
-        #---dynamic case
-                else :
-                    dynamic_case(self, sign_dynamic, Fx, Fv, mass, m=0.0)
-
-######### Overturning module
-            if sum(self.M) != 0:
-                if abs(self.last_h1-self.last_h2) < self.tolerance: ########### 1st_case: h1 and h2 in the same horizontal line ###################################################
-                    # check and correction of vertical position
-                    if self.last_h1 < self.init_pos:
-                        transl_x = 0.0
-                        transl_y = self.init_pos - self.last_h1
-                        transl_z = 0.0
-                        transl = (transl_x, transl_y)
-                        self.Shape.translate(transl)
-                    # calculate of rotation
-                        overturning_static_case(self, floating=False)    # ----> caisson under the rubble mound: I move it again on the mound!!!
-                    elif self.last_h1 == self.init_pos or (self.last_h1 - self.init_pos) < self.grainSize:
-                    # calculate of rotation
-                        overturning_static_case(self, floating=False)    # ----> caisson on the rubble mound: I calculate normally rotation on h1 or h2!!!
-                    else:
-                    # calculate of rotation
-                        overturning_static_case(self, floating=True)     # ----> caisson up the rubble mound: FLOATING CASE I calculate normally rotation on barycenter!!!
+        # h1 and h2 NOT in a horizontal line, NOT flat                    
+        else:
+            if self.last_h2 < self.last_h1:
+                if self.last_h2 == self.init_h2 or (self.last_h2 - self.init_h2) < self.grainSize:
+                    calculate_rotation(self, floating=False, h=2)        # ----> caisson on the rubble mound: I calculate normally rotation 
                 else:
-                    if self.last_h1 > self.last_h2: ########################## 2nd_case: h1 > h2 #################################################################################
-                        if self.last_h2 == self.init_pos or (self.last_h2 - self.init_pos) < self.grainSize:
-                        # calculate of rotation
-                            overturning_dynamic_case(self, h_used=2)         # ----> caisson on the rubble mound: I calculate normally rotation on h2!!!
-                        else:
-                        # calculate of rotation
-                            overturning_static_case(self, floating=True)     # ----> caisson up the rubble mound: FLOATING CASE I calculate normally rotation on barycenter!!!
+                    calculate_rotation(self, floating=True, h=0)     # ----> caisson up the rubble mound: FLOATING CASE I calculate normally rotation on barycenter!!!
 
-                    if self.last_h1 < self.last_h2: ########################## 3rd_case: h1 < h2 #################################################################################
-                        if self.last_h1 == self.init_pos or (self.last_h1 - self.init_pos) < self.grainSize:
-                        # calculate of rotation
-                            overturning_dynamic_case(self, h_used=1)         # ----> caisson on the rubble mound: I calculate normally rotation on h1!!!
-                        else:
-                        # calculate of rotation
-                            overturning_static_case(self, floating=True)     # ----> caisson up the rubble mound: FLOATING CASE I calculate normally rotation on barycenter!!!
+            elif self.last_h1 < self.last_h2:
+                if self.last_h1 == self.init_h1 or (self.last_h1 - self.init_h1) < self.grainSize:
+                    calculate_rotation(self, floating=False, h=1)        # ----> caisson on the rubble mound: I calculate normally rotation
+                else:
+                    calculate_rotation(self, floating=True, h=0)     # ----> caisson up the rubble mound: FLOATING CASE I calculate normally rotation on barycenter!!!
 
 
-################################################################################################################################################################################################################################
 
+    def step(self, dt):
+        nd = self.Shape.Domain.nd
+        # substeps for smoother motion between timesteps
+        self.ang_disp = np.array([0., 0., 0.])
+        substeps = 20
+        dt_sub = dt/float(substeps)
+        self.h[:] = np.zeros(3)
+
+        # friction module
+        if self.friction == True:
+            self.friction_module(dt)
+
+        # overturning module
+        if sum(self.M) != 0:
+            self.overturning_module(dt)
+
+        
         if self.friction != True:
         # acceleration from force:
             self.acceleration = self.F/self.Shape.mass
@@ -1210,8 +1363,6 @@ class RigidBody(AuxiliaryVariables.AV_base):
                 self.angvel += ang_acc*dt_sub
                 self.ang_disp += self.angvel*dt_sub
 
-################################################################################################################################################################################################################################
-
         # translate
         self.Shape.translate(self.h[:nd])
         # rotate
@@ -1232,31 +1383,21 @@ class RigidBody(AuxiliaryVariables.AV_base):
         self.barycenter[:] = self.Shape.barycenter
         self.position[:] = self.Shape.barycenter
 
-        # update h1 and h2
+        # update vertices for friction and overturning modules
         self.h1 = self.Shape.vertices[0][1]
         self.h2 = self.Shape.vertices[1][1]
+        self.h3 = self.Shape.vertices[2][1]
+        self.h4 = self.Shape.vertices[3][1]
+
+        self.l1 = self.Shape.vertices[0][0]
+        self.l2 = self.Shape.vertices[1][0]
         self.l3 = self.Shape.vertices[2][0]
         self.l4 = self.Shape.vertices[3][0]
 
-        # caisson under the rubble mound: I move it again on the mound
-        if (self.h1 < self.h2 and self.h1 < self.init_pos) or (self.h2 < self.h1 and self.h2 < self.init_pos):
-            ang_back = - atan2(self.Shape.coords_system[0, 1], self.Shape.coords_system[0, 0])
-            self.Shape.rotate(ang_back, self.angvel, self.pivot_friction)
-            self.rotation[:nd, :nd] = self.Shape.coords_system
-            self.rotation_matrix[:] = np.dot(np.linalg.inv(self.last_rotation), self.rotation)
-            # update h1 and h2
-            self.h1 = self.Shape.vertices[0][1]
-            self.h2 = self.Shape.vertices[1][1]
-            self.l3 = self.Shape.vertices[2][0]
-            self.l4 = self.Shape.vertices[3][0]
-            # update barycenter in shape
-            self.barycenter[:] = self.Shape.barycenter
-            self.position[:] = self.Shape.barycenter
 
         if self.Shape.record_values is True:
             self.recordValues()
 
-################################################################################################################################################################################################################################
 
     def recordValues(self):
         t_last = self.model.stepController.t_model_last
@@ -1273,16 +1414,23 @@ class RigidBody(AuxiliaryVariables.AV_base):
         inertia = self.inertia
         vel_x, vel_y, vel_z = self.velocity
         acc_x, acc_y, acc_z = self.acceleration
+
+        # new additions 
         angvel_x, angvel_y, angvel_z = self.angvel
         ang_acc_x, ang_acc_y, ang_acc_z = self.ang_acc
         h1 = self.h1
         h2 = self.h2
+        h3=self.h3
+        h4=self.h4
+        l1 = self.l1
+        l2 = self.l2
         l3=self.l3
         l4=self.l4
         pivot_friction = self.pivot_friction
         ang_disp = self.ang_disp
         Mp = np.sum(self.Mp, axis=0)
         rp = self.rp
+
         if self.Shape.free_r[0] == 0. and self.Shape.free_r[1] == 0. and self.Shape.free_r[2] == 0.:
             values = [time, pos_x, pos_y, pos_z, Fx, Fy, Fz,
                       vel_x, vel_y, vel_z, acc_x, acc_y, acc_z]
@@ -1291,7 +1439,9 @@ class RigidBody(AuxiliaryVariables.AV_base):
                       rot_z, Fx, Fy, Fz, Mx, My, Mz, inertia,
                       vel_x, vel_y, vel_z, acc_x, acc_y, acc_z, angvel_x, angvel_y, angvel_z,
                       ang_acc_x, ang_acc_y, ang_acc_z,
-                      h1, h2, l3, l4, pivot_friction, ang_disp, Mp, rp]
+                      h1, h2, h3, h4, l1, l2, l3, l4, 
+                      pivot_friction, ang_disp, Mp, rp]
+
         values_towrite = list(compress(values, self.Shape.record_bool))
         comm = Comm.get()
         if comm.isMaster():
@@ -1342,6 +1492,8 @@ class RigidBody(AuxiliaryVariables.AV_base):
         self.angvel = np.zeros(3, 'd')
         self.ang_acc = np.zeros(3, 'd')
         self.last_angvel = np.zeros(3, 'd')
+        
+        # new additions
         self.last_ang_acc = np.zeros(3, 'd')
         self.Mp = np.zeros(3, 'd')
         self.last_Mp = np.zeros(3, 'd')
@@ -1360,16 +1512,39 @@ class RigidBody(AuxiliaryVariables.AV_base):
                 with open(self.record_file, 'w') as csvfile:
                     writer = csv.writer(csvfile, delimiter=',')
                     writer.writerow(self.Shape.record_names)
+
+        # new additions
+        self.init_h1 = self.Shape.vertices[0][1]
+        self.init_h2 = self.Shape.vertices[1][1]
+        self.init_h3 = self.Shape.vertices[2][1]
+        self.init_h4 = self.Shape.vertices[3][1]
+        self.init_l1 = self.Shape.vertices[0][0]
+        self.init_l2 = self.Shape.vertices[1][0]
+        self.init_l3 = self.Shape.vertices[2][0]
+        self.init_l4 = self.Shape.vertices[3][0]
+
         self.h1 = self.Shape.vertices[0][1]
         self.h2 = self.Shape.vertices[1][1]
+        self.h3 = self.Shape.vertices[2][1]
+        self.h4 = self.Shape.vertices[3][1]
+        self.l1 = self.Shape.vertices[0][0]
+        self.l2 = self.Shape.vertices[1][0]
         self.l3 = self.Shape.vertices[2][0]
         self.l4 = self.Shape.vertices[3][0]
+
         self.last_h1 = self.h1
         self.last_h2 = self.h2
+        self.last_h3 = self.h3
+        self.last_h4 = self.h4
+        self.last_l1 = self.l1
+        self.last_l2 = self.l2
         self.last_l3 = self.l3
         self.last_l4 = self.l4
+
         self.pivot_friction = np.zeros(3)
         self.last_pivot_friction = np.zeros(3)
+
+        self.init_barycenter = self.Shape.barycenter
 
     def calculate(self):
         """
@@ -1389,6 +1564,10 @@ class RigidBody(AuxiliaryVariables.AV_base):
         self.last_M[:] = self.M
         self.last_h1 = self.h1
         self.last_h2 = self.h2
+        self.last_h3 = self.h3
+        self.last_h4 = self.h4
+        self.last_l1 = self.l1
+        self.last_l2 = self.l2
         self.last_l3 = self.l3
         self.last_l4 = self.l4
         self.last_pivot_friction = self.pivot_friction
