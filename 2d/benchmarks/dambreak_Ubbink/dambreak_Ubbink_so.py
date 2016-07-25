@@ -43,7 +43,7 @@ if ct.useRANS > 0:
                    "kappa_n"))
     pnList.append(("dissipation_p",
                    "dissipation_n"))
-name = "dambreak_Colagrossi_p"
+name = "dambreak_Ubbink_p"
 
 if ct.timeDiscretization == 'flcbdf':
     systemStepControllerType = Sequential_MinFLCBDFModelStep

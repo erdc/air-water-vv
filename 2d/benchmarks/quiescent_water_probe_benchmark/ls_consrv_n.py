@@ -16,9 +16,19 @@ mesh = domain.MeshOptions
 #time stepping
 runCFL = ct.runCFL
 timeIntegrator  = TimeIntegration.ForwardIntegrator
-timeIntegration = StepControl.NoIntegration
+timeIntegration = TimeIntegration.NoIntegration
 
-femSpaces = {0:ct.basis}
+#mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
+femSpaces = {0: ct.basis}
 
 subgridError      = None
 massLumping       = False
