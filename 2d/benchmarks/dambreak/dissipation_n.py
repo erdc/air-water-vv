@@ -33,7 +33,7 @@ shockCapturing = Dissipation.ShockCapturing(coefficients=physics.coefficients,
                                             lag=ct.dissipation_lag_shockCapturing)
 fullNewtonFlag  = True
 multilevelNonlinearSolver = NonlinearSolvers.Newton
-levelNonlinearSolver      = NonLinearSolvers.Newton
+levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
 linearSmoother    = None
