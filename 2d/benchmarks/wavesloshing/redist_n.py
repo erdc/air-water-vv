@@ -14,6 +14,19 @@ domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
 
+# time stepping
+runCFL = ct.runCFL
+
+# mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
 nl_atol_res = ct.rd_nl_atol_res
 tolFac = 0.0
 linTolFac = 0.0

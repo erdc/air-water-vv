@@ -33,7 +33,6 @@ opts=Context.Options([
     ("dt_init", 0.001 ,"Maximum initial time step"),
     # run details
     ("gen_mesh", True ,"Generate new mesh"),
-    ("nperiod", 10.,"Number of time steps to save per period"),
     ("parallel", True ,"Run in parallel")])
 
 

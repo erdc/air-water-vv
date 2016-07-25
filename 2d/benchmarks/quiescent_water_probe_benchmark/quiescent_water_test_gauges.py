@@ -1,9 +1,42 @@
-from math import *
-import proteus.MeshTools
-from proteus import Domain
-from proteus.default_n import *   
+"""
+Quiescent Water Test
+"""
+import numpy as np
+from math import sqrt
+#[temp] remove sqrt if it isn't needed - it's just a temp so we know math is here
+from proteus import (Domain, Context,
+                     FemTools as ft,
+                     #SpatialTools as st,
+                     MeshTools as mt,
+                     WaveTools as wt)
+from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
-from proteus.Gauges import PointGauges
+from proteus.mprans.SpatialTools import Tank2D
+
+opts=Context.Options([
+    # predefined test cases
+    ("water_level", 0.6, "Height of free surface above bottom"),
+    # tank
+    ("tank_dim", (3.22 , 1.8), "Dimensions of the tank"),
+    #gravity
+    ("g",(0,-9.81,0), "Gravity vector"),
+    # probe dx
+    ("dxProbe",0.25, "Probe spacing"),
+    # refinement
+    ("refinement", 40,"Refinement level"),
+    ("cfl", 0.33,"Target cfl"),
+    # run time
+    ("T", 0.01,"Simulation time"),
+    ("dt_fixed", 0.01, "Fixed time step"),
+    ("dt_init", 0.001 ,"Maximum initial time step"),
+    # run details
+    ("gen_mesh", True ,"Generate new mesh"),
+    ("parallel", True ,"Run in parallel")])
+
+
+
+#Todo: ------------------------------------------------------------------------------------------------------------
+
 #  Discretization -- input options  
 Refinement = 40
 genMesh=True

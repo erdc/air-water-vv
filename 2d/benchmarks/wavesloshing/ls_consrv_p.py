@@ -7,6 +7,11 @@ domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
 
+
+genMesh = mesh.genMesh
+movingDomain = ct.movingDomain
+T = ct.T
+
 LevelModelType = MCorr.LevelModel
 
 coefficients = MCorr.Coefficients(LSModel_index=int(ct.movingDomain)+2,

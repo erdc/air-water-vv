@@ -76,6 +76,7 @@ class AtRest:
     def uOfXT(self,x,t):
         return 0.0
 
-initialConditions = {0:PerturbedSurface_p(h,A), #[temp] from main we need depth and amplitude
+initialConditions = {0:PerturbedSurface_p(ct.water_depth,
+                                          ct.water_amplitude), #[temp] from main we need depth and amplitude
                      1:AtRest(),
                      2:AtRest()}

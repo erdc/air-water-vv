@@ -1,3 +1,8 @@
+"""
+Split operator module for the wavesloshing box
+"""
+
+import os
 from proteus.default_so import *
 from proteus import Context
 

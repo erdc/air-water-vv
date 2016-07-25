@@ -13,6 +13,8 @@ domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
 
+#time stepping
+runCFL = ct.runCFL
 if ct.timeDiscretization=='vbdf':
     timeIntegration = TimeIntegration.VBDF
     timeOrder=2
@@ -28,9 +30,19 @@ else:
     timeIntegration = TimeIntegration.BackwardEuler_cfl
     stepController  = StepControl.Min_dt_cfl_controller
 
-femSpaces = {0: ct.basis,
-             1: ct.basis,
-             2: ct.basis}
+# mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
+femSpaces = {0:ct.basis,
+             1:ct.basis,
+             2:ct.basis}
 
 massLumping       = False
 
