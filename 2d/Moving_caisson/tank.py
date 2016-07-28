@@ -13,11 +13,7 @@ opts=Context.Options([
     # Geometry
     ('Lgen', 1.0, 'Genaration zone in terms of wave lengths'),
     ('Labs', 2.0, 'Absorption zone in terms of wave lengths'),
-<<<<<<< HEAD
-    ('Ls', 1.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
-=======
     ('Ls', 2.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
->>>>>>> 2078c049174b4fe26da277d1eb967dd939cda647
     ('Lend', 1.0, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
     # waves
     ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
@@ -34,15 +30,12 @@ opts=Context.Options([
     ('d50', 0.020, "Mean diameter of the medium"),
     ('d15', None, "15% grading curve diameter of the medium"),
     ('Resistance', 'Shih', 'Ergun or Engelund or Shih'),
-<<<<<<< HEAD
-=======
     # soil foundation
     ("Kx", 2.616*(10**5)/0.4, "Horizontal stiffness in Pa"),
     ("Ky", 2.616*(10**5)/0.4, "Vertical stiffness in Pa"),
     ("Krot", 0.0, "Rotational stiffness in N"),
     ("C", 0.0, "Damping factor in Pa s "),
-    ("Crot", 5.288*(5.)/0.4, "Rotational damping factor in N s "),
->>>>>>> 2078c049174b4fe26da277d1eb967dd939cda647
+    ("Crot", 5.288*(10**1)/0.4, "Rotational damping factor in N s "),
     # caisson
     ("caisson", True, "Switch on/off caisson"),
     ('dimx', 0.300, 'X-dimension of the caisson'), 
