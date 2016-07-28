@@ -10,14 +10,13 @@ from proteus import (Domain, Context,
                      WaveTools as wt)
 from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
-from proteus.mprans.SpatialTools import Tank2D
 
 opts=Context.Options([
     # predefined test cases
     ("water_level", 0.292, "Height of free surface above bottom"),
     ("water_width", 0.146, "Width of free surface from x- wall"),
     # tank
-    ("tank_dim", (0.584 , 0.584), "Dimensions of the tank"),
+    ("tank_dim", (0.584, 0.584), "Dimensions of the tank"),
     ("obstacle_dim", (0.024, 0.048),"Dimensions of the obstacle"),
     ("obstacle_x_start", 0.292,"x location of start of obstacle"),
     #gravity 
@@ -145,14 +144,14 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 # ----- TANK ----- #
 
-tank = Tank2D(domain, tank_dim) #[temp] first step is with the old tank setup, just to check the changes
-# tank = TankWithObstacles2D(domain=domain,
-#                            dim=tank_dim,
-#                            ...=[obstacle_x_start, obstacle_x_end],
-#                            ...=[[obstacle_x_start, obstacle_height],
-#                                 [obstacle_x_end, obstacle_height]]
-# )
-
+# tank = st.TankWithObstacles2D(domain=domain,
+#                               dim=tank_dim)
+tank = st.TankWithObstacles2D(domain=domain,
+                              dim=tank_dim,
+                              obstacles=[[[obstacle_x_start, 0],
+                                          [obstacle_x_start, obstacle_height],
+                                          [obstacle_x_end, obstacle_height],
+                                          [obstacle_x_end, 0]]])
 
 # ----- GAUGES ----- #
 #
@@ -171,7 +170,7 @@ tank = Tank2D(domain, tank_dim) #[temp] first step is with the old tank setup, j
 #     activeTime = (0., opts.T),
 #     sampleRate = 0,
 #     fileName = 'lineGauge.csv'
-# ) #[temp] artifacts point towards this being for some twp feature, not the vof points here, but it's unclear which (p,u,v?)
+# ) #[temp] artifacts point towards this being for some twp feature, not the vof points here, but it's unclear which (p?,u?,v?)
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 

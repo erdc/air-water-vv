@@ -7,7 +7,7 @@ placed in the middle of the tank base.  Under the action of gravity
 the water column interacts with the obstacle and collapses to a wall.
 The computational domain is a 2D rectangular box with dimensions
 0.584m x 0.584m.  The top of the domain is left open, when the rest of
-the boundary patches act as no slip walls.  In the following figure, a
+the boundary patches act as free slip walls.  In the following figure, a
 sketch of the dambreak initial conditions is shown.
 
 .. figure:: ./dambreakUbbink.bmp
