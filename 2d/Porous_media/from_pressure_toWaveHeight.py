@@ -63,13 +63,15 @@ time[:] = prdata[:,0]
 # Storing fs elevation
 prdata =prdata[:,1:]
 p = prdata
+p1 = p
+p2 = p1-mean(p)
 H0 = float(raw_input('Enter wave_height : '))
 L = float(raw_input('Enter wave_length : '))
 d = float(raw_input('Enter water_depth (positive number) : '))
 z = float(raw_input('Enter gauge vertical_axis, freesurface 0.0, bottom is -d (negative number) : '))
 k = float(6.28/L)
 kp = cosh(k*(d+z))/cosh(k*d)
-eta = p/998.2/9.81/kp+z/kp
+eta = p2/998.2/9.81/kp #+z/kp
 prdata = eta
 
 #   Start time of analysis

@@ -13,7 +13,11 @@ opts=Context.Options([
     # Geometry
     ('Lgen', 1.0, 'Genaration zone in terms of wave lengths'),
     ('Labs', 2.0, 'Absorption zone in terms of wave lengths'),
+<<<<<<< HEAD
     ('Ls', 1.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
+=======
+    ('Ls', 2.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
+>>>>>>> 2078c049174b4fe26da277d1eb967dd939cda647
     ('Lend', 1.0, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
     # waves
     ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
@@ -30,6 +34,15 @@ opts=Context.Options([
     ('d50', 0.020, "Mean diameter of the medium"),
     ('d15', None, "15% grading curve diameter of the medium"),
     ('Resistance', 'Shih', 'Ergun or Engelund or Shih'),
+<<<<<<< HEAD
+=======
+    # soil foundation
+    ("Kx", 2.616*(10**5)/0.4, "Horizontal stiffness in Pa"),
+    ("Ky", 2.616*(10**5)/0.4, "Vertical stiffness in Pa"),
+    ("Krot", 0.0, "Rotational stiffness in N"),
+    ("C", 0.0, "Damping factor in Pa s "),
+    ("Crot", 5.288*(5.)/0.4, "Rotational damping factor in N s "),
+>>>>>>> 2078c049174b4fe26da277d1eb967dd939cda647
     # caisson
     ("caisson", True, "Switch on/off caisson"),
     ('dimx', 0.300, 'X-dimension of the caisson'), 
@@ -43,8 +56,8 @@ opts=Context.Options([
     ("m_static", 0.500, "Static friction factor between caisson and rubble mound"),
     ("m_dynamic", 0.500, "Dynamic friction factor between caisson and rubble mound"),
     # numerical options
-    ("refinement_level", 100. ,"he=walength/refinement_level"),
-    ("cfl", 0.9 ,"Target cfl"),
+    ("he", 0.02,"he=walength/refinement_level"),
+    ("cfl", 0.450 ,"Target cfl"),
     ("freezeLevelSet", True, "No motion to the levelset"),
     ("useVF", 1.0, "For density and viscosity smoothing"),
     ('movingDomain', True, "Moving domain and mesh option"),
@@ -112,7 +125,7 @@ if opts.waveType=='Fenton':
 #---------Domain Dimension
 
 nd = 2
-he = waveinput.wavelength/opts.refinement_level # MESH SIZE	
+he = opts.he # MESH SIZE	
 
 wl = waveinput.wavelength
 
@@ -246,7 +259,9 @@ if opts.caisson:
    
     caisson2D.setMass(mass)
     caisson2D.setConstraints(free_x=free_x, free_r=free_r)
-    caisson2D.setFriction(friction=opts.friction, m_static=m_static, m_dynamic=m_dynamic, tolerance=he/(float(10**6)), init_pos=caisson2D.vertices[0][1], grainSize=opts.d50)
+    caisson2D.setFriction(friction=opts.friction, m_static=m_static, m_dynamic=m_dynamic,
+                          tolerance=he/(float(10**6)),
+                          grainSize=opts.d50, waveDir=waveDir)
 
     if opts.rotation==True: # Initial position for free oscillation
         caisson2D.rotate(rotation)
@@ -420,6 +435,17 @@ if opts.Resistance=='Engelund':
 dragAlpha=(porosity**2)*Alpha/nu_0
 dragBeta=0.0#(porosity**3)*Beta/nu_0
 
+#----- Spring setup
+
+Kx = opts.Kx
+Ky = opts.Ky
+Krot = opts.Krot
+
+C = opts.C
+Crot = opts.Crot
+
+caisson2D.setSprings(Kx, Ky, Krot, C, Crot)
+
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
@@ -466,10 +492,10 @@ if opts.movingDomain==True:
 
 
 
-tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
-                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
-                        waves=waveinput, windSpeed=windVelocity,
-                        )
+#tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
+#                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+#                        waves=waveinput, windSpeed=windVelocity,
+#                        )
 tank.setPorousZones(flags=3, epsFact_solid=float((x5-x2)/2.),
                     dragAlpha=dragAlpha, dragBeta=dragBeta,
                     porosity=porosity,
@@ -482,7 +508,7 @@ tank.setAbsorptionZones(flags=4, epsFact_solid=float(L_rightSpo/2.),
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
 ############################################################################################################################################################################
-T = 15.*period
+T = 30.*period
 
 gauge_dx=0.25
 probes=np.linspace(0., tank_dim[0], (tank_dim[0]/gauge_dx)+1)
@@ -545,7 +571,7 @@ st.assembleDomain(domain)
 # Time stepping and velocity
 #----------------------------------------------------
 weak_bc_penalty_constant = 10.0/nu_0 #100
-dt_fixed = 0.1
+dt_fixed = 1
 dt_init = min(0.1*dt_fixed,0.001)
 T = T
 nDTout= int(round(T/dt_fixed))
