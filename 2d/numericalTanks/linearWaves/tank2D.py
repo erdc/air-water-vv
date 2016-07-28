@@ -179,22 +179,22 @@ elif spaceOrder == 2:
 ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 if useMetrics:
-    ns_shockCapturingFactor  = 0.5
+    ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.5
+    ls_shockCapturingFactor  = 0.35
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.5
+    ls_sc_beta  = 1.0
+    vof_shockCapturingFactor = 0.35
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.5
+    vof_sc_beta = 1.0
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = ecH = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
+    epsFact_redistance = 1.5
     epsFact_consrv_diffusion = 1.0
     redist_Newton = True
     kappa_shockCapturingFactor = 0.5
@@ -233,14 +233,14 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-vof_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-ls_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-mcorr_nl_atol_res = max(1.0e-12,0.0001*domain.MeshOptions.he**2)
-rd_nl_atol_res = max(1.0e-12,0.01*domain.MeshOptions.he)
-kappa_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-dissipation_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-mesh_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
+ns_nl_atol_res = max(1.0e-10,0.001*domain.MeshOptions.he**2)
+vof_nl_atol_res = max(1.0e-10,0.001*domain.MeshOptions.he**2)
+ls_nl_atol_res = max(1.0e-10,0.001*domain.MeshOptions.he**2)
+mcorr_nl_atol_res = max(1.0e-10,0.0001*domain.MeshOptions.he**2)
+rd_nl_atol_res = max(1.0e-10,0.01*domain.MeshOptions.he)
+kappa_nl_atol_res = max(1.0e-10,0.001*domain.MeshOptions.he**2)
+dissipation_nl_atol_res = max(1.0e-10,0.001*domain.MeshOptions.he**2)
+#mesh_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
