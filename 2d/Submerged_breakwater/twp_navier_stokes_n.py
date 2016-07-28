@@ -81,4 +81,4 @@ maxNonlinearIts = 50
 maxLineSearches = 0
 if ct.opts.conservative_Flux==True:
     conservativeFlux = {0:'pwl-bdm-opt'}
-auxiliaryVariables = ct.domain.auxiliaryVariables #+ [ct.point_output]
+# auxiliaryVariables = ct.domain.auxiliaryVariables #+ [ct.point_output]

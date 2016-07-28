@@ -25,12 +25,12 @@ opts=Context.Options([
     # waves
     ('waveType', 'Fenton', 'Wavetype for regular waves, Linear or Fenton'),
     ("wave_period", 1., "Period of the waves"), # Choose periods=[1., 1.5, 2.]
-    ("wave_height", 0.03, "Height of the waves"), # Choose waveHeights=[0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12]
-    ('wavelength', 1.393, 'Wavelength only if Fenton is activated'),
-    ('Ycoeff', [0.06742994, 0.00358822, 0.00023583, 0.00001839, 0.00000158, 0.00000014, 0.00000001, 0.00000000], 'Ycoeff only if Fenton is activated'),
-    ('Bcoeff', [0.07136193, 0.00097421,-0.00000844,-0.00000031, 0.00000001, 0.00000000, 0.00000000, 0.00000000], 'Bcoeff only if Fenton is activated'),
+    ("wave_height", 0.12, "Height of the waves"), # Choose waveHeights=[0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11, 0.12]
+    ('wavelength', 1.438, 'Wavelength only if Fenton is activated'),
+    ('Ycoeff', [ 0.24389179    ,  0.05492353    ,  0.01572463    ,  0.00540728    ,  0.00207229 ,  0.00086821    ,  0.00042522    ,  0.00031163], 'Ycoeff only if Fenton is activated'),
+    ('Bcoeff', [ 0.25223896    ,  0.01774759    ,  0.00049639    ,  0.00001126    ,  0.00001275 ,  0.00000244    ,  0.00000024    ,  0.00000003], 'Bcoeff only if Fenton is activated'),
     # numerical options
-    ("refinement_level", 100. ,"he=walength/refinement_level"),
+    ("refinement_level", 200. ,"he=walength/refinement_level"),
     ("cfl", 0.9 ,"Target cfl"),
     ("freezeLevelSet", False, "No motion to the levelset"),
     ("useVF", 0.0, "For density and viscosity smoothing - For porous media set to 0.0"),
@@ -119,16 +119,16 @@ x7=x6+L_rightSpo
 #tank_dim=opts.tank_dim
 tank_dim = [x7, opts.h]
 
-boundaryOrientations = {'bottom': [0., -1.,0.],
-                        'right': [1., 0.,0.],
-                        'top': [0., 1.,0.],
-                        'left': [-1., 0.,0.],
+boundaryOrientations = {'y-': [0., -1.,0.],
+                        'x+': [1., 0.,0.],
+                        'y+': [0., 1.,0.],
+                        'x-': [-1., 0.,0.],
                         'sponge': None,
                        }
-boundaryTags = {'bottom': 1,
-                'right': 2,
-                'top': 3,
-                'left': 4,
+boundaryTags = {'y-': 1,
+                'x+': 2,
+                'y+': 3,
+                'x-': 4,
                 'sponge': 5,
                }
 
@@ -230,18 +230,16 @@ dragBeta=0.0 #(porosity**3)*Beta/nu_0
 
 # ----- BOUNDARY CONDITIONS ----- #
 
-for bc in tank.BC_list:
-    bc.setFreeSlip()
 
-tank.BC.top.setOpenAir()
+tank.BC['y+'].setAtmosphere()
 
-tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1, windSpeed=windVelocity)
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1)
 
-tank.BC.bottom.setFreeSlip()
+tank.BC['y-'].setFreeSlip()
 
-tank.BC.right.setNoSlip() #FreeSlip()
+tank.BC['x+'].setNoSlip() #FreeSlip()
 
-tank.BC.sponge.setNonMaterial()
+tank.BC['sponge'].setNonMaterial()
 
 
 
@@ -250,8 +248,7 @@ tank.BC.sponge.setNonMaterial()
 
 tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
                         orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
-                        waves=waveinput, windSpeed=windVelocity,
-                        )
+                        waves=waveinput)
 tank.setPorousZones(flags=3, dragAlpha=dragAlpha, dragBeta=dragBeta,
                     porosity=porosity,
                    )
@@ -299,7 +296,7 @@ integral_output=ga.LineIntegralGauges(gauges=((fields, columnLines1),
                                       sampleRate=0.,
                                       fileName='line_integral_gauges.csv')
 
-domain.auxiliaryVariables += [integral_output]
+# domain.auxiliaryVariables += {'vof': [integral_output]}
 
 ##########################################
 # Numerical Options and other parameters #
@@ -422,7 +419,7 @@ if useMetrics:
     rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0 # control width of water/air transition zone
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
+    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = ecH = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0 # affects smoothing diffusion in mass conservation
     redist_Newton = True
