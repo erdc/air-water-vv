@@ -266,14 +266,6 @@ Function addBoxes
   
   vol[count] = v;
 
-  //
-  Printf("bottom = %g",boc);
-  Printf("top    = %g",toc);
-  Printf("right  = %g",ric);
-  Printf("left   = %g",lec);
-  Printf("front  = %g",frc);
-  Printf("back   = %g",bac);
-  
   // Define physical entities
   Physical Surface(1) = {bottom[]};
 

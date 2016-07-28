@@ -46,34 +46,8 @@ barycenters = numpy.zeros((8,3),'d')
 barycenters[7,:] = hull_cg
 
 vessel = 5415
-genMesh=False
-he = 1.0#new
-#he = 0.5#new
-#he = 0.25#new
-#he = 0.125#new
-if he == 1.0:
-    src_dir = 'mesh13177'#new
-elif he == 0.5:
-    src_dir = 'mesh89988'#new
-elif he == 0.25:
-    src_dir = 'mesh664534'#new
-elif he == 0.125:
-    src_dir = 'mesh4907899'#new
-elif he == 0.625:
-    src_dir = 'mesh1127217'#'1686606'
-elif he == 0.125:
-    src_dir = 'mesh2034287' #1024
-import os
-import shutil
-import glob
-from proteus import Comm
-comm = Comm.get()
-if comm.isMaster():
-    logEvent("Reading Mesh: ./mesh_uniform/"+src_dir)
-    for filename in glob.glob(os.path.join('./mesh_uniform/'+src_dir, 'mesh.*')):
-        shutil.copy(filename,'.')
-comm.barrier()
-#debug
+genMesh=True
+he = 1.5
 
 #he = hull_length/11
 #vessel = 'wigley'
@@ -362,7 +336,7 @@ nDTout             = %i
 
 #  Discretization -- input options
 useOldPETSc=False
-useSuperlu = False # set to False if running in parallel with petsc.options
+useSuperlu = True # set to False if running in parallel with petsc.options
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
