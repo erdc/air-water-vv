@@ -48,6 +48,19 @@ barycenters[7,:] = hull_cg
 vessel = 5415
 genMesh=True
 he = 1.5
+#he = 10.0
+#if he == 10.0:
+#    src_dir = 'mesh4133' #128
+#import os
+#import shutil
+#import glob
+#from proteus import Comm
+#comm = Comm.get()
+#if comm.isMaster():
+#   logEvent("Reading Mesh: ./mesh/"+src_dir)
+#   for filename in glob.glob(os.path.join('./mesh/'+src_dir, 'mesh.*')):
+#       shutil.copy(filename,'.')
+#comm.barrier()
 
 #he = hull_length/11
 #vessel = 'wigley'
@@ -65,7 +78,7 @@ nLevels = 1
 boundaryTags = { 'bottom': 1, 'front':2, 'right':3, 'back': 4, 'left':5, 'top':6, 'obstacle':7}
 if vessel is 5415:
     domain = Domain.GMSH_3D_Domain(geofile="assembly",name="dtmb",he=he)
-#    domain = Domain.MeshTetgenDomain(fileprefix="mesh")
+    #domain = Domain.MeshTetgenDomain(fileprefix="mesh")
     domain.boundaryTags = boundaryTags
 else:
     vertices=[[x_ll[0],x_ll[1],x_ll[2]],#0
@@ -249,7 +262,7 @@ quad_order = 3
 openTop = False
 openSides = False
 openEnd = True
-smoothBottom = False
+smoothBottom = True
 smoothObstacle = False
 movingDomain=False#True
 checkMass=False
@@ -260,12 +273,11 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-#Fr = 0.25
-Fr = 0.51
+Fr = 0.28
+#Fr = 0.51
 #Fr = 0.0
 Um = Fr*sqrt(fabs(g[2])*hull_length)
 Re = hull_length*Um/nu_0
-weak_bc_penalty_constant = 100.0#Re
 
 if Um > 0.0:
     residence_time = hull_length/Um
@@ -341,7 +353,7 @@ spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
-useVF = 0.0
+useVF = 1.0
 useOnlyVF = False
 useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
@@ -387,7 +399,7 @@ elif spaceOrder == 2:
 
 # Numerical parameters
 ns_forceStrongDirichlet = True
-
+weak_bc_penalty_constant = 100.0
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
@@ -453,8 +465,7 @@ dissipation_nl_atol_res = max(1.0e-12,0.01*he**2)
 mesh_nl_atol_res = max(1.0e-12,0.01*he**2)
 
 #turbulence
-ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
-
+ns_closure=1 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS >= 2:
