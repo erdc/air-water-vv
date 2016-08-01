@@ -1,7 +1,10 @@
-from proteus.default_so import *
+"""
+Split operator module for two-phase flow
+"""
 import os
-import broad_crested_weir
-from proteus import BoundaryConditions, Context
+from proteus.default_so import *
+from proteus import Context
+from proteus.BoundaryConditions import BC_Base
 
 # Create context from main module
 name_so = os.path.basename(__file__)
@@ -19,10 +22,9 @@ try:
 except ImportError:
     raise ImportError, str(name) + '.py not found'
 
-ct = Context.get()
-BoundaryConditions.BC_Base.getContext()
+BC_Base.getContext()
 
-if broad_crested_weir.useOnlyVF:
+if ct.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
               ("vof_p",               "vof_n")]
 else:
@@ -51,7 +53,6 @@ needEBQ = False
 tnList = [0.0,ct.dt_init]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
 
 info = open("TimeList.txt","w")
-
 
 for time in tnList:
     info.write(str(time)+"\n")

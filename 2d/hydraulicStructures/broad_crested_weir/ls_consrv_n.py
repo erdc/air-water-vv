@@ -9,8 +9,8 @@ from proteus import (Context,
 import ls_consrv_p as physics
 ct = Context.get()
 
-timeIntegrator  = ForwardIntegrator
-timeIntegration = NoIntegration
+timeIntegrator  = TimeIntegration.ForwardIntegrator
+timeIntegration = TimeIntegration.NoIntegration
 
 femSpaces = {0:ct.basis}
 
