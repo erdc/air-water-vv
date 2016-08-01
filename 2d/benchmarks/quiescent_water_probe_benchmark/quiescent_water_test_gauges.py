@@ -139,20 +139,18 @@ nDTout = int(round(T / dt_fixed))
 
 # ----- DOMAIN ----- #
 
-domain = Domain.PlanarStraightLineGraphDomain()
-
-# if useHex:
-#     nnx=4*Refinement+1
-#     nny=2*Refinement+1
-#     hex=True
-#     domain = Domain.RectangularDomain(L)
-# else:
-#     boundaries=['left','right','bottom','top','front','back']
-#     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
-#     if structured:
-#         domain = Domain.RectangularDomain(L)
-#         nnx=4*Refinement
-#         nny=2*Refinement
+if useHex:
+    nnx = 4 * refinement + 1
+    nny=2*refinement+1
+    hex=True
+    domain = Domain.RectangularDomain(tank_dim)
+elif structured:
+    nnx = 4 * refinement
+    nny = 2 * refinement
+    domain = Domain.RectangularDomain(tank_dim)
+    boundaryTags = domain.boundaryTags
+else:
+    domain = Domain.PlanarStraightLineGraphDomain()
 
 # ----- TANK ----- #
 

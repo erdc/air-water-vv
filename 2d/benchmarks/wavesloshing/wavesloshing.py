@@ -137,7 +137,18 @@ nDTout = int(round(T / dt_fixed))
 
 # ----- DOMAIN ----- #
 
-domain = Domain.PlanarStraightLineGraphDomain()
+if useHex:
+    nnx = 4 * refinement + 1
+    nny=2*refinement+1
+    hex=True
+    domain = Domain.RectangularDomain(tank_dim)
+elif structured:
+    nnx = 4 * refinement
+    nny = 2 * refinement
+    domain = Domain.RectangularDomain(tank_dim)
+    boundaryTags = domain.boundaryTags
+else:
+    domain = Domain.PlanarStraightLineGraphDomain()
 
 # ----- TANK ----- #
 
@@ -172,17 +183,6 @@ tank.BC['x+'].setFreeSlip()
 tank.BC['x-'].setFreeSlip()
 
 # ----- MESH CONSTRUCTION ----- #
-
-if useHex:
-    nnx = 4 * refinement + 1
-    nny=2*refinement+1
-    hex=True
-    domain = Domain.RectangularDomain(tank_dim)
-elif structured:
-    nnx = 4 * refinement
-    nny = 2 * refinement
-    domain = Domain.RectangularDomain(tank_dim)
-    boundaryTags = domain.boundaryTags
 
 he = tank_dim[0] / float(4 * refinement - 1)
 domain.MeshOptions.he = he
