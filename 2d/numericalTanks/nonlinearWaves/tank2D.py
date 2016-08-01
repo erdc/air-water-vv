@@ -254,7 +254,7 @@ ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 --
 if useRANS == 1:
     ns_closure = 3
 elif useRANS >= 2:
-    ns_closure == 4
+    ns_closure = 4
 
 
 # Probes
@@ -277,7 +277,7 @@ gaugeArray=ga.LineIntegralGauges(gauges=((fields, PG),),
 
 def twpflowPressure_init(x, t):
     p_L = 0.0
-    phi_L = tank.dim[nd-1] - waterLevel
+    phi_L = tank_dim[nd-1] - waterLevel
     phi = x[nd-1] - waterLevel
     return p_L -g[nd-1]*(rho_0 * (phi_L - phi) + (rho_1 -rho_0) * (smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi_L)
                                                                    - smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi)))
