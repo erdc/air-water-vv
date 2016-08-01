@@ -20,8 +20,8 @@ opts=Context.Options([
     ("tank_dim", (3.141 , 3.141), "Dimensions of the tank"),
     #gravity
     ("g",(0,-9.81,0), "Gravity vector"),
-    # probe dx
-    ("dxProbe",0.25, "Probe spacing"),
+    # gauges
+    ("gauge_output", True, "Produce gauge data."),
     # refinement
     ("refinement", 16 ,"Refinement level"),
     ("cfl", 0.33 ,"Target cfl"),
@@ -30,7 +30,8 @@ opts=Context.Options([
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     # run details
-    ("structured", False, "Use a structured mesh"),
+    ("structured", False, "Use a (triangular) structured mesh"),
+    ("useHex", False, "Use a hexahedral structured mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
     ("parallel", True ,"Run in parallel")])
 
@@ -59,7 +60,8 @@ useOldPETSc = False
 useSuperlu = False
 timeDiscretization = 'be'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
-useHex = False
+useHex = opts.useHex
+structured = opts.structured
 useRBLES = 0.0
 useMetrics = 1.0
 applyCorrection = True
@@ -137,29 +139,31 @@ nDTout = int(round(T / dt_fixed))
 
 domain = Domain.PlanarStraightLineGraphDomain()
 
-# if useHex:
-#     nnx=4*Refinement+1
-#     nny=2*Refinement+1
-#     hex=True
-#     domain = Domain.RectangularDomain(tank_dim)
-# else:
-#     if structured:
-#         nnx=4*Refinement
-#         nny=2*Refinement
-#         domain = Domain.RectangularDomain(tank_dim)
-#         boundaryTags = domain.boundaryTags
-#[temp] This is the same structured setup as in the dambreak problems
-
 # ----- TANK ----- #
 
 tank = Tank2D(domain, tank_dim)
 
 # ----- GAUGES ----- #
 
-#[temp] pressure (twp) and so on at these points:
-# pointGauges = PointGauges(gaugeLocations={'pointGauge_pressure':(L[0]/2.0,L[0]/2.0,0.0)})
-# lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825':((L[0]/2.0,0.0,0.0),(L[0]/2.0,L[1],0.0))},linePoints=20)
-# lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
+if opts.gauge_output:
+
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('p',), ((tank_dim[0] / 2.0, tank_dim[0] / 2.0, 0.0),)),),
+        activeTime=(0, 0.5),
+        sampleRate=0,
+        fileName='pointGauge_pressure.txt'
+    )
+
+    tank.attachLineGauges(
+        'twp',
+        gauges=((('p',), (((tank_dim[0] / 2.0, 0.0, 0.0),
+                             (tank_dim[0] / 2.0, tank_dim[0], 0.0)),)),),
+        activeTime = (0., opts.T),
+        sampleRate = 0,
+        fileName = 'lineGauge.csv'
+    )
+
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
@@ -168,6 +172,17 @@ tank.BC['x+'].setFreeSlip()
 tank.BC['x-'].setFreeSlip()
 
 # ----- MESH CONSTRUCTION ----- #
+
+if useHex:
+    nnx = 4 * refinement + 1
+    nny=2*refinement+1
+    hex=True
+    domain = Domain.RectangularDomain(tank_dim)
+elif structured:
+    nnx = 4 * refinement
+    nny = 2 * refinement
+    domain = Domain.RectangularDomain(tank_dim)
+    boundaryTags = domain.boundaryTags
 
 he = tank_dim[0] / float(4 * refinement - 1)
 domain.MeshOptions.he = he
@@ -179,31 +194,31 @@ ns_forceStrongDirichlet = False
 
 # ----- NUMERICAL PARAMETERS ----- #
 if useMetrics:
-    ns_shockCapturingFactor  = 0.9
+    ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
+    ls_shockCapturingFactor  = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.9
+    ls_sc_beta  = 1.0
+    vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.9
+    vof_sc_beta = 1.0
+    rd_shockCapturingFactor  = 0.25
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
         = epsFact_vof = ecH \
         = epsFact_consrv_dirac = epsFact_density \
-        = 1.5
+        = 3.0
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
+    epsFact_consrv_diffusion = 0.1
     redist_Newton = False
-    kappa_shockCapturingFactor = 0.1
+    kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
     kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.1
+    dissipation_shockCapturingFactor = 0.25
     dissipation_lag_shockCapturing = True#False
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.0
@@ -263,9 +278,3 @@ def signedDistance(x):
        return - d
    else: 
        return d
-     
-
-
-
-
- 

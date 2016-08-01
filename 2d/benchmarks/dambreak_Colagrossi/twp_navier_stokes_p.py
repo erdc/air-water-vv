@@ -54,7 +54,6 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    turbulenceClosureModel=ct.ns_closure,
                                    movingDomain=ct.movingDomain)
 
-
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
                        1: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
                        2: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()}

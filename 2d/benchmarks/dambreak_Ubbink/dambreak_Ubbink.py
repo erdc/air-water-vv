@@ -194,14 +194,14 @@ ns_forceStrongDirichlet = False
 # ----- NUMERICAL PARAMETERS ----- #
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.5
+    ns_shockCapturingFactor = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor = 0.5
+    ls_shockCapturingFactor = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
     ls_sc_beta = 1.0
-    vof_shockCapturingFactor = 0.5
+    vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
@@ -210,7 +210,7 @@ if useMetrics:
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH \
                     = epsFact_consrv_dirac = epsFact_density \
-                    = 1.5
+                    = 3.0
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 0.1
     redist_Newton = True
