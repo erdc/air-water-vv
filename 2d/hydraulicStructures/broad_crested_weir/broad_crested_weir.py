@@ -27,7 +27,7 @@ opts = Context.Options([
     ("tank_dim", (3.5, 0.7), "Dimensions (x,y) of the tank"),
     ("tank_sponge", (0.,0.), "Length of (generation, absorption) zones, if any"),
     ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle."),
-    ("obstacle_x_start", 2.0, "x coordinate of the start of hte obstacle"),
+    ("obstacle_x_start", 2.0, "x coordinate of the start of the obstacle"),
     # gauges
     ("gauge_output", True, "Produce gauge data"),
     ("lineGauge_x", 3.4, "x-coordinate of vertical line of gauges"),
@@ -41,7 +41,7 @@ opts = Context.Options([
                                     "tank_dim[0] if you add sponge layers "
                                     "and want to differentiate them)"),
     ("variable_refine_levels", [], "List of refinement levels in each region"
-                                   " (should have 2 more values than "
+                                   " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
     ("T", 10.0, "Simulation time"),
@@ -285,6 +285,7 @@ if air_vent:
     tank.BC['airvent'].v_diffusive.uOfXT = lambda x, t: 0
     tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1
     tank.BC['airvent'].setTank()
+    #[temp] check against report - different set of conditions than in the code, which might solve issues if issues need solving
 
 # ----- MESH CONSTRUCTION ----- #
 
@@ -384,6 +385,7 @@ else:
 ##########################################
 #            Signed Distance             #
 ##########################################
+
 
 def signedDistance(x):
     phi_x = x[0] - waterLine_x
