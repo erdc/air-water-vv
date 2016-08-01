@@ -21,8 +21,8 @@ opts=Context.Options([
     ("tank_dim", (0.584, 0.350), "Dimensions of the tank"),
     #gravity
     ("g",(0,-9.81,0), "Gravity vector"),
-    # probe dx
-    ("dxProbe",0.25, "Probe spacing"),
+    # gauges
+    ("gauge_output", True, "Produce gauge data."),
     # refinement
     ("refinement", 20 ,"Refinement level"),
     ("cfl", 0.1 ,"Target cfl"),
@@ -149,23 +149,24 @@ domain = Domain.PlanarStraightLineGraphDomain()
 tank = Tank2D(domain, tank_dim)
 
 # ----- GAUGES ----- #
-#
-# tank.attachPointGauges(
-#     'twp',
-#     gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
-#               (('p',), ((0.5, 0.5, 0),))),
-#     activeTime=(0, 0.5),
-#     sampleRate=0,
-#     fileName='combined_gauge_0_0.5_sample_all.csv'
-# )
-#
-# tank.attachLineGauges(
-#     'vof',
-#     gauges = ((('vof',),((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))),),
-#     activeTime = (0., opts.T),
-#     sampleRate = 0,
-#     fileName = 'lineGauge.csv'
-# ) #[temp] artifacts point towards this being for some twp feature, not the vof points here, but it's unclear which (p,u,v?)
+
+if opts.gauge_output:
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
+                  (('p',), ((0.5, 0.5, 0),))),
+        activeTime=(0, 0.5),
+        sampleRate=0,
+        fileName='combined_gauge_0_0.5_sample_all.csv'
+    )
+
+    tank.attachLineGauges(
+        'vof',
+        gauges = ((('vof',),(((0.495, 0.0, 0.0), (0.495, tank_dim[1], 0.0)),)),),
+        activeTime = (0., opts.T),
+        sampleRate = 0,
+        fileName = 'lineGauge.csv'
+    )
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 

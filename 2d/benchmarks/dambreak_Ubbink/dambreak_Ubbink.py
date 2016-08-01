@@ -21,8 +21,11 @@ opts=Context.Options([
     ("obstacle_x_start", 0.292,"x location of start of obstacle"),
     #gravity 
     ("g",(0,-9.81,0), "Gravity vector"),
-    # probe dx
-    ("dxProbe",0.25, "Probe spacing"),
+    # gauges
+    ("gauge_output", True, "Produce gauge data."),
+    ("lineGauge_x", 0.4, "x-coordinate of vertical line of gauges"),
+    ("pressure_pointGauge", (0.293,0.05,0.0), "Coordinates of point gauge for"
+                                              "pressure measurement."),
     # refinement
     ("refinement", 12,"Refinement level"),
     ("cfl", 0.33,"Target cfl"),
@@ -33,7 +36,6 @@ opts=Context.Options([
     # run details
     ("gen_mesh", True ,"Generate new mesh"),
     ("parallel", True ,"Run in parallel")])
-
 
 # ----- CONTEXT ------ #
 
@@ -144,8 +146,6 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 # ----- TANK ----- #
 
-# tank = st.TankWithObstacles2D(domain=domain,
-#                               dim=tank_dim)
 tank = st.TankWithObstacles2D(domain=domain,
                               dim=tank_dim,
                               obstacles=[[[obstacle_x_start, 0],
@@ -154,23 +154,25 @@ tank = st.TankWithObstacles2D(domain=domain,
                                           [obstacle_x_end, 0]]])
 
 # ----- GAUGES ----- #
-#
-# tank.attachPointGauges(
-#     'twp',
-#     gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
-#               (('p',), ((0.5, 0.5, 0),))),
-#     activeTime=(0, 0.5),
-#     sampleRate=0,
-#     fileName='combined_gauge_0_0.5_sample_all.csv'
-# )
-#
-# tank.attachLineGauges(
-#     'vof',
-#     gauges = ((('vof',),((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))),),
-#     activeTime = (0., opts.T),
-#     sampleRate = 0,
-#     fileName = 'lineGauge.csv'
-# ) #[temp] artifacts point towards this being for some twp feature, not the vof points here, but it's unclear which (p?,u?,v?)
+
+if opts.gauge_output:
+
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('p',), (opts.pressure_pointGauge,)),),
+        activeTime=(0, 0.5),
+        sampleRate=0,
+        fileName='pointGauge_pressure.txt'
+    )
+
+    tank.attachLineGauges(
+        'vof',
+        gauges=((('vof',), (((opts.lineGauge_x, 0.0, 0.0),
+                             (opts.lineGauge_x, tank_dim[1], 0.0)),)),),
+        activeTime = (0., opts.T),
+        sampleRate = 0,
+        fileName = 'lineGauge.csv'
+    ) #[temp] artifacts point towards this being for some twp feature, not the vof points here, but it's unclear which (I'd guess pressure?)
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 

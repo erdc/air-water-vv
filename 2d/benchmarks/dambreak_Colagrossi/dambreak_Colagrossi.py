@@ -21,8 +21,8 @@ opts=Context.Options([
     ("tank_dim", (3.22, 1.8), "Dimensions of the tank"),
     #gravity 
     ("g",(0,-9.81,0), "Gravity vector"),
-    # probe dx
-    ("dxProbe",0.25, "Probe spacing"),
+    # gauges
+    ("gauge_output", True, "Produce gauge data."),
     # refinement
     ("refinement", 16 ,"Refinement level"),
     ("cfl", 0.33 ,"Target cfl"),
@@ -31,7 +31,8 @@ opts=Context.Options([
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     # run details
-    ("structured", False, "Use a structured mesh"),
+    ("useHex", False, "Use a hexahedral structured mesh"),
+    ("structured", False, "Use a structured triangular mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
     ("nperiod", 10.,"Number of time steps to save per period"),
     ("parallel", True ,"Run in parallel")])
@@ -62,7 +63,8 @@ useOldPETSc = False
 useSuperlu = False
 timeDiscretization = 'be'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
-useHex = False
+useHex = opts.useHex
+structured = opts.structured
 useRBLES = 0.0
 useMetrics = 1.0
 applyCorrection = True
@@ -157,24 +159,24 @@ domain = Domain.PlanarStraightLineGraphDomain()
 tank = Tank2D(domain, tank_dim)
 
 # ----- GAUGES ----- #
-#
-# tank.attachPointGauges(
-#     'twp',
-#     gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
-#               (('p',), ((0.5, 0.5, 0),))),
-#     activeTime=(0, 0.5),
-#     sampleRate=0,
-#     fileName='combined_gauge_0_0.5_sample_all.csv'
-# )
-#
-# tank.attachLineGauges(
-#     'vof',
-#     gauges = ((('vof',),((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))),),
-#     activeTime = (0., opts.T),
-#     sampleRate = 0,
-#     fileName = 'lineGauge.csv'
-# ) #[temp] artifacts point towards this being for some twp feature, not the vof points here, but it's unclear which (p,u,v?)
 
+if opts.gauge_output:
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
+                  (('p',), ((0.5, 0.5, 0),))),
+        activeTime=(0, 0.5),
+        sampleRate=0,
+        fileName='combined_gauge_0_0.5_sample_all.csv'
+    )
+
+    tank.attachLineGauges(
+        'vof',
+        gauges = ((('vof',),(((0.495, 0.0, 0.0), (0.495, tank_dim[1], 0.0)),)),),
+        activeTime = (0., opts.T),
+        sampleRate = 0,
+        fileName = 'lineGauge.csv'
+    )
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
@@ -183,6 +185,18 @@ tank.BC['x+'].setFreeSlip()
 tank.BC['x-'].setFreeSlip()
 
 # ----- MESH CONSTRUCTION ----- #
+
+# domain replacement
+if useHex:
+    nnx = 4 * refinement + 1
+    nny=2*refinement+1
+    hex=True
+    domain = Domain.RectangularDomain(tank_dim)
+elif structured:
+    nnx = 4 * refinement
+    nny = 2 * refinement
+    domain = Domain.RectangularDomain(tank_dim)
+    boundaryTags = domain.boundaryTags
 
 he = tank_dim[0] / float(4 * refinement - 1)
 domain.MeshOptions.he = he
