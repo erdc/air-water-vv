@@ -22,7 +22,7 @@ opts=Context.Options([
     ("g",np.array([0,-9.81,0]), "Gravity vector"),
     # waves
     ("generation", True, "Generate waves at the left boundary (True/False)"),
-    ("absorption", True, "Generate waves at the right boundary (True/False)"),
+    ("absorption", True, "Absorb waves at the right boundary (True/False)"),
     ("wave_period", 1.94, "Period of the waves"),
     ("wave_height", 0.025, "Height of the waves"),
     ("depth",1.,"Wave depth"),
