@@ -144,8 +144,8 @@ nDTout = int(round(T / dt_fixed))
 # domain replacement
 if useHex:
     nnx = 4 * refinement + 1
-    nny=2*refinement+1
-    hex=True
+    nny = 2 * refinement + 1
+    hex = True
     domain = Domain.RectangularDomain(tank_dim)
 elif structured:
     nnx = 4 * refinement
