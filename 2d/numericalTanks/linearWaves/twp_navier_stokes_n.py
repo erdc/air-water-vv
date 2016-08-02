@@ -1,4 +1,4 @@
-from proteus import StepControl, TimeIntegration, NonlinearSolvers, LinearSolvers
+from proteus import StepControl, TimeIntegration, NonlinearSolvers, LinearSolvers, LinearAlgebraTools
 from proteus.default_n import *
 from twp_navier_stokes_p import *
 from proteus import Context
@@ -32,8 +32,6 @@ if nd == 3:
     femSpaces[3] = ct.basis
 
 massLumping       = False
-numericalFluxType = None
-conservativeFlux  = None
 
 numericalFluxType = RANS2P.NumericalFlux
 subgridError = RANS2P.SubgridError(coefficients=coefficients,
@@ -55,7 +53,7 @@ if nd == 2:
 elif nd == 3:
     linearSmoother    = LinearSolvers.SimpleNavierStokes3D
 
-matrix = SparseMatrix
+matrix = LinearAlgebraTools.SparseMatrix
 
 if ct.useOldPETSc:
     multilevelLinearSolver = LinearSolvers.PETSc
@@ -63,7 +61,6 @@ if ct.useOldPETSc:
 else:
     multilevelLinearSolver = LinearSolvers.KSP_petsc4py
     levelLinearSolver      = LinearSolvers.KSP_petsc4py
-
 if ct.useSuperlu:
     multilevelLinearSolver = LinearSolvers.LU
     levelLinearSolver      = LinearSolvers.LU
@@ -80,4 +77,4 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
-auxiliaryVariables = ct.domain.auxiliaryVariables['twp']+[ct.gaugeArray]
+auxiliaryVariables = ct.domain.auxiliaryVariables['twp']
