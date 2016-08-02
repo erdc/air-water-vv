@@ -19,7 +19,7 @@ coefficients = NCLS.Coefficients(V_model=int(ct.movingDomain)+0,
                                  ME_model=int(ct.movingDomain)+2,
                                  checkMass=False,
                                  useMetrics=ct.useMetrics,
-                                 epsFact=ct.epsFact_consrv_heaviside,
+                                 epsFact=ct.ecH,
                                  sc_uref=ct.ls_sc_uref,
                                  sc_beta=ct.ls_sc_beta,
                                  movingDomain=ct.movingDomain)

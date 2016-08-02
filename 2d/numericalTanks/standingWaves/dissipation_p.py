@@ -44,9 +44,9 @@ coefficients = Dissipation.Coefficients(V_model=int(ct.movingDomain)+0,
                                         sc_beta=ct.dissipation_sc_beta)
 
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].dissipation_dirichlet}
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].dissipation_advective}
-diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].dissipation_diffusive}}
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].dissipation_dirichlet.init_cython()}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].dissipation_advective.init_cython()}
+diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].dissipation_diffusive.init_cython()}}
 
 
 

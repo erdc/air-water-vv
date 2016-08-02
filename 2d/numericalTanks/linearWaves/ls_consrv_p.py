@@ -22,7 +22,7 @@ coefficients = MCorr.Coefficients(LSModel_index=int(ct.movingDomain)+2,
                                   nd=nd,
                                   checkMass=True,
                                   useMetrics=ct.useMetrics,
-                                  epsFactHeaviside=ct.epsFact_consrv_heaviside,
+                                  epsFactHeaviside=ct.ecH,
                                   epsFactDirac=ct.epsFact_consrv_dirac,
                                   epsFactDiffusion=ct.epsFact_consrv_diffusion)
 
