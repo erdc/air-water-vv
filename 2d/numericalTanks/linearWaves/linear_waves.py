@@ -224,6 +224,8 @@ if opts.gauge_output:
 #                             sampleRate=0.,
 #                             fileName='gaugeArray.csv')
 
+# suggests they also want a VOF related line integral gauge.  Pressure is used to reconstruct surface height.
+
 # ----- MESH CONSTRUCTION ----- #
 
 he = opts.wavelength / refinement_level
