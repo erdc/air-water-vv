@@ -17,6 +17,9 @@ if ct.useHex or ct.structured:
     nnx = ct.nnx
     nny = ct.nny
 
+    if ct.useHex:
+        quad = True
+
 #time stepping
 runCFL = ct.runCFL
 if ct.timeDiscretization=='vbdf':
@@ -92,6 +95,9 @@ nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
-conservativeFlux = {0:'pwl-bdm-opt'}
+if ct.useHex:
+    pass
+else:
+    conservativeFlux = {0:'pwl-bdm-opt'}
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['twp']
