@@ -97,7 +97,7 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 if ct.useHex:
-    conservativeFlux = []
+    conservativeFlux = None
 else:
     conservativeFlux = {0: 'pwl-bdm-opt'}
 
