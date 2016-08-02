@@ -17,6 +17,10 @@ if ct.useHex or ct.structured:
     nnx = ct.nnx
     nny = ct.nny
 
+    if ct.useHex:
+        quad = True
+
+
 #time stepping
 runCFL = ct.runCFL
 if ct.timeDiscretization=='vbdf':
@@ -44,13 +48,11 @@ triangleOptions = mesh.triangleOptions
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
-femSpaces = {0:ct.basis,
-             1:ct.basis,
-             2:ct.basis}
+femSpaces = {0: ct.basis,
+             1: ct.basis,
+             2: ct.basis}
 
 massLumping       = False
-numericalFluxType = None
-conservativeFlux  = None
 
 numericalFluxType = RANS2P.NumericalFlux
 subgridError = RANS2P.SubgridError(coefficients=physics.coefficients,
@@ -85,7 +87,7 @@ if ct.useSuperlu:
 linear_solver_options_prefix = 'rans2p_'
 nonlinearSolverConvergenceTest = 'rits'
 levelNonlinearSolverConvergenceTest = 'rits'
-linearSolverConvergenceTest             = 'r-true'
+linearSolverConvergenceTest = 'r-true'
 
 tolFac = 0.0
 linTolFac = 0.01
@@ -94,6 +96,9 @@ nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
-conservativeFlux = {0:'pwl-bdm-opt'}
+if ct.useHex:
+    conservativeFlux = []
+else:
+    conservativeFlux = {0: 'pwl-bdm-opt'}
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['twp']
