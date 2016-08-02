@@ -13,6 +13,10 @@ domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
 
+if ct.useHex or ct.structured:
+    nnx = ct.nnx
+    nny = ct.nny
+
 #time stepping
 runCFL = ct.runCFL
 if ct.timeDiscretization=='vbdf':
