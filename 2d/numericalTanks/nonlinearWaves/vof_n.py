@@ -75,4 +75,4 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 
-auxiliaryVariables = [ct.gaugeArray]
+auxiliaryVariables = ct.domain.auxiliaryVariables['vof'] #an integral output?
