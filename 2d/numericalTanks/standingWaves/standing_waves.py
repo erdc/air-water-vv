@@ -344,4 +344,3 @@ def twpflowPressure_init(x, t):
     - smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi)))
 
 tank.BC['y+'].p_dirichlet.uOfX = twpflowPressure_init
-
