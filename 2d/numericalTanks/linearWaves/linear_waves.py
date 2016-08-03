@@ -2,7 +2,7 @@
 Linear Wave Theory
 """
 import numpy as np
-from math import sqrt
+from math import ceil
 from proteus import (Domain, Context,
                      FemTools as ft,
                      MeshTools as mt,
@@ -20,6 +20,8 @@ opts = Context.Options([
     ("generation", True, "Generate waves at the left boundary (True/False)"),
     ("absorption", True, "Absorb waves at the right boundary (True/False)"),
     ("tank_sponge", (5., 10.), "Length of generation/absorption zone"),
+    ("free_slip", True, "Should tank walls have free slip conditions "
+                        "(otherwise, no slip conditions will be applied)."),
     #gravity 
     ("g", [0, -9.81, 0], "Gravity vector"),
     # waves
@@ -30,7 +32,7 @@ opts = Context.Options([
     ("wavelength", 5., "Wavelength"),
     # probe dx
     ("gauge_output", True, "Produce gauge output"),
-    ("dxProbe", 0.25, "Probe spacing"),
+    ("point_gauge_dx", 0.25, "Horizontal spacing of point pressure gauges"),
     # refinement
     ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
@@ -165,14 +167,20 @@ backgroundDiffusionFactor = 0.01
 
 # ----- DOMAIN ----- #
 
+#[temp] an attempt to match the intentions of refLevel instead of refinement
+#[temp] (wavelength based instead of dimension based)
+refinement_x = int(ceil(refinement_level * (tank_dim[0] + sum(tank_sponge))
+                        / opts.wavelength))
+refinement_y = int(ceil(refinement_level * (tank_dim[1])
+                        / opts.wavelength))
 if useHex:
-    nnx = 4 * refinement + 1 #[temp] figure out the numbering if refLevel is used instead of refinement
-    nny = 2 * refinement + 1
+    nnx = refinement_x + 1
+    nny = refinement_y + 1
     hex = True
     domain = Domain.RectangularDomain(tank_dim)
 elif structured:
-    nnx = 4 * refinement
-    nny = 2 * refinement
+    nnx = refinement_x
+    nny = refinement_y
     domain = Domain.RectangularDomain(tank_dim)
     boundaryTags = domain.boundaryTags
 else:
@@ -196,19 +204,37 @@ if opts.absorption:
 # open top
 tank.BC['y+'].setAtmosphere()
 
-# no slip
-tank.BC['y-'].setNoSlip()
-tank.BC['x+'].setNoSlip()
-if not opts.generation:
-    tank.BC['x-'].setNoSlip()
-# else: #[temp] shouldn't be necessary?
-#     tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=wave)
+if opts.free_slip:
+    tank.BC['y-'].setFreeSlip()
+    tank.BC['x+'].setFreeSlip()
+    if not opts.generation:
+        tank.BC['x-'].setFreeSlip()
+else:  # no slip
+    tank.BC['y-'].setNoSlip()
+    tank.BC['x+'].setNoSlip()
+    if not opts.generation:
+        tank.BC['x-'].setNoSlip()
+
+# sponge
 tank.BC['sponge'].setNonMaterial()
 
 # ----- GAUGES ----- #
 
 if opts.gauge_output:
-    pass
+    point_gauge_locations = []
+    gauge_y = waterLevel - 0.5 * depth
+    number_of_point_gauges = tank_dim[0] / opts.point_gauge_dx + 1
+    for gauge_x in np.linspace(0, tank_dim[0], number_of_point_gauges):
+        point_gauge_locations.append((gauge_x, gauge_y, 0),)
+
+    tank.attachPointGauges('twp',
+                           gauges=((('p',), point_gauge_locations),),
+                           fileName='pressure_gaugeArray.csv')
+
+    # tank.attachLineIntegralGauges('vof',
+    #                               gauges=(),
+    #                               fileName='vof_line_integral_gauges.csv')
+
 #TODO: Adapt the below (but line integral gauges might be desired)
 # # Probes
 # from proteus import Gauges as ga
@@ -253,8 +279,7 @@ if useMetrics:
     rd_shockCapturingFactor = 0.75
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
-                    = epsFact_vof = ecH \
-                    = epsFact_consrv_dirac = epsFact_density \
+                    = epsFact_vof = ecH = epsFact_consrv_dirac \
                     = 3.0
     epsFact_redistance = 1.5
     epsFact_consrv_diffusion = 1.0
@@ -282,9 +307,8 @@ else:
     rd_shockCapturingFactor = 0.9
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
-        = epsFact_vof = ecH \
-        = epsFact_consrv_dirac = epsFact_density \
-        = 1.5
+                    = epsFact_vof = ecH = epsFact_consrv_dirac \
+                    = 1.5
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
     redist_Newton = False
