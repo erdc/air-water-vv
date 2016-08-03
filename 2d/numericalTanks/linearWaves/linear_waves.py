@@ -31,8 +31,9 @@ opts = Context.Options([
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     ("wavelength", 5., "Wavelength"),
     # probe dx
-    ("gauge_output", True, "Produce gauge output"),
-    ("point_gauge_dx", 0.25, "Horizontal spacing of point pressure gauges"),
+    ("point_gauge_output", True, "Produce point gauge output"),
+    ("column_gauge_output", True, "Produce column gauge output"),
+    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges"),
     # refinement
     ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
@@ -220,37 +221,26 @@ tank.BC['sponge'].setNonMaterial()
 
 # ----- GAUGES ----- #
 
-if opts.gauge_output:
-    point_gauge_locations = []
-    gauge_y = waterLevel - 0.5 * depth
-    number_of_point_gauges = tank_dim[0] / opts.point_gauge_dx + 1
-    for gauge_x in np.linspace(0, tank_dim[0], number_of_point_gauges):
-        point_gauge_locations.append((gauge_x, gauge_y, 0),)
+column_gauge_locations = []
+point_gauge_locations = []
 
+if opts.point_gauge_output or opts.column_gauge_output:
+    gauge_y = waterLevel - 0.5 * depth
+    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
+    for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
+        point_gauge_locations.append((gauge_x, gauge_y, 0), )
+        column_gauge_locations.append(((gauge_x, 0., 0.),
+                                       (gauge_x, tank_dim[1], 0.)))
+
+if opts.point_gauge_output:
     tank.attachPointGauges('twp',
                            gauges=((('p',), point_gauge_locations),),
                            fileName='pressure_gaugeArray.csv')
 
-    # tank.attachLineIntegralGauges('vof',
-    #                               gauges=(),
-    #                               fileName='vof_line_integral_gauges.csv')
-
-#TODO: Adapt the below (but line integral gauges might be desired)
-# # Probes
-# from proteus import Gauges as ga
-#
-# PG = []
-# Xstart = tank_sponge[0]
-# Xend = tank_dim[0] - tank_sponge[1]
-# probes = np.linspace(Xstart, Xend, (Xend - Xstart) / opts.dxProbe + 1)
-# for i in probes:
-#     PG.append((i, waterLevel - 0.5 * depth, 0.), )
-# gaugeArray = ga.PointGauges(gauges=((('p',), PG),),
-#                             activeTime=(0., opts.T),
-#                             sampleRate=0.,
-#                             fileName='gaugeArray.csv')
-
-# suggests they also want a VOF related line integral gauge.  Pressure is used to reconstruct surface height.
+if opts.column_gauge_output:
+    tank.attachLineIntegralGauges('vof',
+                                  gauges=((('vof',), column_gauge_locations),),
+                                  fileName='column_gauges.csv')
 
 # ----- MESH CONSTRUCTION ----- #
 
