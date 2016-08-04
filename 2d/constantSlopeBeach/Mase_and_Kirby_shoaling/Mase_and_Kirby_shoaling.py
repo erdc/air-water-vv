@@ -366,8 +366,12 @@ def signedDistance(x):
         else:
             return sqrt(phi_x ** 2 + phi_z ** 2)
 
+
+def waveHeightValue(x, t):
+    return waveheight + waves.eta(x, t)
+
 def wavePhi(x, t):
-    return x[1] - waveheight(x, t)
+    return x[1] - waveHeightValue(x, t)
 
         # #waveData
         #

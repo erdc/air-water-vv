@@ -1,3 +1,4 @@
+from proteus.default_n import *
 from proteus import (StepControl,
                      TimeIntegration,
                      NonlinearSolvers,

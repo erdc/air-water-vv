@@ -20,8 +20,9 @@ coefficients = NCLS.Coefficients(V_model=0,
 #[temp] Have to check that Spatial Tools assembleDomain (or other parts)
 #       correctly set domain.boundaryTags, or else these might point
 #       to different points (or just be wrong in general.
+#[temp] It Doesn't... we'll test this instead
 def getDBC_ls(x,flag):
-    if flag == ct.domain.boundaryTags['left']:
+    if flag == ct.tank.boundaryTags['x-']:
         return ct.wavePhi
     else:
         return None
