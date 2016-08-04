@@ -2,7 +2,7 @@
 Wave Shoaling
 """
 import numpy as np
-from math import sqrt, ceil
+from math import sqrt, cos, pi
 from proteus import (Domain, Context,
                      FemTools as ft,
                      #SpatialTools as st,
@@ -48,7 +48,6 @@ opts = Context.Options([
 
 # tank
 tank_dim = opts.tank_dim
-cot_slope = opts.cot_slope
 slope_x0 = opts.slope_start_ratio * tank_dim[0]
 slope_x1 = opts.slope_end_ratio * tank_dim[0]
 slope_y1 = opts.slope_height_ratio * tank_dim[1]
@@ -227,7 +226,8 @@ if opts.point_gauge_output or opts.column_gauge_output:
         elif gauge_x > slope_x1:
             gauge_y = slope_y1
         else:
-            gauge_y = (1/cot_slope) * (gauge_x - slope_x0) + 0.001
+            gauge_y = (slope_x1 - slope_x0) * (1 / slope_y1) \
+                      / (gauge_x - slope_x0) + 0.001
 
         point_gauge_locations.append((gauge_x, gauge_y, 0), )
         column_gauge_locations.append(((gauge_x, gauge_y, 0.),
@@ -377,9 +377,8 @@ def signedDistance(x):
         else:
             return sqrt(phi_x ** 2 + phi_z ** 2)
 
-
-# def theta(x,t):
-#     return k*x[0] - omega*t
+def theta(x,t):
+    return 2. * pi * ( wavelength *x[0] - (1./period) * t)
 #
 # def z(x):
 #     return x[1] - inflowHeightMean
@@ -387,8 +386,8 @@ def signedDistance(x):
 # sigma = omega - k*inflowVelocityMean[0]
 # h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
 #
-# def waveHeight(x,t):
-#     return inflowHeightMean + amplitude*cos(theta(x,t))
+def waveHeightValue(x,t):
+    return waveheight + amplitude*cos(theta(x,t))
 #
 # def waveVelocity_u(x,t):
 #     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
@@ -398,8 +397,8 @@ def signedDistance(x):
 #
 # #solution variables
 #
-# def wavePhi(x,t):
-#     return x[1] - waveHeight(x,t)
+def wavePhi(x,t):
+    return x[1] - waveHeightValue(x,t)
 #
 # def waveVF(x,t):
 #     return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
