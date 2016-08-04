@@ -4,7 +4,7 @@ from proteus import Context
 
 ct = Context.get()
 domain = ct.domain
-
+nd = domain.nd
 mesh = domain.MeshOptions
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
