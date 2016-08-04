@@ -1,5 +1,5 @@
 from proteus import *
-from tank import *
+from Xie_vertical_breakwater import *
 from vof_p import *
 
 if timeDiscretization=='vbdf':

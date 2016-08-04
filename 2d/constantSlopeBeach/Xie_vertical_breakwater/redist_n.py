@@ -1,6 +1,6 @@
 from proteus import *
 from redist_p import *
-from tank import *
+from Xie_vertical_breakwater import *
 
 tolFac = 0.0
 nl_atol_res = rd_nl_atol_res

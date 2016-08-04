@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from tank import *
+from Xie_vertical_breakwater import *
 from proteus.mprans import MCorr
 
 LevelModelType = MCorr.LevelModel

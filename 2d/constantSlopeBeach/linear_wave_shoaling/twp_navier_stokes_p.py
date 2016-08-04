@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from tank import *
+from linear_wave_shoaling import *
 from proteus.mprans import RANS2P
 
 LevelModelType = RANS2P.LevelModel

@@ -1,6 +1,6 @@
 from proteus import *
 from proteus.default_p import *
-from tank import *
+from Ting_and_Kirby_breaking import *
 from proteus.mprans import MCorr
 
 LevelModelType = MCorr.LevelModel

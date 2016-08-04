@@ -1,7 +1,7 @@
 from proteus import *
 from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
-from tank import *
+from Ting_and_Kirby_breaking import *
 from proteus.mprans import VOF
 
 LevelModelType = VOF.LevelModel

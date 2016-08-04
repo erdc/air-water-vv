@@ -1,6 +1,6 @@
 from proteus import *
 from twp_navier_stokes_p import *
-from tank import *
+from Xie_vertical_breakwater import *
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF

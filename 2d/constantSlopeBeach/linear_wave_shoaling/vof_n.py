@@ -1,5 +1,5 @@
 from proteus import *
-from tank import *
+from linear_wave_shoaling import *
 from vof_p import *
 
 if timeDiscretization=='vbdf':

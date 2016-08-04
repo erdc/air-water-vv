@@ -1,6 +1,6 @@
 from proteus import *
 from twp_navier_stokes_p import *
-from tank import *
+from linear_wave_shoaling import *
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF

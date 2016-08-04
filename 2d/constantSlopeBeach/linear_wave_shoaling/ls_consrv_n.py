@@ -1,5 +1,5 @@
 from proteus import *
-from tank import *
+from linear_wave_shoaling import *
 from ls_consrv_p import *
 
 timeIntegrator  = ForwardIntegrator

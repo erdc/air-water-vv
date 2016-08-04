@@ -1,6 +1,6 @@
 from proteus import *
 from redist_p import *
-from tank import *
+from linear_wave_shoaling import *
 
 nl_atol_res = rd_nl_atol_res
 tolFac = 0.0

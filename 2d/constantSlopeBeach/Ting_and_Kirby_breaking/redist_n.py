@@ -1,6 +1,6 @@
 from proteus import *
 from redist_p import *
-from tank import *
+from Ting_and_Kirby_breaking import *
 
 nl_atol_res = rd_nl_atol_res
 tolFac = 0.0

@@ -1,5 +1,5 @@
 from proteus import *
-from tank import *
+from Ting_and_Kirby_breaking import *
 from vof_p import *
 
 if timeDiscretization=='vbdf':
