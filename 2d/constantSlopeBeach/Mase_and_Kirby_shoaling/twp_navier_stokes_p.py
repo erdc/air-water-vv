@@ -34,10 +34,10 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    rho_1=ct.rho_1,
                                    nu_1=ct.nu_1,
                                    g=ct.g,
-                                   nd=domain.nd,
-                                   ME_model=0,
-                                   VF_model=1,
-                                   LS_model=LS_model,
+                                   nd=nd,
+                                   ME_model=int(movingDomain) + 0,
+                                   VF_model=int(movingDomain) + 1,
+                                   LS_model=int(movingDomain) + LS_model,
                                    Closure_0_model=Closure_0_model,
                                    Closure_1_model=Closure_1_model,
                                    epsFact_density=ct.epsFact_density,
@@ -66,8 +66,8 @@ advectiveFluxBoundaryConditions = {
 
 diffusiveFluxBoundaryConditions = {
     0: {},
-    1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython(),
-    2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()
+    1: {1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
+    2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}
 }
 
 class PerturbedSurface_p:

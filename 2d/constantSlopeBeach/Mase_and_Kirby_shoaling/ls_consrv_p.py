@@ -7,7 +7,6 @@ domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
 
-
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
 T = ct.T

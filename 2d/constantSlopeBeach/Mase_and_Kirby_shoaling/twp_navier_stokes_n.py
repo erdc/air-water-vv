@@ -9,9 +9,14 @@ from proteus import (Context,
 from proteus.mprans import RANS2P
 import twp_navier_stokes_p as physics
 
-#from broad_crested_weir import *
+# Context
 ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+mesh = domain.MeshOptions
 
+# time stepping
+runCFL = ct.runCFL
 if ct.timeDiscretization == 'vbdf':
     timeIntegration = TimeIntegration.VBDF
     timeOrder = 2
@@ -27,6 +32,16 @@ else:
     timeIntegration = TimeIntegration.BackwardEuler_cfl
     stepController = StepControl.Min_dt_cfl_controller
 
+# mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
 femSpaces = {0: ct.basis,
              1: ct.basis,
              2: ct.basis}
@@ -35,12 +50,12 @@ massLumping = False
 
 numericalFluxType = RANS2P.NumericalFlux
 subgridError = RANS2P.SubgridError(coefficients=physics.coefficients,
-                                   nd=ct.domain.nd,
+                                   nd=nd,
                                    lag=ct.ns_lag_subgridError,
                                    hFactor=ct.hFactor)
 shockCapturing = RANS2P.ShockCapturing(coefficients=physics.coefficients,
-                                       nd=ct.domain.nd,
-                                       shosckCapturingFactor=ct.ns_shockCapturingFactor,
+                                       nd=nd,
+                                       shockCapturingFactor=ct.ns_shockCapturingFactor,
                                        lag=ct.ns_lag_shockCapturing)
 
 fullNewtonFlag = True

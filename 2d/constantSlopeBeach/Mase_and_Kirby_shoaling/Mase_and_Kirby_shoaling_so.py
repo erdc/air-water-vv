@@ -1,25 +1,51 @@
-from proteus.default_so import *
-import Mase_and_Kirby_shoaling
+"""
+Split operator module for two-phase flow
+"""
 
-if Mase_and_Kirby_shoaling.useOnlyVF:
+import os
+from proteus.default_so import *
+from proteus import Context
+
+# Create context from main module
+name_so = os.path.basename(__file__)
+if '_so.py' in name_so[-6:]:
+    name = name_so[:-6]
+elif '_so.pyc' in name_so[-7:]:
+    name = name_so[:-7]
+else:
+    raise NameError, 'Split operator module must end with "_so.py"'
+
+try:
+    case = __import__(name)
+    Context.setFromModule(case)
+    ct = Context.get()
+except ImportError:
+    raise ImportError, str(name) + '.py not found'
+
+from proteus.BoundaryConditions import BC_Base
+BC_Base.getContext() #[temp] resituate later
+
+# List of p/n files
+pnList = []
+
+if ct.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
-              ("vof_p",               "vof_n")]
+              ("vof_p", "vof_n")]
 else:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
-              ("vof_p",               "vof_n"),
-              ("ls_p",                "ls_n"),
-              ("redist_p",            "redist_n"),
-              ("ls_consrv_p",         "ls_consrv_n")]
-    
-    
-if Mase_and_Kirby_shoaling.useRANS > 0:
+              ("vof_p", "vof_n"),
+              ("ls_p", "ls_n"),
+              ("redist_p", "redist_n"),
+              ("ls_consrv_p", "ls_consrv_n")]
+
+if ct.useRANS > 0:
     pnList.append(("kappa_p",
                    "kappa_n"))
     pnList.append(("dissipation_p",
                    "dissipation_n"))
-name = "tank_p" 
+name = "tank_p"
 
-if Mase_and_Kirby_shoaling.timeDiscretization == 'flcbdf':
+if ct.timeDiscretization == 'flcbdf':
     systemStepControllerType = Sequential_MinFLCBDFModelStep
     systemStepControllerType = Sequential_MinAdaptiveModelStep
 else:
@@ -28,5 +54,5 @@ else:
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0, Mase_and_Kirby_shoaling.dt_init] + [i * Mase_and_Kirby_shoaling.dt_fixed for i in range(1, Mase_and_Kirby_shoaling.nDTout + 1)]
+tnList = [0.0,ct.dt_init]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
 archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP

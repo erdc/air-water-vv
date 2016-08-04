@@ -25,8 +25,6 @@ nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
 triangleOptions = mesh.triangleOptions
 
-
-
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 

@@ -80,6 +80,7 @@ parallelPartitioningType = mt.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 
 # ----- BC & Other Flags ----- #
+timeDiscretization='be'#'vbdf'#'be','flcbdf'
 movingDomain = False
 checkMass = False
 applyCorrection = True
@@ -141,10 +142,10 @@ nu_1 = 1.500e-5
 sigma_01 = 0.0
 
 # gravity
-g = np.array([0.,-9.81,0.])
+g = np.array([0., -9.81, 0.])
 
 # wind
-windVelocity = (0.0,0.0)
+windVelocity = (0.0, 0.0, 0.0)
 
 # ----- WAVES ----- #
 period = opts.wave_period
@@ -195,18 +196,14 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 # ----- TANK ----- #
 
-sloped_shore = [[slope_x0, 0], [tank_dim[0], slope_y1]]
+sloped_shore = [[[slope_x0, 0], [tank_dim[0], slope_y1]],]
 
 tank = st.TankWithObstacles2D(domain=domain,
                               dim=tank_dim,
                               obstacles=sloped_shore)
 
-# ----- WAVES ----- #
-
-tank.setSponge(x_n=opts.sponge_dim[0], x_p=opts.sponge_dim[1])
-tank.setGenerationZones(x_n=True,
-                        waves=waves)
-tank.setAbsorptionZones(x_p=True)
+# tank = st.Tank2D(domain=domain,
+#                  dim=tank_dim)
 
 # ----- GAUGES ----- #
 
@@ -244,19 +241,18 @@ if opts.point_gauge_output or opts.column_gauge_output:
 # open top
 tank.BC['y+'].setAtmosphere()
 
+# free/no slip
 if opts.free_slip:
     tank.BC['y-'].setFreeSlip()
     tank.BC['x+'].setFreeSlip()
-    if not opts.generation:
-        tank.BC['x-'].setFreeSlip()
 else:  # no slip
     tank.BC['y-'].setNoSlip()
     tank.BC['x+'].setNoSlip()
-    if not opts.generation:
-        tank.BC['x-'].setNoSlip()
 
-# sponge
-tank.BC['sponge'].setNonMaterial()
+# waves
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waves,
+                                               wind_speed=windVelocity)
+
 
 # ----- MESH CONSTRUCTION ----- #
 
@@ -352,7 +348,7 @@ else:
     ns_closure = 2
 
 ##########################################
-#            Signed Distance             #
+#       Signed Distance & Wave Phi       #
 ##########################################
 
 
@@ -370,6 +366,9 @@ def signedDistance(x):
         else:
             return sqrt(phi_x ** 2 + phi_z ** 2)
 
+def wavePhi(x, t):
+    return x[1] - waveheight(x, t)
+
         # #waveData
         #
         # def waveHeight(x, t):
@@ -386,8 +385,7 @@ def signedDistance(x):
         #
         # #solution variables
         #
-def wavePhi(x, t):
-    return x[1] - waveheight(x, t)
+
         #
         # def waveVF(x, t):
         #     return smoothedHeaviside(epsFact_consrv_heaviside * he,

@@ -3,6 +3,12 @@ from proteus.mprans import RDLS
 from proteus import Context
 
 ct = Context.get()
+domain = ct.domain
+nd = domain.nd
+mesh = domain.MeshOptions
+genMesh = mesh.genMesh
+movingDomain = ct.movingDomain
+T = ct.T
 """
 The redistancing equation in the sloshbox test problem.
 """
@@ -11,8 +17,8 @@ LevelModelType = RDLS.LevelModel
 
 coefficients = RDLS.Coefficients(applyRedistancing=ct.applyRedistancing,
                                  epsFact=ct.epsFact_redistance,
-                                 nModelId=2,
-                                 rdModelId=3,
+                                 nModelId=int(movingDomain) + 2,
+                                 rdModelId=int(movingDomain) + 3,
                                  useMetrics=ct.useMetrics,
                                  backgroundDiffusionFactor=ct.backgroundDiffusionFactor)
 

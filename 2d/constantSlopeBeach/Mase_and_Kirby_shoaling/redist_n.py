@@ -10,12 +10,18 @@ from proteus.mprans import RDLS
 import redist_p as physics
 
 ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+mesh = domain.MeshOptions
 
 tolFac = 0.0
 nl_atol_res = ct.rd_nl_atol_res
 
 linTolFac = 0.01
 l_atol_res = 0.01 * ct.rd_nl_atol_res
+
+# time stepping
+runCFL = ct.runCFL
 
 if ct.redist_Newton:
     timeIntegration = TimeIntegration.NoIntegration
@@ -43,6 +49,15 @@ else:
     levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'r-true'
 
+# mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 femSpaces = {0: ct.basis}
 
 massLumping = False
