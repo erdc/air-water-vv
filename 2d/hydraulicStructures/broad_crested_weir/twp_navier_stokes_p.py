@@ -8,6 +8,7 @@ domain = ct.domain
 mesh = domain.MeshOptions
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
+T = ct.T
 
 LevelModelType = RANS2P.LevelModel
 if ct.useOnlyVF:

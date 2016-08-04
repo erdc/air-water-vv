@@ -11,10 +11,19 @@ from proteus.mprans import Dissipation
 
 ct = Context.get()
 
+runCFL = ct.runCFL
+nLevels = ct.nLevels
+parallelPartitioningType = ct.parallelPartitioningType
+nLayersOfOverlapForParallel = ct.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = ct.restrictFineSolutionToAllMeshes
+triangleOptions = ct.triangleOptions
+
 timeIntegration = TimeIntegration.BackwardEuler_cfl
 stepController = StepControl.Min_dt_cfl_controller
 
 femSpaces = {0: ct.basis}
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 massLumping = False
 numericalFluxType = Dissipation.NumericalFlux

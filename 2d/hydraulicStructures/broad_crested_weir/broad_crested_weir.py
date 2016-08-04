@@ -107,8 +107,9 @@ movingDomain = False
 checkMass = False
 applyRedistancing = True
 useOldPETSc = False
-userSuperlu = False
+useSuperlu = False
 spaceOrder = 1
+timeDiscretization='be'#'vbdf'#'be','flcbdf'
 useHex = False
 structured = False
 useRBLES = 0.0
@@ -274,8 +275,8 @@ if not opts.waves:
                                                         rhoDown=rho_0,
                                                         g=g,
                                                         refLevel=tank_dim[1])
-    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0,0],
-                                           seaLevel=waterLine_z)
+    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
+                                           waterLevel=waterLine_z)
 
 if air_vent:
     tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1]) \
@@ -318,8 +319,7 @@ if useMetrics:
     rd_shockCapturingFactor = 0.25
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
-                    = epsFact_vof = ecH \
-                    = epsFact_consrv_dirac = epsFact_density \
+                    = epsFact_vof = ecH = epsFact_consrv_dirac \
                     = 3.0
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
@@ -347,8 +347,7 @@ else:
     rd_shockCapturingFactor = 0.9
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
-        = epsFact_vof = ecH \
-        = epsFact_consrv_dirac = epsFact_density \
+        = epsFact_vof = ecH = epsFact_consrv_dirac \
         = 1.5
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0

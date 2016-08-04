@@ -1,7 +1,13 @@
 from proteus.default_p import *
 from proteus import Context
 from proteus.mprans import MCorr
+
 ct = Context.get()
+mesh = ct.domain.MeshOptions
+
+genMesh = mesh.genMesh
+movingDomain = ct.movingDomain
+T = ct.T
 
 LevelModelType = MCorr.LevelModel
 

@@ -11,6 +11,10 @@ import vof_p as physics
 #from vof_p import *
 
 ct = Context.get()
+mesh = ct.domain.MeshOptions
+
+# time stepping
+runCFL = ct.runCFL
 
 if ct.timeDiscretization is 'vbdf':
     timeIntegration = TimeIntegration.VBDF
@@ -27,6 +31,16 @@ else:
     timeIntegration = TimeIntegration.BackwardEuler_cfl
     stepController  = StepControl.Min_dt_cfl_controller
 
+# mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
 femSpaces = {0:ct.basis}
 
 massLumping       = False
@@ -34,7 +48,10 @@ numericalFluxType = VOF.NumericalFlux
 conservativeFlux  = None
 subgridError      = VOF.SubgridError(coefficients=physics.coefficients,
                                      nd=ct.domain.nd)
-shockCapturing    = VOF.ShockCapturing(physics.coefficients,ct.domain.nd,shockCapturingFactor=ct.vof_shockCapturingFactor,lag=ct.vof_lag_shockCapturing)
+shockCapturing    = VOF.ShockCapturing(coefficients=physics.coefficients,
+                                       nd=ct.domain.nd,
+                                       shockCapturingFactor=ct.vof_shockCapturingFactor,
+                                       lag=ct.vof_lag_shockCapturing)
 
 fullNewtonFlag = True
 multilevelNonlinearSolver = NonlinearSolvers.Newton

@@ -3,6 +3,14 @@ from proteus.mprans import RDLS
 from proteus import Context
 
 ct = Context.get()
+domain = ct.domain
+nd = domain.nd
+mesh = domain.MeshOptions
+
+
+genMesh = mesh.genMesh
+movingDomain = ct.movingDomain
+T = ct.T
 """
 The redistancing equation in the sloshbox test problem.
 """

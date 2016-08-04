@@ -29,7 +29,9 @@ coefficients = Kappa.Coefficients(V_model=0,
                                   rho_0=ct.rho_0,nu_0=ct.nu_0,
                                   rho_1=ct.rho_1,nu_1=ct.nu_1,
                                   g=ct.g,
-                                  c_mu=0.09,sigma_k=1.0, 
+                                  nd=ct.domain.nd,
+                                  c_mu=0.09,
+                                  sigma_k=1.0,
                                   sc_uref=ct.kappa_sc_uref,
                                   sc_beta=ct.kappa_sc_beta)
 

@@ -3,6 +3,12 @@ from proteus import Context
 from proteus.mprans import NCLS
 
 ct = Context.get()
+domain = ct.domain
+mesh = domain.MeshOptions
+
+genMesh = mesh.genMesh
+movingDomain = ct.movingDomain
+T = ct.T
 
 LevelModelType = NCLS.LevelModel
 

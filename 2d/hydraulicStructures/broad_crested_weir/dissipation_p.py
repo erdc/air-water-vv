@@ -18,7 +18,8 @@ else:
 #
 dissipation_model_flag = 1
 if ct.useRANS == 2:
-    dissipation_model_flag=2
+    dissipation_model_flag = 2
+
 coefficients = Dissipation.Coefficients(V_model=0,
                                         ME_model=ME_model,
                                         LS_model=LS_model,

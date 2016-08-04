@@ -11,7 +11,9 @@ import twp_navier_stokes_p as physics
 
 #from broad_crested_weir import *
 ct = Context.get()
+mesh = ct.domain.MeshOptions
 
+runCFL = ct.runCFL
 if ct.timeDiscretization == 'vbdf':
     timeIntegration = TimeIntegration.VBDF
     timeOrder = 2
@@ -26,6 +28,16 @@ elif ct.timeDiscretization == 'flcbdf':
 else:
     timeIntegration = TimeIntegration.BackwardEuler_cfl
     stepController = StepControl.Min_dt_cfl_controller
+
+# mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 femSpaces = {0: ct.basis,
              1: ct.basis,
@@ -42,7 +54,7 @@ subgridError = RANS2P.SubgridError(coefficients=physics.coefficients,
                                    hFactor=ct.hFactor)
 shockCapturing = RANS2P.ShockCapturing(coefficients=physics.coefficients,
                                        nd=ct.domain.nd,
-                                       shosckCapturingFactor=ct.ns_shockCapturingFactor,
+                                       shockCapturingFactor=ct.ns_shockCapturingFactor,
                                        lag=ct.ns_lag_shockCapturing)
 
 fullNewtonFlag = True
