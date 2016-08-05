@@ -275,7 +275,7 @@ if not opts.waves:
                                                         rhoDown=rho_0,
                                                         g=g,
                                                         refLevel=tank_dim[1])
-    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
+    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
                                            waterLevel=waterLine_z)
 
 if air_vent:

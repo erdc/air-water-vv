@@ -4,7 +4,7 @@ from proteus import Context
 
 ct = Context.get()
 domain = ct.domain
-
+nd = domain.nd
 mesh = domain.MeshOptions
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
@@ -62,10 +62,9 @@ advectiveFluxBoundaryConditions = {
 
 diffusiveFluxBoundaryConditions = {
     0: {},
-    1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython(),
-    2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()
+    1: {1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
+    2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}
 }
-
 
 class PerturbedSurface_p:
     def __init__(self, waterLevel):
