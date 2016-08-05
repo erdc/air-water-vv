@@ -89,6 +89,6 @@ class AtRest:
         return 0.0
 
 
-initialConditions = {0: PerturbedSurface_p(ct.waterLine_z),
+initialConditions = {0: PerturbedSurface_p(ct.inflow_level),
                      1: AtRest(),
                      2: AtRest()}

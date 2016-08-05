@@ -223,12 +223,12 @@ if opts.waves:
         waveHeight =0.018,
         mwl = waterLine_z,
         depth = waterLine_z,
-        g = g,
+        g = np.array(g),
         waveDir = (1.,0.,0.),
         wavelength = 0.5,
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
-    tank.setSponge(x_n = opts.sponge_dim[0], x_p = opts.sponge_dim[1])
+    tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
 
     tank.setGenerationZones(x_n=True, waves=wave)
     tank.setAbsorptionZones(x_p=True)

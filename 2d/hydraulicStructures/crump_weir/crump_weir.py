@@ -187,17 +187,18 @@ tank = st.TankWithObstacles2D(domain=domain,
                               obstacles=weir)
 
 # ----- WAVES ----- #
+
 wave = wt.MonochromaticWaves(
         period = 2,
         waveHeight =0.018,
         mwl = inflow_level,
         depth = inflow_level,
-        g = g,
+        g = np.array(g),
         waveDir = (1.,0.,0.),
         wavelength = 0.5,
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
-tank.setSponge(x_n = opts.sponge_dim[0], x_p = opts.sponge_dim[1])
+tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
 
 tank.setGenerationZones(x_n=opts.generation, waves=wave)
 tank.setAbsorptionZones(x_p=opts.absorption)
@@ -232,46 +233,53 @@ if opts.variable_refine_borders or opts.variable_refine_levels:
 
 # ----- GAUGES ----- #
 
-if opts.gauge_output:
+column_gauge_locations = []
+point_gauge_locations = []
 
-    tank.attachPointGauges(
-        'twp',
-        gauges = ((('p','u','v'), (opts.pointGauge_coord,)),),
-        activeTime=None,
-        sampleRate=0,
-        fileName='point_gauge_1.csv'
-    )
+if opts.point_gauge_output or opts.column_gauge_output:
 
-    tank.attachLineGauges(
-        'twp',
-        gauges=((('p','u','v'), (((opts.lineGauge_x, 0.0, 0.0),
-                                  (opts.lineGauge_x, opts.lineGauge_y, 0.0)),
-                                 )),),
-        activeTime = None,
-        sampleRate = 0,
-        fileName = 'line_gauge_1.csv'
-    )
+    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
 
-    tank.attachLineGauges(
-        'redist',
-        gauges=((('phid'), (((opts.lineGauge_x, 0.0, 0.0),
-                             (opts.lineGauge_x, opts.lineGauge_y, 0.0)),)),),
-        activeTime = None,
-        sampleRate = 0,
-        fileName = 'line_gauge_1_phi.csv'
-    )
+    for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
+
+        if obstacle_x_start <= gauge_x < obstacle_x_highest:
+            gauge_y = (obstacle_height
+                       / (obstacle_x_highest - obstacle_x_start)
+                       * (gauge_x - obstacle_x_start))
+        elif obstacle_x_highest <= gauge_x < obstacle_x_end:
+            gauge_y = (obstacle_height
+                       + obstacle_height
+                       / (obstacle_x_end - obstacle_x_highest)
+                       * (gauge_x - obstacle_x_highest))
+        else:
+            gauge_y = 0.
+        point_gauge_locations.append((gauge_x, obstacle_height, 0),)
+        column_gauge_locations.append(((gauge_x, gauge_y, 0.),
+                                       (gauge_x, tank_dim[1], 0.)))
+
+if opts.point_gauge_output:
+    tank.attachPointGauges('twp',
+                           gauges=((('u','v'), point_gauge_locations),
+                                   (('p',), point_gauge_locations)),
+                           fileName='combined_gauge_0_0.5_sample_all.txt')
+
+if opts.column_gauge_output:
+    tank.attachLineIntegralGauges('vof',
+                                  gauges=((('vof',), column_gauge_locations),),
+                                  fileName='column_gauge.csv')
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()
 
-if not opts.waves:
+if not opts.absorption:
     tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                         rhoUp=rho_1,
                                                         rhoDown=rho_0,
                                                         g=g,
                                                         refLevel=tank_dim[1])
+if not opts.generation:
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
                                            waterLevel=inflow_level)
 
