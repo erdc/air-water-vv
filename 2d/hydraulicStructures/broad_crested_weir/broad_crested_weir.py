@@ -278,6 +278,8 @@ if not opts.waves:
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
                                            waterLevel=waterLine_z)
 
+# import pdb
+# pdb.set_trace()
 if air_vent:
     tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1]) \
                                                         * rho_1 * abs(g[1])
@@ -285,7 +287,7 @@ if air_vent:
     tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0
     tank.BC['airvent'].v_diffusive.uOfXT = lambda x, t: 0
     tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1
-    tank.BC['airvent'].setTank()
+    #tank.BC['airvent'].setTank()  #  unique boundary conditions in obstacle tanks don't have _b_or or _b_i setting yet (not sure how to pass that through intuitively) and thus cannot have setTank.  It could be set manually... but it's not really a big issue for the normal hydraulicStructures
     #[temp] check against report - different set of conditions than in the code, which might solve issues if issues need solving
 
 # ----- MESH CONSTRUCTION ----- #
