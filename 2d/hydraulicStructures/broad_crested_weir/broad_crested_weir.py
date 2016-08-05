@@ -36,11 +36,11 @@ opts = Context.Options([
     # refinement
     ("refinement", 40, "Refinement level"),
     ("cfl", 0.9, "Target cfl"),
-    ("variable_refine_borders", [], "List of vertical borders between "
+    ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
                                     "and want to differentiate them)"),
-    ("variable_refine_levels", [], "List of refinement levels in each region"
+    ("variable_refine_levels", None, "List of refinement levels in each region"
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
@@ -232,6 +232,34 @@ if opts.waves:
 
     tank.setGenerationZones(x_n=True, waves=wave)
     tank.setAbsorptionZones(x_p=True)
+
+# ----- VARIABLE REFINEMENT ----- #
+
+if opts.variable_refine_borders or opts.variable_refine_levels:
+    refinement_borders = opts.variable_refine_borders
+    refinement_levels  = opts.variable_refine_levels
+
+    if refinement_borders == None or refinement_levels == None:
+        raise ValueError("For variable refinement, variable_refine_borders "
+                         "and variable_refine_levels must both be defined.")
+
+    if len(refinement_borders) + 1 != len(refinement_levels):
+        raise ValueError("The tank is split into {0} regions, but {1} levels "
+                         "of refinement have been "
+                         "specified.".format(len(refinement_borders) + 1,
+                                             len(refinement_levels)))
+
+    refinement_borders = [tank.x0] + refinement_borders + [tank.x1]
+    #TODO: Horizontal Variable Refinement
+    # Refinement borders should now contain one more element than refinement_levels
+    # The borders can be zipped together with the levels:
+    #           refinement_level[0] is bordered on the left by refinement_borders[0]
+    #                               and on the right by refinement_borders[1]
+    #                               and so on (each is bordered by i and i+1)
+    # The y borders are just the tank dimensions.
+    # This should hold all data necessary in an easy package for the final
+    # GMSH box refinement interface.
+    raise NotImplementedError("So you can find this unfinished point easier.")
 
 # ----- GAUGES ----- #
 
