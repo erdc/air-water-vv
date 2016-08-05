@@ -1,5 +1,5 @@
-from proteus.default_so import *
 import tank
+from proteus.default_so import *
 
 if tank.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
@@ -28,5 +28,6 @@ else:
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0,tank.dt_init]+[i*tank.dt_fixed for i in range(1,tank.nDTout+1)] 
+tnList = [0.0, tank.dt_init] + [i * tank.dt_fixed for i in range(1,
+                                                                 tank.nDTout + 1)]
 #archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
