@@ -21,6 +21,9 @@ if ct.useRANS >= 1:
     if ct.useOnlyVF:
         Closure_0_model = 2
         Closure_1_model = 3
+    if movingDomain:
+        Closure_0_model += 1
+        Closure_1_model += 1
 else:
     Closure_0_model = None
     Closure_1_model = None
