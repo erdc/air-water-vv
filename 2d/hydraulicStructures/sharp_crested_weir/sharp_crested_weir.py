@@ -16,23 +16,23 @@ opts = Context.Options([
     ("waves", False, "Generate waves - uses sponge layers."),
     ("air_vent", False, "Include an air vent in the obstacle."),
     # water
-    ("water_level", 0.462, "Height of (mean) free surface above bottom"),
-    ("water_width_over_obst", 0.1, "Initial width of free surface relative to"
+    ("water_level", 1.4, "Height of (mean) free surface above bottom"),
+    ("water_width_over_obst", 0.02, "Initial width of free surface relative to"
                                    " the obstacle location"),
-    ("outflow_level", -1, "Height of (mean) free surface of water outflow "
+    ("outflow_level", -1., "Height of (mean) free surface of water outflow "
                           "give a negative number if no initial outflow."),
-    ("inflow_velocity", 0.047, "Wave or steady water inflow velocity"),
+    ("inflow_velocity", 0.34, "Wave or steady water inflow velocity"),
     ("outflow_velocity", 0.0, "Initial wave or steady water outflow velocity"),
     # tank
-    ("tank_dim", (3.5, 0.7), "Dimensions (x,y) of the tank"),
-    ("tank_sponge", (0.,0.), "Length of (generation, absorption) zones, if any"),
-    ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle."),
-    ("obstacle_x_start", 2.0, "x coordinate of the start of the obstacle"),
+    ("tank_dim", (7.5, 1.8), "Dimensions (x,y) of the tank"),
+    ("tank_sponge", (0., 0.), "Length of (generation, absorption) zones, if any"),
+    ("obstacle_dim", (0.01, 1.00), "Dimensions (x,y) of the obstacle."),
+    ("obstacle_x_start", 5.0, "x coordinate of the start of the obstacle"),
     # gauges
-    ("gauge_output", True, "Produce gauge data"),
-    ("lineGauge_x", 3.4, "x-coordinate of vertical line of gauges"),
-    ("lineGauge_y", 0.1, "height of vertical line of gauges (starts at base)"),
-    ("pointGauge_coord", (0.05, 0.65, 0.0), "Coordinate of point gauge measurement"),
+    ("point_gauge_output", False, "Produce gauge data"),
+    ("column_gauge_output", False, "Produce column gauge data"),
+    ("gauge_dx", 0.5, "Horizontal spacing of gauges/gauge columns."),
+    ("point_gauge_y", 0.5, "Height of point gauge placement"),
     # refinement
     ("refinement", 40, "Refinement level"),
     ("cfl", 0.9, "Target cfl"),
@@ -76,26 +76,10 @@ obstacle_height = obstacle_dim[1]
 # air vent
 if opts.air_vent:
     air_vent = True
-    airvent_y1 = 2.5 * obstacle_height / 4.0
-    airvent_y2 = 3.5 * obstacle_height / 4.0
+    airvent_y1 = 2.0 * obstacle_height / 4.0
+    airvent_y2 = 3.0 * obstacle_height / 4.0
 else:
     air_vent = False
-
-# sanity checks
-if waterLine_z > tank_dim[1]:
-    raise ValueError("ERROR: Water (level: %s) overflows height of tank (%s)"
-                     % (waterLine_z, tank_dim[1]))
-if outflow_level > tank_dim[1]:
-    raise ValueError("ERROR: Water (outflow level: %s) overflows height of tank (%s)"
-                     % (outflow_level, tank_dim[1]))
-if obstacle_x_end > tank_dim[0] or obstacle_height > tank_dim[1]:
-    raise ValueError("ERROR: Obstacle (height: %s, width: %s, start: %s) lies "
-                     " outside of tank (height: %s, width: %s)"
-                     % (obstacle_dim[1], obstacle_dim[0], obstacle_x_start,
-                        tank_dim[1], tank_dim[0]))
-if waterLine_x + obstacle_x_end > tank_dim[0]:
-    raise ValueError("ERROR: Water starts outside of tank at x = %s (tank: %s)"
-                     % (waterLine_x+obstacle_x_end, tank_dim[0]))
 
 ##########################################
 #     Discretization Input Options       #
@@ -265,34 +249,29 @@ if opts.variable_refine_borders or opts.variable_refine_levels:
 
 # ----- GAUGES ----- #
 
-if opts.gauge_output:
+point_gauge_locations = []
+column_gauge_locations = []
 
-    tank.attachPointGauges(
-        'twp',
-        gauges = ((('p','u','v'), (opts.pointGauge_coord,)),),
-        activeTime=None,
-        sampleRate=0,
-        fileName='point_gauge_1.csv'
-    )
+if opts.point_gauge_output or opts.column_gauge_output:
 
-    tank.attachLineGauges(
-        'twp',
-        gauges=((('p','u','v'), (((opts.lineGauge_x, 0.0, 0.0),
-                                  (opts.lineGauge_x, opts.lineGauge_y, 0.0)),
-                                 )),),
-        activeTime = None,
-        sampleRate = 0,
-        fileName = 'line_gauge_1.csv'
-    )
+    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
 
-    tank.attachLineGauges(
-        'redist',
-        gauges=((('phid'), (((opts.lineGauge_x, 0.0, 0.0),
-                             (opts.lineGauge_x, opts.lineGauge_y, 0.0)),)),),
-        activeTime = None,
-        sampleRate = 0,
-        fileName = 'line_gauge_1_phi.csv'
-    )
+    for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
+        if gauge_x < obstacle_x_start or gauge_x > obstacle_x_end:
+            point_gauge_locations.append((gauge_x, opts.point_gauge_y, 0.),)
+            column_gauge_locations.append(((gauge_x, 0., 0.),
+                                           (gauge_x, tank_dim[1], 0.)))
+
+if opts.point_gauge_output:
+    tank.attachPointGauges('twp',
+                           gauges=((('u','v'), point_gauge_locations),
+                                   (('p',), point_gauge_locations)),
+                           fileName='combined_gauge_0_0.5_sample_all.txt')
+
+if opts.column_gauge_output:
+    tank.attachLineIntegralGauges('vof',
+                                  gauges=((('vof',), column_gauge_locations),),
+                                  fileName='column_gauge.csv')
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
