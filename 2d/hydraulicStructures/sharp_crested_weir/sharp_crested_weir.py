@@ -1,5 +1,5 @@
 """
-Crump Weir
+A Broad Crested Weir
 """
 import numpy as np
 from math import sqrt
@@ -14,30 +14,28 @@ from proteus.Profiling import logEvent
 opts = Context.Options([
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
+    ("air_vent", False, "Include an air vent in the obstacle."),
     # water
-    ("inflow_level", 1.5, "Height of (mean) free surface of water above "
-                            "bottom for the inflow of water"),
-    ("outflow_level", 0.5, "Height of (mean) free surface of water above "
-                            "bottom for the outflow of water"),
-    ("inflow_velocity", 1.345, "Wave or steady water inflow velocity"),
-    ("outflow_velocity", 4.035, "Initial wave or steady water outflow velocity"),
+    ("water_level", 0.462, "Height of (mean) free surface above bottom"),
+    ("water_width_over_obst", 0.1, "Initial width of free surface relative to"
+                                   " the obstacle location"),
+    ("outflow_level", -1, "Height of (mean) free surface of water outflow "
+                          "give a negative number if no initial outflow."),
+    ("inflow_velocity", 0.047, "Wave or steady water inflow velocity"),
+    ("outflow_velocity", 0.0, "Initial wave or steady water outflow velocity"),
     # tank
-    ("tank_dim", (13.5, 2.1), "Dimensions (x,y) of the tank"),
-    ("generation", True, "Generate waves at left boundary"),
-    ("absorption", True, "Absorb waves at the right boundary"),
-    ("tank_sponge", (2.,2.), "Length of (generation, absorption) zones, if any"),
-    # weir
-    ("obstacle_dim", (3.5, 0.5), "Dimensions (x,y) of the obstacle."),
-    ("obstacle_x_start", 6.0, "x coordinate of the start of the obstacle"),
-    ("cot_upstream_slope", 2.0, "Cotangent of upstream slope of obstacle "
-                                "(downstream is forced by obstacle width)"),
+    ("tank_dim", (3.5, 0.7), "Dimensions (x,y) of the tank"),
+    ("tank_sponge", (0.,0.), "Length of (generation, absorption) zones, if any"),
+    ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle."),
+    ("obstacle_x_start", 2.0, "x coordinate of the start of the obstacle"),
     # gauges
-    ("point_gauge_output", True, "Produce point gauge data"),
-    ("column_gauge_output", True, "Produce column gauge data"),
-    ("gauge_dx", 0.25, "Horizontal spacing of gauges/gauge columns"),
+    ("gauge_output", True, "Produce gauge data"),
+    ("lineGauge_x", 3.4, "x-coordinate of vertical line of gauges"),
+    ("lineGauge_y", 0.1, "height of vertical line of gauges (starts at base)"),
+    ("pointGauge_coord", (0.05, 0.65, 0.0), "Coordinate of point gauge measurement"),
     # refinement
-    ("refinement", 68, "Refinement level"),
-    ("cfl", 0.75, "Target cfl"),
+    ("refinement", 40, "Refinement level"),
+    ("cfl", 0.9, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
@@ -46,9 +44,9 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 30.0, "Simulation time"),
-    ("dt_fixed", 0.25, "Fixed time step"),
-    ("dt_init", 0.1, "Minimum initial time step (otherwise dt_fixed/10)"),
+    ("T", 10.0, "Simulation time"),
+    ("dt_fixed", 0.02, "Fixed time step"),
+    ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10)"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
     ("parallel", True, "Run in parallel")])
@@ -56,8 +54,13 @@ opts = Context.Options([
 # ----- CONTEXT ------ #
 
 # water
-inflow_level = opts.inflow_level
-outflow_level = opts.outflow_level
+waterLine_z = opts.water_level
+waterLine_x = opts.water_width_over_obst
+
+if opts.outflow_level < 0.0:
+    outflow_level = -(opts.tank_dim[0] ** 2) - (opts.tank_dim[1] ** 2)
+else:
+    outflow_level = opts.outflow_level
 
 # flow
 inflow_velocity = opts.inflow_velocity
@@ -66,12 +69,33 @@ outflow_velocity = opts.outflow_velocity
 # tank
 tank_dim = opts.tank_dim
 obstacle_dim = opts.obstacle_dim
-
-obstacle_height = obstacle_dim[1]
 obstacle_x_start = opts.obstacle_x_start
 obstacle_x_end = obstacle_x_start + obstacle_dim[0]
-obstacle_x_highest = (obstacle_x_start
-                      + obstacle_height * opts.cot_upstream_slope)
+obstacle_height = obstacle_dim[1]
+
+# air vent
+if opts.air_vent:
+    air_vent = True
+    airvent_y1 = 2.5 * obstacle_height / 4.0
+    airvent_y2 = 3.5 * obstacle_height / 4.0
+else:
+    air_vent = False
+
+# sanity checks
+if waterLine_z > tank_dim[1]:
+    raise ValueError("ERROR: Water (level: %s) overflows height of tank (%s)"
+                     % (waterLine_z, tank_dim[1]))
+if outflow_level > tank_dim[1]:
+    raise ValueError("ERROR: Water (outflow level: %s) overflows height of tank (%s)"
+                     % (outflow_level, tank_dim[1]))
+if obstacle_x_end > tank_dim[0] or obstacle_height > tank_dim[1]:
+    raise ValueError("ERROR: Obstacle (height: %s, width: %s, start: %s) lies "
+                     " outside of tank (height: %s, width: %s)"
+                     % (obstacle_dim[1], obstacle_dim[0], obstacle_x_start,
+                        tank_dim[1], tank_dim[0]))
+if waterLine_x + obstacle_x_end > tank_dim[0]:
+    raise ValueError("ERROR: Water starts outside of tank at x = %s (tank: %s)"
+                     % (waterLine_x+obstacle_x_end, tank_dim[0]))
 
 ##########################################
 #     Discretization Input Options       #
@@ -86,6 +110,8 @@ useOldPETSc = False
 useSuperlu = False
 spaceOrder = 1
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
+useHex = False
+structured = False
 useRBLES = 0.0
 useMetrics = 1.0
 applyCorrection = True
@@ -94,10 +120,6 @@ useOnlyVF = False
 useRANS = 0  # 0 -- None
              # 1 -- K-Epsilon
              # 2 -- K-Omega
-
-# structured meshes
-useHex = False
-structured = False
 
 # ----- INPUT CHECKS ----- #
 if spaceOrder not in [1,2]:
@@ -178,30 +200,38 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 # ----- TANK ----- #
 
-weir = [[[obstacle_x_start, 0],
-         [obstacle_x_highest, obstacle_height],
-         [obstacle_x_end, 0]]]
+if air_vent:
+    weir = [[[obstacle_x_start, 0], [obstacle_x_start, obstacle_height],
+             [obstacle_x_end, obstacle_height], [obstacle_x_end, airvent_y2],
+             [obstacle_x_end, airvent_y1], [obstacle_x_end, 0]]]
+    vent = {'airvent': [[obstacle_x_end, airvent_y2]]}
+else:
+    weir = [[[obstacle_x_start, 0], [obstacle_x_start, obstacle_height],
+             [obstacle_x_end, obstacle_height], [obstacle_x_end, 0]]]
+    vent = None
 
 tank = st.TankWithObstacles2D(domain=domain,
                               dim=tank_dim,
-                              obstacles=weir)
+                              obstacles=weir,
+                              special_boundaries=vent)
 
 # ----- WAVES ----- #
+if opts.waves:
 
-wave = wt.MonochromaticWaves(
+    wave = wt.MonochromaticWaves(
         period = 2,
         waveHeight =0.018,
-        mwl = inflow_level,
-        depth = inflow_level,
+        mwl = waterLine_z,
+        depth = waterLine_z,
         g = np.array(g),
         waveDir = (1.,0.,0.),
         wavelength = 0.5,
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
-tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+    tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
 
-tank.setGenerationZones(x_n=opts.generation, waves=wave)
-tank.setAbsorptionZones(x_p=opts.absorption)
+    tank.setGenerationZones(x_n=True, waves=wave)
+    tank.setAbsorptionZones(x_p=True)
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -233,55 +263,60 @@ if opts.variable_refine_borders or opts.variable_refine_levels:
 
 # ----- GAUGES ----- #
 
-column_gauge_locations = []
-point_gauge_locations = []
+if opts.gauge_output:
 
-if opts.point_gauge_output or opts.column_gauge_output:
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('p','u','v'), (opts.pointGauge_coord,)),),
+        activeTime=None,
+        sampleRate=0,
+        fileName='point_gauge_1.csv'
+    )
 
-    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
+    tank.attachLineGauges(
+        'twp',
+        gauges=((('p','u','v'), (((opts.lineGauge_x, 0.0, 0.0),
+                                  (opts.lineGauge_x, opts.lineGauge_y, 0.0)),
+                                 )),),
+        activeTime = None,
+        sampleRate = 0,
+        fileName = 'line_gauge_1.csv'
+    )
 
-    for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
-
-        if obstacle_x_start <= gauge_x < obstacle_x_highest:
-            gauge_y = (obstacle_height
-                       / (obstacle_x_highest - obstacle_x_start)
-                       * (gauge_x - obstacle_x_start))
-        elif obstacle_x_highest <= gauge_x < obstacle_x_end:
-            gauge_y = (obstacle_height
-                       + obstacle_height
-                       / (obstacle_x_end - obstacle_x_highest)
-                       * (gauge_x - obstacle_x_highest))
-        else:
-            gauge_y = 0.
-        point_gauge_locations.append((gauge_x, obstacle_height, 0),)
-        column_gauge_locations.append(((gauge_x, gauge_y, 0.),
-                                       (gauge_x, tank_dim[1], 0.)))
-
-if opts.point_gauge_output:
-    tank.attachPointGauges('twp',
-                           gauges=((('u','v'), point_gauge_locations),
-                                   (('p',), point_gauge_locations)),
-                           fileName='combined_gauge_0_0.5_sample_all.txt')
-
-if opts.column_gauge_output:
-    tank.attachLineIntegralGauges('vof',
-                                  gauges=((('vof',), column_gauge_locations),),
-                                  fileName='column_gauge.csv')
+    tank.attachLineGauges(
+        'redist',
+        gauges=((('phid'), (((opts.lineGauge_x, 0.0, 0.0),
+                             (opts.lineGauge_x, opts.lineGauge_y, 0.0)),)),),
+        activeTime = None,
+        sampleRate = 0,
+        fileName = 'line_gauge_1_phi.csv'
+    )
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()
 
-if not opts.absorption:
+if not opts.waves:
     tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                         rhoUp=rho_1,
                                                         rhoDown=rho_0,
                                                         g=g,
                                                         refLevel=tank_dim[1])
-if not opts.generation:
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
-                                           waterLevel=inflow_level)
+                                           waterLevel=waterLine_z)
+
+# import pdb
+# pdb.set_trace()
+if air_vent:
+    tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1]) \
+                                                        * rho_1 * abs(g[1])
+    tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0
+    tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0
+    tank.BC['airvent'].v_diffusive.uOfXT = lambda x, t: 0
+    tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1
+    #tank.BC['airvent'].setTank()  #  unique boundary conditions in obstacle tanks don't have _b_or or _b_i setting yet (not sure how to pass that through intuitively) and thus cannot have setTank.  It could be set manually... but it's not really a big issue for the normal hydraulicStructures
+    #[temp] check against report - different set of conditions than in the code, which might solve issues if issues need solving
 
 # ----- MESH CONSTRUCTION ----- #
 
@@ -295,23 +330,23 @@ st.assembleDomain(domain)
 
 # ----- STRONG DIRICHLET ----- #
 
-ns_forceStrongDirichlet = True
+ns_forceStrongDirichlet = False
 
 # ----- NUMERICAL PARAMETERS ----- #
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.75
+    ns_shockCapturingFactor = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor = 0.75
+    ls_shockCapturingFactor = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
     ls_sc_beta = 1.0
-    vof_shockCapturingFactor = 0.75
+    vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    rd_shockCapturingFactor = 0.75
+    vof_sc_beta = 1.0
+    rd_shockCapturingFactor = 0.25
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH = epsFact_consrv_dirac \
@@ -380,15 +415,21 @@ else:
 #            Signed Distance             #
 ##########################################
 
-def signedDistance(x):
-    if x[0] < obstacle_x_start:
-        phi_z = x[1] - inflow_level
-    elif x[0] < obstacle_x_end:
-        phi_z = x[1] - inflow_level \
-        + ((inflow_level - outflow_level) / (obstacle_x_end - obstacle_x_start)
-           * (x[0] - obstacle_x_start)
-           )
-    else:
-        phi_z = x[1] - outflow_level
 
-    return phi_z
+def signedDistance(x):
+    phi_x = x[0] - waterLine_x
+    phi_z = x[1] - waterLine_z
+    phi_z_outflow = x[1] - outflow_level
+    if phi_x <= 0.0:
+        if phi_z < 0.0:
+            return max(phi_x, phi_z)
+        else:
+            return phi_z
+    else:
+        if phi_z_outflow < 0.0:
+            return phi_z_outflow
+        else:
+            if phi_z < 0.0:
+                return min(phi_x, phi_z_outflow)
+            else:
+                return min(sqrt(phi_x ** 2 + phi_z ** 2), phi_z_outflow)
