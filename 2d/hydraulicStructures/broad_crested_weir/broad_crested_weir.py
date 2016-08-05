@@ -249,7 +249,9 @@ if opts.variable_refine_borders or opts.variable_refine_levels:
                          "specified.".format(len(refinement_borders) + 1,
                                              len(refinement_levels)))
 
-    refinement_borders = [tank.x0] + refinement_borders + [tank.x1]
+    refinement_borders = ([tank.x0 - opts.tank_sponge[0]]
+                          + refinement_borders
+                          + [tank.x1 + opts.tank_sponge[1]])
     #TODO: Horizontal Variable Refinement
     # Refinement borders should now contain one more element than refinement_levels
     # The borders can be zipped together with the levels:
