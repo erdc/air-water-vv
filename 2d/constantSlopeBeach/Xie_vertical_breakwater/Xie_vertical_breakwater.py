@@ -24,7 +24,7 @@ opts = Context.Options([
     ("slope_height_ratio", 0.214, "y coordinate of end of slope as a fraction"
                                   " of total height (tank_dim[1] * [value] )"),
     # waves
-    ("wave_period", 153., "Period of the waves"),
+    ("wave_period", 1.53, "Period of the waves"),
     ("wave_height", 0.065, "Height of the waves"),
     ("wave_depth", 1., "Wave depth"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),

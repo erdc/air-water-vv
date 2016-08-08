@@ -3,6 +3,8 @@ from proteus import Context
 from proteus.mprans import NCLS
 
 ct = Context.get()
+domain = ct.domain
+nd = domain.nd
 
 LevelModelType = NCLS.LevelModel
 
