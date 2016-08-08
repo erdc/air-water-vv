@@ -287,7 +287,7 @@ if opts.gauge_output:
 
     tank.attachLineGauges(
         'redist',
-        gauges=((('phid'), (((opts.lineGauge_x, 0.0, 0.0),
+        gauges=((('phid',), (((opts.lineGauge_x, 0.0, 0.0),
                              (opts.lineGauge_x, opts.lineGauge_y, 0.0)),)),),
         activeTime = None,
         sampleRate = 0,

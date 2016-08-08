@@ -3,6 +3,7 @@ from proteus.mprans import Dissipation
 from proteus import Context
 ct = Context.get()
 domain = ct.domain
+nd = domain.nd
 
 LevelModelType = Dissipation.LevelModel
 if ct.useOnlyVF:

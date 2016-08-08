@@ -3,6 +3,8 @@ from proteus import Context
 from proteus.mprans import MCorr
 
 ct = Context.get()
+domain = ct.domain
+nd = domain.nd
 mesh = ct.domain.MeshOptions
 
 genMesh = mesh.genMesh
@@ -16,7 +18,7 @@ coefficients = MCorr.Coefficients(LSModel_index=2,
                                   me_model=4,
                                   VOFModel_index=1,
                                   applyCorrection=ct.applyCorrection,
-                                  nd=ct.domain.nd,
+                                  nd=nd,
                                   checkMass=False,
                                   useMetrics=ct.useMetrics,
                                   epsFactHeaviside=ct.ecH,

@@ -3,6 +3,7 @@ from proteus import Context
 from proteus.mprans import Kappa
 ct = Context.get()
 domain = ct.domain
+nd = domain.nd
 
 LevelModelType = Kappa.LevelModel
 if ct.useOnlyVF:

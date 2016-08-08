@@ -272,6 +272,7 @@ if not opts.sponge_layers:
                                            waterLevel=inflow_level)
 
 tank.BC['gate'].setFreeSlip()
+tank.BC['sponge'].setNonMaterial()
 
 # ----- MESH CONSTRUCTION ----- #
 

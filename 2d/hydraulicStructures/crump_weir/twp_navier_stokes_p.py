@@ -35,7 +35,7 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    rho_1=ct.rho_1,
                                    nu_1=ct.nu_1,
                                    g=ct.g,
-                                   nd=domain.nd,
+                                   nd=nd,
                                    ME_model=0,
                                    VF_model=1,
                                    LS_model=LS_model,
@@ -75,10 +75,10 @@ class PerturbedSurface_p:
 
     def uOfXT(self, x, t):
         if ct.signedDistance(x) < 0:
-            return -(ct.L[1] - self.waterLevel) * ct.rho_1 * ct.g[1] \
+            return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1] \
                    - (self.waterLevel -x[1]) * ct.rho_0 * ct.g[1]
         else:
-            return -(ct.L[1] - self.waterLevel) * ct.rho_1 * ct.g[1]
+            return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1]
 
 
 class AtRest:
