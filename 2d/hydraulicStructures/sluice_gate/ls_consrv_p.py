@@ -3,6 +3,8 @@ from proteus import Context
 from proteus.mprans import MCorr
 
 ct = Context.get()
+domain = ct.domain
+nd = domain.nd
 mesh = ct.domain.MeshOptions
 
 genMesh = mesh.genMesh

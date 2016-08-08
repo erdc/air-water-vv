@@ -4,6 +4,7 @@ from proteus.mprans import NCLS
 
 ct = Context.get()
 domain = ct.domain
+nd = domain.nd
 mesh = domain.MeshOptions
 
 genMesh = mesh.genMesh
