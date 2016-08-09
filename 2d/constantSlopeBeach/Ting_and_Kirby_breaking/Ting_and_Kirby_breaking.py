@@ -28,6 +28,30 @@ opts = Context.Options([
     ("wave_depth", 1., "Wave depth"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     ("wavelength", 10.655, "Wavelength"),  # calculated by FFT
+    ("y_coeff", (0.02107762,
+                 0.01588268,
+                 0.01059044,
+                 0.00658221,
+                 0.00394857,
+                 0.00233566,
+                 0.00138150,
+                 0.00082688,
+                 0.00050907,
+                 0.00033254,
+                 0.00024420,
+                 0.00021730), "YCoeff array from Fenton calculation tool"),
+    ("b_coeff", (0.04205140,
+                 0.01597969,
+                 0.00713356,
+                 0.00328541,
+                 0.00151320,
+                 0.00068665,
+                 0.00030328,
+                 0.00012864,
+                 0.00005141,
+                 0.00001879,
+                 0.00000623,
+                 0.00000148), "Bcoeff array from calculation tool"),
     # gauges
     ("point_gauge_output", True, "Produce point gauge data"),
     ("column_gauge_output", True, "Produce column gauge data"),
@@ -165,16 +189,16 @@ waveDir = np.array(opts.wave_dir)
 wavelength = opts.wavelength
 amplitude = waveheight / 2.0
 
-waves = wt.RandomWaves(Tp = period,
-                       Hs = waveheight,
-                       mwl = waterLine_z,
-                       depth = depth,
-                       waveDir = waveDir,
-                       g = g,
-                       bandFactor = 2.0,
-                       N = 101,
-                       spectName = 'JONSWAP')
-
+waves = wt.MonochromaticWaves(period=period,
+                              waveHeight=waveheight,
+                              mwl=waterLine_z,
+                              depth=depth,
+                              g=g,
+                              waveDir=waveDir,
+                              wavelength=wavelength,
+                              waveType='Fenton',
+                              Ycoeff=opts.y_coeff,
+                              Bcoeff=opts.b_coeff)
 
 # ----- TIME STEPPING & VELOCITY----- #
 

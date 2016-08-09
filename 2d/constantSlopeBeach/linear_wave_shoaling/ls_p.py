@@ -33,4 +33,4 @@ class PerturbedSurface_phi:
     def uOfXT(self,x,t):
         return ct.signedDistance(x)
     
-initialConditions  = {0:PerturbedSurface_phi()}
+initialConditions  = {0: PerturbedSurface_phi()}

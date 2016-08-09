@@ -13,7 +13,7 @@ from proteus.Profiling import logEvent
 
 opts = Context.Options([
     # test options
-    ("water_level", 0.45, "Height of (mean) free surface above bottom"),
+    ("water_level", 1.0, "Height of (mean) free surface above bottom"),
     ("free_slip", True, "Free slip BC's enforced (otherwise, no slip)"),
     # tank
     ("tank_dim", (35.0, 1.50), "Dimensions (x,y) of the tank"),
@@ -161,16 +161,13 @@ waveDir = np.array(opts.wave_dir)
 wavelength = opts.wavelength
 amplitude = waveheight / 2.0
 
-waves = wt.RandomWaves(Tp = period,
-                       Hs = waveheight,
-                       mwl = waterLine_z,
-                       depth = depth,
-                       waveDir = waveDir,
-                       g = g,
-                       bandFactor = 2.0,
-                       N = 101,
-                       spectName = 'JONSWAP')
-
+waves = wt.MonochromaticWaves(period=period,
+                              waveHeight=waveheight,
+                              mwl=waterLine_z,
+                              depth=depth,
+                              g=g,
+                              waveDir=waveDir,
+                              wavelength=wavelength)
 
 # ----- TIME STEPPING & VELOCITY----- #
 
@@ -190,6 +187,8 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 # ----- TANK ----- #
 
+import pdb
+pdb.set_trace()
 sloped_shore = [[[slope_start_x, 0],
                  [slope_end_x, slope_height],
                  [tank_dim[0], slope_height]],]
@@ -211,7 +210,6 @@ tank.setGenerationZones(waves=waves,
                         wind_speed=windVelocity
                         )
 tank.setAbsorptionZones(x_p=opts.absorption)
-
 
 # ----- GAUGES ----- #
 

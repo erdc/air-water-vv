@@ -73,8 +73,8 @@ class PerturbedSurface_p:
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
         if ct.signedDistance(x) < 0:
-            return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1] \
-                   - (self.waterLevel - x[1]) * ct.rho_0 * ct.g[1]
+            return (-(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1]
+                    - (self.waterLevel - x[1]) * ct.rho_0 * ct.g[1])
         else:
             return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1]
 
