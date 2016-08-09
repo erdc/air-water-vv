@@ -38,4 +38,4 @@ class PerturbedSurface_H:
     def uOfXT(self,x,t):
         return smoothedHeaviside(ct.ecH * ct.he, ct.signedDistance(x))
 	    
-initialConditions  = {0:PerturbedSurface_H()}
+initialConditions = {0:PerturbedSurface_H()}

@@ -8,7 +8,6 @@ from proteus import (StepControl,
 import ls_consrv_p as physics
 from proteus import Context
 
-
 ct = Context.get()
 domain = ct.domain
 nd = ct.domain.nd

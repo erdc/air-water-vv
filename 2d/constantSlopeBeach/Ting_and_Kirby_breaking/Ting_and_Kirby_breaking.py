@@ -174,18 +174,6 @@ waves = wt.RandomWaves(Tp = period,
                        bandFactor = 2.0,
                        N = 101,
                        spectName = 'JONSWAP')
-#[temp] just in case more details are needed on the old intent, this will stay in for a few more commits
-# waves = WT.RandomWaves( Tp = period, # Peak period
-#                         Hs = waveheight, # Height
-#                         d = depth, # Depth
-#                         fp = 1./period, #peak Frequency
-#                         bandFactor = 2.0, #fmin=fp/Bandfactor, fmax = Bandfactor * fp
-#                         N = 101, #No of frequencies for signal reconstruction
-#                         mwl = inflowHeightMean, # Sea water level
-#                         waveDir = waveDir, # waveDirection
-#                         g = g, # Gravity vector, defines the vertical
-#                         gamma=1.0, #Pierson Moskowitz spectum for gamma=1.0
-#                         spec_fun = WT.JONSWAP)
 
 
 # ----- TIME STEPPING & VELOCITY----- #
