@@ -160,7 +160,7 @@ waveDir = np.array(opts.wave_dir)
 wavelength = opts.wavelength
 amplitude = waveheight / 2.0
 
-# [temp] Waves from Mase and Kirby, as random waves.  Regular waves linear or nonlinear may be preferred, but the source paper is elusive at the moment
+# [temp] Waves from Mase and Kirby, as random waves (the initial usage was not clear, and Xie experimented with both regular and random waves - these just happened to be the waves I had at hand at the time while refactoring).  Regular waves could be swapped in instead, with similar syntax used in the linear_waves_shoaling (for linear regular waves) and Ting_and_Kirby_breaking (for nonlinear regular waves) tests.  Switching between the different wave types could be included as a context option (with each just setting waves = their type of wave here), if so desired.
 waves = wt.RandomWaves(Tp = period,
                        Hs = waveheight,
                        mwl = waterLine_z,
@@ -365,45 +365,14 @@ def signedDistance(x):
         else:
             return sqrt(phi_x ** 2 + phi_z ** 2)
 
+
 def theta(x,t):
     return 2. * pi * ( wavelength *x[0] - (1./period) * t)
-#
-# def z(x):
-#     return x[1] - inflowHeightMean
-#
-# sigma = omega - k*inflowVelocityMean[0]
-# h = inflowHeightMean # - transect[0][1] if lower left hand corner is not at z=0
-#
+
+
 def waveHeightValue(x,t):
     return waveheight + amplitude*cos(theta(x,t))
-#
-# def waveVelocity_u(x,t):
-#     return sigma*amplitude*cosh(k*(z(x)+h))*cos(theta(x,t))/sinh(k*h)
-#
-# def waveVelocity_v(x,t):
-#     return sigma*amplitude*sinh(k*(z(x)+h))*sin(theta(x,t))/sinh(k*h)
-#
-# #solution variables
-#
+
+
 def wavePhi(x,t):
     return x[1] - waveHeightValue(x,t)
-#
-# def waveVF(x,t):
-#     return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
-#
-# def twpflowVelocity_u(x,t):
-#     waterspeed = waveVelocity_u(x,t)
-#     H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
-#     u = H*windVelocity[0] + (1.0-H)*waterspeed
-#     return u
-#
-# def twpflowVelocity_v(x,t):
-#     waterspeed = 0.0
-#     H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
-#     return H*windVelocity[1]+(1.0-H)*waterspeed
-#
-# def twpflowFlux(x,t):
-#     return -twpflowVelocity_u(x,t)
-#
-# def outflowVF(x,t):
-#     return smoothedHeaviside(epsFact_consrv_heaviside*he,x[1] - outflowHeight)

@@ -28,7 +28,7 @@ opts = Context.Options([
     # waves
     ("wave_period", 1.94, "Period of the waves"),
     ("wave_height", 0.025, "Height of the waves"),
-    ("wave_depth", 1., "Wave depth"),
+    ("wave_depth", 1.0, "Wave depth"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     ("wavelength", 5., "Wavelength"),
     # gauges
@@ -153,9 +153,10 @@ g = np.array([0., -9.81, 0.])
 # wind
 windVelocity = (0.0, 0.0, 0.0)
 
-# ----- WAVES ----- # #[temp]
+# ----- WAVES ----- #
 period = opts.wave_period
 waveheight = opts.wave_height
+mwl = opts.water_level
 depth = opts.wave_depth
 waveDir = np.array(opts.wave_dir)
 wavelength = opts.wavelength
@@ -163,7 +164,7 @@ amplitude = waveheight / 2.0
 
 waves = wt.MonochromaticWaves(period=period,
                               waveHeight=waveheight,
-                              mwl=waterLine_z,
+                              mwl=mwl,
                               depth=depth,
                               g=g,
                               waveDir=waveDir,

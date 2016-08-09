@@ -174,7 +174,7 @@ waves = wt.RandomWaves(Tp = period,
 #                         mwl = inflowHeightMean, # Sea water level
 #                         waveDir = waveDir, # waveDirection
 #                         g = g, # Gravity vector, defines the vertical
-#                         gamma=1.0, #Pierson Moskowitz spectum for gamma=1.0
+#                         gamma=1.0, #Pierson Moskowitz spectrum for gamma=1.0
 #                         spec_fun = WT.JONSWAP)
 
 
