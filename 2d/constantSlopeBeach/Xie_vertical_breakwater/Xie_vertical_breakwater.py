@@ -1,5 +1,5 @@
 """
-Wave Shoaling
+Vertical Breakwater (Xie 1981)
 """
 import numpy as np
 from math import sqrt, cos, pi
@@ -226,8 +226,8 @@ if opts.point_gauge_output or opts.column_gauge_output:
         elif gauge_x > slope_x1:
             gauge_y = slope_y1
         else:
-            gauge_y = (slope_x1 - slope_x0) * (1 / slope_y1) \
-                      / (gauge_x - slope_x0) + 0.001
+            gauge_y = slope_y1 * (gauge_x - slope_x0) \
+                      / (slope_x1 - slope_x0) + 0.001
 
         point_gauge_locations.append((gauge_x, gauge_y, 0), )
         column_gauge_locations.append(((gauge_x, gauge_y, 0.),

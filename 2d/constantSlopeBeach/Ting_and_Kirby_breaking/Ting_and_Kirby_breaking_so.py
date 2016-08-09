@@ -1,7 +1,30 @@
+"""
+Split operator module for two-phase flow
+"""
+import os
 from proteus.default_so import *
-import Ting_and_Kirby_breaking
+from proteus import Context
 
-if Ting_and_Kirby_breaking.useOnlyVF:
+# Create context from main module
+name_so = os.path.basename(__file__)
+if '_so.py' in name_so[-6:]:
+    name = name_so[:-6]
+elif '_so.pyc' in name_so[-7:]:
+    name = name_so[:-7]
+else:
+    raise NameError, 'Split operator module must end with "_so.py"'
+
+try:
+    case = __import__(name)
+    Context.setFromModule(case)
+    ct = Context.get()
+except ImportError:
+    raise ImportError, str(name) + '.py not found'
+
+from proteus.BoundaryConditions import BC_Base
+BC_Base.getContext()
+
+if ct.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
               ("vof_p",               "vof_n")]
 else:
@@ -12,14 +35,14 @@ else:
               ("ls_consrv_p",         "ls_consrv_n")]
     
     
-if Ting_and_Kirby_breaking.useRANS > 0:
+if ct.useRANS > 0:
     pnList.append(("kappa_p",
                    "kappa_n"))
     pnList.append(("dissipation_p",
                    "dissipation_n"))
-name = "tank_p" 
+name = "Ting_Kirby_breaking_tank_p"
 
-if Ting_and_Kirby_breaking.timeDiscretization == 'flcbdf':
+if ct.timeDiscretization == 'flcbdf':
     systemStepControllerType = Sequential_MinFLCBDFModelStep
     systemStepControllerType = Sequential_MinAdaptiveModelStep
 else:
@@ -28,5 +51,5 @@ else:
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0, Ting_and_Kirby_breaking.dt_init] + [i * Ting_and_Kirby_breaking.dt_fixed for i in range(1, Ting_and_Kirby_breaking.nDTout + 1)]
+tnList = [0.0, ct.dt_init] + [i * ct.dt_fixed for i in range(1, ct.nDTout + 1)]
 archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP

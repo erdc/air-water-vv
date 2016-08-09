@@ -40,7 +40,7 @@ if ct.useRANS > 0:
                    "kappa_n"))
     pnList.append(("dissipation_p",
                    "dissipation_n"))
-name = "tank_p" 
+name = "Xie_breakwater_tank_p"
 
 if ct.timeDiscretization == 'flcbdf':
     systemStepControllerType = Sequential_MinFLCBDFModelStep
