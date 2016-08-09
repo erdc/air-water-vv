@@ -164,7 +164,7 @@ waves = wt.RandomWaves(Tp = period,
                        bandFactor = 2.0,
                        N = 101,
                        spectName = 'JONSWAP')
-#[temp] just in case more details are needed on the old intent, this will stay in for a few more commits
+#[temp]  (Mase and Kirby) just in case more details are needed on the old intent, this can stay as a commented out reference for a little
 # waves = WT.RandomWaves( Tp = period, # Peak period
 #                         Hs = waveheight, # Height
 #                         d = depth, # Depth

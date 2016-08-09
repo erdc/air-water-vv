@@ -160,6 +160,7 @@ waveDir = np.array(opts.wave_dir)
 wavelength = opts.wavelength
 amplitude = waveheight / 2.0
 
+# [temp] Waves from Mase and Kirby, as random waves.  Regular waves linear or nonlinear may be preferred, but the source paper is elusive at the moment
 waves = wt.RandomWaves(Tp = period,
                        Hs = waveheight,
                        mwl = waterLine_z,
@@ -169,19 +170,6 @@ waves = wt.RandomWaves(Tp = period,
                        bandFactor = 2.0,
                        N = 101,
                        spectName = 'JONSWAP')
-#[temp] just in case more details are needed on the old intent, this will stay in for a few more commits
-# waves = WT.RandomWaves( Tp = period, # Peak period
-#                         Hs = waveheight, # Height
-#                         d = depth, # Depth
-#                         fp = 1./period, #peak Frequency
-#                         bandFactor = 2.0, #fmin=fp/Bandfactor, fmax = Bandfactor * fp
-#                         N = 101, #No of frequencies for signal reconstruction
-#                         mwl = inflowHeightMean, # Sea water level
-#                         waveDir = waveDir, # waveDirection
-#                         g = g, # Gravity vector, defines the vertical
-#                         gamma=1.0, #Pierson Moskowitz spectum for gamma=1.0
-#                         spec_fun = WT.JONSWAP)
-
 
 # ----- TIME STEPPING & VELOCITY----- #
 

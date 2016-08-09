@@ -28,7 +28,7 @@ opts = Context.Options([
     # waves
     ("wave_period", 1.94, "Period of the waves"),
     ("wave_height", 0.025, "Height of the waves"),
-    ("wave_depth", 1., "Wave depth"), #[temp]
+    ("wave_depth", 1., "Wave depth"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     ("wavelength", 5., "Wavelength"),
     # gauges
@@ -187,8 +187,6 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 # ----- TANK ----- #
 
-import pdb
-pdb.set_trace()
 sloped_shore = [[[slope_start_x, 0],
                  [slope_end_x, slope_height],
                  [tank_dim[0], slope_height]],]
@@ -205,11 +203,11 @@ tank = st.TankWithObstacles2D(domain=domain,
 tank.setSponge(opts.sponge_dim_wavelength[0] * wavelength,
                opts.sponge_dim_wavelength[1] * wavelength)
 
-tank.setGenerationZones(waves=waves,
-                        x_n=opts.generation,
-                        wind_speed=windVelocity
-                        )
-tank.setAbsorptionZones(x_p=opts.absorption)
+if opts.generation:
+    tank.setGenerationZones(waves=waves,
+                            x_n=opts.generation)
+if opts.absorption:
+    tank.setAbsorptionZones(x_p=opts.absorption)
 
 # ----- GAUGES ----- #
 
@@ -261,6 +259,8 @@ else:  # no slip
 if not opts.generation:
     tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waves,
                                                    wind_speed=windVelocity)
+
+tank.BC['sponge'].setNonMaterial()
 
 # ----- MESH CONSTRUCTION ----- #
 
