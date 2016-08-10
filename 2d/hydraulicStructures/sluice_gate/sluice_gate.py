@@ -272,12 +272,12 @@ if opts.column_gauge_output:
 tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()
 
+tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
+                                                    rhoUp=rho_1,
+                                                    rhoDown=rho_0,
+                                                    g=g,
+                                                    refLevel=tank_dim[1])
 if not opts.sponge_layers:
-    tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
-                                                        rhoUp=rho_1,
-                                                        rhoDown=rho_0,
-                                                        g=g,
-                                                        refLevel=tank_dim[1])
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
                                            waterLevel=inflow_level)
 
