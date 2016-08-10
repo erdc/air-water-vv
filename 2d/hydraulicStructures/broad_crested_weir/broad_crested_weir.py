@@ -296,17 +296,24 @@ if opts.gauge_output:
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
+# Open Top
 tank.BC['y+'].setAtmosphere()
+
+# Free Slip Tank
 tank.BC['y-'].setFreeSlip()
 
+# Outflow
+tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
+                                                    rhoUp=rho_1,
+                                                    rhoDown=rho_0,
+                                                    g=g,
+                                                    refLevel=tank_dim[1])
+# Inflow / Sponge
 if not opts.waves:
-    tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
-                                                        rhoUp=rho_1,
-                                                        rhoDown=rho_0,
-                                                        g=g,
-                                                        refLevel=tank_dim[1])
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
                                            waterLevel=waterLine_z)
+else:
+    tank.BC['sponge'].setNonMaterial()
 
 # import pdb
 # pdb.set_trace()
