@@ -77,27 +77,36 @@ obstacle_x_highest = (obstacle_x_start
 #     Discretization Input Options       #
 ##########################################
 
+# ----- From Context.Options ----- #
 refinement = opts.refinement
 genMesh = opts.gen_mesh
-movingDomain = False
-checkMass = False
-applyRedistancing = True
+
+# ----- Structured Meshes ----- #
+useHex = False
+structured = False
+
+# ----- Parallel Options ----- #
+parallelPartitioningType = mt.MeshParallelPartitioningTypes.node
+nLayersOfOverlapForParallel = 0
+
+# ---- SpaceOrder & Tool Usage ----- #
+spaceOrder = 1
 useOldPETSc = False
 useSuperlu = False
-spaceOrder = 1
-timeDiscretization='be'#'vbdf'#'be','flcbdf'
 useRBLES = 0.0
 useMetrics = 1.0
-applyCorrection = True
 useVF = 1.0
 useOnlyVF = False
 useRANS = 0  # 0 -- None
              # 1 -- K-Epsilon
              # 2 -- K-Omega
 
-# structured meshes
-useHex = False
-structured = False
+# ----- BC & Other Flags ----- #
+movingDomain = False
+checkMass = False
+applyRedistancing = True
+timeDiscretization='be'  #'vbdf'#'be','flcbdf'
+applyCorrection = True
 
 # ----- INPUT CHECKS ----- #
 if spaceOrder not in [1,2]:
