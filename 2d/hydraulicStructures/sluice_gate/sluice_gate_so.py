@@ -39,7 +39,7 @@ if ct.useRANS > 0:
                    "kappa_n"))
     pnList.append(("dissipation_p",
                    "dissipation_n"))
-name = "broad_crested_weir_p" 
+name = "sluice_gate_p"
 
 if ct.timeDiscretization == 'flcbdf':
     systemStepControllerType = Sequential_MinFLCBDFModelStep
