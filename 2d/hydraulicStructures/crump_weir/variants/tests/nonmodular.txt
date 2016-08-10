@@ -1,0 +1,1 @@
+outflow_level=1.45 outflow_velocity=1.391 tank_dim=[15.0,2.1] obstacle_x_start=5. refinement=75
