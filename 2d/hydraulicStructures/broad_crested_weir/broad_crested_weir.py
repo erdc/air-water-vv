@@ -337,8 +337,7 @@ if air_vent:
     tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0
     tank.BC['airvent'].v_diffusive.uOfXT = lambda x, t: 0
     tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1
-    #tank.BC['airvent'].setTank()  #  unique boundary conditions in obstacle tanks don't have _b_or or _b_i setting yet (not sure how to pass that through intuitively) and thus cannot have setTank.  It could be set manually... but it's not really a big issue for the normal hydraulicStructures
-    #[temp] check against report - different set of conditions than in the code, which might solve issues if issues need solving
+    #[temp] check against report - different set of conditions than in the old code, which might solve issues if issues need solving (or they might cause new issues if the code was working well with the old code's values)
 
 # ----- MESH CONSTRUCTION ----- #
 
@@ -375,7 +374,7 @@ if useMetrics:
                     = 3.0
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
-    redist_Newton = True
+    redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0

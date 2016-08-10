@@ -44,8 +44,6 @@ femSpaces = {0: ct.basis,
              2: ct.basis}
 
 massLumping = False
-numericalFluxType = None
-conservativeFlux = None
 
 numericalFluxType = RANS2P.NumericalFlux
 subgridError = RANS2P.SubgridError(coefficients=physics.coefficients,
