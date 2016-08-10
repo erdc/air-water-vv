@@ -1,7 +1,7 @@
+import sharp_crested_weir
 from proteus.default_so import *
-import tank
 
-if tank.useOnlyVF:
+if sharp_crested_weir.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
               ("vof_p",               "vof_n")]
 else:
@@ -12,14 +12,14 @@ else:
               ("ls_consrv_p",         "ls_consrv_n")]
     
     
-if tank.useRANS > 0:
+if sharp_crested_weir.useRANS > 0:
     pnList.append(("kappa_p",
                    "kappa_n"))
     pnList.append(("dissipation_p",
                    "dissipation_n"))
-name = "tank_p" 
+name = "sharp_crested_weir_p" 
 
-if tank.timeDiscretization == 'flcbdf':
+if sharp_crested_weir.timeDiscretization == 'flcbdf':
     systemStepControllerType = Sequential_MinFLCBDFModelStep
     systemStepControllerType = Sequential_MinAdaptiveModelStep
 else:
@@ -28,5 +28,12 @@ else:
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0,tank.dt_init]+[i*tank.dt_fixed for i in range(1,tank.nDTout+1)] 
-#archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
+tnList = [0.0, sharp_crested_weir.dt_init] + [i * sharp_crested_weir.dt_fixed for i in range(1,
+                                                                                             sharp_crested_weir.nDTout + 1)]
+
+info = open("TimeList.txt","w")
+
+
+for time in tnList:
+    info.write(str(time)+"\n")
+info.close()

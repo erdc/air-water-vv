@@ -1,5 +1,5 @@
-from proteus.default_so import *
 import sharp_crested_weir
+from proteus.default_so import *
 
 if sharp_crested_weir.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
@@ -28,7 +28,8 @@ else:
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0,sharp_crested_weir.dt_init]+[i*sharp_crested_weir.dt_fixed for i in range(1,sharp_crested_weir.nDTout+1)] 
+tnList = [0.0, sharp_crested_weir.dt_init] + [i * sharp_crested_weir.dt_fixed for i in range(1,
+                                                                                             sharp_crested_weir.nDTout + 1)]
 
 info = open("TimeList.txt","w")
 
