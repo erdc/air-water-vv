@@ -323,7 +323,7 @@ st.assembleDomain(domain)
 
 # ----- STRONG DIRICHLET ----- #
 
-ns_forceStrongDirichlet = False
+ns_forceStrongDirichlet = True
 
 # ----- NUMERICAL PARAMETERS ----- #
 
