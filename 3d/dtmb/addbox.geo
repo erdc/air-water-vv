@@ -100,7 +100,8 @@ Function addOneBox
 		
 
   // Build volume around hull
-  bsl = newsl; Surface Loop(bsl) = {lowerSurf[],upperSurf[]}; 
+  bsl = newsl; 
+  Surface Loop(bsl) = {s1,s2,s3,s4,s5,s6}; 
   If (hsl > 0)
     v   = newv;  Volume(v) = {bsl,hsl};
   EndIf
@@ -145,7 +146,7 @@ Function addOneBox
 
   Physical Surface(6) = {top[]};
  
-  Physical Volume(2) = {vol[]};
+  Physical Volume(1) = {vol[]};
 
   // Delete redundant entities
   Coherence; 
@@ -265,14 +266,6 @@ Function addBoxes
   
   vol[count] = v;
 
-  //
-  Printf("bottom = %g",boc);
-  Printf("top    = %g",toc);
-  Printf("right  = %g",ric);
-  Printf("left   = %g",lec);
-  Printf("front  = %g",frc);
-  Printf("back   = %g",bac);
-  
   // Define physical entities
   Physical Surface(1) = {bottom[]};
 
@@ -283,7 +276,7 @@ Function addBoxes
 
   Physical Surface(6) = {top[]};
  
-  Physical Volume(2) = {vol[]};
+  Physical Volume(1) = {vol[]};
 
   // Delete redundant entities
   Coherence; 

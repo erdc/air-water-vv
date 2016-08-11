@@ -1,18 +1,18 @@
 from math import *
 import proteus.MeshTools
 from proteus import Domain
-from proteus.default_n import *   
+from proteus.default_n import *
 from proteus.Profiling import logEvent
-   
-#  Discretization -- input options  
 
-Refinement = 40  
+#  Discretization -- input options
+
+Refinement = 10
 genMesh=True
 useOldPETSc=False
-useSuperlu=False#True
+useSuperlu=True
 timeDiscretization='be'#'vbdf'#'be','flcbdf'
 spaceOrder = 1
-useHex     = False
+useHex     = True
 useRBLES   = 0.0
 useMetrics = 1.0
 applyCorrection=True
@@ -24,39 +24,39 @@ useRANS = 0 # 0 -- None
 # Input checks
 if spaceOrder not in [1,2]:
     print "INVALID: spaceOrder" + spaceOrder
-    sys.exit()    
-    
+    sys.exit()
+
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print "INVALID: useRBLES" + useRBLES
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
     print "INVALID: useMetrics"
     sys.exit()
-    
-#  Discretization   
+
+#  Discretization
 nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,2)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,2)     	 
+	basis=C0_AffineLinearOnCubeWithNodalBasis
+        elementQuadrature = CubeGaussQuadrature(nd,2)
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,2)
     else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3) 	    
+    	basis=C0_AffineLinearOnSimplexWithNodalBasis
+        elementQuadrature = SimplexGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
 elif spaceOrder == 2:
     hFactor=0.5
-    if useHex:    
+    if useHex:
 	basis=C0_AffineLagrangeOnCubeWithNodalBasis
         elementQuadrature = CubeGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)    
-    else:    
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis	
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
+    else:
+	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
-    
+
 # Domain and mesh
 #L = (0.584,0.350)
 L = (3.22 , 1.8)
@@ -69,7 +69,7 @@ nLevels = 1
 parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 
-structured=True 
+structured=True
 #structured=True # Trying out a structured mesh
 
 class PointGauges(AV_base):
@@ -93,7 +93,7 @@ class PointGauges(AV_base):
         self.v = model.levelModelList[-1].u[2].dof
         return self
     def attachAuxiliaryVariables(self,avDict):
-        return self    
+        return self
     def calculate(self):
         import numpy as  np
         for name,flag  in self.flags.iteritems():
@@ -130,7 +130,7 @@ class LineGauges(AV_base):
         self.v = model.levelModelList[-1].u[2].dof
         return self
     def attachAuxiliaryVariables(self,avDict):
-        return self    
+        return self
     def calculate(self):
         import numpy as  np
         for name,flag  in self.flags.iteritems():
@@ -166,7 +166,7 @@ class LineGauges_phi(AV_base):
         self.phi = model.levelModelList[-1].u[0].dof
         return self
     def attachAuxiliaryVariables(self,avDict):
-        return self    
+        return self
     def calculate(self):
         import numpy as  np
         for name,flag  in self.flags.iteritems():
@@ -183,10 +183,10 @@ lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_xtoH=0.825':((0.495,0.0,0.0)
 lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
 
 
-if useHex:   
+if useHex:
     nnx=4*Refinement+1
     nny=2*Refinement+1
-    hex=True    
+    quad=True
     domain = Domain.RectangularDomain(L)
 else:
     if structured:
@@ -228,7 +228,7 @@ else:
                                                       segmentFlags=segmentFlags,
                                                       regions=regions,
                                                       regionFlags=regionFlags)
-        #go ahead and add a boundary tags member 
+        #go ahead and add a boundary tags member
         domain.boundaryTags = boundaryTags
         domain.writePoly("mesh")
         domain.writePLY("mesh")
@@ -320,7 +320,7 @@ nu_0  = 1.004e-6
 
 # Air
 rho_1 = 1.205
-nu_1  = 1.500e-5 
+nu_1  = 1.500e-5
 
 # Surface tension
 sigma_01 = 0.0
@@ -334,7 +334,7 @@ waterLine_z = 0.6
 
 def signedDistance(x):
     phi_x = x[0]-waterLine_x
-    phi_z = x[1]-waterLine_z 
+    phi_z = x[1]-waterLine_z
     if phi_x < 0.0:
         if phi_z < 0.0:
             return max(phi_x,phi_z)
@@ -345,4 +345,3 @@ def signedDistance(x):
             return phi_x
         else:
             return sqrt(phi_x**2 + phi_z**2)
-

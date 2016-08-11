@@ -20,8 +20,12 @@ hsl = -1;
 Add hull
 ********************************************/
 Function addHull
-  Geometry.Tolerance = 1e-2;
+  Geometry.Tolerance = 1.0e-2;
   Geometry.OCCSewFaces = 1;
+  //Geometry.OCCConnectFaces = 1;
+  Geometry.OCCFixDegenerated = 1;
+  Geometry.OCCFixSmallEdges = 1;
+  Geometry.OCCFixSmallFaces = 1;
 
    Merge 'hull.igs';
 
@@ -64,7 +68,7 @@ Function addRef
   Field[1].ZMin = -0.1;
   Field[1].ZMax =  0.05;
 
-  Field[1].VIn  =  0.66*hcl;
+  Field[1].VIn  =  hcl;
   Field[1].VOut = 99.9;
 
   Field[2] = Box;
@@ -94,7 +98,7 @@ Function addRef
   Field[11].ZMin =  0.00;
   Field[11].ZMax =  0.60;
 
-  Field[11].VIn  =  1.5*hcl;
+  Field[11].VIn  =  hcl;
   Field[11].VOut = 99.9;
 
   // Stern box 2
@@ -124,7 +128,7 @@ Function addRef
   Field[13].ZMin =  0.20;
   Field[13].ZMax =  0.30;
 
-  Field[13].VIn  = 0.5*hcl;
+  Field[13].VIn  = hcl;
   Field[13].VOut = 99.9;
   
   // Stern box 2
@@ -139,7 +143,7 @@ Function addRef
   Field[31].ZMin =  0.20;
   Field[31].ZMax =  0.40;
 
-  Field[31].VIn  =  0.7*hcl;
+  Field[31].VIn  =  hcl;
   Field[31].VOut = 99.9;
 
   Field[32] = Box;
@@ -153,7 +157,7 @@ Function addRef
   Field[32].ZMin =  -0.20;
   Field[32].ZMax =   0.30;
 
-  Field[32].VIn  =  0.8*hcl;
+  Field[32].VIn  =  hcl;
   Field[32].VOut = 99.9;
     
   // Combine

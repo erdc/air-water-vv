@@ -11,6 +11,20 @@ from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
+import numpy as np
+from proteus import (Domain, Context)
+
+opts = Context.Options([
+    ("water_level", 1., "Height of (mean) free surface above bottom"),
+    ("free_slip", True, "Free slip BC's enforced (otherwise, no slip)"),
+    ("tank_dim", (24.0, 1.0), "Dimensions (x,y) of the tank"),
+    ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
+    ("cfl", 0.9, "Target cfl"),
+    ("T", 300.0, "Simulation time (in numbers of wave_period's)"),
+    ("dt_init", 0.1, "Minimum initial time step (otherwise dt_fixed/10)"),
+    ("gen_mesh", True, "Generate new mesh"),
+    ("parallel", True, "Run in parallel")])
+
 #----------------------------------------------------
 # Physical properties
 #----------------------------------------------------
@@ -46,34 +60,21 @@ barycenters = numpy.zeros((8,3),'d')
 barycenters[7,:] = hull_cg
 
 vessel = 5415
-genMesh=False
-he = 1.0#new
-he = 0.5#new
-he = 0.25#new
-he = 0.125#new
-if he == 1.0:
-    src_dir = 'mesh13177'#new
-elif he == 0.5:
-    src_dir = 'mesh89988'#new
-elif he == 0.25:
-    src_dir = 'mesh664534'#new
-elif he == 0.125:
-    src_dir = 'mesh4907899'#new
-elif he == 0.625:
-    src_dir = 'mesh1127217'#'1686606'
-elif he == 0.125:
-    src_dir = 'mesh2034287' #1024
-import os
-import shutil
-import glob
-from proteus import Comm
-comm = Comm.get()
-if comm.isMaster():
-    logEvent("Reading Mesh: ./mesh_uniform/"+src_dir)
-    for filename in glob.glob(os.path.join('./mesh_uniform/'+src_dir, 'mesh.*')):
-        shutil.copy(filename,'.')
-comm.barrier()
-#debug
+genMesh=True
+he = 1.5
+#he = 10.0
+#if he == 10.0:
+#    src_dir = 'mesh4133' #128
+#import os
+#import shutil
+#import glob
+#from proteus import Comm
+#comm = Comm.get()
+#if comm.isMaster():
+#   logEvent("Reading Mesh: ./mesh/"+src_dir)
+#   for filename in glob.glob(os.path.join('./mesh/'+src_dir, 'mesh.*')):
+#       shutil.copy(filename,'.')
+#comm.barrier()
 
 #he = hull_length/11
 #vessel = 'wigley'
@@ -90,7 +91,8 @@ nLevels = 1
 
 boundaryTags = { 'bottom': 1, 'front':2, 'right':3, 'back': 4, 'left':5, 'top':6, 'obstacle':7}
 if vessel is 5415:
-    domain = Domain.MeshTetgenDomain(fileprefix="mesh")
+    domain = Domain.GMSH_3D_Domain(geofile="assembly",name="dtmb",he=he)
+    #domain = Domain.MeshTetgenDomain(fileprefix="mesh")
     domain.boundaryTags = boundaryTags
 else:
     vertices=[[x_ll[0],x_ll[1],x_ll[2]],#0
@@ -285,12 +287,11 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-#Fr = 0.25
-Fr = 0.51
+Fr = 0.28
+#Fr = 0.51
 #Fr = 0.0
 Um = Fr*sqrt(fabs(g[2])*hull_length)
 Re = hull_length*Um/nu_0
-weak_bc_penalty_constant = 100.0#Re
 
 if Um > 0.0:
     residence_time = hull_length/Um
@@ -361,12 +362,12 @@ nDTout             = %i
 
 #  Discretization -- input options
 useOldPETSc=False
-useSuperlu = False # set to False if running in parallel with petsc.options
+useSuperlu = True # set to False if running in parallel with petsc.options
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
-useVF = 0.0
+useVF = 1.0
 useOnlyVF = False
 useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
@@ -412,7 +413,7 @@ elif spaceOrder == 2:
 
 # Numerical parameters
 ns_forceStrongDirichlet = True
-
+weak_bc_penalty_constant = 100.0
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
@@ -478,8 +479,7 @@ dissipation_nl_atol_res = max(1.0e-12,0.01*he**2)
 mesh_nl_atol_res = max(1.0e-12,0.01*he**2)
 
 #turbulence
-ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
-
+ns_closure=1 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS >= 2:
