@@ -1,5 +1,5 @@
 """
-Linear Wave Theory
+Standing Waves
 """
 import numpy as np
 from math import ceil
