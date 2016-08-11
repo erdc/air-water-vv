@@ -11,6 +11,20 @@ from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
+import numpy as np
+from proteus import (Domain, Context)
+
+opts = Context.Options([
+    ("water_level", 1., "Height of (mean) free surface above bottom"),
+    ("free_slip", True, "Free slip BC's enforced (otherwise, no slip)"),
+    ("tank_dim", (24.0, 1.0), "Dimensions (x,y) of the tank"),
+    ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
+    ("cfl", 0.9, "Target cfl"),
+    ("T", 300.0, "Simulation time (in numbers of wave_period's)"),
+    ("dt_init", 0.1, "Minimum initial time step (otherwise dt_fixed/10)"),
+    ("gen_mesh", True, "Generate new mesh"),
+    ("parallel", True, "Run in parallel")])
+
 #----------------------------------------------------
 # Physical properties
 #----------------------------------------------------
@@ -262,7 +276,7 @@ quad_order = 3
 openTop = False
 openSides = False
 openEnd = True
-smoothBottom = True
+smoothBottom = False
 smoothObstacle = False
 movingDomain=False#True
 checkMass=False
