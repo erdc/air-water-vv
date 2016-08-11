@@ -397,7 +397,7 @@ class RigidBar(AuxiliaryVariables.AV_base):
         #self.tank.setPosition((0.5,0.5,0.6))
         #self.contactgroup = ode.JointGroup()
         self.M = ode.Mass()
-        mf = 0.1
+        mf = 0.2
         bar_center = [bar_center[0], bar_center[1], bar_center[2]-0.5*(1.0-mf)*bar_dim[2]]
         self.totalMass = density*bar_dim[0]*bar_dim[1]*bar_dim[2]*mf
         self.M.setBox(density,bar_dim[0],bar_dim[1],bar_dim[2]*mf)
