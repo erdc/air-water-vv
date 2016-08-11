@@ -1,5 +1,5 @@
 """
-A Broad Crested Weir
+Sluice Gate Problem
 """
 import numpy as np
 from math import sqrt

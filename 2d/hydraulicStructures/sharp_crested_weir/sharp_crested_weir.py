@@ -1,5 +1,5 @@
 """
-A Broad Crested Weir
+A Sharp Crested Weir
 """
 import numpy as np
 from math import sqrt
