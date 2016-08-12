@@ -447,21 +447,10 @@ def theta(x, t):
 
 
 def waveHeight(x, t):
-    Y = [0.02107762,
-         0.01588268,
-         0.01059044,
-         0.00658221,
-         0.00394857,
-         0.00233566,
-         0.00138150,
-         0.00082688,
-         0.00050907,
-         0.00033254,
-         0.00024420,
-         0.00021730]
+    Y = opts.y_coeff
 
     waterDepth = waterLine_z
-    for i in range(0, int(len(Y))):
+    for i in range(len(Y)):
         waterDepth += Y[i] * cos((i + 1) * theta(x, t)) / k
     return waterDepth
 

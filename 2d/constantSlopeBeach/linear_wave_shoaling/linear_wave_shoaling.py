@@ -156,7 +156,6 @@ windVelocity = (0.0, 0.0, 0.0)
 # ----- WAVES ----- #
 period = opts.wave_period
 waveheight = opts.wave_height
-mwl = opts.water_level
 depth = opts.wave_depth
 waveDir = np.array(opts.wave_dir)
 wavelength = opts.wavelength
@@ -164,7 +163,7 @@ amplitude = waveheight / 2.0
 
 waves = wt.MonochromaticWaves(period=period,
                               waveHeight=waveheight,
-                              mwl=mwl,
+                              mwl=waterLine_z,
                               depth=depth,
                               g=g,
                               waveDir=waveDir,
