@@ -34,7 +34,7 @@ opts = Context.Options([
     ("column_gauge_output", False, "Produce column gauge data"),
     ("gauge_dx", 0.25, "x spacing between gauges/columns of gauges"),
     # refinement
-    ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
+    ("refinement", 100, "Refinement (w/respect to total length)"),
     ("cfl", 0.9, "Target cfl"),
     # run time
     ("T", 10.0, "Simulation time (in numbers of wave_period's)"),
@@ -61,7 +61,7 @@ waterLine_x = 2 * tank_dim[0]
 ##########################################
 
 # ----- From Context.Options ----- #
-refinement_level = opts.refLevel
+refinement = opts.refinement
 genMesh = opts.gen_mesh
 
 # ----- Structured Meshes ----- #
@@ -255,7 +255,7 @@ tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waves,
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / refinement_level
+he = tank_dim[0] / refinement
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 
