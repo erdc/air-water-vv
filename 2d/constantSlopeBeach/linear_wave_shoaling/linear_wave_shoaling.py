@@ -1,5 +1,5 @@
 """
-Vertical Breakwater (Xie 1981)
+Linear Wave Shoaling
 """
 import numpy as np
 from math import sqrt, cos, pi
