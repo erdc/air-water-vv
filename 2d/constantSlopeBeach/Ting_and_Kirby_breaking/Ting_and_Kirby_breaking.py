@@ -319,7 +319,7 @@ tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waves,
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / refinement_level
+he = wavelength / refinement_level
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 

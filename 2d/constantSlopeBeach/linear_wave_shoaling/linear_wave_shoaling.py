@@ -264,7 +264,7 @@ tank.BC['sponge'].setNonMaterial()
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / refinement_level
+he = wavelength / refinement_level
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 
