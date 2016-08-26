@@ -62,6 +62,10 @@ barycenters[7,:] = hull_cg
 vessel = 5415
 genMesh=True
 he = 1.5
+he *=0.5
+he *=0.5 #171 minutes on 8x36 cores
+he *=0.5 #?
+he *=0.5 #?
 #he = 10.0
 #if he == 10.0:
 #    src_dir = 'mesh4133' #128
@@ -362,7 +366,7 @@ nDTout             = %i
 
 #  Discretization -- input options
 useOldPETSc=False
-useSuperlu = True # set to False if running in parallel with petsc.options
+useSuperlu = False # set to False if running in parallel with petsc.options
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0

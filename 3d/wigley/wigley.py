@@ -90,7 +90,8 @@ nLevels = 1
 he = hull_draft/0.75 #32
 he *= 0.5 #
 he *= 0.5 #
-he *= 0.5 # tetgen fails
+min_he_poly = he
+#he *= 0.5 # tetgen fails
 #he *=0.5 #4 way on diamond, 8 way on garnet 256-1024 mpi tasks
 #he *=0.5 #2048 - mesh3206851
 #he *=0.5 #2048 - mesh3206851
@@ -139,7 +140,7 @@ else:
     holes=[]
     if vessel is 'wigley':
         from math import log
-        he_hull = max(0.00576820840781, log(64.0*he+1.0)/64.0)
+        he_hull = max(min_he_poly, he)
         #print he,he_hull
         #he_hull = he
         n_points_length = int(ceil(hull_length/he_hull))+1
