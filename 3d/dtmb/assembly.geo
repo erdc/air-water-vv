@@ -72,9 +72,8 @@ z[3] =  0.80;      hz[3] = 0.40;
 z[4] =  2.50;      hz[4] = 1.00;
 
 
-hcl = 0.5;
+hcl = Mesh.CharacteristicLengthMax;
 
-Mesh.CharacteristicLengthMax=hcl; 
  
 Call addHull;
 Call addOneBox;
