@@ -6,6 +6,7 @@ import os
 from proteus.default_so import *
 from proteus import Context
 
+
 # Create context from main module
 name_so = os.path.basename(__file__)
 if '_so.py' in name_so[-6:]:
@@ -21,6 +22,9 @@ try:
     ct = Context.get()
 except ImportError:
     raise ImportError, str(name) + '.py not found'
+
+from proteus import BoundaryConditions
+BoundaryConditions.BC_Base.getContext()
 
 # List of p/n files
 pnList = []

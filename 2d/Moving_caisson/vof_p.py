@@ -32,9 +32,9 @@ coefficients = VOF.Coefficients(LS_model=int(ct.movingDomain)+LS_model,
                                 sc_beta=ct.vof_sc_beta,
                                 movingDomain=ct.movingDomain)
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].vof_dirichlet}
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].vof_dirichlet.init_cython()}
 
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].vof_advective}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].vof_advective.init_cython()}
 
 diffusiveFluxBoundaryConditions = {0: {}}
 

@@ -1,15 +1,15 @@
 from proteus import Domain, Context
-#from proteus.mprans
-import SpatialTools as st
+from proteus.mprans import SpatialTools as st
 from proteus import Gauges as ga
 from proteus import WaveTools as wt
 from math import *
 import numpy as np
+from proteus.mprans import BodyDynamics as bd
 
 
 opts=Context.Options([
     # predefined test cases
-    ("water_level", 0.325, "Height of free surface above bottom"), 
+    ("water_level", 0.325, "Height of free surface above bottom"),
     # Geometry
     ('Lgen', 1.0, 'Genaration zone in terms of wave lengths'),
     ('Labs', 2.0, 'Absorption zone in terms of wave lengths'),
@@ -17,11 +17,11 @@ opts=Context.Options([
     ('Lend', 1.0, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
     # waves
     ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
-    ("wave_period", 1.30, "Period of the waves"), 
+    ("wave_period", 1.30, "Period of the waves"),
     ("wave_height", 0.167, "Height of the waves"),
-    ('wavelength', 2.121, 'Wavelength only if Fenton is activated'), 
-    ('Ycoeff', [0.21107604, 0.07318902, 0.02782228, 0.01234846, 0.00618291, 0.00346483, 0.00227917, 0.00194241], 'Ycoeff only if Fenton is activated'), 
-    ('Bcoeff', [0.23112932, 0.03504843, 0.00431442, 0.00036993, 0.00004245, 0.00001877, 0.00000776, 0.00000196], 'Bcoeff only if Fenton is activated'), 
+    ('wavelength', 2.121, 'Wavelength only if Fenton is activated'),
+    ('Ycoeff', [0.21107604, 0.07318902, 0.02782228, 0.01234846, 0.00618291, 0.00346483, 0.00227917, 0.00194241], 'Ycoeff only if Fenton is activated'),
+    ('Bcoeff', [0.23112932, 0.03504843, 0.00431442, 0.00036993, 0.00004245, 0.00001877, 0.00000776, 0.00000196], 'Bcoeff only if Fenton is activated'),
     # rubble mound
     ("hs", 0.175, "Height of the breakwater"),
     ("slope1", 1./3., "Slope1 of the breakwater"),
@@ -31,23 +31,24 @@ opts=Context.Options([
     ('d15', None, "15% grading curve diameter of the medium"),
     ('Resistance', 'Shih', 'Ergun or Engelund or Shih'),
     # soil foundation
+    ("springs", True, "Switch on/off soil module"),
     ("Kx", 2.616*(10**5)/0.4, "Horizontal stiffness in Pa"),
     ("Ky", 2.616*(10**5)/0.4, "Vertical stiffness in Pa"),
     ("Krot", 0.0, "Rotational stiffness in N"),
     ("C", 0.0, "Damping factor in Pa s "),
     ("Crot", 5.288*(10**1)/0.4, "Rotational damping factor in N s "),
     # caisson
-    ("caisson", True, "Switch on/off caisson"),
-    ('dimx', 0.300, 'X-dimension of the caisson'), 
-    ('dimy', 0.385, 'Y-dimension of the caisson'), 
-    ('width', 1.0, 'Z-dimension of the caisson'),
-    ('mass', 64.8/0.4, 'Mass of the caisson [kg]'),
-    ('caissonBC', 'FreeSlip', 'Caisson boundaries: NoSlip or FreeSlip'),
+    ("caisson2D", True, "Switch on/off caisson2D"),
+    ('dimx', 0.300, 'X-dimension of the caisson2D'),
+    ('dimy', 0.385, 'Y-dimension of the caisson2D'),
+    ('width', 1.0, 'Z-dimension of the caisson2D'),
+    ('mass', 64.8/0.4, 'Mass of the caisson2D [kg]'),
+    ('caissonBC', 'FreeSlip', 'caisson2D boundaries: NoSlip or FreeSlip'),
     ("rotation", False, "Initial position for free oscillation"),
     ("friction", True, "Switch on/off friction module for sliding"),
     ("overturning", True, "Switch on/off overturning module"),
-    ("m_static", 0.500, "Static friction factor between caisson and rubble mound"),
-    ("m_dynamic", 0.500, "Dynamic friction factor between caisson and rubble mound"),
+    ("m_static", 0.500, "Static friction factor between caisson2D and rubble mound"),
+    ("m_dynamic", 0.500, "Dynamic friction factor between caisson2D and rubble mound"),
     # numerical options
     ("he", 0.02,"he=walength/refinement_level"),
     ("cfl", 0.450 ,"Target cfl"),
@@ -112,13 +113,13 @@ if opts.waveType=='Fenton':
                                       wavelength=opts.wavelength, # if wave is linear I can use None
                                       waveType="Fenton",
                                       Ycoeff=opts.Ycoeff,
-                                      Bcoeff=opts.Bcoeff,                                      
+                                      Bcoeff=opts.Bcoeff,
                                       )
 
 #---------Domain Dimension
 
 nd = 2
-he = opts.he # MESH SIZE	
+he = opts.he # MESH SIZE
 
 wl = waveinput.wavelength
 
@@ -126,7 +127,7 @@ wl = waveinput.wavelength
 # ----- SHAPES ----- #
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-if opts.caisson:
+if opts.caisson2D:
     L_leftSpo  = opts.Lgen*wl
     L_rightSpo = opts.Labs*wl
 
@@ -134,7 +135,7 @@ if opts.caisson:
     slope1=opts.slope1
     slope2=opts.slope2
 
-#-Caisson
+#-caisson2D
     dimx=opts.dimx
     dimy=opts.dimy
     b=dimx
@@ -154,18 +155,18 @@ if opts.caisson:
     x7=x6+L_rightSpo
     tank_dim = [x7, 1.0]
 
-    boundaryOrientations = {'bottom': [0., -1.,0.],
-                            'right': [1., 0.,0.],
-                            'top': [0., 1.,0.],
-                            'left': [-1., 0.,0.],
+    boundaryOrientations = {'y-': [0., -1.,0.],
+                            'x+': [1., 0.,0.],
+                            'y+': [0., 1.,0.],
+                            'x-': [-1., 0.,0.],
                             'sponge': None,
                             'porousLayer': None,
                             'moving_porousLayer': None,
                            }
-    boundaryTags = {'bottom': 1,
-                    'right': 2,
-                    'top': 3,
-                    'left': 4,
+    boundaryTags = {'y-': 1,
+                    'x+': 2,
+                    'y+': 3,
+                    'x-': 4,
                     'sponge': 5,
                     'porousLayer': 6,
                     'moving_porousLayer': 7,
@@ -179,7 +180,7 @@ else:
     slope1=opts.slope1
     slope2=opts.slope2
 
-#-Caisson
+#-caisson2D
     dimx=opts.dimx
     dimy=opts.dimy
     b=dimx
@@ -199,29 +200,30 @@ else:
     x7=x6+L_rightSpo
     tank_dim = [x7, 1.0]
 
-    boundaryOrientations = {'bottom': [0., -1.,0.],
-                            'right': [1., 0.,0.],
-                            'top': [0., 1.,0.],
-                            'left': [-1., 0.,0.],
+    boundaryOrientations = {'y-': [0., -1.,0.],
+                            'x+': [1., 0.,0.],
+                            'y+': [0., 1.,0.],
+                            'x-': [-1., 0.,0.],
                             'sponge': None,
                             'porousLayer': None,
                             'moving_porousLayer': None,
                            }
-    boundaryTags = {'bottom': 1,
-                    'right': 2,
-                    'top': 3,
-                    'left': 4,
+    boundaryTags = {'y-': 1,
+                    'x+': 2,
+                    'y+': 3,
+                    'x-': 4,
                     'sponge': 5,
                     'porousLayer': 6,
                     'moving_porousLayer': 7,
                        }
 
 
+
 ##############################################################################################################################################################################################################
-# Caisson 
+# caisson2D
 ############################################################################################################################################################################################################
 
-if opts.caisson:
+if opts.caisson2D:
     dimx=dimx
     dimy=dimy
     dim=(dimx,dimy)
@@ -234,40 +236,43 @@ if opts.caisson:
     I=mass*(dimx**2.+dimy**2.)/12.
     # It=(dimx**2.+dimy**2.)/12.
 
-    caisson2D = st.Rectangle(domain, dim=dim, coords=coords)
-    caisson2D.vertices[0][0]=xc1
-    caisson2D.vertices[0][1]=yc1
-    caisson2D.vertices[1][0]=xc2
-    caisson2D.vertices[1][1]=yc2   
+# --- Shape properties setup
+    caisson = st.Rectangle(domain, dim=dim, coords=coords)
+    caisson.vertices[0][0]=xc1
+    caisson.vertices[0][1]=yc1
+    caisson.vertices[1][0]=xc2
+    caisson.vertices[1][1]=yc2
 
+
+# --- Body properties setup
+    caisson2D = bd.CaissonBody(shape=caisson)
     free_x=(0.0, 0.0, 0.0) # Translational DOFs
     free_r=(0.0, 0.0, 0.0) # Rotational DOFs
     m_static=opts.m_static # Static friction
     m_dynamic=opts.m_dynamic # Dynamic friction
-
     if opts.movingDomain==True:
-        free_x=(1.0, 1.0, 0.0) # Translational DOFs 
+        free_x=(1.0, 1.0, 0.0) # Translational DOFs
         if opts.overturning==True:
             free_r=(0.0, 0.0, 1.0) # Rotational DOFs
-   
     caisson2D.setMass(mass)
     caisson2D.setConstraints(free_x=free_x, free_r=free_r)
     caisson2D.setFriction(friction=opts.friction, m_static=m_static, m_dynamic=m_dynamic,
-                          tolerance=he/(float(10**6)),
-                          grainSize=opts.d50, waveDir=waveDir)
-
+                          tolerance=he/(float(10**6)), grainSize=opts.d50)
+    overturning=opts.overturning
+    caisson2D.setOverturning(overturning)
     if opts.rotation==True: # Initial position for free oscillation
         caisson2D.rotate(rotation)
-
     caisson2D.It= I/caisson2D.mass/width
-    caisson2D.setRecordValues(all_values=True)
-    caisson2D.setRigidBody()
+    caisson2D.setRecordValues(filename='caisson2D', all_values=True)
+
+# ---Rigid body assembling step (creation of hole region)
+    caisson.setRigidBody()
 
 ##############################################################################################################################################################################################################
 # Tank
 #########################################################################################################################################################################################################
 
-if opts.caisson==False:
+if opts.caisson2D==False:
 
     vertices=[[0.0, 0.0],#0
               [x1,  0.0],#1
@@ -283,8 +288,8 @@ if opts.caisson==False:
               [0.0,   tank_dim[1]],#11
               ]
 
-    vertexFlags=np.array([1, 1, 1, 
-                          6, 6, 
+    vertexFlags=np.array([1, 1, 1,
+                          6, 6,
                           1, 1, 1,
                           3, 3, 3, 3,
                          ])
@@ -314,7 +319,7 @@ if opts.caisson==False:
                            5, 5, 1,
                           ])
 else:
-    
+
     vertices=[[0.0, 0.0],#0
               [x1,  0.0],#1
               [x2, 0.0], #2
@@ -331,8 +336,8 @@ else:
               [xc2, yc2],#13
               ]
 
-    vertexFlags=np.array([1, 1, 1, 
-                          6, 6, 
+    vertexFlags=np.array([1, 1, 1,
+                          6, 6,
                           1, 1, 1,
                           3, 3, 3, 3,
                           7, 7,
@@ -359,7 +364,7 @@ else:
              ]
 
     segmentFlags=np.array([1, 1,
-                           6, 6, 
+                           6, 6,
                            1, 1,
                            2, 3, 3, 3, 4,
                            1,
@@ -402,7 +407,7 @@ if opts.Resistance=='Shih':
     term2=(gAbs/(nu_0**2.))**(2./3.)
     term3=(d15**2.)
     Alpha1=1684+term1*term2*term3 #Shih
-    Alpha=Alpha1*nu_0*(voidFrac**2)/((porosity**3)*(d15**2)) 
+    Alpha=Alpha1*nu_0*(voidFrac**2)/((porosity**3)*(d15**2))
 
     term1=-5.10*(10**-3.)
     term2=(gAbs/(nu_0**2.))**(1./3.)
@@ -430,52 +435,52 @@ dragBeta=0.0#(porosity**3)*Beta/nu_0
 
 #----- Spring setup
 
+springs=opts.springs
 Kx = opts.Kx
 Ky = opts.Ky
 Krot = opts.Krot
-
 C = opts.C
 Crot = opts.Crot
 
-caisson2D.setSprings(Kx, Ky, Krot, C, Crot)
+caisson2D.setSprings(springs, Kx, Ky, Krot, C, Crot)
 
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #############################################################################################################################################################################################################################################################################################################################################################################################
 
-if opts.caisson:
-    for bc in caisson2D.BC_list:
+if opts.caisson2D:
+    for bc in caisson.BC_list:
         if opts.caissonBC == 'FreeSlip':
             bc.setFreeSlip()
         if opts.caissonBC == 'NoSlip':
             bc.setNoSlip()
 
-tank.BC.top.setOpenAir()
-tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1, windSpeed=windVelocity)
-tank.BC.bottom.setFreeSlip()
-tank.BC.right.setFreeSlip()
-tank.BC.sponge.setNonMaterial()
+tank.BC['y+'].setAtmosphere()
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1)
+tank.BC['y-'].setFreeSlip()
+tank.BC['x+'].setFreeSlip()
+tank.BC['sponge'].setNonMaterial()
 
-tank.BC.porousLayer.reset()
-tank.BC.moving_porousLayer.reset()
+tank.BC['porousLayer'].reset()
+tank.BC['moving_porousLayer'].reset()
 
 
 if opts.movingDomain==True:
-    for tb in [tank.BC.right, tank.BC.left, tank.BC.top, tank.BC.bottom, tank.BC.sponge, tank.BC.porousLayer]:
-        tb.hx_dirichlet= lambda x, t: 0.0
-        tb.hy_dirichlet= lambda x, t: 0.0
-        tb.hz_dirichlet= lambda x, t: 0.0
-        tb.u_stress=None
-        tb.v_stress=None
-        tb.w_stress=None
-    ms=tank.BC.moving_porousLayer
-    ms.hx_dirichlet= None
-    ms.hy_dirichlet= None
-    ms.hz_dirichlet= lambda x, t: 0.0
-    ms.u_stress=None
-    ms.v_stress=None
-    ms.w_stress=None
+    for tb in [tank.BC['x+'], tank.BC['x-'], tank.BC['y+'], tank.BC['y-'], tank.BC['sponge'], tank.BC['porousLayer']]:
+        tb.hx_dirichlet.uOfXT= lambda x, t: 0.0
+        tb.hy_dirichlet.uOfXT= lambda x, t: 0.0
+        tb.hz_dirichlet.uOfXT= lambda x, t: 0.0
+        tb.u_stress.uOfXT=None
+        tb.v_stress.uOfXT=None
+        tb.w_stress.uOfXT=None
+    ms=tank.BC['moving_porousLayer']
+    ms.hx_dirichlet.uOfXT= None
+    ms.hy_dirichlet.uOfXT= None
+    ms.hz_dirichlet.uOfXT= lambda x, t: 0.0
+    ms.u_stress.uOfXT=None
+    ms.v_stress.uOfXT=None
+    ms.w_stress.uOfXT=None
 
 
 
@@ -487,9 +492,9 @@ if opts.movingDomain==True:
 
 #tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
 #                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
-#                        waves=waveinput, windSpeed=windVelocity,
+#                        waves=waveinput,
 #                        )
-tank.setPorousZones(flags=3, epsFact_solid=float((x5-x2)/2.),
+tank.setPorousZones(flags=3,
                     dragAlpha=dragAlpha, dragBeta=dragBeta,
                     porosity=porosity,
                    )
@@ -512,9 +517,9 @@ for i in probes:
 
 gauge_dy=0.01
 tol=np.array([1*(10**-5),1*(10**-5),0.])
-i_point_f=np.array([caisson2D.vertices[0][0],caisson2D.vertices[0][1],0.])
+i_point_f=np.array([caisson.vertices[0][0],caisson.vertices[0][1],0.])
 i_point_f += -tol #to avoid floating point error
-i_point_b=np.array([caisson2D.vertices[1][0],caisson2D.vertices[1][1],0.])
+i_point_b=np.array([caisson.vertices[1][0],caisson.vertices[1][1],0.])
 i_point_b += tol #to avoid floating point error
 yProbes = np.linspace(i_point_f[1],i_point_f[1]+dimy, (dimy/gauge_dy)+1.)
 LG1=[]
@@ -537,15 +542,13 @@ loadingsGauges=ga.PointGauges(gauges=((('p'),LG1),
                           fileName='loadingsGauges.csv')
 
 
-domain.auxiliaryVariables += [ point_output, loadingsGauges,
-                             ]
 
 ######################################################################################################################################################################################################################
 # Numerical Options and other parameters #
 ######################################################################################################################################################################################################################
 
 he = he
-domain.MeshOptions.he = he 
+domain.MeshOptions.he = he
 
 
 from math import *
@@ -588,7 +591,7 @@ useRANS = 0 # 0 -- None
 
 genMesh=True
 
-# By DEFAULT on the other files.py -->  fullNewtonFlag = True 
+# By DEFAULT on the other files.py -->  fullNewtonFlag = True
 #                                       multilevelNonlinearSolver & levelNonlinearSolver == NonlinearSolvers.Newton
 
 useOldPETSc=False # if TRUE  --> multilevelLinearSolver & levelLinearSolver == LinearSolvers.PETSc
@@ -656,12 +659,12 @@ if useMetrics:
     ls_sc_beta  = 1.5 # 1 is fully nonlinear, 2 is linear
     vof_shockCapturingFactor = 0.5 # numerical diffusion of level set (smoothening volume of fraction)
     vof_lag_shockCapturing = True # less nonlinear but less stable
-    vof_sc_uref = 1.0 
+    vof_sc_uref = 1.0
     vof_sc_beta = 1.5
     rd_shockCapturingFactor  = 0.5
     rd_lag_shockCapturing = False
     epsFact_density    = 3.0 # control width of water/air transition zone
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
+    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = ecH = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0 # affects smoothing diffusion in mass conservation
     redist_Newton = True
@@ -730,7 +733,7 @@ def waveHeight(x,t):
 
 def wavePhi(x,t):
     [nd-1]- waveHeight(x,t)
-    
+
 
 def waveVF(x,t):
     return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
