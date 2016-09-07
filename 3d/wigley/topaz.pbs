@@ -1,9 +1,8 @@
 #!/bin/bash
 #PBS -A ERDCV00898R40
-#PBS -l walltime=001:00:00
+#PBS -l walltime=023:00:00
 #PBS -l select=20:ncpus=36:mpiprocs=36
-#PBS -q debug
-#standard
+#PBS -q standard
 #PBS -N wigley
 #PBS -j oe
 #PBS -l application=proteus
