@@ -1,6 +1,8 @@
+import os
+import csv
 import numpy as np
 from proteus import AuxiliaryVariables, Archiver, Comm, Profiling
-cimport numpy
+cimport numpy as cnp
 from proteus.mprans import BodyDynamics
 from proteus import SpatialTools as st
 
@@ -18,6 +20,8 @@ cdef extern from "ChRigidBody.h":
         ChVector Get_A_Xaxis()
         ChVector Get_A_Yaxis()
         ChVector Get_A_Zaxis()
+    cdef cppclass ChBody:
+        void SetRot(ChQuaternion &mrot)
 
 cdef extern from "ChRigidBody.h":
     cdef cppclass cppSystem:
@@ -33,11 +37,22 @@ cdef extern from "ChRigidBody.h":
         ChMatrix33 a
         # double* free_x
         # double* free_r
+        ChBody body
         void prestep(double* force, double* torque, double dt)
         void poststep()
         double hx(double* x, double dt)
         double hy(double* x, double dt)
         double hz(double* x, double dt)
+        void addSpring(double stiffness,
+                       double damping,
+                       double* fairlead,
+                       double* anchor,
+                       double rest_length)
+        void setRotation(double* quat)
+        void setPosition(double* pos)
+        void setConstraints(double* free_x, double* free_r)
+        void setInertiaXX(double* inertia)
+
     cppRigidBody * newRigidBody(cppSystem* system,
                                 double* center,
                                 double* rot,
@@ -53,37 +68,30 @@ cdef class RigidBody:
       object model
       object system
       object Shape
-      numpy.ndarray barycneter0
+      cnp.ndarray barycneter0
       int nd, i_start, i_end
       double dt
-      numpy.ndarray F
-      numpy.ndarray M
-      numpy.ndarray barycenter0
-      # numpy.ndarray free_r
-      # numpy.ndarray free_x
+      dict record_dict
+      cnp.ndarray F
+      cnp.ndarray M
+      cnp.ndarray barycenter0
+      cnp.ndarray rotation_init
+      # cnp.ndarray free_r
+      # cnp.ndarray free_x
     def __cinit__(self,
                   shape,
                   System system,
-                  numpy.ndarray center,
-                  numpy.ndarray rot,
+                  cnp.ndarray center,
+                  cnp.ndarray rot,
                   double mass,
-                  numpy.ndarray inertia,
-                  numpy.ndarray free_x,
-                  numpy.ndarray free_r):
+                  cnp.ndarray inertia,
+                  cnp.ndarray free_x,
+                  cnp.ndarray free_r):
         self.system = system
         self.Shape = shape
         self.nd = shape.nd
         self.system.addBody(self)
-        # rot = numpy.ndarray((4,))
-        # rot[0] = np.sqrt(1+rot[0,0]+rot[1,1])/2.
-        # rot[1] = 0#(rot[2,1]-rot[1,2])/(4*rot[0])
-        # rot[2] = 0#(rot[0,2]-rot[2,0])/(4*rot[0])
-        # rot[3] = (rot[1,0]-rot[0,1])/(4*rot[0])
-        # rot[1] = (rot[2,1]-rot[1,2])/(4*rot[0])
-        # rot[2] = (rot[0,2]-rot[2,0])/(4*rot[0])
-        # rot[3] = (rot[1,0]-rot[0,1])/(4*rot[0])
-        print(free_x)
-        print(free_r)
+        self.record_dict = {}
         self.thisptr = newRigidBody(system.thisptr,
                                     <double*> center.data,
                                     <double*> rot.data,
@@ -91,7 +99,6 @@ cdef class RigidBody:
                                     <double*> inertia.data,
                                     <double*> free_x.data,
                                     <double*> free_r.data)
-        print('llala')
         if 'ChRigidBody' not in shape.auxiliaryVariables:
             shape.auxiliaryVariables['ChRigidBody'] = self
 
@@ -107,16 +114,16 @@ cdef class RigidBody:
         self.model = model
         return self
 
-    def hx(self, numpy.ndarray x, double t):
+    def hx(self, cnp.ndarray x, double t):
         return self.thisptr.hx(<double*> x.data, t)
 
-    def hy(self, numpy.ndarray x, double t):
+    def hy(self, cnp.ndarray x, double t):
         return self.thisptr.hy(<double*> x.data, t)
 
-    def hz(self, numpy.ndarray x, double t):
+    def hz(self, cnp.ndarray x, double t):
         return self.thisptr.hz(<double*> x.data, t)
 
-    # def setConstraintsDOF(self, numpy.ndarray free_x, numpy.ndarray free_r):
+    # def setConstraintsDOF(self, cnp.ndarray free_x, cnp.ndarray free_r):
     #     """
     #     Sets constraints on the Shape (for moving bodies)
 
@@ -129,6 +136,19 @@ cdef class RigidBody:
     #     """
     #     self.thisptr.free_x = <double*> free_x.data
     #     self.thisptr.free_r = <double*> free_r.data
+    def addSpring(self, double stiffness, double damping, cnp.ndarray fairlead,
+                  cnp.ndarray anchor, double rest_length):
+        self.thisptr.addSpring(stiffness, damping, <double*> fairlead.data,
+                               <double*> anchor.data, rest_length)
+
+    def setPosition(self, cnp.ndarray position):
+        self.thisptr.setPosition(<double*> position.data)
+        
+    def setRotation(self, cnp.ndarray quaternion):
+        self.thisptr.setRotation(<double*> quaternion.data)
+
+    def setConstraints(self, cnp.ndarray free_x, cnp.ndarray free_r):
+        self.thisptr.setConstraints(<double*> free_x.data, <double*> free_r.data)
 
     def setMass(self, mass):
         """
@@ -169,8 +189,6 @@ cdef class RigidBody:
         """
         i0, i1 = self.i_start, self.i_end
         F_p = self.model.levelModelList[-1].coefficients.netForces_p[i0:i1, :]
-        print("FP : ", self.model.levelModelList[-1].coefficients.netForces_p)
-        print("FP0:", F_p)
         F_t = np.sum(F_p, axis=0)
         return F_t
 
@@ -236,14 +254,16 @@ cdef class RigidBody:
                           [z0, z1, z2])
         return matrix
 
-    def step(self, numpy.ndarray F, numpy.ndarray M, double dt):
+    def step(self, cnp.ndarray F, cnp.ndarray M, double dt):
         self.thisptr.prestep(<double*> F.data, <double*> M.data, dt)
 
     def poststep(self):
         self.thisptr.poststep()
 
     def calculate_init(self):
-        a = 1
+        # barycenter0 used for moment calculations
+        self.barycenter0 = self.Shape.barycenter.copy()
+        # self.thisptr.setRotation(<double*> self.rotation_init.data)
         #
 
     def calculate(self):
@@ -255,6 +275,132 @@ cdef class RigidBody:
         self.M = self.getMoments()
         self.step(self.F, self.M, self.dt)
 
+    def getLastValues(self):
+        self.acceleration
+        self.acceleration_last
+        self.velocity
+        self.velocity_last
+        self.rotation
+        self.rotation_last
+        self.F
+        self.F_last
+        self.M
+        self.M_last
+        self.ang_acceleration
+        self.ang_acceleration_last
+        self.ang_velocity
+        self.ang_velocity_last
+        self.inertia
+
+    def setRecordValues(self, filename=None, all_values=False, pos=False,
+                        rot=False, ang_disp=False, F=False, M=False,
+                        inertia=False, vel=False, acc=False, ang_vel=False, ang_acc=False):
+        """
+        Sets the rigid body attributes that are to be recorded in a csv file
+        during the simulation.
+        Parameters
+        ----------
+        filename: Optional[string]
+            Name of file, if not set, the file will be named as follows:
+            'record_[shape.name].csv'
+        all_values: bool
+            Set to True to record all values listed below.
+        time: bool
+            Time of recorded row (default: True).
+        pos: bool
+            Position of body (default: False. Set to True to record).
+        rot: bool
+            Rotation of body (default: False. Set to True to record).
+        ang_disp: array
+            Angular displecement calculated during rigid body calculation step.
+            Applied on the body in order to make it rotating.
+        F: bool
+            Forces applied on body (default: False. Set to True to record).
+        M: bool
+            Moments applied on body (default: False. Set to True to record).
+        inertia: bool
+            Inertia of body (default: False. Set to True to record).
+        vel: bool
+            Velocity of body (default: False. Set to True to record).
+        acc: bool
+            Acceleration of body (default: False. Set to True to record).
+        ang_vel: array
+            Angular velocity of body (default: False. Set to True to record).
+        ang_acc: bool
+            Angular acceleration of body (default: False. Set to True to record).
+        Notes
+        -----
+        To add another value manually, add to dictionary self.record_dict:
+        key: header of the column in .csv
+        value: list of length 2: [variable name, index within variable]
+                                                 (if no index, use None)
+        e.g. self.record_dict['m']['mass', None]
+        """
+        if all_values is True:
+            pos = rot = F = M = acc = vel = ang_acc = ang_vel = True
+        if pos is True:
+            self.record_dict['x'] = ['last_position', 0]
+            self.record_dict['y'] = ['last_position', 1]
+            self.record_dict['z'] = ['last_position', 2]
+        if rot is True:
+            self.record_dict['rx'] = ['last_rotation_euler', 0]
+            self.record_dict['ry'] = ['last_rotation_euler', 1]
+            self.record_dict['rz'] = ['last_rotation_euler', 2]
+        if F is True:
+            self.record_dict['Fx'] = ['F', 0]
+            self.record_dict['Fy'] = ['F', 1]
+            self.record_dict['Fz'] = ['F', 2]
+            Fx = Fy = Fz = True
+        if M is True:
+            self.record_dict['Mx'] = ['M', 0]
+            self.record_dict['My'] = ['M', 1]
+            self.record_dict['Mz'] = ['M', 2]
+        if acc is True:
+            self.record_dict['ax'] = ['acceleration', 0]
+            self.record_dict['ay'] = ['acceleration', 1]
+            self.record_dict['az'] = ['acceleration', 2]
+        if vel is True:
+            self.record_dict['ux'] = ['velocity', 0]
+            self.record_dict['uy'] = ['velocity', 1]
+            self.record_dict['uz'] = ['velocity', 2]
+        if ang_acc is True:
+            self.record_dict['ang_ax'] = ['ang_acc', 0]
+            self.record_dict['ang_ay'] = ['ang_acc', 1]
+            self.record_dict['ang_az'] = ['ang_acc', 2]
+        if ang_vel is True:
+            self.record_dict['ang_ux'] = ['ang_vel', 0]
+            self.record_dict['ang_uy'] = ['ang_vel', 1]
+            self.record_dict['ang_uz'] = ['ang_vel', 2]
+        if inertia is True:
+            self.record_dict['intertia'] = ['inertia', None]
+
+    def _recordValues(self):
+        """
+        Records values of rigid body attributes at each time step in a csv file.
+        """
+        comm = Comm.get()
+        if comm.isMaster():
+            record_file = os.path.join(Profiling.logDir, 'record_' + self.Shape.name + '.csv')
+            t_last = self.model.stepController.t_model_last
+            dt_last = self.model.levelModelList[-1].dt_last
+            t = t_last-dt_last
+            values_towrite = [t]
+            if t == 0:
+                headers = ['t']
+                for key in self.record_dict:
+                    headers += [key]
+                with open(self.record_file, 'w') as csvfile:
+                    writer = csv.writer(csvfile, delimiter=',')
+                    writer.writerow(headers)
+            for key, val in self.record_dict.iteritems():
+                if val[1] is not None:
+                    values_towrite += [getattr(self, val[0])[val[1]]]
+                else:
+                    values_towrite += [getattr(self, val[0])]
+            with open(self.record_file, 'a') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
+                writer.writerow(values_towrite)
+
 
 cdef class System:
     cdef cppSystem * thisptr
@@ -262,7 +408,7 @@ cdef class System:
     cdef object bodies
     cdef public double dt_init
     cdef double dt
-    def __cinit__(self, numpy.ndarray gravity):
+    def __cinit__(self, cnp.ndarray gravity):
         self.thisptr = newSystem(<double*> gravity.data)
         self.bodies = []
         self.dt_init = 0.001
@@ -274,7 +420,7 @@ cdef class System:
         pass
     def calculate_init(self):
         for body in self.bodies:
-            body.barycenter0 = body.Shape.barycenter.copy()
+            body.calculate_init()
         a = 1
         #
 
@@ -289,6 +435,10 @@ cdef class System:
         for body in self.bodies:
             body.poststep()
         #
+    def calculate_init(self):
+        for body in self.bodies:
+            body.calculate_init()
+
 
     def step(self, double dt):
         self.thisptr.step(<double> dt)

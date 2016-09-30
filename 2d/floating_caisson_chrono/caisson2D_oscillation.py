@@ -9,10 +9,10 @@ import numpy as np
 
 opts=Context.Options([
     # predefined test cases
-    ("water_level", 1., "Height of free surface above bottom"),
+    ("water_level", 0.9, "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (2., 2.,), "Dimensions of the tank"),
-    ("tank_sponge", (0., 0.), "Length of absorption zones (front/back, left/right)"),
+    ("tank_dim", (2.3, 1.2,), "Dimensions of the tank"),
+    ("tank_sponge", (2., 2.), "Length of absorption zones (front/back, left/right)"),
     # waves
     ("waves", False, "Generate waves (True/False)"),
     ("wave_period", 0.8, "Period of the waves"),
@@ -20,17 +20,27 @@ opts=Context.Options([
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     # caisson
     ("caisson_dim", (0.3, 0.1), "Dimensions of the caisson"),
-    ("caisson_coords", None, "Dimensions of the caisson"),
+    ("caisson_coords", (1.15, 0.9), "Dimensions of the caisson"),
     ("caisson_width", 0.9, "Width of the caisson"),
+    ("caisson_corner_r", 0., "radius of the corners of the caisson"),
     ("free_x", (0.0, 0.0, 0.0), "Translational DOFs"),
     ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
     ("VCG", None, "vertical position of the barycenter of the caisson"),
     ("draft", 0.425, "Draft of the caisson"),
-    ("inertia", 0.236, "Inertia of the caisson"),
+    ("caisson_mass", 15., "Mass of the caisson"),
+    ("caisson_inertia", 0.236, "Inertia of the caisson"),
     ("rotation_angle", np.pi/12., "Initial rotation angle (in radians)"),
+    # mooring
+    ("mooring", False, "add moorings"),
+    ("mooring_type", 'spring', "type of moorings"),
+    ("mooring_anchor", (0.,0.,0.), "anchor coordinates (absolute coorinates)"),
+    ("mooring_fairlead", (0.,0.,0.), "fairlead cooridnates (relative coordinates from barycenter)"),
+    ("mooring_K", 197.58, "mooring (spring) stiffness"),
+    ("mooring_R", 19.8, "mooring (spring) damping"),
+    ("mooring_restlength", 0., "mooring (spring) rest length"),
     # numerical options
     #("gen_mesh", True ,"Generate new mesh"),
-    ("refinement_level", 2 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("refinement_level", 0 ,"Set maximum element diameter to he/2**refinement_level"),
     ("T", 10.0 ,"Simulation time"),
     ("dt_init", 0.001 ,"Initial time step"),
     ("cfl", 0.33 ,"Target cfl"),
@@ -78,43 +88,11 @@ if opts.caisson_coords is None:
     coords = [tank_dim[0]/2., waterLevel]
 else:
     coords = opts.caisson_coords
-barycenter = (coords[0], coords[1]-dim[1]/2.+VCG)
-inertia = opts.inertia
+# barycenter = (coords[0], coords[1]-dim[1]/2.+VCG)
+# inertia = opts.inertia
 width = opts.caisson_width
 
-# if opts.cylinder:
-#     from math import ceil,pi,sin,cos
-#     radius = 0.5*opts.bar_dim[1]
-#     vStart = len(vertices)
-#     points_on_cylinder = 4*int(ceil(0.5*pi*(radius)/he))
-#     for cb in range(points_on_cylinder):
-#         vertices.append([bar_center[0]+radius*sin(float(cb)/float(points_on_cylinder)*2.0*pi),
-#                          bar_center[1]+radius*cos(float(cb)/float(points_on_cylinder)*2.0*pi)])
-#         vertexFlags.append(boundaryTags['obstacle'])
-#     for cb in range(points_on_cylinder):
-#         segments.append([vStart+cb,vStart+(cb+1)%points_on_cylinder])
-#         segmentFlags.append(boundaryTags['obstacle'])
 
-radius = 0.064
-refinement = 10
-
-vertices = []
-vertexFlags = []
-segments = []
-segmentFlags = []
-
-# p_nb = int(np.ceil(2*np.pi*radius/dx))  # number of points on segment
-# p_nb = refinement
-# for i in range(p_nb):
-#     x = radius*np.sin(float(i)/p_nb*2.*np.pi)
-#     y = radius*np.cos(float(i)/p_nb*2.*np.pi)
-#     vertices += [[center[0]]+x], [center[1]+y]
-#     vertexFlags += [flag]
-#     if i > 0:
-#         segments += [[v_start+(i-1), v_start+i]]
-#     elif i == p_nb-1:
-#         segments += [[v_start+i, v_start]]
-#     segmentFlags += [flag]
 
 def quarter_circle(center, radius, p_nb, angle, angle0=0., v_start=0.):
     # p_nb = int(np.ceil(2*np.pi*radius/dx))  # number of points on segment
@@ -131,64 +109,65 @@ def quarter_circle(center, radius, p_nb, angle, angle0=0., v_start=0.):
             segments += [[v_start+i, v_start]]
     return vertices, segments
 
-dim = [0.5, 0.5]
-angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
-angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
-centers = [[dim[0]/2.-radius, dim[1]/2.-radius], [-dim[0]/2.+radius, dim[1]/2.-radius],
-           [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
-p_nb = 10
-center = [0., 0.]
-flag = 1
-v_start = 0
-for i in range(len(angle0)):
-    v_start = len(vertices)
-    v, s = quarter_circle(center=centers[i], radius=radius, p_nb=p_nb,
-                                  angle=angle1[i], angle0=angle0[i],
-                                  v_start=v_start)
-    vertices += v
-    vertexFlags += [1]*len(v)
-    segments += s+[[len(vertices)-1, len(vertices)]]
-    segmentFlags += [1]*len(s)+[1]
-segments[-1][1] = 0  # last segment links to vertex 0
-boundaryTags = {'caisson': 1}
-caisson = st.CustomShape(domain, barycenter=(0.,-0.115, 0.), vertices=vertices,
-                         vertexFlags=vertexFlags, segments=segments,
-                         segmentFlags=segmentFlags, boundaryTags=boundaryTags)
+radius = opts.caisson_corner_r
+if radius != 0:
+    vertices = []
+    vertexFlags = []
+    segments = []
+    segmentFlags = []
+    dim = [0.5, 0.5]
+    angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
+    angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
+    centers = [[dim[0]/2.-radius, dim[1]/2.-radius], [-dim[0]/2.+radius, dim[1]/2.-radius],
+               [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
+    p_nb = 10
+    center = [0., 0.]
+    flag = 1
+    v_start = 0
+    for i in range(len(angle0)):
+        v_start = len(vertices)
+        v, s = quarter_circle(center=centers[i], radius=radius, p_nb=p_nb,
+                                      angle=angle1[i], angle0=angle0[i],
+                                      v_start=v_start)
+        vertices += v
+        vertexFlags += [1]*len(v)
+        segments += s+[[len(vertices)-1, len(vertices)]]
+        segmentFlags += [1]*len(s)+[1]
+    segments[-1][1] = 0  # last segment links to vertex 0
+    boundaryTags = {'caisson': 1}
+    caisson = st.CustomShape(domain, barycenter=(0.,-0.115, 0.),
+                             vertices=vertices, vertexFlags=vertexFlags,
+                             segments=segments, segmentFlags=segmentFlags,
+                             boundaryTags=boundaryTags)
+else:
+    caisson = st.Rectangle(domain, dim=opts.caisson_dim)
+
 caisson.setHoles([[0., 0.]])
-caisson.translate([tank_dim[0]/2., tank_dim[1]/2.])
+caisson.holes_ind = np.array([0])
+caisson.translate([opts.caisson_coords[0], opts.caisson_coords[1]])
 caisson.rotate(np.pi/12., pivot=caisson.barycenter)
 # system = crb.System(np.array([0., -9.81, 0.]))
 ang = np.pi/12.
-print('1$$$$$$$$$$$$')
+
 system = crb.System(np.array([0., -9.81, 0.]))
 body = crb.RigidBody(shape=caisson,
-              system=system,
-              center=np.array([tank_dim[0]/2., tank_dim[1]/2.-0.115]),
-              rot=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.]),
-              mass = 125.,
-              inertia = np.array([0., 0., 4.05]),
-              free_x = np.array([1., 1., 1.]),
-              free_r = np.array([1., 1., 1.]))
-print('2$$$$$$$$$$$$')
+                     system=system,
+                     center=caisson.barycenter[:2],
+                     rot=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.]),
+                     mass = opts.caisson_mass,
+                     inertia = np.array([0., 0., opts.caisson_inertia]),
+                     free_x = np.array([0., 0., 0.]),
+                     free_r = np.array([1., 1., 1.]))
 
-# dim = [0.5, 0.5]
-# mass = 125./(0.5**2/(dim[0]*dim[1]))
-# inertia = 4.05/(0.5**2/(dim[0]*dim[1]))
-# caisson = st.Rectangle(domain, [dim[0], dim[1]], [1, 1.])
-# caisson.barycenter = np.array([tank_dim[0]/2., tank_dim[1]/2., 0.])
-# ang = np.pi/36.
-# caisson.rotate(ang)
-# body = crb.RigidBody(shape=caisson,
-#                system=system,
-#                center=np.array([tank_dim[0]/2., tank_divm[1]/2.]),
-#                rot=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.]),
-#                mass = mass,
-#                inertia = np.array([0., 0., inertia]),
-#                free_x = np.array([1., 1., 1.]),
-#                free_r = np.array([1., 1., 1.]))
-# caisson.setRigidBody()
-# caisson.It = 4.05/125
-# caisson.mass = 125.
+# body.rotation_init=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
+body.setRecordValues(all_values=True)
+if opts.mooring is True:
+    if opts.mooring_type == 'spring':
+        body.addSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
+                       fairlead=opts.mooring_barycenter,
+                       anchor=opts.mooring_anchor,
+                       rest_length=caisson.barycenter[0])
+
 
 
 # ----- SHAPES ----- #
@@ -197,21 +176,15 @@ tank = st.Tank2D(domain, tank_dim)
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 if tank_sponge[0]: left = True
 if tank_sponge[1]: right = True
-# if opts.waves is True:
-#     tank.setGenerationZones(x_n=left, waves=wave)
-#     tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
-# else:
-#     tank.setAbsorptionZones(x_n=left)
-# tank.setAbsorptionZones(x_p=right)
-
-# caisson3D = st.Rectangle(domain, dim=dim, coords=coords)
-# caisson3D.setRigidBody()
-# caisson3D.setMass(caisson_mass)
-# caisson3D.setConstraints(free_x=free_x, free_r=free_r)
-# if rotation:
-#     caisson3D.rotate(rotation)  # initial position for free oscillation
-# caisson3D.It = inertia/caisson3D.mass/width
-# caisson3D.setRecordValues(pos=True, rot=True, F=True, M=True)
+if left:
+    if opts.waves is True:
+        tank.setGenerationZones(x_n=left, waves=wave)
+        tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
+    else:
+        tank.setAbsorptionZones(x_n=left)
+if right:
+    tank.setAbsorptionZones(x_p=right)
+tank.setChildShape(caisson, 0)
 
 # ----- BOUNDARY CONDITIONS ----- #
 
@@ -245,7 +218,7 @@ g = [0., -9.81]
 
 
 refinement_level = opts.refinement_level
-he = (0.5)/12.0*(0.5**refinement_level)
+he = opts.caisson_dim[1]/10.0*(0.5**refinement_level)
 domain.MeshOptions.he = he #coarse grid
 
 
@@ -260,6 +233,8 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 st.assembleDomain(domain)
+domain.writeGeo('mesh')
+domain.MeshOptions.use_gmsh = True
 
 #----------------------------------------------------
 # Boundary conditions and other flags
