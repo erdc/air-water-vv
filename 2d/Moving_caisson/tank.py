@@ -32,11 +32,11 @@ opts=Context.Options([
     ('Resistance', 'Shih', 'Ergun or Engelund or Shih'),
     # soil foundation
     ("springs", True, "Switch on/off soil module"),
-    ("Kx", 2.616*(10**5)/0.4, "Horizontal stiffness in Pa"),
-    ("Ky", 2.616*(10**5)/0.4, "Vertical stiffness in Pa"),
-    ("Krot", 0.0, "Rotational stiffness in N"),
+    ("Kx", 0.0, "Horizontal stiffness in Pa"),
+    ("Ky", 0.0, "Vertical stiffness in Pa"),
+    ("Krot", 19620., "Rotational stiffness in N"),
     ("C", 0.0, "Damping factor in Pa s "),
-    ("Crot", 5.288*(10**1)/0.4, "Rotational damping factor in N s "),
+    ("Crot", 121.63, "Rotational damping factor in N s "),
     # caisson
     ("caisson2D", True, "Switch on/off caisson2D"),
     ('dimx', 0.300, 'X-dimension of the caisson2D'),
@@ -245,7 +245,7 @@ if opts.caisson2D:
 
 
 # --- Body properties setup
-    caisson2D = bd.CaissonBody(shape=caisson)
+    caisson2D = bd.CaissonBody(shape=caisson, substeps=20)
     free_x=(0.0, 0.0, 0.0) # Translational DOFs
     free_r=(0.0, 0.0, 0.0) # Rotational DOFs
     m_static=opts.m_static # Static friction
@@ -265,8 +265,6 @@ if opts.caisson2D:
     caisson2D.It= I/caisson2D.mass/width
     caisson2D.setRecordValues(filename='caisson2D', all_values=True)
 
-# ---Rigid body assembling step (creation of hole region)
-    caisson.setRigidBody()
 
 ##############################################################################################################################################################################################################
 # Tank
