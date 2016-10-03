@@ -35,8 +35,9 @@ opts=Context.Options([
     ("Kx", 0.0, "Horizontal stiffness in Pa"),
     ("Ky", 0.0, "Vertical stiffness in Pa"),
     ("Krot", 19620., "Rotational stiffness in N"),
-    ("C", 0.0, "Damping factor in Pa s "),
-    ("Crot", 121.63, "Rotational damping factor in N s "),
+    ("Cx", 0.0, "Damping factor in Pa s "),
+    ("Cy", 0.0, "Damping factor in Pa s "),
+    ("Crot", 121.6, "Rotational damping factor in N s "),
     # caisson
     ("caisson2D", True, "Switch on/off caisson2D"),
     ('dimx', 0.300, 'X-dimension of the caisson2D'),
@@ -49,6 +50,7 @@ opts=Context.Options([
     ("overturning", True, "Switch on/off overturning module"),
     ("m_static", 0.500, "Static friction factor between caisson2D and rubble mound"),
     ("m_dynamic", 0.500, "Dynamic friction factor between caisson2D and rubble mound"),
+    ('scheme', 'Runge_Kutta', 'Numerical scheme applied to solve motion calculation (Runge_Kutta or Central_Difference)'),
     # numerical options
     ("he", 0.02,"he=walength/refinement_level"),
     ("cfl", 0.450 ,"Target cfl"),
@@ -263,6 +265,7 @@ if opts.caisson2D:
     if opts.rotation==True: # Initial position for free oscillation
         caisson2D.rotate(rotation)
     caisson2D.It= I/caisson2D.mass/width
+    caisson2D.setNumericalScheme(scheme=opts.scheme)
     caisson2D.setRecordValues(filename='caisson2D', all_values=True)
 
 
@@ -437,10 +440,11 @@ springs=opts.springs
 Kx = opts.Kx
 Ky = opts.Ky
 Krot = opts.Krot
-C = opts.C
+Cx = opts.Cx
+Cy = opts.Cy
 Crot = opts.Crot
 
-caisson2D.setSprings(springs, Kx, Ky, Krot, C, Crot)
+caisson2D.setSprings(springs, Kx, Ky, Krot, Cx, Cy, Crot)
 
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
