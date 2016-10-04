@@ -22,17 +22,30 @@ class cppRigidBody {
   ChVector<> free_r;
   ChVector<> pos;
   ChVector<> pos_last;
-  ChQuaternion<double> rot;
-  ChQuaternion<double> rot_last;
+  ChVector<> vel;
+  ChVector<> vel_last;
+  ChVector<> acc;
+  ChVector<> acc_last;
+  ChVector<> angvel;
+  ChVector<> angvel_last;
+  ChVector<> angacc;
+  ChVector<> angacc_last;
+  ChMatrix33<double> rotm;
+  ChMatrix33<double> rotm_last;
+  ChQuaternion<double> rotq;
+  ChQuaternion<double> rotq_last;
+  ChVector<> F;
+  ChVector<> F_last;
+  ChVector<> M;
+  ChVector<> M_last;
   double mass;
+  /* ChVector <> inertia; */
   double* inertia;
-  ChMatrix33<double> a_last;
-  ChMatrix33<double> a;
   ChSharedPtr<ChBody> body;
   cppSystem* system;
   cppRigidBody(cppSystem* system,
                double* pos,
-               double* rot,
+               double* rotq,
                double mass,
                double* inertia,
                double* free_x,
@@ -96,14 +109,14 @@ system(system),
   system->system.AddBody(body);
   // basic attributes of body
   pos = ChVector<>(posin[0], posin[1], posin[2]);
-  rot = ChQuaternion<>(rotin[0], rotin[1], rotin[2], rotin[3]);
+  rotq = ChQuaternion<>(rotin[0], rotin[1], rotin[2], rotin[3]);
   body->SetPos(pos);
-  body->SetRot(rot);
+  body->SetRot(rotq);
   body->SetInertiaXX(ChVector<>(1.,
                                 1.,
                                 inertia[2]));  // careful division by zero!
-  a = body->GetA();
-  a_last = body->GetA();
+  rotm = body->GetA();
+  rotm_last = body->GetA();
   pos = body->GetPos();
   pos_last = body->GetPos();
   body->SetMass(mass);
@@ -111,34 +124,41 @@ system(system),
 
 double cppRigidBody::hx(double* x, double t)
 {
-  a = body->GetA();
-  ChVector<double> local = ChTransform<double>::TransformParentToLocal(ChVector<double>(x[0],x[1],x[2]), pos_last, a_last);
-  ChVector<double> xNew  = ChTransform<double>::TransformLocalToParent(local, pos, a);
+  rotm = body->GetA();
+  ChVector<double> local = ChTransform<double>::TransformParentToLocal(ChVector<double>(x[0],x[1],x[2]), pos_last, rotm_last);
+  ChVector<double> xNew  = ChTransform<double>::TransformLocalToParent(local, pos, rotm);
   return xNew(0) - x[0];
 }
 
 double cppRigidBody::hy(double* x, double t)
 {
-  a = body->GetA();
-  ChVector<double> local = ChTransform<double>::TransformParentToLocal(ChVector<double>(x[0],x[1],x[2]), pos_last, a_last);
-  ChVector<double> xNew  = ChTransform<double>::TransformLocalToParent(local, pos, a);
+  rotm = body->GetA();
+  ChVector<double> local = ChTransform<double>::TransformParentToLocal(ChVector<double>(x[0],x[1],x[2]), pos_last, rotm_last);
+  ChVector<double> xNew  = ChTransform<double>::TransformLocalToParent(local, pos, rotm);
   return xNew(1) - x[1];
 }
 
 double cppRigidBody::hz(double* x, double t)
 {
-  a = body->GetA();
-  ChVector<double> local = ChTransform<double>::TransformParentToLocal(ChVector<double>(x[0],x[1],x[2]), pos_last, a_last);
-  ChVector<double> xNew = ChTransform<double>::TransformLocalToParent(local, pos, a);
+  rotm = body->GetA();
+  ChVector<double> local = ChTransform<double>::TransformParentToLocal(ChVector<double>(x[0],x[1],x[2]), pos_last, rotm_last);
+  ChVector<double> xNew = ChTransform<double>::TransformLocalToParent(local, pos, rotm);
   return xNew(2) - x[2];
 }
 
 void cppRigidBody::prestep(double* force, double* torque, double dt)
 {
+  /* step to call before running chrono system step */
   pos_last = body->GetPos();
-  a_last = body->GetA();
-  pos_last = body->GetPos();
-  rot_last = body->GetRot();
+  vel_last = body->GetPos_dt();
+  acc_last = body->GetPos_dtdt();
+  rotm_last = body->GetA();
+  rotq_last = body->GetRot();
+  angacc_last = body->GetWvel_loc();
+  angvel_last = body->GetWvel_loc();
+  F_last = body->Get_Xforce();
+  M_last = body->Get_Xtorque();
+  // apply external forces
   body->Empty_forces_accumulators();
   // calculate opposite force of gravity if free_x is 0
   double forceG[3]={0.,0.,0.};
@@ -154,6 +174,19 @@ void cppRigidBody::prestep(double* force, double* torque, double dt)
                                            torque[1]*free_r(1),
                                            torque[2]*free_r(2)),
                           true);
+}
+
+void cppRigidBody::poststep()
+{
+  pos = body->GetPos();
+  vel = body->GetPos_dt();
+  acc = body->GetPos_dtdt();
+  rotm = body->GetA();
+  rotq = body->GetRot();
+  angacc = body->GetWvel_loc();
+  angvel = body->GetWvel_loc();
+  F = body->Get_Xforce();
+  M = body->Get_Xtorque();
 }
 
 void cppRigidBody::setPosition(double* position){
@@ -173,11 +206,6 @@ void cppRigidBody::setInertiaXX(double* inertia){
   body->SetInertiaXX(ChVector<>(inertia[0], inertia[1], inertia[2]));
 }
 
-void cppRigidBody::poststep()
-{
-  pos = body->GetPos();
-  a = body->GetA();
-}
 
 void cppRigidBody::addSpring(double stiffness,
                              double damping,
@@ -211,7 +239,7 @@ cppSystem * newSystem(double* gravity)
 
 cppRigidBody * newRigidBody(cppSystem* system,
                             double* position,
-                            double* rot,
+                            double* rotq,
                             double mass,
                             double* inertia,
                             double* free_x,
@@ -219,7 +247,7 @@ cppRigidBody * newRigidBody(cppSystem* system,
 {
   return new cppRigidBody(system,
                           position,
-                          rot,
+                          rotq,
                           mass,
                           inertia,
                           free_x,
