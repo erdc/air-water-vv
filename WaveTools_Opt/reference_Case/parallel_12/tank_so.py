@@ -15,13 +15,11 @@ elif '_so.pyc' in name_so[-7:]:
     name = name_so[:-7]
 else:
     raise NameError, 'Split operator module must end with "_so.py"'
+  
 
-try:
-    case = __import__(name)
-    Context.setFromModule(case)
-    ct = Context.get()
-except ImportError:
-    raise ImportError, str(name) + '.py not found'
+case = __import__(name)
+Context.setFromModule(case)
+ct = Context.get()
 
 from proteus import BoundaryConditions
 BoundaryConditions.BC_Base.getContext()

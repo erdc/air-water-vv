@@ -4,7 +4,6 @@ from proteus import Gauges as ga
 from proteus import WaveTools as wt
 from math import *
 import numpy as np
-from proteus.mprans import BodyDynamics as bd
 
 
 opts=Context.Options([
@@ -23,9 +22,11 @@ opts=Context.Options([
     ('wavelength', 0.0, 'Wavelength only if Fenton is activated'),
     ('Ycoeff', [0.0], 'Ycoeff only if Fenton is activated'),
     ('Bcoeff', [0.0], 'Bcoeff only if Fenton is activated'),
-    # numerical options
+    # simulation options
     ("he", 0.05,"he=walength/refinement_level"),
     ("cfl", 0.90 ,"Target cfl"),
+    ("T", 1. ,"Simulation time"),
+    # numerical parameters
     ("freezeLevelSet", True, "No motion to the levelset"),
     ("useVF", 1.0, "For density and viscosity smoothing"),
     ('movingDomain', False, "Moving domain and mesh option"),
@@ -214,7 +215,7 @@ tank.setAbsorptionZones(flags=3, epsFact_solid=float(L_rightSpo/2.),
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
 ############################################################################################################################################################################
-T = 30.*period
+T = opts.T
 
 gauge_dx=0.25
 probes=np.linspace(0., tank_dim[0], (tank_dim[0]/gauge_dx)+1)
