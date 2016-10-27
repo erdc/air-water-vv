@@ -11,7 +11,7 @@ opts=Context.Options([
     # predefined test cases
     ("water_level", 0.9, "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (2.3, 1.2,), "Dimensions of the tank"),
+    ("tank_dim", (2., 2.,), "Dimensions of the tank"),
     ("tank_sponge", (2., 2.), "Length of absorption zones (front/back, left/right)"),
     # waves
     ("waves", False, "Generate waves (True/False)"),
@@ -19,21 +19,20 @@ opts=Context.Options([
     ("wave_height", 0.029, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     # caisson
-    ("caisson_dim", (0.3, 0.1), "Dimensions of the caisson"),
-    ("caisson_coords", (1.15, 0.9), "Dimensions of the caisson"),
-    ("caisson_width", 0.9, "Width of the caisson"),
-    ("caisson_corner_r", 0., "radius of the corners of the caisson"),
+    ("caisson_dim", (0.5, 0.5), "Dimensions of the caisson"),
+    ("caisson_coords", (1., 0.9), "Dimensions of the caisson"),
+    ("caisson_width", 1., "Width of the caisson"),
+    ("caisson_corner_r", 0.064, "radius of the corners of the caisson"),
     ("free_x", (0.0, 0.0, 0.0), "Translational DOFs"),
     ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
     ("VCG", None, "vertical position of the barycenter of the caisson"),
-    ("draft", 0.425, "Draft of the caisson"),
-    ("caisson_mass", 15., "Mass of the caisson"),
-    ("caisson_inertia", 0.236, "Inertia of the caisson"),
-    ("rotation_angle", np.pi/12., "Initial rotation angle (in radians)"),
+    ("caisson_mass", 125., "Mass of the caisson"),
+    ("caisson_inertia", 4.05, "Inertia of the caisson"),
+    ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
     # mooring
     ("mooring", False, "add moorings"),
     ("mooring_type", 'spring', "type of moorings"),
-    ("mooring_anchor", (0.,0.,0.), "anchor coordinates (absolute coorinates)"),
+    ("mooring_anchor", (2./2.,2.,0.), "anchor coordinates (absolute coorinates)"),
     ("mooring_fairlead", (0.,0.,0.), "fairlead cooridnates (relative coordinates from barycenter)"),
     ("mooring_K", 197.58, "mooring (spring) stiffness"),
     ("mooring_R", 19.8, "mooring (spring) damping"),
@@ -41,10 +40,17 @@ opts=Context.Options([
     # numerical options
     #("gen_mesh", True ,"Generate new mesh"),
     ("refinement_level", 0 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("refinement_max", 0 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("he_max", 0 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("refinement_freesurface", 0 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("refinement_grading", 1.05, "Refinement around the caisson"),
+    ("refinement_caisson", 0., "Refinement around the caisson"),
     ("T", 10.0 ,"Simulation time"),
     ("dt_init", 0.001 ,"Initial time step"),
     ("cfl", 0.33 ,"Target cfl"),
     ("nsave",  20,"Number of time steps to save per second"),
+    ("use_gmsh", True ,"Generate new mesh"),
+    ("gauge_output", False ,"Generate new mesh"),
     ("parallel", True ,"Run in parallel")])
 
 
@@ -53,6 +59,7 @@ opts=Context.Options([
 
 # general options
 waterLevel = opts.water_level
+rotation_angle = np.radians(opts.rotation_angle)
 
 # waves
 if opts.waves is True:
@@ -80,19 +87,20 @@ dim = opts.caisson_dim
 VCG = opts.VCG
 if VCG is None:
     VCG = dim[1]/2.
-draft = opts.draft
 free_x = opts.free_x
 free_r = opts.free_r
-rotation = opts.rotation_angle
+rotation = np.radians(opts.rotation_angle)
 if opts.caisson_coords is None:
     coords = [tank_dim[0]/2., waterLevel]
 else:
     coords = opts.caisson_coords
-# barycenter = (coords[0], coords[1]-dim[1]/2.+VCG)
-# inertia = opts.inertia
+barycenter = (0, -dim[1]/2.+VCG, 0.)
 width = opts.caisson_width
+inertia = opts.caisson_inertia/width
 
 
+caisson_dim = opts.caisson_dim
+caisson_coords = opts.caisson_coords
 
 def quarter_circle(center, radius, p_nb, angle, angle0=0., v_start=0.):
     # p_nb = int(np.ceil(2*np.pi*radius/dx))  # number of points on segment
@@ -135,19 +143,24 @@ if radius != 0:
         segmentFlags += [1]*len(s)+[1]
     segments[-1][1] = 0  # last segment links to vertex 0
     boundaryTags = {'caisson': 1}
-    caisson = st.CustomShape(domain, barycenter=(0.,-0.115, 0.),
+    caisson = st.CustomShape(domain, barycenter=barycenter,
                              vertices=vertices, vertexFlags=vertexFlags,
                              segments=segments, segmentFlags=segmentFlags,
                              boundaryTags=boundaryTags)
+    facet = []
+    for i, vert in enumerate(caisson.vertices):
+        facet += [i]
+    caisson.facets = np.array([[facet]])
+    caisson.facetFlags = np.array([1])
+    caisson.regionFlags = np.array([1])
 else:
     caisson = st.Rectangle(domain, dim=opts.caisson_dim)
-
+ang = rotation_angle
 caisson.setHoles([[0., 0.]])
 caisson.holes_ind = np.array([0])
-caisson.translate([opts.caisson_coords[0], opts.caisson_coords[1]])
-caisson.rotate(np.pi/12., pivot=caisson.barycenter)
+caisson.translate([caisson_coords[0], caisson_coords[1]])
+caisson.rotate(ang, pivot=caisson.barycenter)
 # system = crb.System(np.array([0., -9.81, 0.]))
-ang = np.pi/12.
 
 system = crb.System(np.array([0., -9.81, 0.]))
 body = crb.RigidBody(shape=caisson,
@@ -155,9 +168,9 @@ body = crb.RigidBody(shape=caisson,
                      center=caisson.barycenter[:2],
                      rot=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.]),
                      mass = opts.caisson_mass,
-                     inertia = np.array([0., 0., opts.caisson_inertia]),
-                     free_x = np.array([0., 0., 0.]),
-                     free_r = np.array([1., 1., 1.]))
+                     inertia = np.array([0., 0., inertia]),
+                     free_x = np.array(opts.free_x),
+                     free_r = np.array(opts.free_r))
 
 # body.rotation_init=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
 body.setRecordValues(all_values=True)
@@ -201,6 +214,80 @@ for bc in tank.BC_list:
     bc.setFixedNodes()
 
 
+# ----- GAUGES ----- #
+
+gauge_dx = tank_sponge[0]/100.
+probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], tank_dim[0]/gauge_dx+1)
+PG=[]
+PG2=[]
+LIG = []
+zProbes=waterLevel*0.5
+for i in probes:
+    PG.append((i, zProbes, 0.),)
+    PG2.append((i, waterLevel, 0.),)
+    LIG.append(((i, 0., 0.),(i, tank_dim[1],0.)),)
+
+if opts.gauge_output:
+
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('p',), PG),),
+        activeTime=(0, opts.T),
+        sampleRate=0,
+        fileName='pointGauge_pressure.csv'
+    )
+    # tank.attachPointGauges(
+    #     'ls',
+    #     gauges = ((('phi',), PG2),),
+    #     activeTime=(0, opts.T),
+    #     sampleRate=0,
+    #     fileName='pointGauge_levelset.csv'
+    # )
+
+    # tank.attachLineIntegralGauges(
+    #     'vof',
+    #     gauges=((('vof',), LIG),),
+    #     activeTime = (0., opts.T),
+    #     sampleRate = 0,
+    #     fileName = 'lineGauge.csv'
+    # )
+
+# he = opts.caisson_dim[1]/10.0*(0.5**opts.refinement_level)
+
+
+
+import MeshRefinement as mr
+tank.MeshOptions = mr.MeshOptions(tank)
+caisson.MeshOptions = mr.MeshOptions(caisson)
+grading = opts.refinement_grading
+he2 = caisson_dim[1]*0.5**opts.refinement_caisson
+def mesh_grading(start, he, grading):
+    return '{0}*{2}^(1+log((-1/{2}*(abs({1})-{0})+abs({1}))/{0})/log({2}))'.format(he, start, grading)
+for seg in caisson.segments:
+    v0 = caisson.vertices[seg[0]]
+    v1 = caisson.vertices[seg[1]]
+    dist = np.linalg.norm(v1-v0)
+    direct = (v1-v0)/dist
+    points = np.arange(0., dist, he2)
+    xx = []
+    yy = []
+    for p in points:
+      pd = v0+p*direct
+      tank.MeshOptions.setRefinementFunction(mesh_grading(start='sqrt((x-{0})^2+(y-{1})^2)'.format(pd[0], pd[1]), he=he2, grading=grading))
+
+he_max = opts.he_max
+he_fs = he_max*0.5**opts.refinement_freesurface
+# he_fs = he2
+tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel), he=he_fs, grading=grading))
+# tank.MeshOptions.refineBox(he2, he2, tank_sponge[0], tank_dim[0]+tank_sponge[0], waterLevel-ecH*he2, waterLevel+ecH*he2)
+# tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-ecH*he2), he=he2, grading=grading))
+# tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+ecH*he2), he=he2, grading=grading))
+domain.MeshOptions.LcMax = he_max #coarse grid
+domain.MeshOptions.he = he_max #coarse grid
+st.assembleDomain(domain)
+mr._assembleRefinementOptions(domain)
+mr.writeGeo(domain, 'mesh')
+domain.MeshOptions.use_gmsh = opts.use_gmsh
 
 
 
@@ -218,8 +305,6 @@ g = [0., -9.81]
 
 
 refinement_level = opts.refinement_level
-he = opts.caisson_dim[1]/10.0*(0.5**refinement_level)
-domain.MeshOptions.he = he #coarse grid
 
 
 from math import *
@@ -232,9 +317,6 @@ from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
-st.assembleDomain(domain)
-domain.writeGeo('mesh')
-domain.MeshOptions.use_gmsh = True
 
 #----------------------------------------------------
 # Boundary conditions and other flags
@@ -252,7 +334,10 @@ weak_bc_penalty_constant = 10.0/nu_0#Re
 dt_init = opts.dt_init
 T = opts.T
 nDTout = int(opts.T*opts.nsave)
-dt_out =  (T-dt_init)/nDTout
+if nDTout > 0:
+    dt_out= (T-dt_init)/nDTout
+else:
+    dt_out = 0
 runCFL = opts.cfl
 
 #----------------------------------------------------
@@ -366,6 +451,7 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
+he = he2
 ns_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 vof_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 ls_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)

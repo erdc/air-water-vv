@@ -80,4 +80,4 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
-auxiliaryVariables = ct.domain.auxiliaryVariables['twp']+[ct.system]
+auxiliaryVariables = [ct.system]+ct.domain.auxiliaryVariables['twp']

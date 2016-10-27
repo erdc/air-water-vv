@@ -87,7 +87,6 @@ cdef class RigidBody:
       object model
       object system
       object Shape
-      np.ndarray barycneter0
       int nd, i_start, i_end
       double dt
       dict record_dict
@@ -410,7 +409,10 @@ cdef class RigidBody:
         #     self.record_dict['ry'] = ['last_rotation_euler', 1]
         #     self.record_dict['rz'] = ['last_rotation_euler', 2]
         if rot is True:
-            self.record_dict['rotq'] = ['rotq_last', None]
+            self.record_dict['rotq_e0'] = ['rotq_last', 0]
+            self.record_dict['rotq_e1'] = ['rotq_last', 1]
+            self.record_dict['rotq_e2'] = ['rotq_last', 2]
+            self.record_dict['rotq_e3'] = ['rotq_last', 3]
             self.record_dict['rotm'] = ['rotm_last', None]
         if F is True:
             self.record_dict['Fx'] = ['F_last', 0]
@@ -481,6 +483,8 @@ cdef class System:
 
     def attachModel(self, model, ar):
         self.model = model
+        for body in self.bodies:
+            body.attachModel(model, ar)
         return self
     def attachAuxiliaryVariables(self,avDict):
         pass
