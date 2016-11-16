@@ -1,0 +1,1 @@
+mpirun -np 12 parun tank_so.py -v -O ../../../inputTemplates/petsc.options.asm -p -l 3
