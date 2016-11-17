@@ -4,37 +4,40 @@ from proteus import AuxiliaryVariables, Archiver
 from proteus.Profiling import  logEvent
 import ode
 
-cdef extern from "ChRigidBar.h":
+cdef extern from "Bar.h":
     cdef cppclass cppChRigidBar:
         void step(double* force, double* torque, double dt)
         double hx(double* x, double dt)
         double hy(double* x, double dt)
         double hz(double* x, double dt)
-    cppChRigidBar * newChRigidBar(double* bar_center,
-                                  double* bar_dim,
-                                  double* L,
-                                  double* gravity,
-                                  double mass,
-                                  double* inertia,
-                                  double* free_x,
-                                  double* free_r)
+    cppChRigidBar* newChRigidBar(double glass_thickness,
+                                 double* bar_center,
+                   		 double* bar_dim,
+                                 double* L,
+                                 double* gravity,
+                                 double mass,
+                                 double* inertia,
+                                 double* free_x,
+                                 double* free_r)
 
 cdef class RigidBar:
-    cdef cppChRigidBar * thisptr
+    cdef cppChRigidBar* thisptr
     cdef object model
     def __cinit__(self,
+                  double glass_thickness,
+                  numpy.ndarray g=numpy.array((0,0,-9.8)),
                   numpy.ndarray bar_center=numpy.array((0.0,0.0,0.0)),
                   numpy.ndarray bar_dim=numpy.array((1.0,1.0,1.0)),
                   numpy.ndarray L=numpy.array((1.0,1.0,1.0)),
-                  numpy.ndarray g=numpy.array((0,0,-9.8)),
                   double mass=1.0,
                   numpy.ndarray inertia=numpy.array((1,1,1)),
                   numpy.ndarray free_x =numpy.array((1,1,1)),
                   numpy.ndarray free_r =numpy.array((1,1,1))):
-        self.thisptr = newChRigidBar(<double*> bar_center.data,
+        self.thisptr = newChRigidBar(glass_thickness,
+                                     <double*> g.data,
+                                     <double*> bar_center.data,
                                      <double*> bar_dim.data,
                                      <double*> L.data,
-                                     <double*> g.data,
                                      mass,
                                      <double*> inertia.data,
                                      <double*> free_x.data,

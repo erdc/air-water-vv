@@ -219,25 +219,25 @@ class cppChRigidBar
   }
 };
 
-std::shared_ptr<cppChRigidBar> newChRigidBar(double glass_thickness,
-					     double* gravityIn,
-					     double* bar_center,
-					     double* bar_dim,
-					     double* L,
-					     double mass,
-					     double* inertia,
-					     double* free_x,
+cppChRigidBar* newChRigidBar(double glass_thickness,
+			     double* gravityIn,
+			     double* bar_center,
+			     double* bar_dim,
+			     double* L,
+			     double mass,
+			     double* inertia,
+			     double* free_x,
 					     double* free_r)
 {
-  return std::make_shared<cppChRigidBar>(glass_thickness,
-					 gravityIn,
-					 bar_center,
-					 bar_dim,
-					 L,
-					 mass,
-					 inertia,
-					 free_x,
-					 free_r);
+  return new cppChRigidBar(glass_thickness,
+			   gravityIn,
+			   bar_center,
+			   bar_dim,
+			   L,
+			   mass,
+			   inertia,
+			   free_x,
+			   free_r);
 }
 
 #endif

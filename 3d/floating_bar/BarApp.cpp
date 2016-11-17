@@ -37,7 +37,7 @@
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
-#include "Box.h"
+#include "Bar.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -306,6 +306,6 @@ int main(int argc, char* argv[]) {
         // Finalize the graphical scene.
         application->EndScene();
     }
-
+    delete rigid_bar;
     return 0;
 }
