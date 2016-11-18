@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 2.8)
 
 SET(MODELS
   BarApp
@@ -12,8 +13,9 @@ SET(MODELS
 find_package(Chrono
              COMPONENTS Irrlicht FEA
              CONFIG
-)
-
+	     )
+message("data dir")
+message(${CHRONO_DATA_DIR}) 
 # If Chrono and/or the required component(s) were not found, return now.
 
 if(NOT Chrono_FOUND)
@@ -22,13 +24,6 @@ if(NOT Chrono_FOUND)
 endif()
 
 include_directories(${CHRONO_INCLUDE_DIRS})
-
-#--------------------------------------------------------------
-# Append to the parent's list of DLLs (and make it visible up)
-#--------------------------------------------------------------
-
-list(APPEND ALL_DLLS "${CHRONO_DLLS}")
-set(ALL_DLLS "${ALL_DLLS}" PARENT_SCOPE)
 
 #--------------------------------------------------------------
 # Compilation flags
@@ -55,7 +50,6 @@ foreach(PROGRAM ${MODELS})
     COMPILE_DEFINITIONS "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\""
     LINK_FLAGS "${COMPILE_FLAGS} ${CHRONO_LINKER_FLAGS}"
   )
-
   target_link_libraries(${PROGRAM} ${CHRONO_LIBRARIES})
 
 endforeach(PROGRAM)

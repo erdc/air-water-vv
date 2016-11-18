@@ -236,6 +236,7 @@ int main(int argc, char* argv[]) {
     // //    Note that Irrlicht uses left-handed frames with Y up.
 
     // // Create the Irrlicht application and set-up the camera.
+    //double gravity[3]={0.0, 0.0, 0.0};
     double gravity[3]={0.0, 0.0, -9.8};
     //double gravity[3]={0.0, -9.8, 0.0};
     //double gravity[3]={0.0, 9.8, 0.0};
