@@ -1,7 +1,7 @@
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
-from proteus.mprans import ChRigidBody as crb
+import ChRigidBody as crb
 from math import *
 import numpy as np
 
@@ -293,7 +293,10 @@ tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLe
 # tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-ecH*he2), he=he2, grading=grading))
 # tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+ecH*he2), he=he2, grading=grading))
 domain.MeshOptions.LcMax = he_max #coarse grid
-domain.MeshOptions.he = he2 #coarse grid
+if opts.use_gmsh is True:
+    domain.MeshOptions.he = he_max #coarse grid
+else:
+    domain.MeshOptions.he = he2 #coarse grid
 st.assembleDomain(domain)
 mr._assembleRefinementOptions(domain)
 mr.writeGeo(domain, 'mesh')
