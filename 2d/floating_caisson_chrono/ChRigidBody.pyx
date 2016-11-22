@@ -145,6 +145,17 @@ cdef class RigidBody:
     def attachAuxiliaryVariables(self,avDict):
         pass
 
+    def setInitialRot(self, rot):
+        cdef np.ndarray zeros = np.zeros(3)
+        self.rotation_init = rot
+        self.thisptr.prestep(<double*> zeros.data,
+                             <double*> zeros.data,
+                             <double> 0.)
+        if self.rotation_init is not None:
+            Profiling.logEvent("$$$$$ SETTING ROT")
+            self.thisptr.setRotation(<double*> self.rotation_init.data)
+        self.thisptr.poststep()
+
 
     def attachModel(self, model, ar):
         self.model = model

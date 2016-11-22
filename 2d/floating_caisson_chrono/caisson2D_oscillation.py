@@ -1,7 +1,7 @@
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
-import ChRigidBody as crb
+from proteus.mprans import ChRigidBody as crb
 from math import *
 import numpy as np
 
@@ -43,14 +43,16 @@ opts=Context.Options([
     ("refinement_max", 0 ,"Set maximum element diameter to he/2**refinement_level"),
     ("he_max", 0 ,"Set maximum element diameter to he/2**refinement_level"),
     ("refinement_freesurface", 0 ,"Set maximum element diameter to he/2**refinement_level"),
-    ("refinement_grading", 1.05, "Refinement around the caisson"),
+    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Refinement around the caisson"),
     ("refinement_caisson", 0., "Refinement around the caisson"),
     ("T", 10.0 ,"Simulation time"),
     ("dt_init", 0.001 ,"Initial time step"),
+    ("dt_fixed", None, "fixed time step for proteus (scale with period)"),
     ("cfl", 0.33 ,"Target cfl"),
     ("nsave",  20,"Number of time steps to save per second"),
     ("use_gmsh", True ,"Generate new mesh"),
     ("gauge_output", False ,"Generate new mesh"),
+    ("useRANS", 0, "RANS model"),
     ("parallel", True ,"Run in parallel")])
 
 
@@ -71,8 +73,8 @@ if opts.waves is True:
                                  np.array([0., -9.81, 0.]), direction)
     wavelength = wave.wavelength
     # tank options
-    tank_dim = 8*wavelength
-    tank_sponge = (2*wavelength, 2*wavelength)
+    tank_dim = opts.tank_dim
+    tank_sponge = (1*wavelength, 2*wavelength)
 
 else:
     tank_dim = opts.tank_dim
@@ -159,32 +161,34 @@ ang = rotation_angle
 caisson.setHoles([[0., 0.]])
 caisson.holes_ind = np.array([0])
 caisson.translate([caisson_coords[0], caisson_coords[1]])
-caisson.rotate(ang, pivot=caisson.barycenter)
 # system = crb.System(np.array([0., -9.81, 0.]))
-
+# rotation = np.array([1, 0., 0., 0.])
+rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
+caisson.rotate(ang, pivot=caisson.barycenter)
 system = crb.System(np.array([0., -9.81, 0.]))
 body = crb.RigidBody(shape=caisson,
                      system=system,
                      center=caisson.barycenter[:2],
-                     rot=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.]),
+                     rot=rotation_init,
                      mass = opts.caisson_mass,
                      inertia = np.array([0., 0., inertia]),
                      free_x = np.array(opts.free_x),
                      free_r = np.array(opts.free_r))
 
+# body.setInitialRot(rotation_init)
 # body.rotation_init=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
 body.setRecordValues(all_values=True)
 if opts.mooring is True:
     if opts.mooring_type == 'spring':
         body.addSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
-                       fairlead=opts.mooring_barycenter,
-                       anchor=opts.mooring_anchor,
+                       fairlead=np.array(opts.mooring_fairlead),
+                       anchor=np.array(opts.mooring_anchor),
                        rest_length=caisson.barycenter[0])
 
 
 
 # ----- SHAPES ----- #
-
+print tank_dim
 tank = st.Tank2D(domain, tank_dim)
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 if tank_sponge[0]: left = True
@@ -192,7 +196,8 @@ if tank_sponge[1]: right = True
 if left:
     if opts.waves is True:
         tank.setGenerationZones(x_n=left, waves=wave)
-        tank.BC.left.setUnsteadyTwoPhaseVelocityInlet(wave, vert_axis=1)
+        smoothing = caisson_dim[1]*0.5**opts.refinement_caisson*3.
+        tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
     else:
         tank.setAbsorptionZones(x_n=left)
 if right:
@@ -276,14 +281,19 @@ for seg in caisson.segments:
       tank.MeshOptions.setRefinementFunction(mesh_grading(start='sqrt((x-{0})^2+(y-{1})^2)'.format(pd[0], pd[1]), he=he2, grading=grading))
 
 he_max = opts.he_max
-he_fs = he_max*0.5**opts.refinement_freesurface
 # he_fs = he2
-tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel), he=he_fs, grading=grading))
-# tank.MeshOptions.refineBox(he2, he2, tank_sponge[0], tank_dim[0]+tank_sponge[0], waterLevel-ecH*he2, waterLevel+ecH*he2)
+ecH = 3.
+if opts.refinement_freesurface > 0:
+    box = opts.refinement_freesurface
+else:
+    box = ecH*he2
+tank.MeshOptions.refineBox(he2, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], waterLevel-box, waterLevel+box)
+tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-box), he=he2, grading=grading))
+tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+box), he=he2, grading=grading))
 # tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-ecH*he2), he=he2, grading=grading))
 # tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+ecH*he2), he=he2, grading=grading))
 domain.MeshOptions.LcMax = he_max #coarse grid
-domain.MeshOptions.he = he_max #coarse grid
+domain.MeshOptions.he = he2 #coarse grid
 st.assembleDomain(domain)
 mr._assembleRefinementOptions(domain)
 mr.writeGeo(domain, 'mesh')
@@ -339,6 +349,7 @@ if nDTout > 0:
 else:
     dt_out = 0
 runCFL = opts.cfl
+dt_fixed = opts.dt_fixed
 
 #----------------------------------------------------
 
@@ -351,7 +362,7 @@ useRBLES   = 0.0
 useMetrics = 1.0
 useVF = 1.0
 useOnlyVF = False
-useRANS = 0 # 0 -- None
+useRANS = opts.useRANS # 0 -- None
             # 1 -- K-Epsilon
             # 2 -- K-Omega, 1998
             # 3 -- K-Omega, 1988
@@ -397,30 +408,30 @@ elif spaceOrder == 2:
 ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 if useMetrics:
-    ns_shockCapturingFactor  = 0.5
+    ns_shockCapturingFactor  = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.5
+    ls_shockCapturingFactor  = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.5
+    vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.5
+    rd_shockCapturingFactor  = 0.25
     rd_lag_shockCapturing = False
-    epsFact_density    = 3.0
+    epsFact_density    = 3.
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
-    redist_Newton = True
-    kappa_shockCapturingFactor = 0.5
-    kappa_lag_shockCapturing = True
+    epsFact_consrv_diffusion = 0.1
+    redist_Newton = False
+    kappa_shockCapturingFactor = 0.25
+    kappa_lag_shockCapturing = True#False
     kappa_sc_uref = 1.0
     kappa_sc_beta = 1.5
-    dissipation_shockCapturingFactor = 0.5
-    dissipation_lag_shockCapturing = True
+    dissipation_shockCapturingFactor = 0.25
+    dissipation_lag_shockCapturing = True#False
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.5
 else:

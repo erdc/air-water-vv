@@ -42,13 +42,27 @@ if ct.useRANS > 0:
                ("dissipation_p", "dissipation_n")]
 
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
-systemStepControllerType = Sequential_MinAdaptiveModelStep
+if ct.dt_fixed:
+    systemStepControllerType = Sequential_FixedStep
+    dt_system_fixed = ct.dt_fixed
+    stepExactSystem=True
+else:  # use CFL
+    systemStepControllerType = Sequential_MinAdaptiveModelStep
 
 needEBQ_GLOBAL = False
 needEBQ = False
 
+modelSpinUpList = [0]  # for initial conditions of movemesh
+
 if ct.opts.nsave == 0:
-    archiveFlag = ArchiveFlags.EVERY_USER_STEP
-    tnList = [0., ct.dt_init, ct.T]
+    if ct.dt_fixed > 0:
+        archiveFlag = ArchiveFlags.EVERY_USER_STEP
+        if ct.dt_init < ct.dt_fixed:
+            tnList = [0., ct.dt_init, ct.dt_fixed, ct.T]
+        else:
+            tnList = [0., ct.dt_fixed, ct.T]
+    else:
+          tnList = [0., ct.dt_init, ct.T]
 else:
     tnList=[0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_out for i in range(1,ct.nDTout+1)]
+
