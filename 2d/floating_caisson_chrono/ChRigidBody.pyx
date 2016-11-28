@@ -3,7 +3,6 @@ import csv
 import numpy as np
 from proteus import AuxiliaryVariables, Archiver, Comm, Profiling
 cimport numpy as np
-from proteus.mprans import BodyDynamics
 from proteus import SpatialTools as st
 
 

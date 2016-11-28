@@ -41,7 +41,7 @@ class cppRigidBody {
   double mass;
   /* ChVector <> inertia; */
   double* inertia;
-  ChSharedPtr<ChBody> body;
+  std::shared_ptr<ChBody> body;
   cppSystem* system;
   cppRigidBody(cppSystem* system,
                double* pos,
@@ -78,8 +78,8 @@ void cppSystem::step(double dt)
   for (int i = 0; i < 20; ++i) {
     system.DoStepDynamics(dt2);
   }
-  std::vector< ChSharedPtr< ChBody > > * list =	system.Get_bodylist();
-  ChSharedPtr<ChBody> bod = list->front();
+  std::vector< std::shared_ptr< ChBody > > * list =	system.Get_bodylist();
+  std::shared_ptr<ChBody> bod = list->front();
   ChVector< double > acc = bod->GetPos_dtdt();
   ChVector< double > torque = bod->Get_Xtorque();
   ofstream myfile;
@@ -104,7 +104,7 @@ system(system),
   free_r(free_rin[0], free_rin[1], free_rin[2])
 {
 
-  body = ChSharedPtr<ChBody>(new ChBody());
+  body = std::make_shared<ChBody>();
   // add body to system
   system->system.AddBody(body);
   // basic attributes of body
@@ -213,8 +213,8 @@ void cppRigidBody::addSpring(double stiffness,
                              double* anchor,
                              double rest_length)
 {
-  ChSharedPtr<ChLinkSpring> spring = ChSharedPtr<ChLinkSpring>(new ChLinkSpring());
-  ChSharedPtr<ChBody> anchor_body = ChSharedPtr<ChBody>(new ChBody());
+  std::shared_ptr<ChLinkSpring> spring = std::make_shared<ChLinkSpring>();
+  std::shared_ptr<ChBody> anchor_body = std::make_shared<ChBody>();
   anchor_body->SetPos(ChVector<>(anchor[0], anchor[1], anchor[2]));
   anchor_body->SetBodyFixed(true);
   system->system.AddBody(anchor_body);

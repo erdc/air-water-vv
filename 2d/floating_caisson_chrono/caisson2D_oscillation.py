@@ -183,7 +183,7 @@ if opts.mooring is True:
         body.addSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
                        fairlead=np.array(opts.mooring_fairlead),
                        anchor=np.array(opts.mooring_anchor),
-                       rest_length=caisson.barycenter[0])
+                       rest_length=opts.mooring_restlength)
 
 
 
@@ -408,33 +408,34 @@ elif spaceOrder == 2:
 
 
 # Numerical parameters
+sc = 0.5
 ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 if useMetrics:
-    ns_shockCapturingFactor  = 0.25
+    ns_shockCapturingFactor  = sc
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.25
+    ls_shockCapturingFactor  = sc
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = sc
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.25
+    rd_shockCapturingFactor  =sc
     rd_lag_shockCapturing = False
     epsFact_density    = 3.
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 0.1
-    redist_Newton = False
-    kappa_shockCapturingFactor = 0.25
-    kappa_lag_shockCapturing = True#False
+    epsFact_consrv_diffusion = 1.0#0.1
+    redist_Newton = True#False
+    kappa_shockCapturingFactor = sc
+    kappa_lag_shockCapturing = False#True
     kappa_sc_uref = 1.0
     kappa_sc_beta = 1.5
-    dissipation_shockCapturingFactor = 0.25
-    dissipation_lag_shockCapturing = True#False
+    dissipation_shockCapturingFactor = sc
+    dissipation_lag_shockCapturing = False#True
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.5
 else:
