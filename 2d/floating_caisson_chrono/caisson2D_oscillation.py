@@ -23,6 +23,7 @@ opts=Context.Options([
     ("caisson_coords", (1., 0.9), "Dimensions of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
     ("caisson_corner_r", 0.064, "radius of the corners of the caisson"),
+    ("caisson_corner_side", 'bottom', "radius of the corners of the caisson"),
     ("free_x", (0.0, 0.0, 0.0), "Translational DOFs"),
     ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
     ("VCG", None, "vertical position of the barycenter of the caisson"),
@@ -125,20 +126,35 @@ if radius != 0:
     vertexFlags = []
     segments = []
     segmentFlags = []
-    dim = [0.5, 0.5]
-    angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
-    angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
-    centers = [[dim[0]/2.-radius, dim[1]/2.-radius], [-dim[0]/2.+radius, dim[1]/2.-radius],
-               [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
-    p_nb = 10
+    dim = opts.caisson_dim
+    if opts.caisson_corner_side == 'bottom':
+        angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
+        angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
+        centers = [[dim[0]/2., dim[1]/2.], [-dim[0]/2., dim[1]/2.],
+                  [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
+        p_nb = [0, 0, 10, 10]
+    else:
+        angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
+        angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
+        centers = [[dim[0]/2.-radius, dim[1]/2.-radius], [-dim[0]/2.+radius, dim[1]/2.-radius],
+                  [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
+        p_nb = [10, 10, 10, 10]
     center = [0., 0.]
     flag = 1
     v_start = 0
     for i in range(len(angle0)):
         v_start = len(vertices)
-        v, s = quarter_circle(center=centers[i], radius=radius, p_nb=p_nb,
-                                      angle=angle1[i], angle0=angle0[i],
-                                      v_start=v_start)
+        print p_nb
+        if p_nb[i] != 0:
+            v, s = quarter_circle(center=centers[i], radius=radius, p_nb=p_nb[i],
+                                          angle=angle1[i], angle0=angle0[i],
+                                          v_start=v_start)
+        else:
+            v = [centers[i]]
+            if v_start > 0:
+                s = [[v_start-1, v_start]]
+            else:
+                s = []
         vertices += v
         vertexFlags += [1]*len(v)
         segments += s+[[len(vertices)-1, len(vertices)]]
