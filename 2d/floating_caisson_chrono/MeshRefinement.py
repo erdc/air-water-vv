@@ -12,7 +12,7 @@ class MeshOptions:
         entities = ['vertex', 'segment', 'facet', 'region', 'global', 'point']
         assert entity in entities, \
             'wrong entity: '+str(entity)
-        cons_types = ['fixed', 'around', 'function', 'TFI', 'box']
+        cons_types = ['fixed', 'around', 'function', 'TFI', 'box', 'boundary']
         assert cons_type in cons_types, \
             'wrong constraint type'
         assert isinstance(index, (list, tuple, int)) or index==None, \
@@ -157,6 +157,13 @@ class MeshOptions:
         self._addConstraint(entity='global', cons_type='function',
                             index=None, variables=var_dict)
 
+    def setBoundaryLayerEdges(self, hwall_n, hwall_t, ratio=1.1, EdgesList=None,
+                         newEdges=None, restrict=None):
+        var_dict = {'hwall_n': hwall_n, 'hwall_t': hwall_t, 'ratio': ratio,
+                    'newEdges': newEdges, 'restrict': restrict}
+        self._addConstraint(entity='segment', cons_type='boundary', index=EdgesList,
+                            variables=var_dict)
+
     def setTransfiniteSegment(self, ind, nb_nodes, prog=1.):
         """
         Sets segment transfinite interpolation. Goes from the segment first
@@ -183,6 +190,7 @@ class MeshOptions:
             self._addConstraint(entity='segment', cons_type='TFI',
                                 index=ind_prog_pos, variables=var_dict_pos)
 
+
 # --------------------------------------------------------------------------- #
 
 def _assembleRefinementOptions(domain):
@@ -201,7 +209,8 @@ def _assembleRefinementOptions(domain):
             if dcon['entity'] == 'region':
                 dcon['index'] = (np.array(dcon['index'])+shape.start_region).tolist()
 
-def writeGeo(domain, fileprefix, group_names=False):
+
+def writeGeo(domain, fileprefix, group_names=False, append=False):
     self = domain
     self.geofile = fileprefix+'.geo'
     self.polyfile = fileprefix
@@ -244,6 +253,7 @@ def writeGeo(domain, fileprefix, group_names=False):
                 pl[flag] += [i+1]
             else:
                 pl[flag] = [i+1]
+    nb_lines = i+1
 
     # Surfaces
     geo.write('\n// Surfaces\n')
@@ -285,6 +295,7 @@ def writeGeo(domain, fileprefix, group_names=False):
                     ps[flag] += [i+1]
                 else:
                     ps[flag] = [i+1]
+        nb_lines += lines
 
     # Volumes
     geo.write('\n// Volumes\n')
@@ -461,17 +472,44 @@ def writeGeo(domain, fileprefix, group_names=False):
                 write_restrict(v['restrict'], nf)
             field_list += [nf]
             nf += 1
+        elif c['type'] == 'boundary':
+            edges =[]
+            if v['newEdges'] is not None:
+                for p in c['newEdges']:
+                    if self.nd == 3:
+                        z = p[2]
+                    elif self.nd == 2:
+                        z = 0
+                    nb_points += 1
+                    geo.write("Point(%d) = {%g,%g,%g};\n" % (nb_points,p[0],p[1], z))
+                nb_lines += 1
+                geo.write("Line(%d) = {%d, %d};\n" % (nb_lines, nb_points-1, nb_points))
+                edges += [nb_lines]
+            geo.write('Field[{0}] = BoundaryLayer;\n'
+                      'Field[{0}].hwall_t = {1}; Field[{0}].hwall_n = {2};\n'
+                      'Field[{0}].ratio = {3};\n'
+                      .format(nf, v['hwall_t'], v['hwall_n'], v['ratio']))
+            if c['index']:
+                edges += [e+1 for e in c['index']]
+            if edges:
+                geo.write('Field[{0}].EdgesList = {{{1}}};\n'
+                          .format(nf, str(edges)[1:-1]))
+            field_list += [nf]
+            nf += 1
 
-    geo.write('\n// Background Mesh\n')
-    if nf == 1:
-        # no other fields defined => constant background field
-        geo.write(("Field[1] = MathEval; Field[1].F = '{0}';\n"
-                    "Background Field = 1;\n".format(mesh.he)))
+    if append:
+        pass
     else:
-        geo.write("Field[{0}] = Min;\n"
-                    "Field[{0}].FieldsList = {{{1}}};\n"
-                    "Background Field = {0};\n"
-                    .format(nf, str(field_list)[1:-1]))
+        geo.write('\n// Background Mesh\n')
+        if nf == 1:
+            # no other fields defined => constant background field
+            geo.write(("Field[1] = MathEval; Field[1].F = '{0}';\n"
+                        "Background Field = 1;\n".format(mesh.he)))
+        else:
+            geo.write("Field[{0}] = Min;\n"
+                        "Field[{0}].FieldsList = {{{1}}};\n"
+                        "Background Field = {0};\n"
+                        .format(nf, str(field_list)[1:-1]))
 
     if self.MeshOptions.LcMax is not None:
         geo.write('Mesh.CharacteristicLengthMax = {0};\n'.format(self.MeshOptions.LcMax))
@@ -481,3 +519,5 @@ def writeGeo(domain, fileprefix, group_names=False):
     geo.write("Coherence;\n") # remove duplicates
 
     geo.close()
+
+

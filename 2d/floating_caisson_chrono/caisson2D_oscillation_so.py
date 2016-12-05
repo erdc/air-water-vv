@@ -43,7 +43,8 @@ if ct.useRANS > 0:
 
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
 if ct.dt_fixed:
-    systemStepControllerType = Sequential_FixedStep
+#    systemStepControllerType = Sequential_FixedStep
+    systemStepControllerType = Sequential_MinAdaptiveModelStep
     dt_system_fixed = ct.dt_fixed
     stepExactSystem=True
 else:  # use CFL

@@ -11,13 +11,17 @@ opts=Context.Options([
     # predefined test cases
     ("water_level", 0.9, "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (2., 2.,), "Dimensions of the tank"),
-    ("tank_sponge", (2., 2.), "Length of absorption zones (front/back, left/right)"),
+    ("tank_dim", (5.815*4, 2.,), "Dimensions of the tank"),
+    ("tank_sponge", (5.815*2, 5.815*2), "Length of absorption zones (front/back, left/right)"),
     # waves
     ("waves", False, "Generate waves (True/False)"),
     ("wave_period", 0.8, "Period of the waves"),
     ("wave_height", 0.029, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
+    ("wave_wavelength", (1., 0., 0.), "Direction of the waves (from left boundary)"),
+    ("wave_type", 'Linear', "type of wave"),
+    ("Bcoeff", None, "BCoeffs"),
+    ("Ycoeff", None, "YCoeffs"),
     # caisson
     ("caisson_dim", (0.5, 0.5), "Dimensions of the caisson"),
     ("caisson_coords", (1., 0.9), "Dimensions of the caisson"),
@@ -40,12 +44,13 @@ opts=Context.Options([
     ("mooring_restlength", 0., "mooring (spring) rest length"),
     # numerical options
     #("gen_mesh", True ,"Generate new mesh"),
-    ("refinement_level", 0 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("refinement_level", 7,"Set maximum element diameter to he/2**refinement_level"),
     ("refinement_max", 0 ,"Set maximum element diameter to he/2**refinement_level"),
-    ("he_max", 0 ,"Set maximum element diameter to he/2**refinement_level"),
-    ("refinement_freesurface", 0 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("he", 0.07/20,"Set maximum element diameter to he/2**refinement_level"),
+    ("he_max", 10 ,"Set maximum element diameter to he/2**refinement_level"),
+    ("refinement_freesurface", 0.035+(3*0.07/20),"Set maximum element diameter to he/2**refinement_level"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Refinement around the caisson"),
-    ("refinement_caisson", 0., "Refinement around the caisson"),
+    ("refinement_caisson", 7, "Refinement around the caisson"),
     ("T", 10.0 ,"Simulation time"),
     ("dt_init", 0.001 ,"Initial time step"),
     ("dt_fixed", None, "fixed time step for proteus (scale with period)"),
@@ -70,12 +75,19 @@ if opts.waves is True:
     height = opts.wave_height
     mwl = depth = opts.water_level
     direction = opts.wave_dir
-    wave = wt.MonochromaticWaves(period, height, mwl, depth,
-                                 np.array([0., -9.81, 0.]), direction)
+    if opts.wave_type == "Linear":
+        wave = wt.MonochromaticWaves(period, height, mwl, depth,
+                                    np.array([0., -9.81, 0.]), direction)
+    elif opts.wave_type == "Fenton":
+        wave = wt.MonochromaticWaves(period, height, mwl, depth,
+                                     np.array([0., -9.81, 0.]), direction,
+                                     wavelength=opts.wave_wavelength,
+                                     waveType="Fenton", Bcoeff=np.array(opts.Bcoeff),
+                                     Ycoeff=np.array(opts.Ycoeff), Nf=len(opts.Bcoeff))
     wavelength = wave.wavelength
     # tank options
     tank_dim = opts.tank_dim
-    tank_sponge = (1*wavelength, 2*wavelength)
+    tank_sponge = opts.tank_sponge
 
 else:
     tank_dim = opts.tank_dim
@@ -121,6 +133,7 @@ def quarter_circle(center, radius, p_nb, angle, angle0=0., v_start=0.):
     return vertices, segments
 
 radius = opts.caisson_corner_r
+nb = int((np.pi*2*radius/4.)/(2.*opts.he))
 if radius != 0:
     vertices = []
     vertexFlags = []
@@ -132,13 +145,13 @@ if radius != 0:
         angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
         centers = [[dim[0]/2., dim[1]/2.], [-dim[0]/2., dim[1]/2.],
                   [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
-        p_nb = [0, 0, 10, 10]
+        p_nb = [0, 0, nb, nb]
     else:
         angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
         angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
         centers = [[dim[0]/2.-radius, dim[1]/2.-radius], [-dim[0]/2.+radius, dim[1]/2.-radius],
                   [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
-        p_nb = [10, 10, 10, 10]
+        p_nb = [nb, nb, nb, nb]
     center = [0., 0.]
     flag = 1
     v_start = 0
@@ -151,7 +164,7 @@ if radius != 0:
                                           v_start=v_start)
         else:
             v = [centers[i]]
-            if v_start > 0:
+            if v_start > 1:
                 s = [[v_start-1, v_start]]
             else:
                 s = []
@@ -281,20 +294,22 @@ import MeshRefinement as mr
 tank.MeshOptions = mr.MeshOptions(tank)
 caisson.MeshOptions = mr.MeshOptions(caisson)
 grading = opts.refinement_grading
-he2 = caisson_dim[1]*0.5**opts.refinement_caisson
+he2 = opts.he
 def mesh_grading(start, he, grading):
     return '{0}*{2}^(1+log((-1/{2}*(abs({1})-{0})+abs({1}))/{0})/log({2}))'.format(he, start, grading)
-for seg in caisson.segments:
-    v0 = caisson.vertices[seg[0]]
-    v1 = caisson.vertices[seg[1]]
-    dist = np.linalg.norm(v1-v0)
-    direct = (v1-v0)/dist
-    points = np.arange(0., dist, he2)
-    xx = []
-    yy = []
-    for p in points:
-      pd = v0+p*direct
-      tank.MeshOptions.setRefinementFunction(mesh_grading(start='sqrt((x-{0})^2+(y-{1})^2)'.format(pd[0], pd[1]), he=he2, grading=grading))
+# for seg in caisson.segments:
+#     v0 = caisson.vertices[seg[0]]
+#     v1 = caisson.vertices[seg[1]]
+#     dist = np.linalg.norm(v1-v0)
+#     direct = (v1-v0)/dist
+#     points = np.arange(0., dist, he2)
+#     xx = []
+#     yy = []
+#     for p in points:
+#       pd = v0+p*direct
+#       tank.MeshOptions.setRefinementFunction(mesh_grading(start='sqrt((x-{0})^2+(y-{1})^2)'.format(pd[0], pd[1]), he=he2, grading=grading))
+
+caisson.MeshOptions.setBoundaryLayerEdges(hwall_n=he2, hwall_t=he2, ratio=grading, EdgesList=[i for i in range(len(caisson.segments))])
 
 he_max = opts.he_max
 # he_fs = he2
@@ -313,9 +328,41 @@ if opts.use_gmsh is True:
     domain.MeshOptions.he = he_max #coarse grid
 else:
     domain.MeshOptions.he = he2 #coarse grid
+
+
+offset = 0.1
+xmin = caisson_coords[0]-(caisson_dim[0]/2.+offset)
+xmax = caisson_coords[0]+(caisson_dim[0]/2.+offset)
+ymin = caisson_coords[1]-(caisson_dim[1]/2.+offset)
+ymax = caisson_coords[1]+(caisson_dim[1]/2.+offset)
+# tank.MeshOptions.refineBox(he2, he_max, xmin, xmax, ymin, ymax)
+
 st.assembleDomain(domain)
 mr._assembleRefinementOptions(domain)
-mr.writeGeo(domain, 'mesh')
+mr.writeGeo(domain, 'mesh', append=False)
+# mr.writeGeo(domain, 'mesh', append=True)
+
+# f = open('mesh.geo', 'a')
+# f.write('Point(200) = {{{0}}};\n'.format(str([xmin, ymin, 0])[1:-1]))
+# f.write('Point(201) = {{{0}}};\n'.format(str([xmax, ymin, 0])[1:-1]))
+# f.write('Point(202) = {{{0}}};\n'.format(str([xmax, ymax, 0])[1:-1]))
+# f.write('Point(203) = {{{0}}};\n'.format(str([xmin, ymax, 0])[1:-1]))
+# f.write('Line(200) = {{{0}}};\n'.format(str([200, 201])[1:-1]))
+# f.write('Line(201) = {{{0}}};\n'.format(str([201, 202])[1:-1]))
+# f.write('Line(202) = {{{0}}};\n'.format(str([202, 203])[1:-1]))
+# f.write('Line(203) = {{{0}}};\n'.format(str([203, 200])[1:-1]))
+
+# f.write('Field[{0}] = BoundaryLayer;\n' 
+#         'Field[{0}].hwall_t = {1}; Field[{0}].hwall_n = {2};\n' 
+#         'Field[{0}].ratio = {3};\n' 
+#         'Field[{0}].EdgesList = {{200, 201, 202, 203}};\n' 
+#         .format(6, he2, he2, grading))
+# f.write('Field[7] = Min; Field[7].FieldsList = {1, 2, 3, 4, 5, 6};\n')
+# f.write('Background Field = 7;\n')
+# f.close()
+
+
+
 domain.MeshOptions.use_gmsh = opts.use_gmsh
 
 
