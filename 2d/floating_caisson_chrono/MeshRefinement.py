@@ -486,9 +486,9 @@ def writeGeo(domain, fileprefix, group_names=False, append=False):
                 geo.write("Line(%d) = {%d, %d};\n" % (nb_lines, nb_points-1, nb_points))
                 edges += [nb_lines]
             geo.write('Field[{0}] = BoundaryLayer;\n'
-                      'Field[{0}].hwall_t = {1}; Field[{0}].hwall_n = {2};\n'
-                      'Field[{0}].ratio = {3};\n'
-                      .format(nf, v['hwall_t'], v['hwall_n'], v['ratio']))
+                      'Field[{0}].hwall_n = {1};\n'
+                      'Field[{0}].ratio = {2};\n'
+                      .format(nf, v['hwall_n'], v['ratio']))
             if c['index']:
                 edges += [e+1 for e in c['index']]
             if edges:
