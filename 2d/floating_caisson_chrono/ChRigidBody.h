@@ -82,12 +82,6 @@ void cppSystem::step(double dt)
   std::shared_ptr<ChBody> bod = list->front();
   ChVector< double > acc = bod->GetPos_dtdt();
   ChVector< double > torque = bod->Get_Xtorque();
-  ofstream myfile;
-  myfile.open ("acceleration.txt", std::ios_base::app);
-  myfile << system.GetChTime() << ",";
-  myfile << torque(0) << "," << torque(1) << "," << torque(2) << ",";
-  myfile << acc(0) << "," << acc(1) << "," << acc(2) << "\n";
-  myfile.close();
 }
 
 cppRigidBody::cppRigidBody(cppSystem* system,

@@ -155,11 +155,6 @@ cdef class RigidBody:
             self.thisptr.setRotation(<double*> self.rotation_init.data)
         self.thisptr.poststep()
 
-
-    def attachModel(self, model, ar):
-        self.model = model
-        return self
-
     def hx(self, np.ndarray x, double t):
         return self.thisptr.hx(<double*> x.data, t)
 
@@ -234,7 +229,7 @@ cdef class RigidBody:
             pressure forces (x, y, z) as provided by Proteus
         """
         i0, i1 = self.i_start, self.i_end
-        F_p = self.model.levelModelList[-1].coefficients.netForces_p[i0:i1, :]
+        F_p = self.system.model.levelModelList[-1].coefficients.netForces_p[i0:i1, :]
         F_t = np.sum(F_p, axis=0)
         return F_t
 
@@ -249,7 +244,7 @@ cdef class RigidBody:
             shear forces (x, y, z) as provided by Proteus
         """
         i0, i1 = self.i_start, self.i_end
-        F_v = self.model.levelModelList[-1].coefficients.netForces_v[i0:i1, :]
+        F_v = self.system.model.levelModelList[-1].coefficients.netForces_v[i0:i1, :]
         F_t = np.sum(F_v, axis=0)
         return F_t
 
@@ -263,7 +258,7 @@ cdef class RigidBody:
             moments (x, y, z) as provided by Proteus
         """
         i0, i1 = self.i_start, self.i_end
-        M = self.model.levelModelList[-1].coefficients.netMoments[i0:i1, :]
+        M = self.system.model.levelModelList[-1].coefficients.netMoments[i0:i1, :]
         M_t = np.sum(M, axis=0)
         # !!!!!!!!!!!! UPDATE BARYCENTER !!!!!!!!!!!!
         Fx, Fy, Fz = self.F_prot
@@ -304,7 +299,7 @@ cdef class RigidBody:
         self.F_prot = self.getPressureForces()+self.getShearForces()
         self.M_prot = self.getMoments()
         try:
-            dt = self.model.levelModelList[-1].dt_last
+            dt = self.system.model.levelModelList[-1].dt_last
         except:
             dt = self.system.dt_init
         self.thisptr.prestep(<double*> self.F_prot.data,
@@ -314,7 +309,9 @@ cdef class RigidBody:
     def poststep(self):
         self.thisptr.poststep()
         self.getValues()
-        self._recordValues()
+        #comm = Comm.get()
+        #if comm.isMaster():
+        #    self._recordValues()
 
     def calculate_init(self):
         # barycenter0 used for moment calculations
@@ -464,33 +461,31 @@ cdef class RigidBody:
         """
         Records values of rigid body attributes at each time step in a csv file.
         """
-        comm = Comm.get()
-        if comm.isMaster():
-            self.record_file = os.path.join(Profiling.logDir, 'record_' + self.Shape.name + '.csv')
-            t_last = self.model.stepController.t_model_last
-            dt_last = self.model.levelModelList[-1].dt_last
-            t = t_last-dt_last
-            values_towrite = [t]
-            if t == 0:
-                headers = ['t']
-                for key in self.record_dict:
-                    headers += [key]
-                with open(self.record_file, 'w') as csvfile:
-                    writer = csv.writer(csvfile, delimiter=',')
-                    writer.writerow(headers)
-            for key, val in self.record_dict.iteritems():
-                if val[1] is not None:
-                    values_towrite += [getattr(self, val[0])[val[1]]]
-                else:
-                    values_towrite += [getattr(self, val[0])]
-            with open(self.record_file, 'a') as csvfile:
+        self.record_file = os.path.join(Profiling.logDir, 'record_' + self.Shape.name + '.csv')
+        t_last = self.system.model.stepController.t_model_last
+        dt_last = self.system.model.levelModelList[-1].dt_last
+        t = t_last-dt_last
+        values_towrite = [t]
+        if t == 0:
+            headers = ['t']
+            for key in self.record_dict:
+                headers += [key]
+            with open(self.record_file, 'w') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
-                writer.writerow(values_towrite)
+                writer.writerow(headers)
+        for key, val in self.record_dict.iteritems():
+            if val[1] is not None:
+                values_towrite += [getattr(self, val[0])[val[1]]]
+            else:
+                values_towrite += [getattr(self, val[0])]
+        with open(self.record_file, 'a') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+            writer.writerow(values_towrite)
 
 
 cdef class System:
     cdef cppSystem * thisptr
-    cdef object model
+    cdef public object model
     cdef object bodies
     cdef public double dt_init
     cdef double dt
@@ -501,19 +496,10 @@ cdef class System:
 
     def attachModel(self, model, ar):
         self.model = model
-        for body in self.bodies:
-            body.attachModel(model, ar)
         return self
     def attachAuxiliaryVariables(self,avDict):
         pass
-    def calculate_init(self):
-        for body in self.bodies:
-            body.calculate_init()
-        a = 1
-        #
-
     def calculate(self):
-        a = 1
         try:
             self.dt = self.model.levelModelList[-1].dt_last
         except:
@@ -524,7 +510,6 @@ cdef class System:
         self.step(dt)
         for body in self.bodies:
             body.poststep()
-        #
     def calculate_init(self):
         for body in self.bodies:
             body.calculate_init()
