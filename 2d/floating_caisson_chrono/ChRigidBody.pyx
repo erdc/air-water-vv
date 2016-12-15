@@ -309,9 +309,9 @@ cdef class RigidBody:
     def poststep(self):
         self.thisptr.poststep()
         self.getValues()
-        #comm = Comm.get()
-        #if comm.isMaster():
-        #    self._recordValues()
+        comm = Comm.get()
+        if comm.isMaster():
+            self._recordValues()
 
     def calculate_init(self):
         # barycenter0 used for moment calculations
