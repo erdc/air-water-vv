@@ -22,7 +22,9 @@ Context.setFromModule(case)
 ct = Context.get()
 
 from proteus import BoundaryConditions
-BoundaryConditions.BC_Base.getContext()
+
+for BC in ct.domain.bc:
+    BC.getContext()
 
 # List of p/n files
 pnList = []

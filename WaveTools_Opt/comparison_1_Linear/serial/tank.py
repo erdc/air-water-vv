@@ -78,18 +78,6 @@ if opts.waveType=='Linear':
                                       wavelength=None, # if wave is linear I can use None
                                       waveType="Linear")
 
-if opts.waveType=='Fenton':
-    waveinput = wt.MonochromaticWaves(period=period,
-                                      waveHeight=waveHeight,
-                                      mwl=mwl,
-                                      depth=waterLevel,
-                                      g=g,
-                                      waveDir=waveDir,
-                                      wavelength=opts.wavelength, # if wave is linear I can use None
-                                      waveType="Fenton",
-                                      Ycoeff=opts.Ycoeff,
-                                      Bcoeff=opts.Bcoeff,
-                                      )
 
 #---------Domain Dimension
 
@@ -114,10 +102,10 @@ x3=x2+L_rightSpo
 
 tank_dim = [x3, opts.th]
 
-boundaryOrientations = {'y-': [0., -1.,0.],
-                            'x+': [1., 0.,0.],
-                            'y+': [0., 1.,0.],
-                            'x-': [-1., 0.,0.],
+boundaryOrientations = {'y-': np.array([0., -1.,0.]),
+                            'x+': np.array([0., -1.,0.]),
+                            'y+': np.array([0., -1.,0.]),
+                            'x-': np.array([-1., 0.,0.]),
                             'sponge': None,
                             'porousLayer': None,
                             'moving_porousLayer': None,
