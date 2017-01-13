@@ -78,10 +78,18 @@ void cppSystem::step(double dt)
   for (int i = 0; i < 20; ++i) {
     system.DoStepDynamics(dt2);
   }
+  //system.DoStepDynamics(dt);
   std::vector< std::shared_ptr< ChBody > > * list =	system.Get_bodylist();
   std::shared_ptr<ChBody> bod = list->front();
   ChVector< double > acc = bod->GetPos_dtdt();
   ChVector< double > torque = bod->Get_Xtorque();
+  ChVector< double > force = bod->Get_Xforce();
+
+ // ofstream myfile;
+ // myfile.open ("body_force.txt", std::ios_base::app);
+ //   myfile << force(0) << "," << force(1) << "," << force(2) << "\n";
+ //         myfile.close();
+
 }
 
 cppRigidBody::cppRigidBody(cppSystem* system,
@@ -159,11 +167,17 @@ void cppRigidBody::prestep(double* force, double* torque, double dt)
   if (free_x(0) == 0) {forceG[0] = -system->system.Get_G_acc()(0)*body->GetMass();}
   if (free_x(1) == 0) {forceG[1] = -system->system.Get_G_acc()(1)*body->GetMass();}
   if (free_x(2) == 0) {forceG[2] = -system->system.Get_G_acc()(2)*body->GetMass();}
+ // GetLog() << "FREE_X: " << free_x(0) << "," << free_x(1) << "," << free_x(2);
+ // GetLog() << "FORCE: " << force[0] << "," << force[1] << "," << force[2];
+ // GetLog() << "FORCExFREE_X: " << force[0]*free_x(0) << "," << force[1]*free_x(1) << "," << force[2]*free_x(2);
   body->Accumulate_force(ChVector<double>(forceG[0]+force[0]*free_x(0),
                                           forceG[1]+force[1]*free_x(1),
                                           forceG[2]+force[2]*free_x(2)),
                          pos_last,
                          false);
+ // GetLog() << "FREE_X2: " << free_x(0) << "," << free_x(1) << "," << free_x(2);
+ // GetLog() << "FORCE2: " << force[0] << "," << force[1] << "," << force[2];
+ // GetLog() << "FORCExFREE_X2: " << force[0]*free_x(0) << "," << force[1]*free_x(1) << "," << force[2]*free_x(2);
   body->Accumulate_torque(ChVector<double>(torque[0]*free_r(0),
                                            torque[1]*free_r(1),
                                            torque[2]*free_r(2)),

@@ -59,6 +59,8 @@ opts=Context.Options([
     ("use_gmsh", True ,"Generate new mesh"),
     ("gauge_output", False ,"Generate new mesh"),
     ("useRANS", 0, "RANS model"),
+    ("mesh_tol", 0.001, "tol of mesh"),
+    ("tolfac", 0.001, "tolerance factor (*he**2)"),
     ("parallel", True ,"Run in parallel")])
 
 
@@ -83,7 +85,9 @@ if opts.waves is True:
                                      np.array([0., -9.81, 0.]), direction,
                                      wavelength=opts.wave_wavelength,
                                      waveType="Fenton", Bcoeff=np.array(opts.Bcoeff),
-                                     Ycoeff=np.array(opts.Ycoeff), Nf=len(opts.Bcoeff))
+                                     Ycoeff=np.array(opts.Ycoeff),
+                                     Nf=len(opts.Bcoeff)
+                                     )
     wavelength = wave.wavelength
     # tank options
     tank_dim = opts.tank_dim
@@ -157,7 +161,6 @@ if radius != 0:
     v_start = 0
     for i in range(len(angle0)):
         v_start = len(vertices)
-        print p_nb
         if p_nb[i] != 0:
             v, s = quarter_circle(center=centers[i], radius=radius, p_nb=p_nb[i],
                                           angle=angle1[i], angle0=angle0[i],
@@ -217,15 +220,15 @@ if opts.mooring is True:
 
 
 # ----- SHAPES ----- #
-print tank_dim
 tank = st.Tank2D(domain, tank_dim)
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+left = right = False
 if tank_sponge[0]: left = True
 if tank_sponge[1]: right = True
 if left:
     if opts.waves is True:
         tank.setGenerationZones(x_n=left, waves=wave)
-        smoothing = caisson_dim[1]*0.5**opts.refinement_caisson*3.
+        smoothing = opts.he*3.
         tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
     else:
         tank.setAbsorptionZones(x_n=left)
@@ -250,7 +253,7 @@ for bc in tank.BC_list:
 
 # ----- GAUGES ----- #
 
-gauge_dx = tank_sponge[0]/100.
+gauge_dx = tank_sponge[0]/10.
 probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], tank_dim[0]/gauge_dx+1)
 PG=[]
 PG2=[]
@@ -263,20 +266,20 @@ for i in probes:
 
 if opts.gauge_output:
 
-    tank.attachPointGauges(
-        'twp',
-        gauges = ((('p',), PG),),
-        activeTime=(0, opts.T),
-        sampleRate=0,
-        fileName='pointGauge_pressure.csv'
-    )
-    # tank.attachPointGauges(
-    #     'ls',
-    #     gauges = ((('phi',), PG2),),
-    #     activeTime=(0, opts.T),
-    #     sampleRate=0,
-    #     fileName='pointGauge_levelset.csv'
-    # )
+   tank.attachPointGauges(
+       'twp',
+       gauges = ((('p',), PG),),
+       activeTime=(0, opts.T),
+       sampleRate=0,
+       fileName='pointGauge_pressure.csv'
+   )
+  #  tank.attachPointGauges(
+  #      'ls',
+  #      gauges = ((('phi',), PG2),),
+  #      activeTime=(0, opts.T),
+  #      sampleRate=0,
+  #      fileName='pointGauge_levelset.csv'
+  #  )
 
     # tank.attachLineIntegralGauges(
     #     'vof',
@@ -286,7 +289,7 @@ if opts.gauge_output:
     #     fileName = 'lineGauge.csv'
     # )
 
-# he = opts.caisson_dim[1]/10.0*(0.5**opts.refinement_level)
+#he = opts.caisson_dim[1]/10.0*(0.5**opts.refinement_level)
 
 
 
@@ -337,6 +340,7 @@ ymin = caisson_coords[1]-(caisson_dim[1]/2.+offset)
 ymax = caisson_coords[1]+(caisson_dim[1]/2.+offset)
 # tank.MeshOptions.refineBox(he2, he_max, xmin, xmax, ymin, ymax)
 
+#meshfile='T'+str(tank_dim[0])+str(tank_dim[1])
 st.assembleDomain(domain)
 mr._assembleRefinementOptions(domain)
 mr.writeGeo(domain, 'mesh', append=False)
@@ -364,7 +368,6 @@ mr.writeGeo(domain, 'mesh', append=False)
 
 
 domain.MeshOptions.use_gmsh = opts.use_gmsh
-
 
 
 ##########################################
@@ -530,14 +533,15 @@ else:
     dissipation_sc_beta  = 1.0
 
 he = he2
-ns_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-vof_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-ls_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-mcorr_nl_atol_res = max(1.0e-12,0.0001*domain.MeshOptions.he**2)
-rd_nl_atol_res = max(1.0e-12,0.01*domain.MeshOptions.he)
-kappa_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-dissipation_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
-mesh_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
+tolfac = opts.tolfac
+ns_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
+vof_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
+ls_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
+mcorr_nl_atol_res = max(1.0e-12,0.1*tolfac*opts.he**2)
+rd_nl_atol_res = max(1.0e-12,tolfac*opts.he)
+kappa_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
+dissipation_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
+mesh_nl_atol_res = max(1.0e-12,0.001*opts.mesh_tol*opts.he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -551,7 +555,7 @@ def twpflowPressure_init(x, t):
     p_L = 0.0
     phi_L = tank_dim[nd-1] - waterLevel
     phi = x[nd-1] - waterLevel
-    return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi_L)
-                                                         -smoothedHeaviside_integral(epsFact_consrv_heaviside*domain.MeshOptions.he,phi)))
+    return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi_L)
+                                                         -smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi)))
 
 # tank.BC['y+'].p_dirichlet = twpflowPressure_init
