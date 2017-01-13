@@ -1,0 +1,841 @@
+--------------------------------------------------------------------------
+An MPI process has executed an operation involving a call to the
+"fork()" system call to create a child process.  Open MPI is currently
+operating in a condition that could result in memory corruption or
+other system errors; your MPI job may hang, crash, or produce silent
+data corruption.  The use of fork() (or system() or other calls that
+create child processes) is strongly discouraged.  
+
+The process that invoked fork was:
+
+  Local host:          mgmt01 (PID 16075)
+  MPI_COMM_WORLD rank: 6
+
+If you are *absolutely sure* that your application will successfully
+and correctly survive a call to fork(), you may disable this warning
+by setting the mpi_warn_on_fork MCA parameter to 0.
+--------------------------------------------------------------------------
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+[       1] Initializing Proteus
+[       1] HashDist Version: unknown
+[       1] HashStack Version: unknown
+[       1] Proteus Version: cba1f5372667e860323ed1611ec0cc4ff4934944
+[       1] Initializing MPI
+[       1] PETSc options from commandline
+[       1] ['/home/HR/asd/PROTEUS/proteus//centos/bin/parun', '-rans2p_ksp_type', 'gmres', '-rans2p_pc_type', 'asm', '-rans2p_pc_asm_type', 'basic', '-rans2p_ksp_max_it', '2000', '-rans2p_ksp_gmres_modifiedgramschmidt', '-rans2p_ksp_gmres_restart', '300', '-rans2p_sub_ksp_type', 'preonly', '-rans2p_sub_pc_factor_mat_solver_package', 'superlu', '-rans2p_ksp_knoll', '-rans2p_sub_pc_type', 'lu', '-ncls_ksp_type', 'gmres', '-ncls_pc_type', 'hypre', '-ncls_pc_hypre_type', 'boomeramg', '-ncls_ksp_gmres_restart', '300', '-ncls_ksp_knoll', '-ncls_ksp_max_it', '2000', '-vof_ksp_type', 'gmres', '-vof_pc_type', 'hypre', '-vof_pc_hypre_type', 'boomeramg', '-vof_ksp_gmres_restart', '300', '-vof_ksp_knoll', '-vof_ksp_max_it', '2000', '-rdls_ksp_type', 'gmres', '-rdls_pc_type', 'asm', '-rdls_pc_asm_type', 'basic', '-rdls_ksp_gmres_modifiedgramschmidt', '-rdls_ksp_gmres_restart', '300', '-rdls_ksp_knoll', '-rdls_sub_ksp_type', 'preonly', '-rdls_sub_pc_factor_mat_solver_package', 'superlu', '-rdls_sub_pc_type', 'lu', '-rdls_ksp_max_it', '2000', '-mcorr_ksp_type', 'cg', '-mcorr_pc_type', 'hypre', '-mcorr_pc_hypre_type', 'boomeramg', '-mcorr_ksp_max_it', '2000', '-mesh_ksp_type', 'cg', '-mesh_pc_type', 'asm', '-mesh_pc_asm_type', 'basic', '-mesh_ksp_max_it', '2000', '-mesh_sub_ksp_type', 'preonly', '-mesh_sub_pc_factor_mat_solver_package', 'superlu', '-mesh_ksp_knoll', '-mesh_sub_pc_type', 'lu', '-log_summary']
+[       1] Adding . to path for loading modules
+[       1] Loading problem-specific modules
+[       1] Importing input modules
+[       1] Loading so module = tank_so.py
+[       1] Context input options:
+water_level[1.0] Height of free surface above bottom
+
+Lgen[1.0] Genaration zone in terms of wave lengths
+
+Labs[2.0] Absorption zone in terms of wave lengths
+
+Ls[1.0] Length of domain from genZone to the front toe of rubble mound in terms of wave lengths
+
+Lend[2.0] Length of domain from absZone to the back toe of rubble mound in terms of wave lengths
+
+th[1.5] Total height of the numerical tank
+
+waveType[Linear] Wavetype for regular waves, Linear or Fenton
+
+wave_period[1.94] Period of the waves
+
+wave_height[0.025] Height of the waves
+
+wavelength[0.0] Wavelength only if Fenton is activated
+
+Ycoeff[[0.0]] Ycoeff only if Fenton is activated
+
+Bcoeff[[0.0]] Bcoeff only if Fenton is activated
+
+he[0.05] he=walength/refinement_level
+
+cfl[0.9] Target cfl
+
+T[1.0] Simulation time
+
+freezeLevelSet[True] No motion to the levelset
+
+useVF[1.0] For density and viscosity smoothing
+
+movingDomain[False] Moving domain and mesh option
+
+conservativeFlux[False] Fix post-processing velocity bug for porous interface
+
+
+[       1] Key RelaxZones is already attached.
+[       1] Mesh generated using: tetgen -VApq30Dena0.00125000 mesh.poly
+[       1] Loading p module = twp_navier_stokes_p
+[       1] Loading n module = twp_navier_stokes_n
+[       1] RANS2P.SubgridError: lagging requested but must lag the first step; switching lagging off and delaying
+[       1] RANS2P.ShockCapturing: lagging requested but must lag the first step; switching lagging off and delaying
+[       1] Loading p module = vof_p
+[       1] Loading n module = vof_n
+[       1] VOF.ShockCapturing: lagging requested but must lag the first step; switching lagging off and delaying
+[       1] Loading p module = ls_p
+[       1] Loading n module = ls_n
+[       1] NCLS.ShockCapturing: lagging requested but must lag the first step; switching lagging off and delaying
+[       1] Loading p module = redist_p
+[       1] Loading n module = redist_n
+[       1] Loading p module = ls_consrv_p
+[       1] Loading n module = ls_consrv_n
+[       1] Attaching input stream to stdin
+[       1] Running Proteus version 1.2.0
+[       1] Setting simulation processing defaults
+[       1] Starting tank run number 0
+[       1] Initializing NumericalSolution for tank
+ System includes: 
+twp_navier_stokes_p
+vof_p
+ls_p
+redist_p
+ls_consrv_p
+
+[       1] Setting Archiver(s)
+[       1] Setting up MultilevelMesh
+[       1] Building one multilevel mesh for all models
+[       1] Generating mesh for twp_navier_stokes_p
+[       1] Calling Triangle to generate 2D mesh fortwp_navier_stokes_p
+TriangleBaseMesh nbase=1 baseFlags= VApq30Dena0.00125000 
+ApplyTriangulate flags= VApq30Dena0.00125000
+Constructing Delaunay triangulation by divide-and-conquer method.
+  Sorting vertices.
+  Forming triangulation.
+  Removing ghost triangles.
+Delaunay milliseconds:  0
+Recovering segments in Delaunay triangulation.
+    Constructing mapping from vertices to triangles.
+  Recovering PSLG segments.
+Segment milliseconds:  0
+Removing unwanted triangles.
+  Marking concavities (external triangles) for elimination.
+Spreading regional attributes.
+Hole milliseconds:  0
+Adding Steiner points to enforce quality.
+  Looking for encroached subsegments.
+  Making a list of bad triangles.
+  Splitting bad triangles.
+Quality milliseconds:  127
+
+Writing vertices.
+Writing triangles.
+Writing segments.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  21
+Total running milliseconds:  149
+
+Statistics:
+
+  Input vertices: 8
+  Input segments: 10
+  Input holes: 0
+
+  Mesh vertices: 29268
+  Mesh triangles: 57037
+  Mesh edges: 86304
+  Mesh exterior boundary edges: 1497
+  Mesh interior boundary edges: 80
+  Mesh subsegments (constrained edges): 1577
+
+Mesh quality statistics:
+
+  Smallest area:        0.0002437   |  Largest area:          0.00125
+  Shortest edge:         0.023384   |  Longest edge:         0.072798
+  Shortest altitude:     0.014109   |  Largest aspect ratio:   3.4146
+
+  Triangle aspect ratio histogram:
+  1.1547 - 1.5       :     23013    |     15 - 25         :         0
+     1.5 - 2         :     23741    |     25 - 50         :         0
+       2 - 2.5       :      8397    |     50 - 100        :         0
+     2.5 - 3         :      1767    |    100 - 300        :         0
+       3 - 4         :       119    |    300 - 1000       :         0
+       4 - 6         :         0    |   1000 - 10000      :         0
+       6 - 10        :         0    |  10000 - 100000     :         0
+      10 - 15        :         0    | 100000 -            :         0
+  (Aspect ratio is longest edge divided by shortest altitude)
+
+  Smallest angle:          30.011   |  Largest angle:          119.28
+
+  Angle histogram:
+      0 -  10 degrees:         0    |     90 - 100 degrees:      5847
+     10 -  20 degrees:         0    |    100 - 110 degrees:      2488
+     20 -  30 degrees:         0    |    110 - 120 degrees:       275
+     30 -  40 degrees:     14505    |    120 - 130 degrees:         0
+     40 -  50 degrees:     35865    |    130 - 140 degrees:         0
+     50 -  60 degrees:     42388    |    140 - 150 degrees:         0
+     60 -  70 degrees:     39526    |    150 - 160 degrees:         0
+     70 -  80 degrees:     17833    |    160 - 170 degrees:         0
+     80 -  90 degrees:     12384    |    170 - 180 degrees:         0
+
+Memory allocation statistics:
+
+  Maximum number of vertices: 29268
+  Maximum number of triangles: 57037
+  Maximum number of subsegments: 1577
+  Maximum number of encroached subsegments: 4
+  Maximum number of bad triangles: 43244
+  Maximum number of stacked triangle flips: 3
+  Approximate heap memory use (bytes): 7688936
+
+Algorithmic statistics:
+
+  Number of incircle tests: 251898
+  Number of 2D orientation tests: 162292
+  Number of triangle circumcenter computations: 29244
+
+ApplyTriangulate done
+now destroying triangulateio
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:92: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if nodes == None: #ok to do nothing of nodes is empy
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:116: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if markers != None:
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:146: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if elems == None: #ok to do nothing of nodes is empy
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:167: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if attrib != None:
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:206: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if nodes == None: #ok to do nothing of nodes is empy
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:208: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if segments == None:
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:244: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if pmarkers != None:
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:264: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if smarkers != None:
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:289: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if regions != None:
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:360: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if edges == None: #ok to do nothing if elemAreas is empty
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:380: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if markers != None:
+[mgmt01:16053] 11 more processes have sent help message help-mpi-runtime.txt / mpi_init:warn-fork
+[mgmt01:16053] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+/home/HR/asd/PROTEUS/proteus/proteus/TriangleUtils.py:407: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if neigs == None: #ok to do nothing if elemAreas is empty
+[       8] Converting to Proteus Mesh
+[       8] Generating 1-level mesh from coarse Triangle mesh
+[       8] Partitioning mesh among 12 processors using partitioningType = 1
+[      11] Number of Subdomain Elements Owned= 4743
+[      11] Number of Subdomain Elements = 4743
+[      11] Number of Subdomain Nodes Owned= 2389
+[      11] Number of Subdomain Nodes = 2475
+[      11] Number of Subdomain elementBoundaries Owned= 7133
+[      11] Number of Subdomain elementBoundaries = 7217
+[      11] Number of Subdomain Edges Owned= 7133
+[      11] Number of Subdomain Edges = 7217
+[      11] Finished partitioning
+[      11] *** Global ***
+Number of triangles  : 57037
+Number of edges : 86304
+Number of nodes : 29268
+
+*** Local ***
+Number of triangles  : 4743
+Number of edges : 7217
+Number of nodes : 2475
+
+[      11] Setting up MultilevelTransport for twp_navier_stokes_p
+[      11] Building Transport for each mesh
+[      11] Generating Trial Space
+[      11] Generating Test Space
+[      11] Allocating u
+[      11] Allocating phi
+[      11] Setting Boundary Conditions
+[      11] Setting Boundary Conditions-1
+[      11] Setting Boundary Conditions-2
+[      11] Setting Boundary Conditions-2a
+[      11] Setting Boundary Conditions-3
+[      11] Setting Boundary Conditions-4
+[      11] Initializing OneLevelTransport
+[      11] Updating local to global mappings
+[      13] Building time integration object
+[      13] Calculating numerical quadrature formulas
+[      13] initalizing ebqe vectors for post-procesing velocity
+[      13] initalizing basis info
+[      13] setting flux boundary conditions
+[      13] initializing coefficients ebqe
+[      13] ebqe_global allocations in coefficients
+[      13] porosity and drag
+[      13] done with ebqe
+[      13] initalizing numerical flux
+[      13] initializing numerical flux penalty
+[      13] setting up post-processing
+[      13] initializing archiver
+[      13] flux bc objects
+[      13] dirichlet conditions
+[      13] final allocations
+[      13] calling cRANS2P2D_base ctor
+[      13] Allocating residual and solution vectors
+[      13] Allocating Jacobian
+[      13] Building sparse matrix structure
+[      14] Allocating parallel storage
+[      14] Allocating ghosted parallel vectors on rank 0
+[      15] Allocating un-ghosted parallel vectors on rank 0
+[      15] Allocating matrix on rank 0
+[      15] ParMat_petsc4py comm.rank= 0 blockSize = 3 par_n= 2389 par_N=29268 par_nghost=86 par_jacobian.getSizes()= ((7167, 87804), (7167, 87804)) 
+[      15] Building Mesh Transfers
+[      15] Setting twp_navier_stokes_p stepController to proteus.StepControl.Min_dt_controller
+[      15] Setting up MultilevelLinearSolver fortwp_navier_stokes_p
+[      15] multilevelLinearSolverChooser type= proteus.LinearSolvers.KSP_petsc4py
+[      15] Setting up MultilevelNonLinearSolver for twp_navier_stokes_p
+[      15] Setting up MultilevelTransport for vof_p
+[      15] Building Transport for each mesh
+[      15] Generating Trial Space
+[      15] Generating Test Space
+[      15] Allocating u
+[      15] Allocating phi
+[      15] Setting Boundary Conditions
+[      15] Setting Boundary Conditions-1
+[      15] Setting Boundary Conditions-2
+[      15] Setting Boundary Conditions-2a
+[      15] Setting Boundary Conditions-3
+[      15] Setting Boundary Conditions-4
+[      15] Initializing OneLevelTransport
+[      15] Updating local to global mappings
+[      15] Building time integration object
+[      15] Calculating numerical quadrature formulas
+[      15] Allocating residual and solution vectors
+[      15] Allocating Jacobian
+[      15] Building sparse matrix structure
+[      15] Allocating parallel storage
+[      15] Allocating ghosted parallel vectors on rank 0
+[      16] Allocating un-ghosted parallel vectors on rank 0
+[      16] Allocating matrix on rank 0
+[      16] ParMat_petsc4py comm.rank= 0 blockSize = 1 par_n= 2389 par_N=29268 par_nghost=86 par_jacobian.getSizes()= ((2389, 29268), (2389, 29268)) 
+[      16] Building Mesh Transfers
+[      16] Setting vof_p stepController to proteus.StepControl.Min_dt_controller
+[      16] Setting up MultilevelLinearSolver forvof_p
+[      16] multilevelLinearSolverChooser type= proteus.LinearSolvers.KSP_petsc4py
+[      16] Setting up MultilevelNonLinearSolver for vof_p
+[      16] Setting up MultilevelTransport for ls_p
+[      16] Building Transport for each mesh
+[      16] Generating Trial Space
+[      16] Generating Test Space
+[      16] Allocating u
+[      16] Allocating phi
+[      16] Setting Boundary Conditions
+[      16] Setting Boundary Conditions-1
+[      16] Setting Boundary Conditions-2
+[      16] Setting Boundary Conditions-2a
+[      16] Setting Boundary Conditions-3
+[      16] Setting Boundary Conditions-4
+[      16] Initializing OneLevelTransport
+[      16] Updating local to global mappings
+[      16] Building time integration object
+[      16] Calculating numerical quadrature formulas
+[      16] Allocating residual and solution vectors
+[      16] Allocating Jacobian
+[      16] Building sparse matrix structure
+[      16] Allocating parallel storage
+[      16] Allocating ghosted parallel vectors on rank 0
+[      17] Allocating un-ghosted parallel vectors on rank 0
+[      17] Allocating matrix on rank 0
+[      17] ParMat_petsc4py comm.rank= 0 blockSize = 1 par_n= 2389 par_N=29268 par_nghost=86 par_jacobian.getSizes()= ((2389, 29268), (2389, 29268)) 
+[      17] Building Mesh Transfers
+[      17] Setting ls_p stepController to proteus.StepControl.Min_dt_controller
+[      17] Setting up MultilevelLinearSolver forls_p
+[      17] multilevelLinearSolverChooser type= proteus.LinearSolvers.KSP_petsc4py
+[      17] Setting up MultilevelNonLinearSolver for ls_p
+[      17] Setting up MultilevelTransport for redist_p
+[      17] Building Transport for each mesh
+[      17] Generating Trial Space
+[      17] Generating Test Space
+[      17] Allocating u
+[      17] Allocating phi
+[      17] Setting Boundary Conditions
+[      17] Setting Boundary Conditions-1
+[      17] Setting Boundary Conditions-2
+[      17] Setting Boundary Conditions-2a
+[      17] Setting Boundary Conditions-3
+[      17] Setting Boundary Conditions-4
+[      17] Initializing OneLevelTransport
+[      17] Updating local to global mappings
+[      17] Building time integration object
+[      17] Calculating numerical quadrature formulas
+[      17] Allocating residual and solution vectors
+[      17] Allocating Jacobian
+[      17] Building sparse matrix structure
+[      17] Allocating parallel storage
+[      17] Allocating ghosted parallel vectors on rank 0
+[      17] Allocating un-ghosted parallel vectors on rank 0
+[      17] Allocating matrix on rank 0
+[      17] ParMat_petsc4py comm.rank= 0 blockSize = 1 par_n= 2389 par_N=29268 par_nghost=86 par_jacobian.getSizes()= ((2389, 29268), (2389, 29268)) 
+[      17] Building Mesh Transfers
+[      17] Setting redist_p stepController to proteus.StepControl.Newton_controller
+[      17] Setting up MultilevelLinearSolver forredist_p
+[      17] multilevelLinearSolverChooser type= proteus.LinearSolvers.KSP_petsc4py
+[      17] Setting up MultilevelNonLinearSolver for redist_p
+[      17] Setting up MultilevelTransport for ls_consrv_p
+[      17] Building Transport for each mesh
+[      17] Generating Trial Space
+[      17] Generating Test Space
+[      17] Allocating u
+[      18] Allocating phi
+[      18] Setting Boundary Conditions
+[      18] Setting Boundary Conditions-1
+[      18] Setting Boundary Conditions-2
+[      18] Setting Boundary Conditions-2a
+[      18] Setting Boundary Conditions-3
+[      18] Setting Boundary Conditions-4
+[      18] Initializing OneLevelTransport
+[      18] Updating local to global mappings
+[      18] Building time integration object
+[      18] Calculating numerical quadrature formulas
+[      18] Allocating residual and solution vectors
+[      18] Allocating Jacobian
+[      18] Building sparse matrix structure
+[      18] Allocating parallel storage
+[      18] Allocating ghosted parallel vectors on rank 0
+[      18] Allocating un-ghosted parallel vectors on rank 0
+[      18] Allocating matrix on rank 0
+[      18] ParMat_petsc4py comm.rank= 0 blockSize = 1 par_n= 2389 par_N=29268 par_nghost=86 par_jacobian.getSizes()= ((2389, 29268), (2389, 29268)) 
+[      18] Building Mesh Transfers
+[      18] Setting ls_consrv_p stepController to proteus.StepControl.SC_base
+[      18] Setting up MultilevelLinearSolver forls_consrv_p
+[      18] multilevelLinearSolverChooser type= proteus.LinearSolvers.KSP_petsc4py
+[      18] Setting up MultilevelNonLinearSolver for ls_consrv_p
+[      18] Finished setting up models and solvers
+[      18] Setting up SimTools for ls_consrv_p
+Traceback (most recent call last):
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+Traceback (most recent call last):
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+Traceback (most recent call last):
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+    runName + '_init_prof')
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+    runName + '_init_prof')
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+    runName + '_init_prof')
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+    return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+    return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+    return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+    runName + '_init_prof')
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+    return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+    self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+    self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+    self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+        self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+    self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+exec(compile(open(__file__).read(), __file__, 'exec'))
+    self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+    self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+    self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+    owningProc, nearestNode = self.findNearestNode(femSpace, point)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+    owningProc, nearestNode = self.findNearestNode(femSpace, point)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+    owningProc, nearestNode = self.findNearestNode(femSpace, point)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+    owningProc, nearestNode = self.findNearestNode(femSpace, point)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+TypeError: 'float' object is not iterable
+TypeError: 'float' object is not iterable
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+TypeError: 'float' object is not iterable
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+TypeError: 'float' object is not iterable
+Closing remaining open files: tank5.h5...Closing remaining open files: tank9.h5...Closing remaining open files: tank4.h5...Closing remaining open files: tank1.h5...Traceback (most recent call last):
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+Traceback (most recent call last):
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+    runName + '_init_prof')
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+    return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+    runName + '_init_prof')
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+    return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+        self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+runName + '_init_prof')
+    self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+    self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+ done
+ done
+    self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+    owningProc, nearestNode = self.findNearestNode(femSpace, point)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+    owningProc, nearestNode = self.findNearestNode(femSpace, point)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+TypeError: 'float' object is not iterable
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+TypeError: 'float' object is not iterable
+Closing remaining open files: tank3.h5...    Closing remaining open files: tank8.h5...return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+    self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+     done
+ done
+self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+    Traceback (most recent call last):
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+Traceback (most recent call last):
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+Traceback (most recent call last):
+  File "/home/HR/asd/PROTEUS/proteus//centos/bin/parun", line 6, in <module>
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+  File "/home/HR/asd/PROTEUS/proteus/scripts/parun", line 478, in <module>
+owningProc, nearestNode = self.findNearestNode(femSpace, point)
+    runName + '_init_prof')
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+    runName + '_init_prof')
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+    runName + '_init_prof')
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Profiling.py", line 190, in __call__
+    return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+    return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+    return func(*func_args, **func_kwargs)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/NumericalSolution.py", line 587, in __init__
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+    self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+    self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+    self.auxiliaryVariables[model.name]= [av.attachModel(model,self.ar[index]) for av in n.auxiliaryVariables]
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 666, in attachModel
+    self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+    self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+    self.identifyMeasuredQuantities()
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 457, in identifyMeasuredQuantities
+    owningProc, nearestNode = self.findNearestNode(femSpace, point)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+    owningProc, nearestNode = self.findNearestNode(femSpace, point)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+    owningProc, nearestNode = self.findNearestNode(femSpace, point)
+  File "/home/HR/asd/PROTEUS/proteus/proteus/Gauges.py", line 266, in findNearestNode
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+TypeError: 'float' object is not iterable
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+TypeError: 'float' object is not iterable
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+    global_min_distance, owning_proc = comm.allreduce(nearest_node_distance, op=MPI.MINLOC)
+  File "MPI/Comm.pyx", line 1308, in mpi4py.MPI.Comm.allreduce (src/mpi4py.MPI.c:109615)
+  File "MPI/msgpickle.pxi", line 1160, in mpi4py.MPI.PyMPI_allreduce (src/mpi4py.MPI.c:53741)
+Closing remaining open files: tank2.h5...Closing remaining open files: tank10.h5...  File "MPI/msgpickle.pxi", line 1113, in mpi4py.MPI.PyMPI_allreduce_intra (src/mpi4py.MPI.c:53141)
+  File "MPI/msgpickle.pxi", line 992, in mpi4py.MPI.PyMPI_reduce_p2p (src/mpi4py.MPI.c:51705)
+  File "MPI/Op.pyx", line 33, in mpi4py.MPI.Op.__call__ (src/mpi4py.MPI.c:84825)
+  File "MPI/opimpl.pxi", line 66, in mpi4py.MPI._op_MINLOC (src/mpi4py.MPI.c:19023)
+TypeErrorTypeError: 'float' object is not iterable
+: 'float' object is not iterableClosing remaining open files: tank6.h5...
+ done
+ done
+Closing remaining open files: tank0.h5... done
+ done
+ done
+ done
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+
+
+ WARNING:   -log_summary is being deprecated; switch to -log_view
+
+
+************************************************************************************************************************
+***             WIDEN YOUR WINDOW TO 120 CHARACTERS.  Use 'enscript -r -fCourier9' to print this document            ***
+************************************************************************************************************************
+
+---------------------------------------------- PETSc Performance Summary: ----------------------------------------------
+
+/home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 with 12 processors, by asd Fri Jan 13 10:47:26 2017
+Using Petsc Release Version 3.7.5, Jan, 01, 2017 
+
+                         Max       Max/Min        Avg      Total 
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+now destroying triangulateio
+--------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 3 in communicator MPI_COMM_WORLD 
+with errorcode 59.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+[4]PETSC ERROR: ------------------------------------------------------------------------
+[4]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[4]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[4]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[4]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[4]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[4]PETSC ERROR: to get more information on the crash.
+[4]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[4]PETSC ERROR: Signal received
+[4]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[4]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[4]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[4]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[4]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[5]PETSC ERROR: ------------------------------------------------------------------------
+[5]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[5]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[5]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[5]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[5]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[5]PETSC ERROR: to get more information on the crash.
+[5]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[5]PETSC ERROR: Signal received
+[5]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[5]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[5]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[5]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[5]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[6]PETSC ERROR: ------------------------------------------------------------------------
+[6]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[6]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[6]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[6]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[6]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[6]PETSC ERROR: to get more information on the crash.
+[6]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[6]PETSC ERROR: Signal received
+[6]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[6]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[6]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[6]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[6]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[3]PETSC ERROR: ------------------------------------------------------------------------
+[3]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[3]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[3]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[3]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[3]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[3]PETSC ERROR: to get more information on the crash.
+[3]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[3]PETSC ERROR: Signal received
+[3]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[3]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[3]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[3]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[3]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[1]PETSC ERROR: ------------------------------------------------------------------------
+[1]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[1]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[1]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[1]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[1]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[1]PETSC ERROR: to get more information on the crash.
+[1]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[1]PETSC ERROR: Signal received
+[1]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[1]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[1]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[1]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[1]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[9]PETSC ERROR: ------------------------------------------------------------------------
+[9]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[9]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[9]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[9]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[9]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[9]PETSC ERROR: to get more information on the crash.
+[9]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[9]PETSC ERROR: Signal received
+[9]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[9]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[9]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[9]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[9]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[10]PETSC ERROR: ------------------------------------------------------------------------
+[10]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[10]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[10]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[10]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[10]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[10]PETSC ERROR: to get more information on the crash.
+[10]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[10]PETSC ERROR: Signal received
+[10]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[10]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[10]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[10]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[10]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[7]PETSC ERROR: ------------------------------------------------------------------------
+[7]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[7]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[7]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[7]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[7]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[7]PETSC ERROR: to get more information on the crash.
+[8]PETSC ERROR: ------------------------------------------------------------------------
+[8]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[8]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[8]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[8]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[8]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[8]PETSC ERROR: to get more information on the crash.
+[8]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[8]PETSC ERROR: Signal received
+[8]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[8]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[8]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[8]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[8]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[0]PETSC ERROR: ------------------------------------------------------------------------
+[0]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[0]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[0]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[0]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[0]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[0]PETSC ERROR: to get more information on the crash.
+[0]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[0]PETSC ERROR: Signal received
+[0]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[0]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[0]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[0]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[0]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[2]PETSC ERROR: ------------------------------------------------------------------------
+[2]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[2]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[2]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[2]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[2]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[2]PETSC ERROR: to get more information on the crash.
+[2]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[2]PETSC ERROR: Signal received
+[2]PETSC ERROR: See http://www.mcs.anl.gov/petsc/documentation/faq.html for trouble shooting.
+[2]PETSC ERROR: Petsc Release Version 3.7.5, Jan, 01, 2017 
+[2]PETSC ERROR: /home/HR/asd/PROTEUS/proteus//centos/bin/parun on a arch-linux2-c-opt named mgmt01 by asd Fri Jan 13 10:47:06 2017
+[2]PETSC ERROR: Configure options --prefix=/data/home/HR/asd/.hashdist/bld/petsc/lydufifufqj3 COPTFLAGS=-O2 --with-shared-libraries=1 --with-debugging=0 --with-ssl=0 --with-blas-lapack-lib=/data/home/HR/asd/.hashdist/bld/blas/blp25jiqxhcd/lib/libopenblas.so --with-metis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-parmetis-dir=/data/home/HR/asd/.hashdist/bld/parmetis/4diqlgmzboqo --with-cmake-dir=/data/home/HR/asd/.hashdist/bld/cmake/2gxcy6krkchd --with-mpi-compilers CC=mpicc CXX=mpicxx F77=mpif90 F90=mpif90 FC=mpif90 --with-patchelf-dir=/data/home/HR/asd/.hashdist/bld/patchelf/4a252c5wgjyr --with-python-dir=/data/home/HR/asd/.hashdist/bld/python/xu6ko5z3tiyg --download-superlu=1 --download-superlu_dist=1 --download-hypre=1 --download-blacs=1 --download-scalapack=1 --download-mumps=1
+[2]PETSC ERROR: #1 User provided function() line 0 in  unknown file
+[11]PETSC ERROR: ------------------------------------------------------------------------
+[11]PETSC ERROR: Caught signal number 15 Terminate: Some process (or the batch system) has told this process to end
+[11]PETSC ERROR: Try option -start_in_debugger or -on_error_attach_debugger
+[11]PETSC ERROR: or see http://www.mcs.anl.gov/petsc/documentation/faq.html#valgrind
+[11]PETSC ERROR: or try http://valgrind.org on GNU/linux and Apple Mac OS X to find memory corruption errors
+[11]PETSC ERROR: configure using --with-debugging=yes, recompile, link, and run 
+[11]PETSC ERROR: to get more information on the crash.
+[mgmt01:16053] 11 more processes have sent help message help-mpi-api.txt / mpi-abort
