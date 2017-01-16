@@ -20,9 +20,10 @@ opts=Context.Options([
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     ("wave_wavelength", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     ("wave_type", 'Linear', "type of wave"),
-    ("Bcoeff", None, "BCoeffs"),
-    ("Ycoeff", None, "YCoeffs"),
+    ("Bcoeff", np.zeros(2,), "BCoeffs"),
+    ("Ycoeff", np.zeros(2,), "YCoeffs"),
     # caisson
+    ("caisson", True, "caisson"),
     ("caisson_dim", (0.5, 0.5), "Dimensions of the caisson"),
     ("caisson_coords", (1., 0.9), "Dimensions of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
@@ -44,6 +45,7 @@ opts=Context.Options([
     ("mooring_restlength", 0., "mooring (spring) rest length"),
     # numerical options
     #("gen_mesh", True ,"Generate new mesh"),
+    ("refinement", True, "Gradual refinement"),
     ("refinement_level", 7,"Set maximum element diameter to he/2**refinement_level"),
     ("refinement_max", 0 ,"Set maximum element diameter to he/2**refinement_level"),
     ("he", 0.07/20,"Set maximum element diameter to he/2**refinement_level"),
@@ -77,17 +79,14 @@ if opts.waves is True:
     height = opts.wave_height
     mwl = depth = opts.water_level
     direction = opts.wave_dir
-    if opts.wave_type == "Linear":
-        wave = wt.MonochromaticWaves(period, height, mwl, depth,
-                                    np.array([0., -9.81, 0.]), direction)
-    elif opts.wave_type == "Fenton":
-        wave = wt.MonochromaticWaves(period, height, mwl, depth,
-                                     np.array([0., -9.81, 0.]), direction,
-                                     wavelength=opts.wave_wavelength,
-                                     waveType="Fenton", Bcoeff=np.array(opts.Bcoeff),
-                                     Ycoeff=np.array(opts.Ycoeff),
-                                     Nf=len(opts.Bcoeff)
-                                     )
+    wave = wt.MonochromaticWaves(period=period, waveHeight=height, mwl=mwl, depth=depth,
+                                g=np.array([0., -9.81, 0.]), waveDir=direction,
+                                wavelength=opts.wave_wavelength,
+                                waveType=opts.wave_type,
+                                Ycoeff=np.array(opts.Ycoeff),
+                                Bcoeff=np.array(opts.Bcoeff),
+                                Nf=len(opts.Bcoeff)
+                                )
     wavelength = wave.wavelength
     # tank options
     tank_dim = opts.tank_dim
@@ -102,121 +101,125 @@ else:
 domain = Domain.PlanarStraightLineGraphDomain()
 domain2 = Domain.PlanarStraightLineGraphDomain()
 # caisson options
-dim = opts.caisson_dim
-VCG = opts.VCG
-if VCG is None:
-    VCG = dim[1]/2.
-free_x = opts.free_x
-free_r = opts.free_r
-rotation = np.radians(opts.rotation_angle)
-if opts.caisson_coords is None:
-    coords = [tank_dim[0]/2., waterLevel]
-else:
-    coords = opts.caisson_coords
-barycenter = (0, -dim[1]/2.+VCG, 0.)
-width = opts.caisson_width
-inertia = opts.caisson_inertia/width
-
-
-caisson_dim = opts.caisson_dim
-caisson_coords = opts.caisson_coords
-
-def quarter_circle(center, radius, p_nb, angle, angle0=0., v_start=0.):
-    # p_nb = int(np.ceil(2*np.pi*radius/dx))  # number of points on segment
-    # p_nb = refinement
-    vertices = []
-    segments = []
-    for i in range(p_nb):
-        x = radius*np.sin(angle0+angle*float(i)/(p_nb-1))
-        y = radius*np.cos(angle0+angle*float(i)/(p_nb-1))
-        vertices += [[center[0]+x, center[1]+y]]
-        if i > 0:
-            segments += [[v_start+(i-1), v_start+i]]
-        elif i == p_nb-1:
-            segments += [[v_start+i, v_start]]
-    return vertices, segments
-
-radius = opts.caisson_corner_r
-nb = int((np.pi*2*radius/4.)/(2.*opts.he))
-if radius != 0:
-    vertices = []
-    vertexFlags = []
-    segments = []
-    segmentFlags = []
+if opts.caisson is True:
     dim = opts.caisson_dim
-    if opts.caisson_corner_side == 'bottom':
-        angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
-        angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
-        centers = [[dim[0]/2., dim[1]/2.], [-dim[0]/2., dim[1]/2.],
-                  [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
-        p_nb = [0, 0, nb, nb]
+    VCG = opts.VCG
+    if VCG is None:
+        VCG = dim[1]/2.
+    free_x = opts.free_x
+    free_r = opts.free_r
+    rotation = np.radians(opts.rotation_angle)
+    if opts.caisson_coords is None:
+        coords = [tank_dim[0]/2., waterLevel]
     else:
-        angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
-        angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
-        centers = [[dim[0]/2.-radius, dim[1]/2.-radius], [-dim[0]/2.+radius, dim[1]/2.-radius],
-                  [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
-        p_nb = [nb, nb, nb, nb]
-    center = [0., 0.]
-    flag = 1
-    v_start = 0
-    for i in range(len(angle0)):
-        v_start = len(vertices)
-        if p_nb[i] != 0:
-            v, s = quarter_circle(center=centers[i], radius=radius, p_nb=p_nb[i],
-                                          angle=angle1[i], angle0=angle0[i],
-                                          v_start=v_start)
+        coords = opts.caisson_coords
+    barycenter = (0, -dim[1]/2.+VCG, 0.)
+    width = opts.caisson_width
+    inertia = opts.caisson_inertia/width
+
+
+    caisson_dim = opts.caisson_dim
+    caisson_coords = opts.caisson_coords
+
+    def quarter_circle(center, radius, p_nb, angle, angle0=0., v_start=0.):
+        # p_nb = int(np.ceil(2*np.pi*radius/dx))  # number of points on segment
+        # p_nb = refinement
+        vertices = []
+        segments = []
+        for i in range(p_nb):
+            x = radius*np.sin(angle0+angle*float(i)/(p_nb-1))
+            y = radius*np.cos(angle0+angle*float(i)/(p_nb-1))
+            vertices += [[center[0]+x, center[1]+y]]
+            if i > 0:
+                segments += [[v_start+(i-1), v_start+i]]
+            elif i == p_nb-1:
+                segments += [[v_start+i, v_start]]
+        return vertices, segments
+
+    radius = opts.caisson_corner_r
+    nb = int((np.pi*2*radius/4.)/(2.*opts.he))
+    if radius != 0:
+        vertices = []
+        vertexFlags = []
+        segments = []
+        segmentFlags = []
+        dim = opts.caisson_dim
+        if opts.caisson_corner_side == 'bottom':
+            angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
+            angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
+            centers = [[dim[0]/2., dim[1]/2.], [-dim[0]/2., dim[1]/2.],
+                    [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
+            p_nb = [0, 0, nb, nb]
         else:
-            v = [centers[i]]
-            if v_start > 1:
-                s = [[v_start-1, v_start]]
+            angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
+            angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
+            centers = [[dim[0]/2.-radius, dim[1]/2.-radius], [-dim[0]/2.+radius, dim[1]/2.-radius],
+                    [-dim[0]/2.+radius, -dim[1]/2.+radius], [dim[0]/2.-radius, -dim[1]/2.+radius]]
+            p_nb = [nb, nb, nb, nb]
+        center = [0., 0.]
+        flag = 1
+        v_start = 0
+        for i in range(len(angle0)):
+            v_start = len(vertices)
+            if p_nb[i] != 0:
+                v, s = quarter_circle(center=centers[i], radius=radius, p_nb=p_nb[i],
+                                            angle=angle1[i], angle0=angle0[i],
+                                            v_start=v_start)
             else:
-                s = []
-        vertices += v
-        vertexFlags += [1]*len(v)
-        segments += s+[[len(vertices)-1, len(vertices)]]
-        segmentFlags += [1]*len(s)+[1]
-    segments[-1][1] = 0  # last segment links to vertex 0
-    boundaryTags = {'caisson': 1}
-    caisson = st.CustomShape(domain, barycenter=barycenter,
-                             vertices=vertices, vertexFlags=vertexFlags,
-                             segments=segments, segmentFlags=segmentFlags,
-                             boundaryTags=boundaryTags)
-    facet = []
-    for i, vert in enumerate(caisson.vertices):
-        facet += [i]
-    caisson.facets = np.array([[facet]])
-    caisson.facetFlags = np.array([1])
-    caisson.regionFlags = np.array([1])
-else:
-    caisson = st.Rectangle(domain, dim=opts.caisson_dim)
-ang = rotation_angle
-caisson.setHoles([[0., 0.]])
-caisson.holes_ind = np.array([0])
-caisson.translate([caisson_coords[0], caisson_coords[1]])
-# system = crb.System(np.array([0., -9.81, 0.]))
-# rotation = np.array([1, 0., 0., 0.])
-rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
-caisson.rotate(ang, pivot=caisson.barycenter)
-system = crb.System(np.array([0., -9.81, 0.]))
-body = crb.RigidBody(shape=caisson,
-                     system=system,
-                     center=caisson.barycenter[:2],
-                     rot=rotation_init,
-                     mass = opts.caisson_mass,
-                     inertia = np.array([0., 0., inertia]),
-                     free_x = np.array(opts.free_x),
-                     free_r = np.array(opts.free_r))
+                v = [centers[i]]
+                if v_start > 1:
+                    s = [[v_start-1, v_start]]
+                else:
+                    s = []
+            vertices += v
+            vertexFlags += [1]*len(v)
+            segments += s+[[len(vertices)-1, len(vertices)]]
+            segmentFlags += [1]*len(s)+[1]
+        segments[-1][1] = 0  # last segment links to vertex 0
+        boundaryTags = {'caisson': 1}
+        caisson = st.CustomShape(domain, barycenter=barycenter,
+                                vertices=vertices, vertexFlags=vertexFlags,
+                                segments=segments, segmentFlags=segmentFlags,
+                                boundaryTags=boundaryTags)
+        facet = []
+        for i, vert in enumerate(caisson.vertices):
+            facet += [i]
+        caisson.facets = np.array([[facet]])
+        caisson.facetFlags = np.array([1])
+        caisson.regionFlags = np.array([1])
+    else:
+        caisson = st.Rectangle(domain, dim=opts.caisson_dim)
+    ang = rotation_angle
+    caisson.setHoles([[0., 0.]])
+    caisson.holes_ind = np.array([0])
+    caisson.translate([caisson_coords[0], caisson_coords[1]])
+    # system = crb.System(np.array([0., -9.81, 0.]))
+    # rotation = np.array([1, 0., 0., 0.])
+    rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
+    caisson.rotate(ang, pivot=caisson.barycenter)
+    system = crb.System(np.array([0., -9.81, 0.]))
+    body = crb.RigidBody(shape=caisson,
+                        system=system,
+                        center=caisson.barycenter[:2],
+                        rot=rotation_init,
+                        mass = opts.caisson_mass,
+                        inertia = np.array([0., 0., inertia]),
+                        free_x = np.array(opts.free_x),
+                        free_r = np.array(opts.free_r))
 
-# body.setInitialRot(rotation_init)
-# body.rotation_init=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
-body.setRecordValues(all_values=True)
-if opts.mooring is True:
-    if opts.mooring_type == 'spring':
-        body.addSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
-                       fairlead=np.array(opts.mooring_fairlead),
-                       anchor=np.array(opts.mooring_anchor),
-                       rest_length=opts.mooring_restlength)
+    # body.setInitialRot(rotation_init)
+    # body.rotation_init=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
+    body.setRecordValues(all_values=True)
+    if opts.mooring is True:
+        if opts.mooring_type == 'spring':
+            body.addSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
+                        fairlead=np.array(opts.mooring_fairlead),
+                        anchor=np.array(opts.mooring_anchor),
+                        rest_length=opts.mooring_restlength)
 
+
+    for bc in caisson.BC_list:
+        bc.setNoSlip()
 
 
 # ----- SHAPES ----- #
@@ -232,18 +235,16 @@ if left:
         tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
     else:
         tank.setAbsorptionZones(x_n=left)
+        tank.BC['x-'].setNoSlip()
 if right:
     tank.setAbsorptionZones(x_p=right)
-tank.setChildShape(caisson, 0)
+if opts.caisson:
+    tank.setChildShape(caisson, 0)
 
 # ----- BOUNDARY CONDITIONS ----- #
 
-for bc in caisson.BC_list:
-    bc.setNoSlip()
-
 tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setNoSlip()
-tank.BC['x-'].setNoSlip()
 tank.BC['x+'].setNoSlip()
 tank.BC['sponge'].setNonMaterial()
 
@@ -254,7 +255,7 @@ for bc in tank.BC_list:
 # ----- GAUGES ----- #
 
 gauge_dx = tank_sponge[0]/10.
-probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], tank_dim[0]/gauge_dx+1)
+probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
 PG=[]
 PG2=[]
 LIG = []
@@ -273,13 +274,13 @@ if opts.gauge_output:
        sampleRate=0,
        fileName='pointGauge_pressure.csv'
    )
-  #  tank.attachPointGauges(
-  #      'ls',
-  #      gauges = ((('phi',), PG2),),
-  #      activeTime=(0, opts.T),
-  #      sampleRate=0,
-  #      fileName='pointGauge_levelset.csv'
-  #  )
+   tank.attachPointGauges(
+       'ls',
+       gauges = ((('phi',), PG),),
+       activeTime=(0, opts.T),
+       sampleRate=0,
+       fileName='pointGauge_levelset.csv'
+   )
 
     # tank.attachLineIntegralGauges(
     #     'vof',
@@ -295,49 +296,53 @@ if opts.gauge_output:
 
 import MeshRefinement as mr
 tank.MeshOptions = mr.MeshOptions(tank)
-caisson.MeshOptions = mr.MeshOptions(caisson)
-grading = opts.refinement_grading
-he2 = opts.he
-def mesh_grading(start, he, grading):
-    return '{0}*{2}^(1+log((-1/{2}*(abs({1})-{0})+abs({1}))/{0})/log({2}))'.format(he, start, grading)
-# for seg in caisson.segments:
-#     v0 = caisson.vertices[seg[0]]
-#     v1 = caisson.vertices[seg[1]]
-#     dist = np.linalg.norm(v1-v0)
-#     direct = (v1-v0)/dist
-#     points = np.arange(0., dist, he2)
-#     xx = []
-#     yy = []
-#     for p in points:
-#       pd = v0+p*direct
-#       tank.MeshOptions.setRefinementFunction(mesh_grading(start='sqrt((x-{0})^2+(y-{1})^2)'.format(pd[0], pd[1]), he=he2, grading=grading))
+if opts.caisson is True:
+    caisson.MeshOptions = mr.MeshOptions(caisson)
+if opts.refinement:
+    grading = opts.refinement_grading
+    he2 = opts.he
+    def mesh_grading(start, he, grading):
+        return '{0}*{2}^(1+log((-1/{2}*(abs({1})-{0})+abs({1}))/{0})/log({2}))'.format(he, start, grading)
+    # for seg in caisson.segments:
+    #     v0 = caisson.vertices[seg[0]]
+    #     v1 = caisson.vertices[seg[1]]
+    #     dist = np.linalg.norm(v1-v0)
+    #     direct = (v1-v0)/dist
+    #     points = np.arange(0., dist, he2)
+    #     xx = []
+    #     yy = []
+    #     for p in points:
+    #       pd = v0+p*direct
+    #       tank.MeshOptions.setRefinementFunction(mesh_grading(start='sqrt((x-{0})^2+(y-{1})^2)'.format(pd[0], pd[1]), he=he2, grading=grading))
 
-caisson.MeshOptions.setBoundaryLayerEdges(hwall_n=he2, hwall_t=he2, ratio=grading, EdgesList=[i for i in range(len(caisson.segments))])
+    if opts.caisson is True:
+        caisson.MeshOptions.setBoundaryLayerEdges(hwall_n=he2, hwall_t=he2, ratio=grading, EdgesList=[i for i in range(len(caisson.segments))])
 
-he_max = opts.he_max
-# he_fs = he2
-ecH = 3.
-if opts.refinement_freesurface > 0:
-    box = opts.refinement_freesurface
-else:
-    box = ecH*he2
-tank.MeshOptions.refineBox(he2, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], waterLevel-box, waterLevel+box)
-tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-box), he=he2, grading=grading))
-tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+box), he=he2, grading=grading))
-# tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-ecH*he2), he=he2, grading=grading))
-# tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+ecH*he2), he=he2, grading=grading))
-domain.MeshOptions.LcMax = he_max #coarse grid
-if opts.use_gmsh is True:
-    domain.MeshOptions.he = he_max #coarse grid
-else:
-    domain.MeshOptions.he = he2 #coarse grid
+    he_max = opts.he_max
+    # he_fs = he2
+    ecH = 3.
+    if opts.refinement_freesurface > 0:
+        box = opts.refinement_freesurface
+    else:
+        box = ecH*he2
+    tank.MeshOptions.refineBox(he2, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], waterLevel-box, waterLevel+box)
+    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-box), he=he2, grading=grading))
+    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+box), he=he2, grading=grading))
+    # tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-ecH*he2), he=he2, grading=grading))
+    # tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+ecH*he2), he=he2, grading=grading))
+    domain.MeshOptions.LcMax = he_max #coarse grid
+    if opts.use_gmsh is True and opts.refinement is True:
+        domain.MeshOptions.he = he_max #coarse grid
+    else:
+        domain.MeshOptions.he = he2 #coarse grid
+        domain.MeshOptions.LcMax = he2 #coarse grid
 
 
-offset = 0.1
-xmin = caisson_coords[0]-(caisson_dim[0]/2.+offset)
-xmax = caisson_coords[0]+(caisson_dim[0]/2.+offset)
-ymin = caisson_coords[1]-(caisson_dim[1]/2.+offset)
-ymax = caisson_coords[1]+(caisson_dim[1]/2.+offset)
+#offset = 0.1
+#xmin = caisson_coords[0]-(caisson_dim[0]/2.+offset)
+#xmax = caisson_coords[0]+(caisson_dim[0]/2.+offset)
+#ymin = caisson_coords[1]-(caisson_dim[1]/2.+offset)
+#ymax = caisson_coords[1]+(caisson_dim[1]/2.+offset)
 # tank.MeshOptions.refineBox(he2, he_max, xmin, xmax, ymin, ymax)
 
 #meshfile='T'+str(tank_dim[0])+str(tank_dim[1])
@@ -534,14 +539,14 @@ else:
 
 he = he2
 tolfac = opts.tolfac
-ns_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
-vof_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
-ls_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
-mcorr_nl_atol_res = max(1.0e-12,0.1*tolfac*opts.he**2)
-rd_nl_atol_res = max(1.0e-12,tolfac*opts.he)
-kappa_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
-dissipation_nl_atol_res = max(1.0e-12,tolfac*opts.he**2)
-mesh_nl_atol_res = max(1.0e-12,0.001*opts.mesh_tol*opts.he**2)
+ns_nl_atol_res = max(1.0e-12,tolfac*he**2)
+vof_nl_atol_res = max(1.0e-12,tolfac*he**2)
+ls_nl_atol_res = max(1.0e-12,tolfac*he**2)
+mcorr_nl_atol_res = max(1.0e-12,0.1*tolfac*he**2)
+rd_nl_atol_res = max(1.0e-12,tolfac*he)
+kappa_nl_atol_res = max(1.0e-12,tolfac*he**2)
+dissipation_nl_atol_res = max(1.0e-12,tolfac*he**2)
+mesh_nl_atol_res = max(1.0e-12,0.001*opts.mesh_tol*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -558,4 +563,3 @@ def twpflowPressure_init(x, t):
     return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi)))
 
-# tank.BC['y+'].p_dirichlet = twpflowPressure_init

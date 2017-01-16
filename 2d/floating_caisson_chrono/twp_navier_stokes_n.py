@@ -80,4 +80,8 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 conservativeFlux = {0:'pwl-bdm-opt'}
-auxiliaryVariables = ct.domain.auxiliaryVariables['twp']+[ct.system]
+if ct.opts.caisson is True:
+    auxs = [ct.system]
+else:
+    auxs = []
+auxiliaryVariables = ct.domain.auxiliaryVariables['twp']+auxs
