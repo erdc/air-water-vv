@@ -18,7 +18,7 @@ opts=Context.Options([
     # waves
     ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
     ("wave_period", 1.30, "Period of the waves"),
-    ("wave_height", 0.167, "Height of the waves"),
+    ("wave_height", 0.168, "Height of the waves"),
     ('wavelength', 2.121, 'Wavelength only if Fenton is activated'),
     ('Ycoeff', [0.21107604, 0.07318902, 0.02782228, 0.01234846, 0.00618291, 0.00346483, 0.00227917, 0.00194241], 'Ycoeff only if Fenton is activated'),
     ('Bcoeff', [0.23112932, 0.03504843, 0.00431442, 0.00036993, 0.00004245, 0.00001877, 0.00000776, 0.00000196], 'Bcoeff only if Fenton is activated'),
@@ -32,11 +32,12 @@ opts=Context.Options([
     ('Resistance', 'Shih', 'Ergun or Engelund or Shih'),
     # soil foundation
     ("springs", True, "Switch on/off soil module"),
-    ("Kx", 2.616*(10**5)/0.4, "Horizontal stiffness in Pa"),
-    ("Ky", 2.616*(10**5)/0.4, "Vertical stiffness in Pa"),
-    ("Krot", 0.0, "Rotational stiffness in N"),
-    ("C", 0.0, "Damping factor in Pa s "),
-    ("Crot", 5.288*(10**1)/0.4, "Rotational damping factor in N s "),
+    ("Kx", 0.0, "Horizontal stiffness in Pa"),
+    ("Ky", 0.0, "Vertical stiffness in Pa"),
+    ("Krot", 19620., "Rotational stiffness in N"),
+    ("Cx", 0.0, "Damping factor in Pa s "),
+    ("Cy", 0.0, "Damping factor in Pa s "),
+    ("Crot", 121.6, "Rotational damping factor in N s "),
     # caisson
     ("caisson2D", True, "Switch on/off caisson2D"),
     ('dimx', 0.300, 'X-dimension of the caisson2D'),
@@ -49,6 +50,7 @@ opts=Context.Options([
     ("overturning", True, "Switch on/off overturning module"),
     ("m_static", 0.500, "Static friction factor between caisson2D and rubble mound"),
     ("m_dynamic", 0.500, "Dynamic friction factor between caisson2D and rubble mound"),
+    ('scheme', 'Runge_Kutta', 'Numerical scheme applied to solve motion calculation (Runge_Kutta or Central_Difference)'),
     # numerical options
     ("he", 0.02,"he=walength/refinement_level"),
     ("cfl", 0.450 ,"Target cfl"),
@@ -154,22 +156,22 @@ if opts.caisson2D:
     x6=x5+opts.Lend*wl
     x7=x6+L_rightSpo
     tank_dim = [x7, 1.0]
-
-    boundaryOrientations = {'y-': [0., -1.,0.],
-                            'x+': [1., 0.,0.],
-                            'y+': [0., 1.,0.],
-                            'x-': [-1., 0.,0.],
+ 
+    boundaryOrientations = {'y-': np.array([0., -1.,0.]),
+                            'x+': np.array([0., -1.,0.]),
+                            'y+': np.array([0., -1.,0.]),
+                            'x-': np.array([-1., 0.,0.]),
                             'sponge': None,
                             'porousLayer': None,
                             'moving_porousLayer': None,
-                           }
-    boundaryTags = {'y-': 1,
-                    'x+': 2,
-                    'y+': 3,
-                    'x-': 4,
-                    'sponge': 5,
-                    'porousLayer': 6,
-                    'moving_porousLayer': 7,
+                           }     
+    boundaryTags = {'y-' : 1,
+                    'x+' : 2,
+                    'y+' : 3,
+                    'x-' : 4,
+                    'sponge' : 5,
+                    'porousLayer' : 6,
+                    'moving_porousLayer' : 7,
                        }
 
 else:
@@ -199,11 +201,11 @@ else:
     x6=x5+opts.Lend*wl
     x7=x6+L_rightSpo
     tank_dim = [x7, 1.0]
-
-    boundaryOrientations = {'y-': [0., -1.,0.],
-                            'x+': [1., 0.,0.],
-                            'y+': [0., 1.,0.],
-                            'x-': [-1., 0.,0.],
+    
+    boundaryOrientations = {'y-': np.array([0., -1.,0.]),
+                            'x+': np.array([0., -1.,0.]),
+                            'y+': np.array([0., -1.,0.]),
+                            'x-': np.array([-1., 0.,0.]),
                             'sponge': None,
                             'porousLayer': None,
                             'moving_porousLayer': None,
@@ -245,7 +247,7 @@ if opts.caisson2D:
 
 
 # --- Body properties setup
-    caisson2D = bd.CaissonBody(shape=caisson)
+    caisson2D = bd.CaissonBody(shape=caisson, substeps=20)
     free_x=(0.0, 0.0, 0.0) # Translational DOFs
     free_r=(0.0, 0.0, 0.0) # Rotational DOFs
     m_static=opts.m_static # Static friction
@@ -263,10 +265,9 @@ if opts.caisson2D:
     if opts.rotation==True: # Initial position for free oscillation
         caisson2D.rotate(rotation)
     caisson2D.It= I/caisson2D.mass/width
+    caisson2D.setNumericalScheme(scheme=opts.scheme)
     caisson2D.setRecordValues(filename='caisson2D', all_values=True)
 
-# ---Rigid body assembling step (creation of hole region)
-    caisson.setRigidBody()
 
 ##############################################################################################################################################################################################################
 # Tank
@@ -439,10 +440,11 @@ springs=opts.springs
 Kx = opts.Kx
 Ky = opts.Ky
 Krot = opts.Krot
-C = opts.C
+Cx = opts.Cx
+Cy = opts.Cy
 Crot = opts.Crot
 
-caisson2D.setSprings(springs, Kx, Ky, Krot, C, Crot)
+caisson2D.setSprings(springs, Kx, Ky, Krot, Cx, Cy, Crot)
 
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
@@ -532,15 +534,20 @@ point_output=ga.PointGauges(gauges=((('p'),PG),
                                  ),
                           activeTime = (0., T),
                           sampleRate=0.,
-                          fileName='point_gauges.csv')
+                          fileName='pressure_gauges.csv')
 
 loadingsGauges=ga.PointGauges(gauges=((('p'),LG1),
                                       (('p'),LG2),
                                  ),
                           activeTime = (0., T),
                           sampleRate=0.,
-                          fileName='loadingsGauges.csv')
+                          fileName='loadings_gauges.csv')
 
+levelset_output=ga.PointGauges(gauges=((('phi',),PG),
+                                 ),
+                          activeTime = (0., T),
+                          sampleRate=0.,
+                          fileName='levelset_gauges.csv')
 
 
 ######################################################################################################################################################################################################################

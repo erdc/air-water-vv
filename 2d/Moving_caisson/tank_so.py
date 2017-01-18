@@ -24,7 +24,9 @@ except ImportError:
     raise ImportError, str(name) + '.py not found'
 
 from proteus import BoundaryConditions
-BoundaryConditions.BC_Base.getContext()
+
+for BC in ct.domain.bc:
+    BC.getContext()
 
 # List of p/n files
 pnList = []
