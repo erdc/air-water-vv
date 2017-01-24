@@ -14,6 +14,7 @@ class cppSystem {
   double* gravity;
   cppSystem(double* gravity);
   void step(double dt);
+  void recordBodyList(std::string directory);
 };
 
 class cppRigidBody {
@@ -64,6 +65,12 @@ class cppRigidBody {
                  double* fairlead,
                  double* anchor,
                  double rest_length);
+  void addPrismaticLinksWithSpring(double* pris1,
+                                   double* pris2,
+                                   double stiffness,
+                                   double damping,
+                                   double rest_length);
+  void setName(std::string name);
 };
 
 cppSystem::cppSystem(double* gravity):
@@ -74,22 +81,44 @@ gravity(gravity)
 
 void cppSystem::step(double dt)
 {
-  double dt2 = dt/20;
+  double dt2 = dt/200;
   for (int i = 0; i < 20; ++i) {
     system.DoStepDynamics(dt2);
   }
-  //system.DoStepDynamics(dt);
-  std::vector< std::shared_ptr< ChBody > > * list =	system.Get_bodylist();
-  std::shared_ptr<ChBody> bod = list->front();
-  ChVector< double > acc = bod->GetPos_dtdt();
-  ChVector< double > torque = bod->Get_Xtorque();
-  ChVector< double > force = bod->Get_Xforce();
+}
 
- // ofstream myfile;
- // myfile.open ("body_force.txt", std::ios_base::app);
- //   myfile << force(0) << "," << force(1) << "," << force(2) << "\n";
- //         myfile.close();
-
+void cppSystem::recordBodyList (std::string directory) {
+      std::vector<std::shared_ptr<ChBody>>& bodylist = *system.Get_bodylist();
+      double t = system.GetChTime();
+      if (t == 0) {
+          for (int i = 0; i<bodylist.size(); i++) {
+              std::shared_ptr<ChBody> bod = bodylist[i];
+              fstream myfile;
+              myfile.open (directory+bod->GetNameString()+".csv", std::ios_base::out);
+              myfile << "t,x,y,z,e0,e1,e2,e3,ux,uy,uz,ax,ay,az,Fx,Fy,Fz,Mx,My,Mz,\n";
+              myfile.close();
+          }
+      }
+      for (int i = 0; i<bodylist.size(); i++) {
+          std::shared_ptr<ChBody> bod = bodylist[i];
+          fstream myfile;
+          myfile.open (directory+bod->GetNameString()+".csv", std::ios_base::app);     
+          ChVector<> bpos = bod->GetPos();
+          ChVector<> bvel = bod->GetPos_dt();
+          ChVector<> bacc = bod->GetPos_dtdt();
+          ChVector<> bfor = bod->Get_Xforce();
+          ChVector<> btor = bod->Get_Xtorque();
+          ChQuaternion<> brot = bod->GetRot();
+          myfile << t << ",";     
+          myfile << bpos(0) << "," << bpos(1) << "," << bpos(2) << ",";     
+          myfile << brot.e0 << "," << brot.e1 << "," << brot.e2 << "," << brot.e3 << ",";     
+          myfile << bvel(0) << "," << bvel(1) << "," << bvel(2) << ",";     
+          myfile << bacc(0) << "," << bacc(1) << "," << bacc(2) << ",";     
+          myfile << bfor(0) << "," << bfor(1) << "," << bfor(2) << ",";     
+          myfile << btor(0) << "," << btor(1) << "," << btor(2) << ",";     
+          myfile << "\n";        
+          myfile.close();
+    }
 }
 
 cppRigidBody::cppRigidBody(cppSystem* system,
@@ -99,7 +128,7 @@ cppRigidBody::cppRigidBody(cppSystem* system,
                            double* inertia,
                            double* free_xin,
                            double* free_rin):
-system(system),
+  system(system),
   mass(mass),
   inertia(inertia),
   free_x(free_xin[0], free_xin[1], free_xin[2]),
@@ -184,6 +213,8 @@ void cppRigidBody::prestep(double* force, double* torque, double dt)
                           true);
 }
 
+
+
 void cppRigidBody::poststep()
 {
   pos = body->GetPos();
@@ -237,6 +268,52 @@ void cppRigidBody::addSpring(double stiffness,
   spring->Set_SpringR(damping);
   system->system.AddLink(spring);
 }
+
+void cppRigidBody::addPrismaticLinksWithSpring(double* pris1,
+                                               double* pris2,
+                                               double stiffness,
+                                               double damping,
+                                               double rest_length)
+{
+  auto mybod2 = std::make_shared<ChBody>();
+  mybod2->SetName("PRIS1");
+  mybod2->SetPos(ChVector<>(pris1[0], pris1[1], pris1[2]));
+  //mybod2->SetBodyFixed(true);
+  system->system.AddBody(mybod2);
+  auto mybod3 = std::make_shared<ChBody>();
+  mybod3->SetName("PRIS2");
+  mybod3->SetPos(ChVector<>(pris2[0], pris2[1], pris2[2]));
+  mybod3->SetBodyFixed(true);
+  system->system.AddBody(mybod3);
+
+  auto mylink1 = std::make_shared<ChLinkLockPrismatic>();
+  system->system.AddLink(mylink1);
+  auto mycoordsys1 = ChCoordsys<>(mybod2->GetPos(),Q_from_AngAxis(CH_C_PI/2., VECT_Y));//Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+  mylink1->Initialize(body, mybod2, mycoordsys1);
+
+  auto mylink2 = std::make_shared<ChLinkLockPrismatic>();
+  system->system.AddLink(mylink2);
+  auto mycoordsys2 = ChCoordsys<>(mybod3->GetPos(),Q_from_AngAxis(CH_C_PI/2., VECT_X));//Q_from_AngAxis(CH_C_PI / 2, VECT_X));
+  mylink2->Initialize(mybod2, mybod3,mycoordsys2);
+
+  std::shared_ptr<ChLinkSpring> spring = std::make_shared<ChLinkSpring>();
+  spring->Initialize(body,
+                     mybod2,
+                     true, // true for pos relative to bodies
+                     ChVector<>(0.,0.,0.),
+                     ChVector<>(0.,0.,0.),
+                     false,
+                     rest_length);  // true for auto rest length (distance between body1 and body2));
+  spring->Set_SpringK(stiffness);
+  spring->Set_SpringR(damping);
+  spring->SetName("SPRING1");
+  system->system.AddLink(spring);
+}
+
+void cppRigidBody::setName(std::string name) {
+  body->SetNameString(name);
+}
+
 
 cppSystem * newSystem(double* gravity)
 {

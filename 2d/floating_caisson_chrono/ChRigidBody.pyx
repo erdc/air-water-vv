@@ -1,9 +1,12 @@
+# distutils: language = c++
+
 import os
 import csv
 import numpy as np
 from proteus import AuxiliaryVariables, Archiver, Comm, Profiling
 cimport numpy as np
 from proteus import SpatialTools as st
+from libcpp.string cimport string
 
 
 cdef extern from "ChRigidBody.h":
@@ -24,12 +27,13 @@ cdef extern from "ChRigidBody.h":
         void SetRot(ChQuaternion &mrot)
 
 
-
 cdef extern from "ChRigidBody.h":
     cdef cppclass cppSystem:
         void DoStepDynamics(dt)
         void step(double dt)
+        void recordBodyList(string directory)
     cppSystem * newSystem(double* gravity)
+
 
 cdef extern from "ChRigidBody.h":
     cdef cppclass cppRigidBody:
@@ -66,10 +70,16 @@ cdef extern from "ChRigidBody.h":
                        double* fairlead,
                        double* anchor,
                        double rest_length)
+        void addPrismaticLinksWithSpring(double* pris1,
+                                         double* pris2,
+                                         double stiffness,
+                                         double damping,
+                                         double rest_length);
         void setRotation(double* quat)
         void setPosition(double* pos)
         void setConstraints(double* free_x, double* free_r)
         void setInertiaXX(double* inertia)
+        void setName(string name)
 
     cppRigidBody * newRigidBody(cppSystem* system,
                                 double* center,
@@ -136,6 +146,7 @@ cdef class RigidBody:
                                     <double*> free_r.data)
         if 'ChRigidBody' not in shape.auxiliaryVariables:
             shape.auxiliaryVariables['ChRigidBody'] = self
+        self.setName(shape.name)
 
     def set_indices(self, i_start, i_end):
         self.i_start = i_start
@@ -482,6 +493,29 @@ cdef class RigidBody:
             writer = csv.writer(csvfile, delimiter=',')
             writer.writerow(values_towrite)
 
+    def addPrismaticLinksWithSpring(self, np.ndarray pris1,
+                                    np.ndarray pris2, double stiffness, double damping,
+                                    double rest_length):
+        """
+        fairlead: barycenter coords
+        pris: absolute coords
+
+        pris1-------fairlead(barycenter)
+        |
+        |
+        |
+        |
+        pris2
+        """
+        self.thisptr.addPrismaticLinksWithSpring(<double*> pris1.data, 
+                                                 <double*> pris2.data,
+                                                 stiffness,
+                                                 damping,
+                                                 rest_length)
+
+    def setName(self, string name):
+        self.thisptr.setName(name)
+
 
 cdef class System:
     cdef cppSystem * thisptr
@@ -489,6 +523,7 @@ cdef class System:
     cdef object bodies
     cdef public double dt_init
     cdef double dt
+    cdef string directory
     def __cinit__(self, np.ndarray gravity):
         self.thisptr = newSystem(<double*> gravity.data)
         self.bodies = []
@@ -510,9 +545,11 @@ cdef class System:
         self.step(dt)
         for body in self.bodies:
             body.poststep()
+        self.recordBodyList()
     def calculate_init(self):
         for body in self.bodies:
             body.calculate_init()
+        self.recordBodyList()
 
 
     def step(self, double dt):
@@ -521,6 +558,13 @@ cdef class System:
     def addBody(self, body):
         # !!!! TO CHANGE !!!!
         self.bodies += [body]
+
+    def recordBodyList(self):
+        comm = Comm.get()
+        self.directory = str(Profiling.logDir)+'/'
+        print(self.directory)
+        if comm.isMaster():
+            self.thisptr.recordBodyList(<string> self.directory)
 # ctypedef np.ndarray vecarray(ChVector)
 
 # ctypedef np.ndarray (*ChVector_to_npArray) (ChVector)
