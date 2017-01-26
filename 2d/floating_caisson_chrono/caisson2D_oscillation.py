@@ -13,6 +13,7 @@ opts=Context.Options([
     # tank
     ("tank_dim", (5.815*4, 2.,), "Dimensions of the tank"),
     ("tank_sponge", (5.815*2, 5.815*2), "Length of absorption zones (front/back, left/right)"),
+    ("gauge_output", False, "Places Gauges in tank"),
     # waves
     ("waves", False, "Generate waves (True/False)"),
     ("wave_period", 0.8, "Period of the waves"),
@@ -28,7 +29,7 @@ opts=Context.Options([
     ("caisson_coords", (1., 0.9), "Dimensions of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
     ("caisson_corner_r", 0.064, "radius of the corners of the caisson"),
-    ("caisson_corner_side", 'bottom', "radius of the corners of the caisson"),
+    ("caisson_corner_side", 'bottom', "corners placement"),
     ("free_x", (0.0, 0.0, 0.0), "Translational DOFs"),
     ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
     ("VCG", None, "vertical position of the barycenter of the caisson"),
@@ -36,33 +37,30 @@ opts=Context.Options([
     ("caisson_inertia", 4.05, "Inertia of the caisson"),
     ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
     # mooring
-    ("mooring", False, "add moorings"),
-    ("mooring_type", 'spring', "type of moorings"),
+    ("mooring", True, "add moorings"),
+    ("mooring_type", 'prismatic', "type of moorings"),
     ("mooring_anchor", (2./2.,2.,0.), "anchor coordinates (absolute coorinates)"),
     ("mooring_fairlead", (0.,0.,0.), "fairlead cooridnates (relative coordinates from barycenter)"),
     ("mooring_K", 197.58, "mooring (spring) stiffness"),
     ("mooring_R", 19.8, "mooring (spring) damping"),
     ("mooring_restlength", 0., "mooring (spring) rest length"),
-    # numerical options
-    #("gen_mesh", True ,"Generate new mesh"),
+    # mesh refinement
     ("refinement", True, "Gradual refinement"),
-    ("refinement_level", 7,"Set maximum element diameter to he/2**refinement_level"),
-    ("refinement_max", 0 ,"Set maximum element diameter to he/2**refinement_level"),
-    ("he", 0.07/20,"Set maximum element diameter to he/2**refinement_level"),
-    ("he_max", 10 ,"Set maximum element diameter to he/2**refinement_level"),
-    ("refinement_freesurface", 0.035+(3*0.07/20),"Set maximum element diameter to he/2**refinement_level"),
-    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Refinement around the caisson"),
-    ("refinement_caisson", 7, "Refinement around the caisson"),
-    ("T", 10.0 ,"Simulation time"),
-    ("dt_init", 0.001 ,"Initial time step"),
-    ("dt_fixed", None, "fixed time step for proteus (scale with period)"),
-    ("cfl", 0.33 ,"Target cfl"),
-    ("nsave",  20,"Number of time steps to save per second"),
-    ("use_gmsh", True ,"Generate new mesh"),
-    ("gauge_output", False ,"Generate new mesh"),
+    ("he", 0.07/20, "Set characteristic element size"),
+    ("he_max", 10, "Set maximum characteristic element size"),
+    ("refinement_freesurface", 0.035+(3*0.07/20),"Set area of constant refinement around free surface (+/- value)"),
+    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
+    # numerical options
+    ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
+    ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
+    ("T", 10.0, "Simulation time"),
+    ("dt_init", 0.001, "Initial time step"),
+    ("dt_fixed", None, "Fixed (maximum) time step"),
+    ("cfl", 0.33 , "Target cfl"),
+    ("nsave",  20, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
-    ("mesh_tol", 0.001, "tol of mesh"),
     ("tolfac", 0.001, "tolerance factor (*he**2)"),
+    ("mesh_tol", 0.001, "tolerance factor of mesh motion (*he**2)"),
     ("parallel", True ,"Run in parallel")])
 
 
@@ -80,21 +78,17 @@ if opts.waves is True:
     mwl = depth = opts.water_level
     direction = opts.wave_dir
     wave = wt.MonochromaticWaves(period=period, waveHeight=height, mwl=mwl, depth=depth,
-                                g=np.array([0., -9.81, 0.]), waveDir=direction,
-                                wavelength=opts.wave_wavelength,
-                                waveType=opts.wave_type,
-                                Ycoeff=np.array(opts.Ycoeff),
-                                Bcoeff=np.array(opts.Bcoeff),
-                                Nf=len(opts.Bcoeff)
-                                )
+                                 g=np.array([0., -9.81, 0.]), waveDir=direction,
+                                 wavelength=opts.wave_wavelength,
+                                 waveType=opts.wave_type,
+                                 Ycoeff=np.array(opts.Ycoeff),
+                                 Bcoeff=np.array(opts.Bcoeff),
+                                 Nf=len(opts.Bcoeff))
     wavelength = wave.wavelength
-    # tank options
-    tank_dim = opts.tank_dim
-    tank_sponge = opts.tank_sponge
 
-else:
-    tank_dim = opts.tank_dim
-    tank_sponge = opts.tank_sponge
+# tank options
+tank_dim = opts.tank_dim
+tank_sponge = opts.tank_sponge
 
 # ----- DOMAIN ----- #
 
@@ -213,9 +207,15 @@ if opts.caisson is True:
     if opts.mooring is True:
         if opts.mooring_type == 'spring':
             body.addSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
-                        fairlead=np.array(opts.mooring_fairlead),
-                        anchor=np.array(opts.mooring_anchor),
-                        rest_length=opts.mooring_restlength)
+                           fairlead=np.array(opts.mooring_fairlead),
+                           anchor=np.array(opts.mooring_anchor),
+                           rest_length=opts.mooring_restlength)
+        elif opts.mooring_type == 'prismatic':
+            body.addPrismaticLinksWithSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
+                           pris1=np.array([0.,caisson.barycenter[1],0.]),
+                           pris2=np.array([0.,0.,0.]),
+                           rest_length=caisson.barycenter[0])
+
 
 
     for bc in caisson.BC_list:
@@ -239,6 +239,7 @@ if left:
 if right:
     tank.setAbsorptionZones(x_p=right)
 if opts.caisson:
+    # let gmsh know that the caisson is IN the tank
     tank.setChildShape(caisson, 0)
 
 # ----- BOUNDARY CONDITIONS ----- #
@@ -254,43 +255,47 @@ for bc in tank.BC_list:
 
 # ----- GAUGES ----- #
 
-gauge_dx = tank_sponge[0]/10.
-probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
-PG=[]
-PG2=[]
-LIG = []
-zProbes=waterLevel*0.5
-for i in probes:
-    PG.append((i, zProbes, 0.),)
-    PG2.append((i, waterLevel, 0.),)
-    LIG.append(((i, 0., 0.),(i, tank_dim[1],0.)),)
-
 if opts.gauge_output:
+    if left or right:
+        gauge_dx = tank_sponge[0]/10.
+    else:
+        gauge_dx = tank_dim[0]/10.
+    probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
+    PG=[]
+    PG2=[]
+    LIG = []
+    zProbes=waterLevel*0.5
+    for i in probes:
+        PG.append((i, zProbes, 0.),)
+        PG2.append((i, waterLevel, 0.),)
+        if i != probes[0] and not caisson_coords[0]-caisson_dim[0]*2. < i < caisson_coords[0]+caisson_dim[0]*2.:
+            LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
+        elif i == probes[0]:
+            LIG.append(((i, 0.+0.0001, 0.),(i, tank_dim[1]-0.0001,0.)),)
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('p',), PG),),
+        activeTime=(0, opts.T),
+        sampleRate=0,
+        fileName='pointGauge_pressure.csv'
+    )
+    tank.attachPointGauges(
+        'ls',
+        gauges = ((('phi',), PG),),
+        activeTime=(0, opts.T),
+        sampleRate=0,
+        fileName='pointGauge_levelset.csv'
+    )
 
-   tank.attachPointGauges(
-       'twp',
-       gauges = ((('p',), PG),),
-       activeTime=(0, opts.T),
-       sampleRate=0,
-       fileName='pointGauge_pressure.csv'
-   )
-   tank.attachPointGauges(
-       'ls',
-       gauges = ((('phi',), PG),),
-       activeTime=(0, opts.T),
-       sampleRate=0,
-       fileName='pointGauge_levelset.csv'
-   )
+    tank.attachLineIntegralGauges(
+        'vof',
+        gauges=((('vof',), LIG),),
+        activeTime = (0., opts.T),
+        sampleRate = 0,
+        fileName = 'lineGauge.csv'
+    )
 
-    # tank.attachLineIntegralGauges(
-    #     'vof',
-    #     gauges=((('vof',), LIG),),
-    #     activeTime = (0., opts.T),
-    #     sampleRate = 0,
-    #     fileName = 'lineGauge.csv'
-    # )
-
-#he = opts.caisson_dim[1]/10.0*(0.5**opts.refinement_level)
+    #he = opts.caisson_dim[1]/10.0*(0.5**opts.refinement_level)
 
 
 
@@ -373,6 +378,8 @@ mr.writeGeo(domain, 'mesh', append=False)
 
 
 domain.MeshOptions.use_gmsh = opts.use_gmsh
+domain.MeshOptions.genMesh = opts.gen_mesh
+domain.use_gmsh = opts.use_gmsh
 
 
 ##########################################
@@ -388,7 +395,6 @@ sigma_01=0.0
 g = [0., -9.81]
 
 
-refinement_level = opts.refinement_level
 
 
 from math import *
@@ -546,7 +552,7 @@ mcorr_nl_atol_res = max(1.0e-12,0.1*tolfac*he**2)
 rd_nl_atol_res = max(1.0e-12,tolfac*he)
 kappa_nl_atol_res = max(1.0e-12,tolfac*he**2)
 dissipation_nl_atol_res = max(1.0e-12,tolfac*he**2)
-mesh_nl_atol_res = max(1.0e-12,0.001*opts.mesh_tol*he**2)
+mesh_nl_atol_res = max(1.0e-12,opts.mesh_tol*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
