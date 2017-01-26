@@ -7,6 +7,10 @@ from proteus import AuxiliaryVariables, Archiver, Comm, Profiling
 cimport numpy as np
 from proteus import SpatialTools as st
 from libcpp.string cimport string
+from libcpp cimport bool
+from libcpp.memory cimport (shared_ptr,
+                            make_shared)
+from collections import OrderedDict
 
 
 cdef extern from "ChRigidBody.h":
@@ -24,14 +28,17 @@ cdef extern from "ChRigidBody.h":
         ChVector Get_A_Yaxis()
         ChVector Get_A_Zaxis()
     cdef cppclass ChBody:
-        void SetRot(ChQuaternion &mrot)
+        void SetRot(ChQuaternion &rot)
 
 
 cdef extern from "ChRigidBody.h":
     cdef cppclass cppSystem:
         void DoStepDynamics(dt)
-        void step(double dt)
-        void recordBodyList(string directory)
+        void step(double proteus_dt)
+        void recordBodyList()
+        void setChTimeStep(double dt)
+        void setGravity(double* gravity)
+        void setDirectory(string directory)
     cppSystem * newSystem(double* gravity)
 
 
@@ -60,7 +67,10 @@ cdef extern from "ChRigidBody.h":
         ChVector M
         ChVector M_last
         ChBody body
-        void prestep(double* force, double* torque, double dt)
+        cppRigidBody(cppSystem* system, double* position,
+                     double* rotq, double mass, double* inertia,
+                     double* free_x, double* free_r)
+        void prestep(double* force, double* torque)
         void poststep()
         double hx(double* x, double dt)
         double hy(double* x, double dt)
@@ -98,7 +108,7 @@ cdef class RigidBody:
       object Shape
       int nd, i_start, i_end
       double dt
-      dict record_dict
+      object record_dict
       np.ndarray position
       np.ndarray position_last
       np.ndarray F
@@ -136,7 +146,7 @@ cdef class RigidBody:
         self.Shape = shape
         self.nd = shape.nd
         self.system.addBody(self)
-        self.record_dict = {}
+        self.record_dict = OrderedDict()
         self.thisptr = newRigidBody(system.thisptr,
                                     <double*> center.data,
                                     <double*> rot.data,
@@ -159,8 +169,7 @@ cdef class RigidBody:
         cdef np.ndarray zeros = np.zeros(3)
         self.rotation_init = rot
         self.thisptr.prestep(<double*> zeros.data,
-                             <double*> zeros.data,
-                             <double> 0.)
+                             <double*> zeros.data)
         if self.rotation_init is not None:
             Profiling.logEvent("$$$$$ SETTING ROT")
             self.thisptr.setRotation(<double*> self.rotation_init.data)
@@ -313,9 +322,11 @@ cdef class RigidBody:
             dt = self.system.model.levelModelList[-1].dt_last
         except:
             dt = self.system.dt_init
-        self.thisptr.prestep(<double*> self.F_prot.data,
-                             <double*> self.M_prot.data,
-                             <double> dt)
+        self.setExternalForces(self.F_prot, self.M_prot)
+
+    def setExternalForces(self, np.ndarray forces, np.ndarray moments):
+        self.thisptr.prestep(<double*> forces.data,
+                             <double*> moments.data)
 
     def poststep(self):
         self.thisptr.poststep()
@@ -329,9 +340,7 @@ cdef class RigidBody:
         self.barycenter0 = self.Shape.barycenter.copy()
         # get the initial values for F and M
         cdef np.ndarray zeros = np.zeros(3)
-        self.thisptr.prestep(<double*> zeros.data,
-                             <double*> zeros.data,
-                             <double> 0.)
+        self.setExternalForces(zeros, zeros)
         self.thisptr.poststep()
         self.getValues()
         # self.thisptr.setRotation(<double*> self.rotation_init.data)
@@ -522,7 +531,8 @@ cdef class System:
     cdef public object model
     cdef object bodies
     cdef public double dt_init
-    cdef double dt
+    cdef double proteus_dt
+    cdef double chrono_dt
     cdef string directory
     def __cinit__(self, np.ndarray gravity):
         self.thisptr = newSystem(<double*> gravity.data)
@@ -532,25 +542,43 @@ cdef class System:
     def attachModel(self, model, ar):
         self.model = model
         return self
+
     def attachAuxiliaryVariables(self,avDict):
         pass
+
     def calculate(self):
         try:
-            self.dt = self.model.levelModelList[-1].dt_last
+            self.proteus_dt = self.model.levelModelList[-1].dt_last
         except:
-            self.dt = self.dt_init
-        dt = self.dt
+            self.proteus_dt = self.dt_init
         for body in self.bodies:
             body.prestep()
-        self.step(dt)
+        self.step(self.proteus_dt)
         for body in self.bodies:
             body.poststep()
         self.recordBodyList()
+
     def calculate_init(self):
+        self.directory = str(Profiling.logDir)+'/'
+        self.thisptr.setDirectory(self.directory)
         for body in self.bodies:
             body.calculate_init()
         self.recordBodyList()
 
+    def setTimeStep(self, dt):
+        """Sets time step for Chrono solver.
+        Calculations in Chrono will use this time step within the
+        Proteus time step (if bigger)
+
+        Parameters
+        ----------
+        dt: float
+            time step
+        """
+        self.chrono_dt = dt
+
+    def setGravity(self, np.ndarray gravity):
+        self.thisptr.setGravity(<double*> gravity.data)
 
     def step(self, double dt):
         self.thisptr.step(<double> dt)
@@ -561,10 +589,8 @@ cdef class System:
 
     def recordBodyList(self):
         comm = Comm.get()
-        self.directory = str(Profiling.logDir)+'/'
-        print(self.directory)
         if comm.isMaster():
-            self.thisptr.recordBodyList(<string> self.directory)
+            self.thisptr.recordBodyList()
 # ctypedef np.ndarray vecarray(ChVector)
 
 # ctypedef np.ndarray (*ChVector_to_npArray) (ChVector)
@@ -578,3 +604,11 @@ cdef np.ndarray ChMatrix33_to_npArray(ChMatrix33 &mat):
     return np.array([[mat.Get_A_Xaxis().x, mat.Get_A_Xaxis().y, mat.Get_A_Xaxis().z],
                      [mat.Get_A_Yaxis().x, mat.Get_A_Yaxis().y, mat.Get_A_Yaxis().z],
                      [mat.Get_A_Zaxis().x, mat.Get_A_Zaxis().y, mat.Get_A_Zaxis().z]])
+
+#def testx():
+#    cdef ChSystem system = ChSystem()
+#    cdef ChBody bod = ChBody()
+#    cdef ChVector oo = ChVector[double](2.,3.,4.)
+#    bod.SetPos_dt(oo)
+#    cdef ChVector& gg = bod.GetPos_dt()
+#    print(gg.x, gg.y, gg.z)

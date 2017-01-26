@@ -6,16 +6,20 @@ using namespace chrono;
 using namespace std;
 
 
-
-
 class cppSystem {
  public:
   ChSystem system;
   double* gravity;
+  double chrono_dt;
+  std::string directory;
   cppSystem(double* gravity);
-  void step(double dt);
-  void recordBodyList(std::string directory);
+  void step(double proteus_dt);
+  void setChTimeStep(double dt);
+  void recordBodyList();
+  void setGravity(double* gravity);
+  void setDirectory(std::string dir);
 };
+
 
 class cppRigidBody {
  public:
@@ -40,6 +44,8 @@ class cppRigidBody {
   ChVector<> M;
   ChVector<> M_last;
   double mass;
+  double mooring_restlength;
+  std::shared_ptr<ChLinkSpring> spring;
   /* ChVector <> inertia; */
   double* inertia;
   std::shared_ptr<ChBody> body;
@@ -54,7 +60,7 @@ class cppRigidBody {
   double hx(double* x, double t);
   double hy(double* x, double t);
   double hz(double* x, double t);
-  void prestep(double* force, double* torque, double dt);
+  void prestep(double* force, double* torque);
   void poststep();
   void setRotation(double* quat);
   void setPosition(double* quat);
@@ -76,18 +82,30 @@ class cppRigidBody {
 cppSystem::cppSystem(double* gravity):
 gravity(gravity)
 {
+  chrono_dt = 0.0001;
+  system.Set_G_acc(ChVector<>(gravity[0], gravity[1], gravity[2]));
+  directory = "./";
+}
+
+
+void cppSystem::setGravity(double* gravity)
+{
   system.Set_G_acc(ChVector<>(gravity[0], gravity[1], gravity[2]));
 }
 
-void cppSystem::step(double dt)
+void cppSystem::step(double proteus_dt)
 {
-  double dt2 = dt/200;
-  for (int i = 0; i < 20; ++i) {
-    system.DoStepDynamics(dt2);
+  double t = chrono_dt;
+  while (t < proteus_dt) {
+      system.DoStepDynamics(chrono_dt);
+      t += chrono_dt;
+  }
+  if (t != proteus_dt) {  // means t went above dt, need last time step
+      system.DoStepDynamics(t-proteus_dt);
   }
 }
 
-void cppSystem::recordBodyList (std::string directory) {
+void cppSystem::recordBodyList() {
       std::vector<std::shared_ptr<ChBody>>& bodylist = *system.Get_bodylist();
       double t = system.GetChTime();
       if (t == 0) {
@@ -121,6 +139,11 @@ void cppSystem::recordBodyList (std::string directory) {
     }
 }
 
+
+void cppSystem::setChTimeStep(double dt) {
+    chrono_dt = dt;
+};
+
 cppRigidBody::cppRigidBody(cppSystem* system,
                            double* posin,
                            double* rotin,
@@ -153,6 +176,12 @@ cppRigidBody::cppRigidBody(cppSystem* system,
   body->SetMass(mass);
 }
 
+
+void cppSystem::setDirectory(std::string dir) {
+    directory = dir;
+}
+
+
 double cppRigidBody::hx(double* x, double t)
 {
   rotm = body->GetA();
@@ -177,7 +206,7 @@ double cppRigidBody::hz(double* x, double t)
   return xNew(2) - x[2];
 }
 
-void cppRigidBody::prestep(double* force, double* torque, double dt)
+void cppRigidBody::prestep(double* force, double* torque)
 {
   /* step to call before running chrono system step */
   pos_last = body->GetPos();
@@ -196,21 +225,35 @@ void cppRigidBody::prestep(double* force, double* torque, double dt)
   if (free_x(0) == 0) {forceG[0] = -system->system.Get_G_acc()(0)*body->GetMass();}
   if (free_x(1) == 0) {forceG[1] = -system->system.Get_G_acc()(1)*body->GetMass();}
   if (free_x(2) == 0) {forceG[2] = -system->system.Get_G_acc()(2)*body->GetMass();}
- // GetLog() << "FREE_X: " << free_x(0) << "," << free_x(1) << "," << free_x(2);
- // GetLog() << "FORCE: " << force[0] << "," << force[1] << "," << force[2];
- // GetLog() << "FORCExFREE_X: " << force[0]*free_x(0) << "," << force[1]*free_x(1) << "," << force[2]*free_x(2);
   body->Accumulate_force(ChVector<double>(forceG[0]+force[0]*free_x(0),
                                           forceG[1]+force[1]*free_x(1),
                                           forceG[2]+force[2]*free_x(2)),
                          pos_last,
                          false);
- // GetLog() << "FREE_X2: " << free_x(0) << "," << free_x(1) << "," << free_x(2);
- // GetLog() << "FORCE2: " << force[0] << "," << force[1] << "," << force[2];
- // GetLog() << "FORCExFREE_X2: " << force[0]*free_x(0) << "," << force[1]*free_x(1) << "," << force[2]*free_x(2);
   body->Accumulate_torque(ChVector<double>(torque[0]*free_r(0),
                                            torque[1]*free_r(1),
                                            torque[2]*free_r(2)),
                           true);
+  if (spring!=0) {
+      double spring_length = spring->Get_SpringLength();
+      if (spring_length < mooring_restlength) {
+          spring->SetDisabled(true);//Set_SpringRestLength(spring_length);
+      }
+      else {
+          spring->SetDisabled(false);//Set_SpringRestLength(mooring_restlength);
+      }
+          fstream myfile;
+          double t = system->system.GetChTime();
+          myfile.open(system->directory+spring->GetNameString()+".csv", std::ios_base::app);     
+          ChVector<> springforce = spring->GetC_force();
+          ChVector<> springtorque = spring->GetC_force();
+          myfile << t << ",";     
+          myfile << springforce(0) << "," << springforce(1) << "," << springforce(2) << ",";     
+          myfile << springtorque(0) << "," << springtorque(1) << "," << springtorque(2) << ",";     
+          myfile << spring->IsDisabled() << ","; 
+          myfile << "\n";        
+          myfile.close();
+  }
 }
 
 
@@ -252,7 +295,8 @@ void cppRigidBody::addSpring(double stiffness,
                              double* anchor,
                              double rest_length)
 {
-  std::shared_ptr<ChLinkSpring> spring = std::make_shared<ChLinkSpring>();
+  mooring_restlength = rest_length;
+  spring = std::make_shared<ChLinkSpring>();
   std::shared_ptr<ChBody> anchor_body = std::make_shared<ChBody>();
   anchor_body->SetPos(ChVector<>(anchor[0], anchor[1], anchor[2]));
   anchor_body->SetBodyFixed(true);
@@ -275,9 +319,17 @@ void cppRigidBody::addPrismaticLinksWithSpring(double* pris1,
                                                double damping,
                                                double rest_length)
 {
+  mooring_restlength = rest_length;
+  auto fairlead = std::make_shared<ChBody>();
+  fairlead->SetName("PRIS3");
+  fairlead->SetPos(body->GetPos());
+  fairlead->SetMass(0.00001);
+  system->system.AddBody(fairlead);
   auto mybod2 = std::make_shared<ChBody>();
   mybod2->SetName("PRIS1");
   mybod2->SetPos(ChVector<>(pris1[0], pris1[1], pris1[2]));
+  mybod2->SetMass(0.00001);
+  //mybod2->AddForce(-system->system.Get_G_acc());
   //mybod2->SetBodyFixed(true);
   system->system.AddBody(mybod2);
   auto mybod3 = std::make_shared<ChBody>();
@@ -289,14 +341,24 @@ void cppRigidBody::addPrismaticLinksWithSpring(double* pris1,
   auto mylink1 = std::make_shared<ChLinkLockPrismatic>();
   system->system.AddLink(mylink1);
   auto mycoordsys1 = ChCoordsys<>(mybod2->GetPos(),Q_from_AngAxis(CH_C_PI/2., VECT_Y));//Q_from_AngAxis(CH_C_PI / 2, VECT_X));
-  mylink1->Initialize(body, mybod2, mycoordsys1);
+  mylink1->Initialize(fairlead, mybod2, mycoordsys1);
+
+
 
   auto mylink2 = std::make_shared<ChLinkLockPrismatic>();
   system->system.AddLink(mylink2);
   auto mycoordsys2 = ChCoordsys<>(mybod3->GetPos(),Q_from_AngAxis(CH_C_PI/2., VECT_X));//Q_from_AngAxis(CH_C_PI / 2, VECT_X));
   mylink2->Initialize(mybod2, mybod3,mycoordsys2);
 
-  std::shared_ptr<ChLinkSpring> spring = std::make_shared<ChLinkSpring>();
+  auto mylink3 = std::make_shared<ChLinkLockSpherical>();
+  //auto mylink3 = std::make_shared<ChLinkLockRevolute>();
+  //mylink3->SetMotion_axis(ChVector<>(0.,1.,0.));
+  system->system.AddLink(mylink3);
+  mylink3->Initialize(body, fairlead, false, body->GetCoord(), fairlead->GetCoord());
+
+
+
+  spring = std::make_shared<ChLinkSpring>();
   spring->Initialize(body,
                      mybod2,
                      true, // true for pos relative to bodies
