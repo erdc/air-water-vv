@@ -85,6 +85,16 @@ gravity(gravity)
   chrono_dt = 0.0001;
   system.Set_G_acc(ChVector<>(gravity[0], gravity[1], gravity[2]));
   directory = "./";
+  // SOLVER OPTIONS
+  system.SetSolverType(ChSystem::SOLVER_MINRES);  // SOLVER_MINRES: good convergence, supports FEA, does not support DVI yet
+  system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+  system.SetMaxItersSolverSpeed(200);  // max iteration for iterative solvers
+  system.SetMaxItersSolverStab(200);  // max iteration for stabilization (iterative solvers)
+  system.SetTolForce(1e-10); // default: 0.001
+  system.SetMaxiter(200); // default: 6. Max constraints to reach tolerance on constraints.
+  system.SetTol(1e-10); // default: 0.0002. Tolerance for keeping constraints together.
+  system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+  //system.SetTimestepper(std::make_shared<ChTimestepperEulerImplicitLinearized>());  // default: fast, 1st order
 }
 
 
@@ -96,12 +106,17 @@ void cppSystem::setGravity(double* gravity)
 void cppSystem::step(double proteus_dt)
 {
   double t = chrono_dt;
-  while (t < proteus_dt) {
-      system.DoStepDynamics(chrono_dt);
-      t += chrono_dt;
+  if (t > proteus_dt) {
+      system.DoStepDynamics(proteus_dt);
+    }
+  else {
+      while (t <= proteus_dt) {
+          system.DoStepDynamics(chrono_dt);
+          t += chrono_dt;
+      }
+      if (t != proteus_dt) {  // means t went above dt, need last time step
+          system.DoStepDynamics(proteus_dt-(t-chrono_dt));
   }
-  if (t != proteus_dt) {  // means t went above dt, need last time step
-      system.DoStepDynamics(t-proteus_dt);
   }
 }
 
@@ -242,17 +257,6 @@ void cppRigidBody::prestep(double* force, double* torque)
       else {
           spring->SetDisabled(false);//Set_SpringRestLength(mooring_restlength);
       }
-          fstream myfile;
-          double t = system->system.GetChTime();
-          myfile.open(system->directory+spring->GetNameString()+".csv", std::ios_base::app);     
-          ChVector<> springforce = spring->GetC_force();
-          ChVector<> springtorque = spring->GetC_force();
-          myfile << t << ",";     
-          myfile << springforce(0) << "," << springforce(1) << "," << springforce(2) << ",";     
-          myfile << springtorque(0) << "," << springtorque(1) << "," << springtorque(2) << ",";     
-          myfile << spring->IsDisabled() << ","; 
-          myfile << "\n";        
-          myfile.close();
   }
 }
 
@@ -354,12 +358,12 @@ void cppRigidBody::addPrismaticLinksWithSpring(double* pris1,
   //auto mylink3 = std::make_shared<ChLinkLockRevolute>();
   //mylink3->SetMotion_axis(ChVector<>(0.,1.,0.));
   system->system.AddLink(mylink3);
-  mylink3->Initialize(body, fairlead, false, body->GetCoord(), fairlead->GetCoord());
+  mylink3->Initialize(fairlead, body, false, fairlead->GetCoord(), body->GetCoord());
 
 
 
   spring = std::make_shared<ChLinkSpring>();
-  spring->Initialize(body,
+  spring->Initialize(fairlead,
                      mybod2,
                      true, // true for pos relative to bodies
                      ChVector<>(0.,0.,0.),

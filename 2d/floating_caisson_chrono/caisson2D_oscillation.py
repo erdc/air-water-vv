@@ -9,30 +9,31 @@ import numpy as np
 
 opts=Context.Options([
     # predefined test cases
-    ("water_level", 0.9, "Height of free surface above bottom"),
+    ("water_level", 1.5, "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (5.815*4, 2.,), "Dimensions of the tank"),
-    ("tank_sponge", (5.815*2, 5.815*2), "Length of absorption zones (front/back, left/right)"),
+    ("tank_dim", (1.596*4, 3.,), "Dimensions of the tank"),
+    ("tank_sponge", (1.596*2, 1.596*2), "Length of absorption zones (front/back, left/right)"),
     ("gauge_output", False, "Places Gauges in tank"),
     # waves
     ("waves", False, "Generate waves (True/False)"),
     ("wave_period", 0.8, "Period of the waves"),
     ("wave_height", 0.029, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
-    ("wave_wavelength", (1., 0., 0.), "Direction of the waves (from left boundary)"),
+    ("wave_wavelength", 1.596, "Direction of the waves (from left boundary)"),
     ("wave_type", 'Linear', "type of wave"),
     ("Bcoeff", np.zeros(2,), "BCoeffs"),
     ("Ycoeff", np.zeros(2,), "YCoeffs"),
     # caisson
     ("caisson", True, "caisson"),
-    ("caisson_dim", (0.5, 0.5), "Dimensions of the caisson"),
-    ("caisson_coords", (1., 0.9), "Dimensions of the caisson"),
+    ("caisson_dim", (0.5, 0.32), "Dimensions of the caisson"),
+    ("caisson_coords", (1.596*2, 1.41), "Dimensions of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
     ("caisson_corner_r", 0.064, "radius of the corners of the caisson"),
     ("caisson_corner_side", 'bottom', "corners placement"),
+    ("caisson_BC", 'noslip', "BC on caisson ('noslip'/'freeslip')"),
     ("free_x", (0.0, 0.0, 0.0), "Translational DOFs"),
     ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
-    ("VCG", None, "vertical position of the barycenter of the caisson"),
+    ("VCG", 0.135, "vertical position of the barycenter of the caisson"),
     ("caisson_mass", 125., "Mass of the caisson"),
     ("caisson_inertia", 4.05, "Inertia of the caisson"),
     ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
@@ -46,16 +47,20 @@ opts=Context.Options([
     ("mooring_restlength", 0., "mooring (spring) rest length"),
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
-    ("he", 0.07/20, "Set characteristic element size"),
+    ("he", 0.007, "Set characteristic element size"),
     ("he_max", 10, "Set maximum characteristic element size"),
-    ("refinement_freesurface", 0.035+(3*0.07/20),"Set area of constant refinement around free surface (+/- value)"),
+    ("he_max_water", 10, "Set maximum characteristic in water"),
+    ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value)"),
+    ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
+    ("movingDomain", True, "True/False"),
     ("T", 10.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
+    ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
     ("cfl", 0.33 , "Target cfl"),
     ("nsave",  20, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
@@ -219,7 +224,10 @@ if opts.caisson is True:
 
 
     for bc in caisson.BC_list:
-        bc.setNoSlip()
+        if opts.caisson_BC == 'noslip':
+            bc.setNoSlip()
+        if opts.caisson_BC == 'freeslip':
+            bc.setFreeSlip()
 
 
 # ----- SHAPES ----- #
@@ -230,11 +238,11 @@ if tank_sponge[0]: left = True
 if tank_sponge[1]: right = True
 if left:
     if opts.waves is True:
-        tank.setGenerationZones(x_n=left, waves=wave)
         smoothing = opts.he*3.
+        tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=0.5/1.004e-6)
         tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
     else:
-        tank.setAbsorptionZones(x_n=left)
+        tank.setAbsorptionZones(x_n=left, dragAlpha=0.5/1.004e-6)
         tank.BC['x-'].setNoSlip()
 if right:
     tank.setAbsorptionZones(x_p=right)
@@ -268,10 +276,14 @@ if opts.gauge_output:
     for i in probes:
         PG.append((i, zProbes, 0.),)
         PG2.append((i, waterLevel, 0.),)
-        if i != probes[0] and not caisson_coords[0]-caisson_dim[0]*2. < i < caisson_coords[0]+caisson_dim[0]*2.:
-            LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
-        elif i == probes[0]:
+        if i == probes[0]:
             LIG.append(((i, 0.+0.0001, 0.),(i, tank_dim[1]-0.0001,0.)),)
+        elif i != probes[0]:
+            if opts.caisson:
+                if not caisson_coords[0]-caisson_dim[0]*2. < i < caisson_coords[0]+caisson_dim[0]*2.:
+                    LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
+            else:
+                LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
     tank.attachPointGauges(
         'twp',
         gauges = ((('p',), PG),),
@@ -321,7 +333,8 @@ if opts.refinement:
     #       tank.MeshOptions.setRefinementFunction(mesh_grading(start='sqrt((x-{0})^2+(y-{1})^2)'.format(pd[0], pd[1]), he=he2, grading=grading))
 
     if opts.caisson is True:
-        caisson.MeshOptions.setBoundaryLayerEdges(hwall_n=he2, hwall_t=he2, ratio=grading, EdgesList=[i for i in range(len(caisson.segments))])
+        if not opts.refinement_caisson:
+            caisson.MeshOptions.setBoundaryLayerEdges(hwall_n=he2, hwall_t=he2, ratio=grading, EdgesList=[i for i in range(len(caisson.segments))])
 
     he_max = opts.he_max
     # he_fs = he2
@@ -343,37 +356,52 @@ if opts.refinement:
         domain.MeshOptions.LcMax = he2 #coarse grid
 
 
-#offset = 0.1
-#xmin = caisson_coords[0]-(caisson_dim[0]/2.+offset)
-#xmax = caisson_coords[0]+(caisson_dim[0]/2.+offset)
-#ymin = caisson_coords[1]-(caisson_dim[1]/2.+offset)
-#ymax = caisson_coords[1]+(caisson_dim[1]/2.+offset)
-# tank.MeshOptions.refineBox(he2, he_max, xmin, xmax, ymin, ymax)
+tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
 
 #meshfile='T'+str(tank_dim[0])+str(tank_dim[1])
 st.assembleDomain(domain)
+append = False
+if opts.refinement_caisson:
+    append = True
+    offset = opts.refinement_caisson
+    xmin = caisson_coords[0]-(caisson_dim[0]/2.+offset)
+    xmax = caisson_coords[0]+(caisson_dim[0]/2.+offset)
+    ymin = caisson_coords[1]-(caisson_dim[1]/2.+offset)
+    ymax = caisson_coords[1]+(caisson_dim[1]/2.+offset)
+    tank.MeshOptions.refineBox(he2, he_max, xmin, xmax, ymin, ymax)
 mr._assembleRefinementOptions(domain)
-mr.writeGeo(domain, 'mesh', append=False)
-# mr.writeGeo(domain, 'mesh', append=True)
+from proteus import Comm
+comm = Comm.get()
+if comm.isMaster():
+    mr.writeGeo(domain, 'mesh', append=append)
+    if append is True:
+        f = open('mesh.geo', 'a')
+        f.write('Point(200) = {{{0}}};\n'.format(str([xmin, ymin, 0])[1:-1]))
+        f.write('Point(201) = {{{0}}};\n'.format(str([xmax, ymin, 0])[1:-1]))
+        f.write('Point(202) = {{{0}}};\n'.format(str([xmax, ymax, 0])[1:-1]))
+        f.write('Point(203) = {{{0}}};\n'.format(str([xmin, ymax, 0])[1:-1]))
+        f.write('Line(200) = {{{0}}};\n'.format(str([200, 201])[1:-1]))
+        f.write('Line(201) = {{{0}}};\n'.format(str([201, 202])[1:-1]))
+        f.write('Line(202) = {{{0}}};\n'.format(str([202, 203])[1:-1]))
+        f.write('Line(203) = {{{0}}};\n'.format(str([203, 200])[1:-1]))
 
-# f = open('mesh.geo', 'a')
-# f.write('Point(200) = {{{0}}};\n'.format(str([xmin, ymin, 0])[1:-1]))
-# f.write('Point(201) = {{{0}}};\n'.format(str([xmax, ymin, 0])[1:-1]))
-# f.write('Point(202) = {{{0}}};\n'.format(str([xmax, ymax, 0])[1:-1]))
-# f.write('Point(203) = {{{0}}};\n'.format(str([xmin, ymax, 0])[1:-1]))
-# f.write('Line(200) = {{{0}}};\n'.format(str([200, 201])[1:-1]))
-# f.write('Line(201) = {{{0}}};\n'.format(str([201, 202])[1:-1]))
-# f.write('Line(202) = {{{0}}};\n'.format(str([202, 203])[1:-1]))
-# f.write('Line(203) = {{{0}}};\n'.format(str([203, 200])[1:-1]))
+        f.write('Field[{0}] = BoundaryLayer;\n'
+                'Field[{0}].hwall_n = {1};\n'
+                'Field[{0}].ratio = {2};\n'
+                'Field[{0}].EdgesList = {{200, 201, 202, 203}};\n'
+                .format(7, he2, grading))
+        f.write('Field[8] = Min; Field[8].FieldsList = {1, 2, 3, 4, 5, 6, 7};\n')
+        f.write('Background Field = 8;\n')
+        f.close()
+#f.write('Point(204) = {{{0}}};\n'.format(str([-tank_sponge[0], waterLevel-box, 0])[1:-1]))
+#f.write('Point(205) = {{{0}}};\n'.format(str([tank_dim[0]+tank_sponge[1], waterLevel-box, 0])[1:-1]))
+#f.write('Point(206) = {{{0}}};\n'.format(str([-tank_sponge[0], waterLevel+box, 0])[1:-1]))
+#f.write('Point(207) = {{{0}}};\n'.format(str([tank_dim[0]+tank_sponge[1], waterLevel+box, 0])[1:-1]))
+#f.write('Line(204) = {{{0}}};\n'.format(str([204, 205])[1:-1]))
+#f.write('Line(205) = {{{0}}};\n'.format(str([206, 207])[1:-1]))
 
-# f.write('Field[{0}] = BoundaryLayer;\n' 
-#         'Field[{0}].hwall_t = {1}; Field[{0}].hwall_n = {2};\n' 
-#         'Field[{0}].ratio = {3};\n' 
-#         'Field[{0}].EdgesList = {{200, 201, 202, 203}};\n' 
-#         .format(6, he2, he2, grading))
-# f.write('Field[7] = Min; Field[7].FieldsList = {1, 2, 3, 4, 5, 6};\n')
-# f.write('Background Field = 7;\n')
-# f.close()
+
+
 
 
 
@@ -411,7 +439,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 #----------------------------------------------------
 # Boundary conditions and other flags
 #----------------------------------------------------
-movingDomain=True
+movingDomain=opts.movingDomain
 checkMass=False
 applyCorrection=True
 applyRedistancing=True
@@ -424,6 +452,7 @@ weak_bc_penalty_constant = 10.0/nu_0#Re
 dt_init = opts.dt_init
 T = opts.T
 nDTout = int(opts.T*opts.nsave)
+timeIntegration = opts.timeIntegration
 if nDTout > 0:
     dt_out= (T-dt_init)/nDTout
 else:
@@ -485,7 +514,9 @@ elif spaceOrder == 2:
 
 
 # Numerical parameters
-sc = 0.5
+sc = 0.25 # default: 0.5. Test: 0.25
+sc_beta = 1. # default: 1.5. Test: 1.
+epsFact_consrv_diffusion = 1.0 # default: 1.0. Test: 0.1
 ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 if useMetrics:
@@ -495,26 +526,26 @@ if useMetrics:
     ls_shockCapturingFactor  = sc
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.5
+    ls_sc_beta  = sc_beta
     vof_shockCapturingFactor = sc
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
+    vof_sc_beta = sc_beta
     rd_shockCapturingFactor  =sc
     rd_lag_shockCapturing = False
     epsFact_density    = 3.
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0#0.1
+    epsFact_consrv_diffusion = epsFact_consrv_diffusion
     redist_Newton = True#False
     kappa_shockCapturingFactor = sc
     kappa_lag_shockCapturing = False#True
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.5
+    kappa_sc_beta = sc_beta
     dissipation_shockCapturingFactor = sc
     dissipation_lag_shockCapturing = False#True
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.5
+    dissipation_sc_beta = sc_beta
 else:
     ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
