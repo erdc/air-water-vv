@@ -9,40 +9,58 @@ from proteus.mprans import BodyDynamics as bd
 
 opts=Context.Options([
     # predefined test cases
-    ("water_level", 0.75, "Height of free surface above bottom"),
+    ("water_level", 2.0, "Height of free surface above bottom"),
     # Geometry
-    ('Lgen', 0.5, 'Genaration zone in terms of wave lengths'),
-    ('Labs', 0.5, 'Absorption zone in terms of wave lengths'),
-    ('Ls', 0.5, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
-    ('Lend', 0.5, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
-    ('th', 1.25, 'Total height of numerical tank'),
+    ('Lgen', 1.0, 'Genaration zone in terms of wave lengths'),
+    ('Labs', 1.0, 'Absorption zone in terms of wave lengths'),
+    ('Ls', 2.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
+    ('Lend', 2.0, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
+    ('th', 2.5, 'Total height of numerical tank'),
+    ('wl', 0.75, 'Used instead of wavelength from wavetools. Spatial parameter to build-up the doamin only if wave is False'),    
     # waves
-    ('wave', True, 'Turn on wave generation'),
-    ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
-    ("wave_period", 2.0, "Period of the waves"),
-    ("wave_height", 0.1, "Height of the waves"), 
-    ('wavelength', 0.0, 'Wavelength only if Fenton is activated'), 
-    ('Ycoeff', [ 0.0 ], 'Ycoeff only if Fenton is activated'),
-    ('Bcoeff', [ 0.0 ], 'Bcoeff only if Fenton is activated'),
+    ('wave', not True, 'Turn on wave generation'),
+    ('waveType', 'Fenton', 'Wavetype for regular waves, Linear or Fenton'),
+    ("wave_period", 0., "Period of the waves"),
+    ("wave_height", 0, "Height of the waves"), 
+    ('wavelength', 0., 'Wavelength only if Fenton is activated'), 
+    ('Ycoeff', [ 0. ], 'Ycoeff only if Fenton is activated'),
+    ('Bcoeff', [ 0. ], 'Bcoeff only if Fenton is activated'),
+    ('Nf', 1 ,'Number of frequency components for fenton waves'),
+    ('meanVelocity', [ 0.8, 0., 0.],'Velocity used for currents'),
+    ('phi0', 0.0 ,'Initial phase for waves'),
+    ('Uwind', [0.0, 0.0, 0.0], 'Set air velocity'),
     # circle2D
     ("circle2D", True, "Switch on/off circle2D"),
-    ('radius', 0.075, 'Radius of the circle2D'),
+    ('radius', 0.125, 'Radius of the circle2D'),
+    ('gap', 0.3, 'Gap from the bottom in number of diameter'),    
     ('width', 1.0, 'Z-dimension of the circle2D'),
-    ('mass', 50.00, 'Mass of the caisson2D [kg]'),
-    ("rotation", False, "Initial position for free oscillation"),
+    ('mass', 46.41, 'Mass of the caisson2D [kg]'),    # density of polypropylene is 946 kg/m3
+    ("rotation", not True, "Initial position for free oscillation"),
     ('circleBC', 'FreeSlip', 'circle2D boundaries: NoSlip or FreeSlip'),
     ('InputMotion', True, 'If True, set a motion as input rather than calculate it'),
-    ('scheme', 'Runge_Kutta', 'Numerical scheme applied to solve motion calculation (Runge_Kutta or Central_Difference)'),
-    ("springs", True, "Switch on/off soil module"),
-    ("Kx", 7.0*(10.**2), "Horizontal stiffness in N/m"),
-    ("Ky", 3.5*(10.**3), "Vertical stiffness in N/m"),
+    ('At', [0.0, 0.0625, 0.0], 'Amplitude of imposed sinusoidal translational motion'),
+    ('Tt', [0.0, 1.42, 0.0], 'Period of imposed sinusoidal translational motion'), # fD/U adimensioanl frequency, from here I calculate T  3.125 2.604 2.232 1.953 1.736 1.562 1.420 1.302
+    ('scheme', None, 'Numerical scheme applied to solve motion calculation (Runge_Kutta or Central_Difference)'),
+    ("springs", not True, "Switch on/off soil module"),
+    ("Kx", 0.0, "Horizontal stiffness in N/m"),
+    ("Ky", 0.0, "Vertical stiffness in N/m"),
     ("Krot", 0.0, "Rotational stiffness in N*m"),
     ("Cx", 0.0, "Damping factor in N/m*s "),
     ("Cy", 0.0, "Damping factor in N/m*s "),
     ("Crot", 0.0, "Rotational damping factor in N*m*s "),
+    # Turbulence
+    ("I", 0.05,"Intensity of the turbulence"),
+    ("useRANS", 3, "Switch ON turbulence models"),# 0 -- None # 1 -- K-Epsilon # 2 -- K-Omega, 1998 # 3 -- K-Omega, 1988
+    ("c_mu", 0.09, "mu coefficient for the turbulence model"),
+    ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
+    ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
+    ("turbulenceLength", (3.0 * 0.25) , "Length of the turbulence effects"),
     # numerical options
-    ("refinement_level", 100.,"he=walength/refinement_level"),
-    ("he", 0.00,"Mesh size"),
+    ("GenZone", True, 'Turn on generation zone at left side'),
+    ("AbsZone", True, 'Turn on absorption zone at right side'),
+    ('duration', 120., 'Simulation duration'),
+    ("refinement_level", 0.0,"he=walength/refinement_level"),
+    ("he", 0.025,"Mesh size"),
     ("cfl", 0.90 ,"Target cfl"),
     ("freezeLevelSet", True, "No motion to the levelset"),
     ("useVF", 1.0, "For density and viscosity smoothing"),
@@ -84,38 +102,26 @@ gAbs=sqrt(sum(g**2))
 
 
 # ----- WAVE input ----- #
-
-if opts.wave==True:
-    if opts.waveType=='Linear':
-        waveinput = wt.MonochromaticWaves(period=period,
-                                      waveHeight=waveHeight,
-                                      mwl=mwl,
-                                      depth=waterLevel,
-                                      g=g,
-                                      waveDir=waveDir,
-                                      wavelength=None, # if wave is linear I can use None
-                                      waveType="Linear")
-
-    if opts.waveType=='Fenton':
-        waveinput = wt.MonochromaticWaves(period=period,
-                                      waveHeight=waveHeight,
-                                      mwl=mwl,
-                                      depth=waterLevel,
-                                      g=g,
-                                      waveDir=waveDir,
-                                      wavelength=opts.wavelength, # if wave is linear I can use None
-                                      waveType="Fenton",
-                                      Ycoeff=opts.Ycoeff,
-                                      Bcoeff=opts.Bcoeff,
+if opts.wave == True:
+    waveinput = wt.MonochromaticWaves(period=period,
+                                  waveHeight=waveHeight,
+                                  mwl=mwl,
+                                  depth=waterLevel,
+                                  g=g,
+                                  waveDir=waveDir,
+                                  wavelength=opts.wavelength,       # used by fenton waves
+                                  waveType=opts.waveType, 
+                                  Ycoeff=np.array(opts.Ycoeff),     # used by fenton waves
+                                  Bcoeff=np.array(opts.Bcoeff),     # used by fenton waves
+                                  Nf=opts.Nf,                       # used by fenton waves
+                                  meanVelocity = np.array(opts.meanVelocity),
+                                  phi0 = opts.phi0,
                                       )
 
 #---------Domain Dimension
 
 nd = 2.
-if opts.wave==True:
-    wl = waveinput.wavelength
-else:
-    wl=5.0
+wl=opts.wl
 
 #---------MESH SIZE
 if opts.he == 0.0:
@@ -123,12 +129,9 @@ if opts.he == 0.0:
 else:
     he = opts.he 
 
-
-
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # ----- SHAPES ----- #
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-
 
 if opts.circle2D:
     L_leftSpo  = opts.Lgen*wl
@@ -140,14 +143,14 @@ if opts.circle2D:
     h=2.0*radius
 
 #-Tank
-    x1=0.0+L_leftSpo
+    x1=L_leftSpo
     x2=x1+opts.Ls*wl
     x3=x2+b
     x4=x3+opts.Lend*wl
     x5=x4+L_rightSpo
 
-    xc1=(x2+x3)*0.5
-    yc1=0.5
+    xc1 = (x2+x3)*0.5
+    yc1 = opts.radius + (opts.gap* (2.0*opts.radius) )
 
     tank_dim = [x5, opts.th]
 
@@ -166,29 +169,29 @@ boundaryTags = {'y-': 1,
                     'circle':6,
                        }
 
-
 ##############################################################################################################################################################################################################
 # circle2D
 ############################################################################################################################################################################################################
 if opts.circle2D:
     width=opts.width           # The 3rd dimension
     mass=opts.mass             # kg
-    I=100000000000.0
+    I = (3.14*(radius**4)/2.)*mass
 
 # --- Shape properties setup
-    circle = st.Circle(domain=domain, radius=opts.radius, coords=(xc1, yc1), barycenter=(xc1, yc1), nPoints=32)
+    circle = st.Circle(domain=domain, radius=opts.radius, coords=(xc1, yc1), barycenter=(xc1, yc1), nPoints=28)
 
 # --- Body properties setup
-    circle2D = bd.circularBody(shape=circle, substeps=20)
+    circle2D = bd.RigidBody(shape=circle)
     free_x=(0.0, 0.0, 0.0) # Translational DOFs
     free_r=(0.0, 0.0, 0.0) # Rotational DOFs
     if opts.movingDomain==True:
         free_x=(1.0, 1.0, 0.0) # Translational DOFs
-        free_r=(0.0, 0.0, 0.0) # Rotational DOFs
+        free_r=(0.0, 0.0, 1.0) # Rotational DOFs
     circle2D.setMass(mass)
     circle2D.It= I/circle2D.mass/width
     circle2D.setConstraints(free_x=free_x, free_r=free_r)
     circle2D.setNumericalScheme(scheme=opts.scheme)
+    circle2D.inputMotion(InputMotion=opts.InputMotion, At=opts.At, Tt=opts.Tt)
     circle2D.setRecordValues(filename='circle2D', all_values=True)
 
 #----- Spring setup
@@ -199,7 +202,7 @@ if opts.circle2D:
     Cx = opts.Cx
     Cy = opts.Cy
     Crot = opts.Crot
-    circle2D.setSprings(springs, Kx, Ky, Krot, Cx, Cy, Crot)
+    circle2D.setSprings(springs,  K=[Kx, Ky, 0.0, Krot], C=[Cx, Cy, 0.0, Crot])
 
 
 ##############################################################################################################################################################################################################
@@ -248,9 +251,10 @@ if opts.circle2D==True:
 
 
 regions = [ [ 0.90*x1 , 0.10*tank_dim[1] ],
+            [ 0.90*x2 , 0.10*tank_dim[1] ],
             [ 0.95*tank_dim[0] , 0.95*tank_dim[1] ] ]
 
-regionFlags=np.array([1, 2])
+regionFlags=np.array([1, 2, 3])
 
 
 
@@ -258,6 +262,21 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       segments=segments, segmentFlags=segmentFlags,
                       regions=regions, regionFlags=regionFlags,
                       boundaryTags=boundaryTags, boundaryOrientations=boundaryOrientations)
+
+
+
+############################################################################################################################################################################
+# ----- Turbulence ----- #
+###########################################################################################################################################################################
+
+useRANS=opts.useRANS
+I = opts.I #0.05
+kInflow = 3./2.*((I*opts.meanVelocity[0])**2) 
+
+dissipationInflow = (kInflow**0.5) / ( opts.turbulenceLength*(opts.c_mu**0.25) )
+if useRANS == 2:
+    dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
+
 
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
@@ -273,11 +292,19 @@ if opts.circle2D:
 
 if opts.wave==True:
     tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1)
+    tank.BC['x+'].setFreeSlip()
 else:
-    tank.BC['x-'].setFreeSlip()
+    tank.BC['x-'].setTwoPhaseVelocityInlet(U=opts.meanVelocity, waterLevel=opts.water_level, kInflow=kInflow, dissipationInflow=dissipationInflow)
+    #tank.BC['x+'].setFreeSlip()
+    tank.BC['x+'].setHydrostaticPressureOutletWithDepth( seaLevel=opts.water_level, rhoUp=rho_1,
+                                                         rhoDown=rho_0, g=g,
+                                                         refLevel=opts.water_level, U=opts.meanVelocity)
+    #tank.BC['x+'].setTwoPhaseVelocityInlet(U=opts.meanVelocity, waterLevel=opts.water_level)
+
+
 tank.BC['y+'].setAtmosphere()
+#tank.BC['y+'].setFreeSlip()
 tank.BC['y-'].setFreeSlip()
-tank.BC['x+'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 
 if opts.movingDomain==True:
@@ -286,20 +313,29 @@ if opts.movingDomain==True:
 
 
 
-
 ########################################################################################################################################################################################################################################################################################################################################################
 # -----  GENERATION ZONE & ABSORPTION ZONE  ----- #
 ########################################################################################################################################################################################################################################################################################################################################################
 
-tank.setAbsorptionZones(flags=2, epsFact_solid=float(L_rightSpo/2.),
-                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+if opts.GenZone == True and opts.wave == True:
+    tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
+                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+                        waves=waveinput,
+                        )
+elif opts.GenZone == True:
+    tank.setAbsorptionZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
+                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
                         )
 
+if opts.AbsZone == True:
+    tank.setAbsorptionZones(flags=3, epsFact_solid=float(L_rightSpo/2.),
+                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+                        )
 
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
 ############################################################################################################################################################################
-T = 30.*period
+T = opts.duration
 
 gauge_dx=0.25
 probes=np.linspace(0., tank_dim[0], (tank_dim[0]/gauge_dx)+1)
@@ -314,15 +350,13 @@ levelset_output=ga.PointGauges(gauges=((('phi',),PG),
                           sampleRate=0.,
                           fileName='levelset_gauges.csv')
 
-
 ######################################################################################################################################################################################################################
 # Numerical Options and other parameters #
 ######################################################################################################################################################################################################################
 
-T = 6.*opts.wave_period
+T = T 
 he = he
 domain.MeshOptions.he = he
-
 
 from math import *
 from proteus import MeshTools, AuxiliaryVariables
@@ -357,10 +391,10 @@ freezeLevelSet=opts.freezeLevelSet
 useOnlyVF = False # if TRUE  proteus uses only these modules --> twp_navier_stokes_p + twp_navier_stokes_n
                   #                                              vof_p + vof_n
 movingDomain=opts.movingDomain
-useRANS = 0 # 0 -- None
-            # 1 -- K-Epsilon
-            # 2 -- K-Omega, 1998
-            # 3 -- K-Omega, 1988
+useRANS = opts.useRANS  # 0 -- None
+                        # 1 -- K-Epsilon
+                        # 2 -- K-Omega, 1998
+                        # 3 -- K-Omega, 1988
 
 genMesh=True
 
@@ -488,6 +522,8 @@ mesh_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+
+useRANS=opts.useRANS
 
 if useRANS == 1:
     ns_closure = 3
