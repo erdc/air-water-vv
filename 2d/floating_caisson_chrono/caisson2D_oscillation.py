@@ -91,7 +91,8 @@ if opts.waves is True:
                                  waveType=opts.wave_type,
                                  Ycoeff=np.array(opts.Ycoeff),
                                  Bcoeff=np.array(opts.Bcoeff),
-                                 Nf=len(opts.Bcoeff))
+                                 Nf=len(opts.Bcoeff),
+                                 fast=False)
     wavelength = wave.wavelength
 
 # tank options
@@ -388,27 +389,6 @@ if opts.refinement_caisson and opts.caisson:
     ymax = caisson_coords[1]+(caisson_dim[1]/2.+offset)
     tank.MeshOptions.refineBox(he2, he_max, xmin, xmax, ymin, ymax)
 mr._assembleRefinementOptions(domain)
-print "RELAXATION ZONE"
-rel = domain.auxiliaryVariables['twp'][0].zones[2]
-rel.calculate_init()
-x = np.array([0., 0.9, 0.])
-print "CENTER"
-#print rel
-print rel.orientation[0]
-print rel.orientation[1]
-print "CENTER"
-phii = rel.calculate_phi_python(x)
-print "PHI"
-print phii
-u = rel.calculate_vel_python(x, 0.)
-print(u[0], u[1], u[2])
-print wave.u(x, 0.)
-print rel.orientation[0]
-print domain.dragAlphaTypes
-print domain.porosityTypes
-print domain.regions
-print domain.regionFlags
-print domain.dragBetaTypes
 from proteus import Comm
 comm = Comm.get()
 if comm.isMaster():
