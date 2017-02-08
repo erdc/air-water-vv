@@ -46,9 +46,10 @@ if ct.dt_fixed:
 #    systemStepControllerType = Sequential_FixedStep
     systemStepControllerType = Sequential_MinAdaptiveModelStep
     dt_system_fixed = ct.dt_fixed
-    stepExactSystem=True
+    stepExactSystem=False
 else:  # use CFL
     systemStepControllerType = Sequential_MinAdaptiveModelStep
+    stepExactSystem=False
 
 needEBQ_GLOBAL = False
 needEBQ = False

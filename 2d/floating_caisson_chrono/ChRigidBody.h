@@ -82,7 +82,7 @@ class cppRigidBody {
 cppSystem::cppSystem(double* gravity):
 gravity(gravity)
 {
-  chrono_dt = 0.0001;
+  chrono_dt = 0.000001;
   system.Set_G_acc(ChVector<>(gravity[0], gravity[1], gravity[2]));
   directory = "./";
   // SOLVER OPTIONS
@@ -93,7 +93,8 @@ gravity(gravity)
   system.SetTolForce(1e-10); // default: 0.001
   system.SetMaxiter(200); // default: 6. Max constraints to reach tolerance on constraints.
   system.SetTol(1e-10); // default: 0.0002. Tolerance for keeping constraints together.
-  system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+  //system.SetIntegrationType(ChSystem::INT_HHT); // used before: ChSystem::INT_EULER_IMPLICIT_LINEARIZED
+  system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED); // used before: ChSystem::INT_EULER_IMPLICIT_LINEARIZED
   //system.SetTimestepper(std::make_shared<ChTimestepperEulerImplicitLinearized>());  // default: fast, 1st order
 }
 
@@ -105,6 +106,10 @@ void cppSystem::setGravity(double* gravity)
 
 void cppSystem::step(double proteus_dt)
 {
+//    double dt2 = proteus_dt/200;
+//    for (int i = 0; i < 200; ++i) {
+//      system.DoStepDynamics(dt2);
+//    }
   double t = chrono_dt;
   if (t > proteus_dt) {
       system.DoStepDynamics(proteus_dt);
@@ -184,6 +189,9 @@ cppRigidBody::cppRigidBody(cppSystem* system,
   body->SetInertiaXX(ChVector<>(1.,
                                 1.,
                                 inertia[2]));  // careful division by zero!
+  if (free_x(0) == 0 && free_x(1) == 0 && free_x(2) ==0 && free_r(0) == 0 && free_r(1) ==0 && free_r(2) == 0) {
+  body->SetBodyFixed(true);
+  }
   rotm = body->GetA();
   rotm_last = body->GetA();
   pos = body->GetPos();

@@ -12,10 +12,12 @@ opts=Context.Options([
     ("water_level", 1.5, "Height of free surface above bottom"),
     # tank
     ("tank_dim", (1.596*4, 3.,), "Dimensions of the tank"),
-    ("tank_sponge", (1.596*2, 1.596*2), "Length of absorption zones (front/back, left/right)"),
+    ("tank_sponge", (1.596*2, 3.4), "Length of absorption zones (front/back, left/right)"),
+    ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
     ("gauge_output", False, "Places Gauges in tank"),
+    ("gauge_fixed", False, "Places Gauges in tank"),
     # waves
-    ("waves", False, "Generate waves (True/False)"),
+    ("waves", True, "Generate waves (True/False)"),
     ("wave_period", 0.8, "Period of the waves"),
     ("wave_height", 0.029, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
@@ -30,13 +32,14 @@ opts=Context.Options([
     ("caisson_width", 1., "Width of the caisson"),
     ("caisson_corner_r", 0.064, "radius of the corners of the caisson"),
     ("caisson_corner_side", 'bottom', "corners placement"),
-    ("caisson_BC", 'noslip', "BC on caisson ('noslip'/'freeslip')"),
+    ("caisson_BC", 'freeslip', "BC on caisson ('noslip'/'freeslip')"),
     ("free_x", (0.0, 0.0, 0.0), "Translational DOFs"),
     ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
     ("VCG", 0.135, "vertical position of the barycenter of the caisson"),
     ("caisson_mass", 125., "Mass of the caisson"),
     ("caisson_inertia", 4.05, "Inertia of the caisson"),
     ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
+    ("chrono_dt", 0.000001, "time step of chrono"),
     # mooring
     ("mooring", True, "add moorings"),
     ("mooring_type", 'prismatic', "type of moorings"),
@@ -98,7 +101,6 @@ tank_sponge = opts.tank_sponge
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
-domain2 = Domain.PlanarStraightLineGraphDomain()
 # caisson options
 if opts.caisson is True:
     dim = opts.caisson_dim
@@ -136,7 +138,7 @@ if opts.caisson is True:
         return vertices, segments
 
     radius = opts.caisson_corner_r
-    nb = int((np.pi*2*radius/4.)/(2.*opts.he))
+    nb = int((np.pi*2*radius/4.)/(2*opts.he))
     if radius != 0:
         vertices = []
         vertexFlags = []
@@ -197,6 +199,7 @@ if opts.caisson is True:
     rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
     caisson.rotate(ang, pivot=caisson.barycenter)
     system = crb.System(np.array([0., -9.81, 0.]))
+    system.setTimeStep(opts.chrono_dt)
     body = crb.RigidBody(shape=caisson,
                         system=system,
                         center=caisson.barycenter[:2],
@@ -253,7 +256,10 @@ if opts.caisson:
 # ----- BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
-tank.BC['y-'].setNoSlip()
+if opts.tank_BC == 'noslip':
+    tank.BC['y-'].setNoSlip()
+if opts.tank_BC == 'freeslip':
+    tank.BC['y-'].setFreeSlip()
 tank.BC['x+'].setNoSlip()
 tank.BC['sponge'].setNonMaterial()
 
@@ -306,6 +312,17 @@ if opts.gauge_output:
         sampleRate = 0,
         fileName = 'lineGauge.csv'
     )
+    if opts.gauge_fixed:
+        PGF = []
+        for i in range(4):
+            PGF.append((caisson_coords[0]-0.15+0.1*i, waterLevel-0.28, 0.), )
+        tank.attachPointGauges(
+            'twp',
+            gauges = ((('p', 'u', 'v'), PGF),),
+            activeTime=(0, opts.T),
+            sampleRate=0,
+            fileName='pointGauge_fixed.csv'
+        )
 
     #he = opts.caisson_dim[1]/10.0*(0.5**opts.refinement_level)
 
@@ -356,12 +373,13 @@ if opts.refinement:
         domain.MeshOptions.LcMax = he2 #coarse grid
 
 
+
 tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
 
 #meshfile='T'+str(tank_dim[0])+str(tank_dim[1])
 st.assembleDomain(domain)
 append = False
-if opts.refinement_caisson:
+if opts.refinement_caisson and opts.caisson:
     append = True
     offset = opts.refinement_caisson
     xmin = caisson_coords[0]-(caisson_dim[0]/2.+offset)
@@ -370,6 +388,27 @@ if opts.refinement_caisson:
     ymax = caisson_coords[1]+(caisson_dim[1]/2.+offset)
     tank.MeshOptions.refineBox(he2, he_max, xmin, xmax, ymin, ymax)
 mr._assembleRefinementOptions(domain)
+print "RELAXATION ZONE"
+rel = domain.auxiliaryVariables['twp'][0].zones[2]
+rel.calculate_init()
+x = np.array([0., 0.9, 0.])
+print "CENTER"
+#print rel
+print rel.orientation[0]
+print rel.orientation[1]
+print "CENTER"
+phii = rel.calculate_phi_python(x)
+print "PHI"
+print phii
+u = rel.calculate_vel_python(x, 0.)
+print(u[0], u[1], u[2])
+print wave.u(x, 0.)
+print rel.orientation[0]
+print domain.dragAlphaTypes
+print domain.porosityTypes
+print domain.regions
+print domain.regionFlags
+print domain.dragBetaTypes
 from proteus import Comm
 comm = Comm.get()
 if comm.isMaster():
@@ -516,7 +555,7 @@ elif spaceOrder == 2:
 # Numerical parameters
 sc = 0.25 # default: 0.5. Test: 0.25
 sc_beta = 1. # default: 1.5. Test: 1.
-epsFact_consrv_diffusion = 1.0 # default: 1.0. Test: 0.1
+epsFact_consrv_diffusion = 0.1 # default: 1.0. Test: 0.1
 ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 if useMetrics:
@@ -576,14 +615,14 @@ else:
 
 he = he2
 tolfac = opts.tolfac
-ns_nl_atol_res = max(1.0e-12,tolfac*he**2)
-vof_nl_atol_res = max(1.0e-12,tolfac*he**2)
-ls_nl_atol_res = max(1.0e-12,tolfac*he**2)
-mcorr_nl_atol_res = max(1.0e-12,0.1*tolfac*he**2)
-rd_nl_atol_res = max(1.0e-12,tolfac*he)
-kappa_nl_atol_res = max(1.0e-12,tolfac*he**2)
-dissipation_nl_atol_res = max(1.0e-12,tolfac*he**2)
-mesh_nl_atol_res = max(1.0e-12,opts.mesh_tol*he**2)
+ns_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+vof_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+ls_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+mcorr_nl_atol_res = 1e-6 #max(1.0e-12,0.1*tolfac*he**2)
+rd_nl_atol_res = 1e-4 #max(1.0e-12,tolfac*he)
+kappa_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+dissipation_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+mesh_nl_atol_res = 1e-6 #max(1.0e-12,opts.mesh_tol*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -599,4 +638,3 @@ def twpflowPressure_init(x, t):
     phi = x[nd-1] - waterLevel
     return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi)))
-

@@ -131,6 +131,8 @@ cdef class RigidBody:
       np.ndarray rotq_last
       np.ndarray F_prot
       np.ndarray M_prot
+      np.ndarray F_prot_last
+      np.ndarray M_prot_last
       # np.ndarray free_r
       # np.ndarray free_x
     def __cinit__(self,
@@ -157,6 +159,8 @@ cdef class RigidBody:
         if 'ChRigidBody' not in shape.auxiliaryVariables:
             shape.auxiliaryVariables['ChRigidBody'] = self
         self.setName(shape.name)
+        self.F_prot = np.zeros(3)
+        self.M_prot = np.zeros(3)
 
     def set_indices(self, i_start, i_end):
         self.i_start = i_start
@@ -316,6 +320,8 @@ cdef class RigidBody:
         return matrix
 
     def prestep(self):
+        self.F_prot_last = np.array(self.F_prot)
+        self.M_prot_last = np.array(self.M_prot)
         self.F_prot = self.getPressureForces()+self.getShearForces()
         self.M_prot = self.getMoments()
         try:
@@ -453,11 +459,17 @@ cdef class RigidBody:
             self.record_dict['Fx'] = ['F_last', 0]
             self.record_dict['Fy'] = ['F_last', 1]
             self.record_dict['Fz'] = ['F_last', 2]
+            self.record_dict['Fx_prot'] = ['F_prot_last', 0]
+            self.record_dict['Fy_prot'] = ['F_prot_last', 1]
+            self.record_dict['Fz_prot'] = ['F_prot_last', 2]
             Fx = Fy = Fz = True
         if M is True:
             self.record_dict['Mx'] = ['M_last', 0]
             self.record_dict['My'] = ['M_last', 1]
             self.record_dict['Mz'] = ['M_last', 2]
+            self.record_dict['Mx_prot'] = ['M_prot_last', 0]
+            self.record_dict['My_prot'] = ['M_prot_last', 1]
+            self.record_dict['Mz_prot'] = ['M_prot_last', 2]
         if acc is True:
             self.record_dict['ax'] = ['acceleration_last', 0]
             self.record_dict['ay'] = ['acceleration_last', 1]
@@ -556,16 +568,16 @@ cdef class System:
         self.step(self.proteus_dt)
         for body in self.bodies:
             body.poststep()
-        self.recordBodyList()
+        #self.recordBodyList()
 
     def calculate_init(self):
         self.directory = str(Profiling.logDir)+'/'
         self.thisptr.setDirectory(self.directory)
         for body in self.bodies:
             body.calculate_init()
-        self.recordBodyList()
+        #self.recordBodyList()
 
-    def setTimeStep(self, dt):
+    def setTimeStep(self, double dt):
         """Sets time step for Chrono solver.
         Calculations in Chrono will use this time step within the
         Proteus time step (if bigger)
@@ -576,6 +588,7 @@ cdef class System:
             time step
         """
         self.chrono_dt = dt
+        self.thisptr.setChTimeStep(dt)
 
     def setGravity(self, np.ndarray gravity):
         self.thisptr.setGravity(<double*> gravity.data)
