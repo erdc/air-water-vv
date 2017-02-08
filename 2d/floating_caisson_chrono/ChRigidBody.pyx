@@ -109,6 +109,7 @@ cdef class RigidBody:
       int nd, i_start, i_end
       double dt
       object record_dict
+      object prescribed_motion_function
       np.ndarray position
       np.ndarray position_last
       np.ndarray F
@@ -161,6 +162,7 @@ cdef class RigidBody:
         self.setName(shape.name)
         self.F_prot = np.zeros(3)
         self.M_prot = np.zeros(3)
+        self.prescribed_motion_function = None
 
     def set_indices(self, i_start, i_end):
         self.i_start = i_start
@@ -335,6 +337,9 @@ cdef class RigidBody:
                              <double*> moments.data)
 
     def poststep(self):
+        if self.prescribed_motion_function is not None:
+            new_x = self.callPrescribedMotion(self.system.model.stepController.t_model_last)
+            self.thisptr.setPosition(<double*> new_x.data)
         self.thisptr.poststep()
         self.getValues()
         comm = Comm.get()
@@ -354,6 +359,12 @@ cdef class RigidBody:
 
     def calculate(self):
         pass
+
+    def setPrescribedMotion(self, function):
+        self.prescribed_motion_function = function
+
+    cdef np.ndarray callPrescribedMotion(self, double t):
+        return self.prescribed_motion_function(t)
 
     def getValues(self):
         # position
