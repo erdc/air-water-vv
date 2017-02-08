@@ -57,7 +57,7 @@ class ConstantIC:
         return self.cval
 
 kInflow = 0.
-dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*ct.tank.dim[nd-1])
+dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*ct.tank_dim[nd-1])
 if ct.useRANS >= 2:
     dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
 

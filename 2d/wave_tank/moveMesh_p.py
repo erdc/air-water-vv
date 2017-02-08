@@ -42,11 +42,11 @@ advectiveFluxBoundaryConditions = {}
 diffusiveFluxBoundaryConditions = {0: {},
                                    1: {}}
 
-stressFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].u_stress.init_cython(),
-                                1: lambda x, flag: domain.bc[flag].v_stress.init_cython()}
+stressFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].u_stress,
+                                1: lambda x, flag: domain.bc[flag].v_stress}
 
 if nd == 3:
     dirichletConditions[2] = lambda x, flag: domain.bc[flag].hz_dirichlet.init_cython()
     fluxBoundaryConditions[2] = 'noFlow'
     diffusiveFluxBoundaryConditions[2] = {}
-    stressFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].w_stress.init_cython()
+    stressFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].w_stress

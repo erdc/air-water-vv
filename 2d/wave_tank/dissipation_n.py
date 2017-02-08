@@ -17,7 +17,11 @@ nLayersOfOverlapForParallel = ct.nLayersOfOverlapForParallel
 restrictFineSolutionToAllMeshes = ct.restrictFineSolutionToAllMeshes
 triangleOptions = ct.triangleOptions
 
-timeIntegration = TimeIntegration.BackwardEuler_cfl
+if ct.timeIntegration == "VBDF":
+    timeIntegration = TimeIntegration.VBDF
+    timeOrder = 2
+else:
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
 stepController  = StepControl.Min_dt_controller
 
 femSpaces = {0: ct.basis}
