@@ -23,6 +23,7 @@ opts=Context.Options([
     ("wave_type", 'Fenton', "type of wave"),
     ("Bcoeff", np.array([0.13641547,0.00018183,4.61e-06,1.3e-07,0.0,0.0,0.0,0.0]), "BCoeffs"),
     ("Ycoeff", np.array([0.13676376,0.00961348,0.00102053,0.00012878,1.788e-05,2.64e-06,4.2e-07,1.3e-07]), "YCoeffs"),
+    ("fast", False, "switch for fast cosh calculations in WaveTools"),
     # mesh refinement
     ("refinement", False, "Gradual refinement"),
     ("he", 0.015, "Set characteristic element size"),
@@ -60,7 +61,8 @@ if opts.waves is True:
                                  waveType=opts.wave_type,
                                  Ycoeff=np.array(opts.Ycoeff),
                                  Bcoeff=np.array(opts.Bcoeff),
-                                 Nf=len(opts.Bcoeff))
+                                 Nf=len(opts.Bcoeff),
+                                 fast=opts.fast)
     wavelength = wave.wavelength
 
 # tank options
@@ -80,19 +82,18 @@ tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 left = right = False
 if tank_sponge[0]: left = True
 if tank_sponge[1]: right = True
+if opts.waves is True:
+    smoothing = opts.he*3.
+    tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 if left:
     if opts.waves is True:
-        smoothing = opts.he*3.
         tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=0.5/1.004e-6)
-        tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
     else:
         tank.setAbsorptionZones(x_n=left, dragAlpha=0.5/1.004e-6)
-        tank.BC['x-'].setNoSlip()
+else:
+    tank.BC['x-'].setNoSlip()
 if right:
     tank.setAbsorptionZones(x_p=right)
-if opts.caisson:
-    # let gmsh know that the caisson is IN the tank
-    tank.setChildShape(caisson, 0)
 
 # ----- BOUNDARY CONDITIONS ----- #
 
@@ -152,13 +153,18 @@ if opts.gauge_output:
 
 # ----- ASSEMBLE DOMAIN ----- #
 
+domain.MeshOptions.use_gmsh = opts.use_gmsh
+domain.MeshOptions.genMesh = opts.gen_mesh
+domain.MeshOptions.he = opts.he
+domain.use_gmsh = opts.use_gmsh
 st.assembleDomain(domain)
 
 # ----- REFINEMENT OPTIONS ----- #
 
+import MeshRefinement as mr
+#domain.MeshOptions = mr.MeshOptions(domain)
+tank.MeshOptions = mr.MeshOptions(tank)
 if opts.refinement:
-    import MeshRefinement as mr
-    tank.MeshOptions = mr.MeshOptions(tank)
     grading = opts.refinement_grading
     he2 = opts.he
     def mesh_grading(start, he, grading):
@@ -180,15 +186,14 @@ if opts.refinement:
         domain.MeshOptions.he = he2 #coarse grid
         domain.MeshOptions.LcMax = he2 #coarse grid
     tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
-    mr._assembleRefinementOptions(domain)
-    from proteus import Comm
-    comm = Comm.get()
-    if comm.isMaster():
-        mr.writeGeo(domain, 'mesh', append=False)
+else:
+    domain.MeshOptions.LcMax = opts.he
+mr._assembleRefinementOptions(domain)
+from proteus import Comm
+comm = Comm.get()
+if domain.use_gmsh is True:
+    mr.writeGeo(domain, 'mesh', append=False)
 
-domain.MeshOptions.use_gmsh = opts.use_gmsh
-domain.MeshOptions.genMesh = opts.gen_mesh
-domain.use_gmsh = opts.use_gmsh
 
 
 ##########################################
