@@ -28,13 +28,13 @@ opts=Context.Options([
     # caisson
     ("caisson", True, "caisson"),
     ("caisson_dim", (0.5, 0.32), "Dimensions of the caisson"),
-    ("caisson_coords", (1.596*2, 1.41), "Dimensions of the caisson"),
+    ("caisson_coords", (1.596*2., 1.41), "Dimensions of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
     ("caisson_corner_r", 0.064, "radius of the corners of the caisson"),
     ("caisson_corner_side", 'bottom', "corners placement"),
     ("caisson_BC", 'freeslip', "BC on caisson ('noslip'/'freeslip')"),
-    ("free_x", (0.0, 0.0, 0.0), "Translational DOFs"),
-    ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
+    ("free_x", (1.0, 1.0, 1.0), "Translational DOFs"),
+    ("free_r", (1.0, 1.0, 1.0), "Rotational DOFs"),
     ("VCG", 0.135, "vertical position of the barycenter of the caisson"),
     ("caisson_mass", 125., "Mass of the caisson"),
     ("caisson_inertia", 4.05, "Inertia of the caisson"),
@@ -57,7 +57,7 @@ opts=Context.Options([
     ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
-    ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
+    ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", True, "True/False"),
     ("T", 10.0, "Simulation time"),
@@ -98,6 +98,8 @@ if opts.waves is True:
 # tank options
 tank_dim = opts.tank_dim
 tank_sponge = opts.tank_sponge
+
+
 
 # ----- DOMAIN ----- #
 
@@ -233,6 +235,13 @@ if opts.caisson is True:
         if opts.caisson_BC == 'freeslip':
             bc.setFreeSlip()
 
+    
+    def prescribed_motion(t):
+        new_x = np.array(caisson_coords)
+        new_x[1] = caisson_coords[1]+0.01*cos(2*np.pi*(t/4)+np.pi/2)
+        return new_x
+
+    #body.setPrescribedMotion(prescribed_motion)
 
 # ----- SHAPES ----- #
 tank = st.Tank2D(domain, tank_dim)
@@ -391,10 +400,23 @@ if opts.refinement_caisson and opts.caisson:
 mr._assembleRefinementOptions(domain)
 from proteus import Comm
 comm = Comm.get()
+comm.barrier()
+geofile='meshgeo_he'+str(opts.he)+'max'+str(opts.he_max)+str(opts.he_max_water)+'_T'+str(tank_dim)+str(tank_sponge)
+if opts.caisson:
+    geofile += 'C'+str(caisson_dim)+str(caisson_coords)
+if opts.refinement:
+    geofile += 'g'+str(round(opts.refinement_grading, 3))+str(opts.refinement_caisson)+str(opts.refinement_freesurface)
+geofile = geofile.replace(' ', '')
+geofile = geofile.replace('(', '')
+geofile = geofile.replace(')', '')
+geofile = geofile.replace('[', '')
+geofile = geofile.replace(']', '')
+geofile = geofile.replace('.', '-')
+geofile = geofile.replace(',', '_')
 if comm.isMaster():
-    mr.writeGeo(domain, 'mesh', append=append)
+    mr.writeGeo(domain, geofile, append=append)
     if append is True:
-        f = open('mesh.geo', 'a')
+        f = open(geofile+'.geo', 'a')
         f.write('Point(200) = {{{0}}};\n'.format(str([xmin, ymin, 0])[1:-1]))
         f.write('Point(201) = {{{0}}};\n'.format(str([xmax, ymin, 0])[1:-1]))
         f.write('Point(202) = {{{0}}};\n'.format(str([xmax, ymax, 0])[1:-1]))
@@ -412,6 +434,7 @@ if comm.isMaster():
         f.write('Field[8] = Min; Field[8].FieldsList = {1, 2, 3, 4, 5, 6, 7};\n')
         f.write('Background Field = 8;\n')
         f.close()
+domain.geofile=geofile
 #f.write('Point(204) = {{{0}}};\n'.format(str([-tank_sponge[0], waterLevel-box, 0])[1:-1]))
 #f.write('Point(205) = {{{0}}};\n'.format(str([tank_dim[0]+tank_sponge[1], waterLevel-box, 0])[1:-1]))
 #f.write('Point(206) = {{{0}}};\n'.format(str([-tank_sponge[0], waterLevel+box, 0])[1:-1]))
@@ -425,7 +448,7 @@ if comm.isMaster():
 
 
 domain.MeshOptions.use_gmsh = opts.use_gmsh
-domain.MeshOptions.genMesh = opts.gen_mesh
+domain.MeshOptions.genMesh = opts.genMesh
 domain.use_gmsh = opts.use_gmsh
 
 

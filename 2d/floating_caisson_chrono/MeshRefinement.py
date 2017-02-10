@@ -212,9 +212,9 @@ def _assembleRefinementOptions(domain):
 
 def writeGeo(domain, fileprefix, group_names=False, append=False):
     self = domain
-    self.geofile = fileprefix+'.geo'
+    self.geofile = fileprefix
     self.polyfile = fileprefix
-    geo = open(self.geofile,'w')
+    geo = open(self.geofile+'.geo','w')
     pp = {}  # physical points
     pl = {}  # physical lines
     ps = {}  # physical surfaces
