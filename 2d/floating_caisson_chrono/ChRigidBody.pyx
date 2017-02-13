@@ -467,20 +467,20 @@ cdef class RigidBody:
             # self.record_dict['rotm_a32'] = ['rotm_last', (2,1)]
             # self.record_dict['rotm_a33'] = ['rotm_last', (2,2)]
         if F is True:
-            self.record_dict['Fx'] = ['F_last', 0]
-            self.record_dict['Fy'] = ['F_last', 1]
-            self.record_dict['Fz'] = ['F_last', 2]
-            self.record_dict['Fx_prot'] = ['F_prot_last', 0]
-            self.record_dict['Fy_prot'] = ['F_prot_last', 1]
-            self.record_dict['Fz_prot'] = ['F_prot_last', 2]
+            self.record_dict['Fx'] = ['F', 0]
+            self.record_dict['Fy'] = ['F', 1]
+            self.record_dict['Fz'] = ['F', 2]
+            self.record_dict['Fx_prot'] = ['F_prot', 0]
+            self.record_dict['Fy_prot'] = ['F_prot', 1]
+            self.record_dict['Fz_prot'] = ['F_prot', 2]
             Fx = Fy = Fz = True
         if M is True:
-            self.record_dict['Mx'] = ['M_last', 0]
-            self.record_dict['My'] = ['M_last', 1]
-            self.record_dict['Mz'] = ['M_last', 2]
-            self.record_dict['Mx_prot'] = ['M_prot_last', 0]
-            self.record_dict['My_prot'] = ['M_prot_last', 1]
-            self.record_dict['Mz_prot'] = ['M_prot_last', 2]
+            self.record_dict['Mx'] = ['M', 0]
+            self.record_dict['My'] = ['M', 1]
+            self.record_dict['Mz'] = ['M', 2]
+            self.record_dict['Mx_prot'] = ['M_prot', 0]
+            self.record_dict['My_prot'] = ['M_prot', 1]
+            self.record_dict['Mz_prot'] = ['M_prot', 2]
         if acc is True:
             self.record_dict['ax'] = ['acceleration_last', 0]
             self.record_dict['ay'] = ['acceleration_last', 1]
@@ -508,9 +508,10 @@ cdef class RigidBody:
         t_last = self.system.model.stepController.t_model_last
         dt_last = self.system.model.levelModelList[-1].dt_last
         t = t_last-dt_last
-        values_towrite = [t]
+        t_prot = Profiling.time()-Profiling.startTime
+        values_towrite = [t, t_prot]
         if t == 0:
-            headers = ['t']
+            headers = ['t', 't_prot']
             for key in self.record_dict:
                 headers += [key]
             with open(self.record_file, 'w') as csvfile:
