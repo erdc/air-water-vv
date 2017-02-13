@@ -37,9 +37,7 @@ coefficients = Dissipation.Coefficients(V_model=0+int(ct.movingDomain),
 
 kInflow=ct.kInflow
 
-dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*L[1])
-if useRANS == 2:
-    dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
+dissipationInflow=ct.dissipationInflow
 
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].dissipation_dirichlet.init_cython()}
@@ -60,4 +58,4 @@ class ConstantIC:
         else:
             return 0.0
 
-initialConditions  = {0:ConstantIC(cval=dissipationInflow)}
+initialConditions  = {0:ConstantIC(cval=dissipationInflow*0.001)}

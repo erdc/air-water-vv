@@ -39,7 +39,7 @@ opts=Context.Options([
     ('circleBC', 'FreeSlip', 'circle2D boundaries: NoSlip or FreeSlip'),
     ('InputMotion', True, 'If True, set a motion as input rather than calculate it'),
     ('At', [0.0, 0.0625, 0.0], 'Amplitude of imposed sinusoidal translational motion'),
-    ('Tt', [0.0, 1.42, 0.0], 'Period of imposed sinusoidal translational motion'), # fD/U adimensioanl frequency, from here I calculate T  3.125 2.604 2.232 1.953 1.736 1.562 1.420 1.302
+    ('Tt', [0.0, 1.30, 0.0], 'Period of imposed sinusoidal translational motion'), # fD/U adimensioanl frequency, from here I calculate T  3.125 2.604 2.232 1.953 1.736 1.562 1.420 1.302
     ('scheme', None, 'Numerical scheme applied to solve motion calculation (Runge_Kutta or Central_Difference)'),
     ("springs", not True, "Switch on/off soil module"),
     ("Kx", 0.0, "Horizontal stiffness in N/m"),
@@ -49,12 +49,12 @@ opts=Context.Options([
     ("Cy", 0.0, "Damping factor in N/m*s "),
     ("Crot", 0.0, "Rotational damping factor in N*m*s "),
     # Turbulence
-    ("I", 0.05,"Intensity of the turbulence"),
     ("useRANS", 3, "Switch ON turbulence models"),# 0 -- None # 1 -- K-Epsilon # 2 -- K-Omega, 1998 # 3 -- K-Omega, 1988
     ("c_mu", 0.09, "mu coefficient for the turbulence model"),
+    ("turbLength", 'different', "Switch for omega calculation [1 or 2]. If 1 then calculated from turbulent scale formulation. If 2 then calculated from mixing length formulation."),
+    ("scaleLength", 0.05, "Only if turbLength isn't either 1 or 2. Turbulent length in terms of waterDepth"),
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
-    ("turbulenceLength", (3.0 * 0.25) , "Length of the turbulence effects"),
     # numerical options
     ("GenZone", True, 'Turn on generation zone at left side'),
     ("AbsZone", True, 'Turn on absorption zone at right side'),
@@ -269,15 +269,25 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
 # ----- Turbulence ----- #
 ###########################################################################################################################################################################
 
+diameter = 2.0*opts.radius
+turbLength1 = 0.038*diameter  # Usually in pipeline cases, this is a good estimator. In other case can be used (0.038*hydrDiameter), where hydrDiameter=4*crossSectionArea/wetPerimeter
+turbLength2 = 0.070*diameter  # Based on mixing length formulation. Then different omega equation.
+Ufree = opts.meanVelocity[0] # freestream velocity
+c_mu = opts.c_mu
 useRANS=opts.useRANS
-I = opts.I #0.05
-kInflow = 3./2.*((I*opts.meanVelocity[0])**2) 
 
-dissipationInflow = (kInflow**0.5) / ( opts.turbulenceLength*(opts.c_mu**0.25) )
-if useRANS == 2:
-    dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
+Re=Ufree*diameter/nu_0
+turbI = 0.16*( Re**(-1./8.) )
+kInflow = ((turbI*Ufree)**2) * 3./2. 
 
-
+if opts.turbLength == 1:
+    dissipationInflow1 = (kInflow**0.5) / (turbLength1) # omega formulation based on turbulent length formulation
+    dissipationInflow = dissipationInflow1
+elif opts.turbLength == 2:
+    dissipationInflow2 = (kInflow**0.5) / ( turbLength2*(c_mu**0.25) ) # omega formulation based on mixing length formulation
+    dissipationInflow = dissipationInflow2
+else:
+    dissipationInflow = (kInflow**0.5) / (opts.scaleLength*opts.water_level)
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
@@ -289,21 +299,18 @@ if opts.circle2D:
             bc.setFreeSlip()
         if opts.circleBC == 'NoSlip':
             bc.setNoSlip()
+            bc.setTurbulentZeroGradient
 
 if opts.wave==True:
     tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1)
     tank.BC['x+'].setFreeSlip()
 else:
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=opts.meanVelocity, waterLevel=opts.water_level, kInflow=kInflow, dissipationInflow=dissipationInflow)
-    #tank.BC['x+'].setFreeSlip()
     tank.BC['x+'].setHydrostaticPressureOutletWithDepth( seaLevel=opts.water_level, rhoUp=rho_1,
                                                          rhoDown=rho_0, g=g,
                                                          refLevel=opts.water_level, U=opts.meanVelocity)
-    #tank.BC['x+'].setTwoPhaseVelocityInlet(U=opts.meanVelocity, waterLevel=opts.water_level)
-
 
 tank.BC['y+'].setAtmosphere()
-#tank.BC['y+'].setFreeSlip()
 tank.BC['y-'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 
