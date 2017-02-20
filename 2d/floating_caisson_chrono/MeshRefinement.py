@@ -7,6 +7,7 @@ class MeshOptions:
     def __init__(self, shape):
         self.Shape = shape
         self.constraints = []
+        self.outputFiles_name = 'mesh'
 
     def _addConstraint(self, entity, cons_type, index, variables):
         entities = ['vertex', 'segment', 'facet', 'region', 'global', 'point']

@@ -52,6 +52,7 @@ opts=Context.Options([
     ("refinement", True, "Gradual refinement"),
     ("he", 0.007, "Set characteristic element size"),
     ("he_max", 10, "Set maximum characteristic element size"),
+    ("he_caisson", 0, "Set maximum characteristic element size on caisson boundary"),
     ("he_max_water", 10, "Set maximum characteristic in water"),
     ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
@@ -67,8 +68,10 @@ opts=Context.Options([
     ("cfl", 0.33 , "Target cfl"),
     ("nsave",  20, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
+    ("sc", 0.25, "shockCapturing factor"),
     ("tolfac", 0.001, "tolerance factor (*he**2)"),
     ("mesh_tol", 0.001, "tolerance factor of mesh motion (*he**2)"),
+    ("strong_dir", False, "strong dirichlet (True/False)"),
     ("parallel", True ,"Run in parallel")])
 
 
@@ -125,6 +128,10 @@ if opts.caisson is True:
     caisson_dim = opts.caisson_dim
     caisson_coords = opts.caisson_coords
 
+    if opts.he_caisson:
+        he_caisson = opts.he_caisson
+    else:
+        he_caisson = opts.he
     def quarter_circle(center, radius, p_nb, angle, angle0=0., v_start=0.):
         # p_nb = int(np.ceil(2*np.pi*radius/dx))  # number of points on segment
         # p_nb = refinement
@@ -141,7 +148,9 @@ if opts.caisson is True:
         return vertices, segments
 
     radius = opts.caisson_corner_r
-    nb = int((np.pi*2*radius/4.)/(2*opts.he))
+
+    nb = int((np.pi*2*radius/4.)/(2*he_caisson))
+    #nb = int(np.pi/2/(np.arcsin(he_caisson/2./radius)*2))
     if radius != 0:
         vertices = []
         vertexFlags = []
@@ -360,8 +369,7 @@ if opts.refinement:
     #       tank.MeshOptions.setRefinementFunction(mesh_grading(start='sqrt((x-{0})^2+(y-{1})^2)'.format(pd[0], pd[1]), he=he2, grading=grading))
 
     if opts.caisson is True:
-        if not opts.refinement_caisson:
-            caisson.MeshOptions.setBoundaryLayerEdges(hwall_n=he2, hwall_t=he2, ratio=grading, EdgesList=[i for i in range(len(caisson.segments))])
+        caisson.MeshOptions.setBoundaryLayerEdges(hwall_n=he_caisson, hwall_t=he2, ratio=grading, EdgesList=[i for i in range(len(caisson.segments))])
 
     he_max = opts.he_max
     # he_fs = he2
@@ -556,10 +564,17 @@ elif spaceOrder == 2:
 
 
 # Numerical parameters
-sc = 0.25 # default: 0.5. Test: 0.25
-sc_beta = 1. # default: 1.5. Test: 1.
-epsFact_consrv_diffusion = 0.1 # default: 1.0. Test: 0.1
-ns_forceStrongDirichlet = False
+if opts.sc == 0.25:
+    sc = 0.25 # default: 0.5. Test: 0.25
+    sc_beta = 1. # default: 1.5. Test: 1.
+elif opts.sc == 0.5:
+    sc = 0.5
+    sc_beta = 1.5
+else:
+    import sys
+    sys.quit()
+epsFact_consrv_diffusion = 10.0 # default: 1.0. Test: 0.1. Safe: 10.
+ns_forceStrongDirichlet = opts.strong_dir
 backgroundDiffusionFactor=0.01
 if useMetrics:
     ns_shockCapturingFactor  = sc
