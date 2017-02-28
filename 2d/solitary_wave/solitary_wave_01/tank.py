@@ -1,281 +1,297 @@
+from proteus import Domain, Context
+from proteus.mprans import SpatialTools as st
+from proteus import WaveTools as wt
 from math import *
+import numpy as np
+
+
+
+opts=Context.Options([
+    # still water
+    ("water_level", 1., "Height of free surface above seabed "),
+    ("water_depth", 1., " water depth"),
+    # tank
+    ("tank_dim", (60, 2.,), "Dimensions of the tank"),
+    ("tank_sponge", (5., 10.), "Length of relaxation zones zones (left, right)"),
+    ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
+    ("gauge_output", False, "Places Gauges in tank (5 per wavelength)"),
+    # waves
+    ("waves", True, "Generate waves (True/False)"),
+    ("wave_height", 0.05, "Height of the waves"),
+    ("wave_dir", (1.,0.,0.), "Direction of the waves (from left boundary)"),
+    ("g", (0.,-9.81,0.), "Direction of the waves (from left boundary)"),
+    ("trans",10. ,"peak offset for solitary wave"),
+    # mesh refinement
+    ("he", 0.1, "Set characteristic element size"),
+    # numerical options
+    ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
+    ("T", 10.0, "Simulation time"),
+    ("dt_init", 0.001, "Initial time step"),
+    ("dt_fixed", None, "Fixed (maximum) time step"),
+    ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
+    ("cfl", 0.4 , "Target cfl"),
+    ("nsave",  20, "Number of time steps to save per second"),
+    ("useRANS", 0, "RANS model"),
+    ("movingDomain",False,"Switch on moving domain"),
+    ("parallel", True ,"Run in parallel")])
+
+
+
+# ----- CONTEXT ------ #
+
+# waves
+if opts.waves is True:
+    height = opts.wave_height
+    mwl = depth = opts.water_level
+    direction = np.array(opts.wave_dir)
+    g = np.array(opts.g)
+    trans  = opts.trans * direction/sqrt(sum(direction[:]*direction[:]))
+    wave = wt.SolitaryWave(waveHeight = height,
+                           mwl = mwl,
+                           depth = depth,
+                           g = g,
+                           waveDir = direction,
+                           trans = trans)
+                           
+                           
+
+        
+
+# tank options
+waterLevel = opts.water_level
+tank_dim = opts.tank_dim
+tank_sponge = opts.tank_sponge
+movingDomain = opts.movingDomain
+# ----- DOMAIN ----- #
+
+domain = Domain.PlanarStraightLineGraphDomain()
+# caisson options
+
+
+# ----- SHAPES ----- #
+tank = st.Tank2D(domain, tank_dim)
+tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+left = right = False
+if tank_sponge[0]: left = True
+if tank_sponge[1]: right = True
+if opts.waves is True:
+    smoothing = opts.he*3.
+    tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
+if left:
+    if opts.waves is True:
+        tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=0.5/1.004e-6)
+    else:
+        tank.setAbsorptionZones(x_n=left, dragAlpha=0.5/1.004e-6)
+else:
+    tank.BC['x-'].setNoSlip()
+if right:
+    tank.setAbsorptionZones(x_p=right)
+
+# ----- BOUNDARY CONDITIONS ----- #
+
+tank.BC['y+'].setAtmosphere()
+if opts.tank_BC == 'noslip':
+    tank.BC['y-'].setNoSlip()
+if opts.tank_BC == 'freeslip':
+    tank.BC['y-'].setFreeSlip()
+tank.BC['x+'].setNoSlip()
+tank.BC['sponge'].setNonMaterial()
+
+for bc in tank.BC_list:
+    bc.setFixedNodes()
+
+
+# ----- GAUGES ----- #
+
+if opts.gauge_output:
+    if left or right:
+        gauge_dx = tank_sponge[0]/10.
+    else:
+        gauge_dx = tank_dim[0]/10.
+    probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
+    PG=[]
+    PG2=[]
+    LIG = []
+    zProbes=waterLevel*0.5
+    for i in probes:
+        PG.append((i, zProbes, 0.),)
+        PG2.append((i, waterLevel, 0.),)
+        if i == probes[0]:
+            LIG.append(((i, 0.+0.0001, 0.),(i, tank_dim[1]-0.0001,0.)),)
+        elif i != probes[0]:
+            LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('p',), PG),),
+        activeTime=(0, opts.T),
+        sampleRate=0,
+        fileName='pointGauge_pressure.csv'
+    )
+    tank.attachPointGauges(
+        'ls',
+        gauges = ((('phi',), PG),),
+        activeTime=(0, opts.T),
+        sampleRate=0,
+        fileName='pointGauge_levelset.csv'
+    )
+
+    tank.attachLineIntegralGauges(
+        'vof',
+        gauges=((('vof',), LIG),),
+        activeTime = (0., opts.T),
+        sampleRate = 0,
+        fileName = 'lineGauge.csv'
+    )
+
+# ----- ASSEMBLE DOMAIN ----- #
+
+domain.MeshOptions.genMesh = opts.gen_mesh
+domain.MeshOptions.he = opts.he
+st.assembleDomain(domain)
+
+# ----- REFINEMENT OPTIONS ----- #
+
+
+
+
+
+
+
+##########################################
+# Numerical Options and other parameters #
+##########################################
+
+
+rho_0=998.2
+nu_0 =1.004e-6
+rho_1=1.205
+nu_1 =1.500e-5
+sigma_01=0.0
+g = [0., -9.81]
+
+
+
+
+from math import *
+from proteus import MeshTools, AuxiliaryVariables
+import numpy
 import proteus.MeshTools
 from proteus import Domain
-from proteus.default_n import *   
 from proteus.Profiling import logEvent
+from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
-from proteus import Gauges
-from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
-#import WaveTools
 
 
-#wave generator
-windVelocity = (0.0,0.0)
-inflowHeightMean = 1.0
-inflowVelocityMean = (0.0,0.0)
-#period = 
-#omega = 
-waveheight = 0.05
-amplitude = waveheight/ 2.0
-#wavelength = 
-k = sqrt(3.0*waveheight/(4.0*inflowHeightMean**3.0))
-
-
-
-#  Discretization -- input options  
-genMesh=True
-movingDomain=False
+#----------------------------------------------------
+# Boundary conditions and other flags
+#----------------------------------------------------
+checkMass=False
+applyCorrection=True
 applyRedistancing=True
+freezeLevelSet=True
+
+#----------------------------------------------------
+# Time stepping and velocity
+#----------------------------------------------------
+weak_bc_penalty_constant = 10.0/nu_0#Re
+dt_init = opts.dt_init
+T = opts.T
+nDTout = int(opts.T*opts.nsave)
+timeIntegration = opts.timeIntegration
+if nDTout > 0:
+    dt_out= (T-dt_init)/nDTout
+else:
+    dt_out = 0
+runCFL = opts.cfl
+dt_fixed = opts.dt_fixed
+
+#----------------------------------------------------
+
+#  Discretization -- input options
 useOldPETSc=False
-useSuperlu=False
-timeDiscretization='be'#'be','vbdf','flcbdf'
+useSuperlu = not True
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
-applyCorrection=True
 useVF = 1.0
 useOnlyVF = False
-useRANS = 0 # 0 -- None
+useRANS = opts.useRANS # 0 -- None
             # 1 -- K-Epsilon
-            # 2 -- K-Omega
+            # 2 -- K-Omega, 1998
+            # 3 -- K-Omega, 1988
 # Input checks
 if spaceOrder not in [1,2]:
     print "INVALID: spaceOrder" + spaceOrder
-    sys.exit()    
-    
+    sys.exit()
+
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print "INVALID: useRBLES" + useRBLES
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
     print "INVALID: useMetrics"
     sys.exit()
-    
-#  Discretization   
+
+#  Discretization
 nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
 	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,2)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,2)     	 
+         elementQuadrature = CubeGaussQuadrature(nd,3)
+         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
     else:
     	 basis=C0_AffineLinearOnSimplexWithNodalBasis
          elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3) 	    
+         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
+         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
 elif spaceOrder == 2:
     hFactor=0.5
-    if useHex:    
+    if useHex:
 	basis=C0_AffineLagrangeOnCubeWithNodalBasis
         elementQuadrature = CubeGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)    
-    else:    
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis	
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
+    else:
+	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
-    
-# Domain and mesh
 
-#for debugging, make the tank short
-L = (60.0,1.50)
-he = waveheight
-
-GenerationZoneLength = 5.0
-AbsorptionZoneLength= 10.0
-spongeLayer = True
-xSponge = GenerationZoneLength
-xRelaxCenter = xSponge/2.0
-epsFact_solid = xSponge/2.0
-#zone 2
-xSponge_2 = L[0]-AbsorptionZoneLength
-xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-epsFact_solid_2 = AbsorptionZoneLength/2.0
-
-weak_bc_penalty_constant = 100.0
-nLevels = 1
-#parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
-parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
-nLayersOfOverlapForParallel = 0
-structured=False
-
-
-gauge_dx=0.50
-PGL=[]
-LGL=[]
-for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact 
-  PGL.append([gauge_dx*i,0.00,0])
-  LGL.append([(gauge_dx*i,0.01,0),(gauge_dx*i,L[1],0)])
- 
-
-gaugeLocations=tuple(map(tuple,PGL)) 
-columnLines=tuple(map(tuple,LGL)) 
-
-
-pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
-                                (('p',),    gaugeLocations)),
-                  activeTime = (0, 1000.0),
-                  sampleRate = 0,
-                  fileName = 'combined_gauge_0_0.5_sample_all.txt')
-
-print gaugeLocations
-print columnLines
-
-fields = ('vof',)
-
-columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
-                                 fileName='column_gauge.csv')
-
-#lineGauges  = LineGauges(gaugeEndpoints={'lineGauge_y=0':((0.0,0.0,0.0),(L[0],0.0,0.0))},linePoints=24)
-
-#lineGauges_phi  = LineGauges_phi(lineGauges.endpoints,linePoints=20)
-
-
-if useHex:   
-    nnx=ceil(L[0]/he)+1
-    nny=ceil(L[1]/he)+1
-    hex=True    
-    domain = Domain.RectangularDomain(L)
-else:
-    boundaries=['left','right','bottom','top','front','back']
-    boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
-    if structured:
-        nnx=ceil(L[0]/he)+1
-        nny=ceil(L[1]/he)+1
-    elif spongeLayer:
-        vertices=[[0.0,0.0],#0
-                  [L[0],0.0],#1
-                  [L[0],L[1]],#2
-                  [0.0,L[1]],#3
-                  [xSponge_2,0.0],#4
-                  [xSponge_2,L[1]]]#5
-
-        vertexFlags=[boundaryTags['bottom'],
-                     boundaryTags['bottom'],
-                     boundaryTags['top'],  
-                     boundaryTags['top'],  
-                     boundaryTags['bottom'],  
-                     boundaryTags['top']]
-        segments=[[0,4],
-                  [4,1],            
-                  [1,2],
-                  [2,5],
-                  [5,3],  
-                  [3,0],
-                  [4,5]]
-                 
-        segmentFlags=[boundaryTags['bottom'],
-                      boundaryTags['bottom'],
-                      boundaryTags['right'],
-                      boundaryTags['top'],
-                      boundaryTags['top'],
-                      boundaryTags['left'],
-                      0]
-    
-        regions=[[xRelaxCenter_2, 0.5*L[1]],
-                 [0.5*L[0],0.5*L[1]]]
-        regionFlags=[1,2]
-        domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
-                                                      vertexFlags=vertexFlags,
-                                                      segments=segments,
-                                                      segmentFlags=segmentFlags,
-                                                      regions=regions,
-                                                      regionFlags=regionFlags)
-        #go ahead and add a boundary tags member 
-        domain.boundaryTags = boundaryTags
-        domain.writePoly("mesh")
-        domain.writePLY("mesh")
-        domain.writeAsymptote("mesh")
-        triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
-
-        logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
-        porosityTypes      = numpy.array([1.0,
-                                      
-                                          1.0,
-                                          1.0])
-        dragAlphaTypes = numpy.array([0.0,
-                                     
-                                      0.5/1.004e-6,
-                                      0.0])
-        dragBetaTypes = numpy.array([0.0,0.0,0.0,0.0])
-
-        epsFact_solidTypes = np.array([0.0,epsFact_solid_2,0.0])
-
-    else:
-        vertices=[[0.0,0.0],#0
-                  [L[0],0.0],#1
-                  [L[0],L[1]],#2
-                  [0.0,L[1]]]#3
-
-        vertexFlags=[boundaryTags['bottom'],
-                     boundaryTags['bottom'],
-                     boundaryTags['top'],  
-                     boundaryTags['top']]
-        segments=[[0,1],
-                  [1,2],
-                  [2,3],  
-                  [3,0]
-                  ]
-        segmentFlags=[boundaryTags['bottom'],
-                      boundaryTags['right'],
-                      boundaryTags['top'],
-                      boundaryTags['left']]
-
-        regions=[ [ 0.1*L[0] , 0.1*L[1] ],
-                  [0.95*L[0] , 0.95*L[1] ] ]
-        regionFlags=[1,2]
-        domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
-                                                      vertexFlags=vertexFlags,
-                                                      segments=segments,
-                                                      segmentFlags=segmentFlags,
-                                                      regions=regions,
-                                                      regionFlags=regionFlags)
-        #go ahead and add a boundary tags member 
-        domain.boundaryTags = boundaryTags
-        domain.writePoly("mesh")
-        domain.writePLY("mesh")
-        domain.writeAsymptote("mesh")
-        triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
-
-        logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
-# Time stepping
-T=60.0
-dt_fixed = T#2.0*0.5/20.0#T/2.0#period/21.0
-dt_init = min(0.1*dt_fixed,0.1)
-runCFL=0.9
-nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = False#True
-backgroundDiffusionFactor=0.0
+sc = 0.25 # default: 0.5. Test: 0.25
+sc_beta = 1. # default: 1.5. Test: 1.
+epsFact_consrv_diffusion = 0.1 # default: 1.0. Test: 0.1
+ns_forceStrongDirichlet = False
+backgroundDiffusionFactor=0.01
 if useMetrics:
-    ns_shockCapturingFactor  = 0.25
+    ns_shockCapturingFactor  = sc
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.35
+    ls_shockCapturingFactor  = sc
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.35
+    ls_sc_beta  = sc_beta
+    vof_shockCapturingFactor = sc
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
-    rd_shockCapturingFactor  = 0.75
+    vof_sc_beta = sc_beta
+    rd_shockCapturingFactor  =sc
     rd_lag_shockCapturing = False
-    epsFact_density    = 3.0
+    epsFact_density    = 3.
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 1.5
-    epsFact_consrv_diffusion = 10.0
-    redist_Newton = True
-    kappa_shockCapturingFactor = 0.1
-    kappa_lag_shockCapturing = True#False
+    epsFact_redistance = 0.33
+    epsFact_consrv_diffusion = epsFact_consrv_diffusion
+    redist_Newton = True#False
+    kappa_shockCapturingFactor = sc
+    kappa_lag_shockCapturing = False#True
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.1
-    dissipation_lag_shockCapturing = True#False
+    kappa_sc_beta = sc_beta
+    dissipation_shockCapturingFactor = sc
+    dissipation_lag_shockCapturing = False#True
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = sc_beta
 else:
     ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
@@ -294,7 +310,7 @@ else:
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
+    redist_Newton = False#True
     kappa_shockCapturingFactor = 0.9
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref  = 1.0
@@ -304,195 +320,27 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-10,0.00001*he**2)
-vof_nl_atol_res = max(1.0e-10,0.00001*he**2)
-ls_nl_atol_res = max(1.0e-10,0.0001*he**2)
-rd_nl_atol_res = max(1.0e-10,0.005*he)
-mcorr_nl_atol_res = max(1.0e-10,0.0001*he**2)
-kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
-dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
+ns_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+vof_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+ls_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+mcorr_nl_atol_res = 1e-6 #max(1.0e-12,0.1*tolfac*he**2)
+rd_nl_atol_res = 1e-4 #max(1.0e-12,tolfac*he)
+kappa_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+dissipation_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
+mesh_nl_atol_res = 1e-6 #max(1.0e-12,opts.mesh_tol*he**2)
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+
 if useRANS == 1:
     ns_closure = 3
-elif useRANS == 2:
+elif useRANS >= 2:
     ns_closure == 4
-# Water
-rho_0 = 998.2
-nu_0  = 1.004e-6
 
-# Air
-rho_1 = 1.205
-nu_1  = 1.500e-5 
-
-# Surface tension
-sigma_01 = 0.0
-
-# Gravity
-g = [0.0,-9.8]
-
-# Initial condition
-waterLine_x = 2*L[0]
-waterLine_z = inflowHeightMean
-
-
-def signedDistance(x):
-    phi_x = x[0]-waterLine_x
-    phi_z = x[1]-waterLine_z 
-    if phi_x < 0.0:
-        if phi_z < 0.0:
-            return max(phi_x,phi_z)
-        else:
-            return phi_z
-    else:
-        if phi_z < 0.0:
-            return phi_x
-        else:
-            return sqrt(phi_x**2 + phi_z**2)
-
-def z(x):
-    return x[1] - inflowHeightMean
-
-h = inflowHeightMean 
-H_w= waveheight
-celerity = sqrt(abs(g[1])*(waveheight+inflowHeightMean))
-
-def waveHeight(x,t):
-   try :
-      a0=cosh(k*(celerity * t - (x[0]+trans)))
-   except Exception:
-      a0=1e300
-  
-   try :
-      eta= waveheight/(a0)**2.0 + inflowHeightMean
-   except Exception:
-      eta=1e-300
-
-   return eta 
-
-
-def waveVelocity_u(x,t):
-    try :
-      a1=cosh(sqrt( 3.0 * H_w / h**3.0) * (celerity  * t - (x[0]+trans)))
-    except Exception:
-      a1=1e300
-
-    try :
-      a2=cosh(k*(celerity * t - (x[0]+trans)))
-    except Exception:
-      a2=1e300
-    
-    try :
-      Uhorz =  1.0 /(4.0 * h**4 ) * sqrt(abs(g[1]) * h) *  H_w  * (             
-               2.0 * h**3 + h**2 * H_w  + 12.0 * h * H_w * z(x) + 6.0 *  H_w * z(x)**2.0 +
-              (2.0 * h**3 - h**2 * H_w - 6.0 * h * H_w * z(x) - 3.0 * H_w * z(x)**2 ) * a1)/(a2)**4
-    except Exception:
-      Uhorz=1e-300
-
-    return Uhorz
-
-
-def waveVelocity_v(x,t):
-    try:
-      Uvert =   1.0 / ( 4.0 * sqrt( abs(g[1])* h) ) * sqrt(3.0) * abs(g[1]) * (H_w / h**3.0)** 1.5  * (h + z(x))*(
-                2.0 * h**3 - 7.0 * h**2.0 * H_w + 10.0 * h * H_w * z(x) + 5.0 * H_w * z(x)**2.0 +
-                (2.0 * h**3.0 + h**2.0 * H_w - 2.0 * h * H_w * z(x) - H_w * z(x)**2.0)*
-                cosh(sqrt( 3.0 * H_w / h**3.0) * (celerity * t - (x[0]+trans) )))/(
-                cosh(sqrt( 3.0 * H_w / ( 4.0 * h**3.0))*
-                (celerity * t - (x[0]+trans)))   )** 4.0*( 
-                tanh( sqrt( 3.0 * H_w / ( 4.0 * h**3.0))*(celerity * t - (x[0]+trans))))
-    except Exception:
-      Uvert=1e-300    
-
-    return -Uvert
-
- 
-#solution variables
-
-def wavePhi(x,t):
-    return x[1] - waveHeight(x,t)
-
-def waveVF(x,t):
-    return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
-
-def twpflowVelocity_u(x,t):
-    waterspeed = waveVelocity_u(x,t)
-    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
-    u = H*windVelocity[0] + (1.0-H)*waterspeed
-    return u
-
-def twpflowVelocity_v(x,t):
-    waterspeed = waveVelocity_v(x,t)
-    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
-    return H*windVelocity[1]+(1.0-H)*waterspeed
-
-def twpflowFlux(x,t):
-    return -twpflowVelocity_u(x,t)
-
-outflowHeight=inflowHeightMean
-
-def outflowVF(x,t):
-    return smoothedHeaviside(epsFact_consrv_heaviside*he,x[1] - outflowHeight)
-
-def outflowPhi(x,t):
-    return x[1] - outflowHeight
-
-def outflowPressure(x,t):
-  if x[1]>inflowHeightMean:
-    return (L[1]-x[1])*rho_1*abs(g[1])
-  else:
-    return (L[1]-inflowHeightMean)*rho_1*abs(g[1])+(inflowHeightMean-x[1])*rho_0*abs(g[1])
-
-
-    #p_L = L[1]*rho_1*g[1]
-    #phi_L = L[1] - outflowHeight
-    #phi = x[1] - outflowHeight
-    #return p_L -g[1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi_L)
-    #                                                     -smoothedHeaviside_integral(epsFact_consrv_heaviside*he,phi)))
-
-def twpflowVelocity_w(x,t):
-    return 0.0
-
-def zeroVel(x,t):
-    return 0.0
-
-from collections import  namedtuple
-
-RelaxationZone = namedtuple("RelaxationZone","center_x sign u v w")
-
-class RelaxationZoneWaveGenerator(AV_base):
-    """ Prescribe a velocity penalty scaling in a material zone via a Darcy-Forchheimer penalty
-    
-    :param zones: A dictionary mapping integer material types to Zones, where a Zone is a named tuple
-    specifying the x coordinate of the zone center and the velocity components
-    """
-    def __init__(self,zones):
-        assert isinstance(zones,dict)
-        self.zones = zones
-    def calculate(self):
-        for l,m in enumerate(self.model.levelModelList):
-            for eN in range(m.coefficients.q_phi.shape[0]):
-                mType = m.mesh.elementMaterialTypes[eN]
-                if self.zones.has_key(mType):
-                    for k in range(m.coefficients.q_phi.shape[1]):
-                        t = m.timeIntegration.t
-                        x = m.q['x'][eN,k]
-                        m.coefficients.q_phi_solid[eN,k] = self.zones[mType].sign*(self.zones[mType].center_x - x[0])
-                        m.coefficients.q_velocity_solid[eN,k,0] = self.zones[mType].u(x,t)
-                        m.coefficients.q_velocity_solid[eN,k,1] = self.zones[mType].v(x,t)
-                        #m.coefficients.q_velocity_solid[eN,k,2] = self.zones[mType].w(x,t)
-        m.q['phi_solid'] = m.coefficients.q_phi_solid
-        m.q['velocity_solid'] = m.coefficients.q_velocity_solid
-
-rzWaveGenerator = RelaxationZoneWaveGenerator(zones={
-                                                    1:RelaxationZone(xRelaxCenter_2,
-                                                                     1.0,
-                                                                     zeroVel,
-                                                                     zeroVel,
-                                                                     zeroVel)})
-
-
-
- 
-
+def twpflowPressure_init(x, t):
+    p_L = 0.0
+    wl = waterLevel + wave.eta(x,t)
+    phi_L = tank_dim[1] - wl
+    phi = x[1] - wl
+    return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi_L)
+                                                         -smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi)))

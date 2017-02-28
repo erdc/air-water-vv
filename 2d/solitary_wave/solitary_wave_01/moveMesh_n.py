@@ -1,24 +1,22 @@
 from proteus.default_n import *
-from proteus import (StepControl,
+from proteus import (FemTools,
+                     Quadrature,
                      TimeIntegration,
+                     NumericalFlux,
                      NonlinearSolvers,
-                     LinearSolvers,
-                     LinearAlgebraTools,
-                     NumericalFlux)
-import ls_consrv_p as physics
+                     LinearSolvers)
+import moveMesh_p as physics
 from proteus import Context
-
 ct = Context.get()
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
 
-#time stepping
+# time stepping
 runCFL = ct.runCFL
-timeIntegrator  = TimeIntegration.ForwardIntegrator
 timeIntegration = TimeIntegration.NoIntegration
 
-#mesh options
+# mesh options
 nLevels = ct.nLevels
 parallelPartitioningType = mesh.parallelPartitioningType
 nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
@@ -30,22 +28,26 @@ triangleOptions = mesh.triangleOptions
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
-femSpaces = {0: ct.basis}
+femSpaces = {0: ct.basis,
+             1: ct.basis}
+if nd == 3:
+    femSpaces[2] = ct.basis
 
-subgridError      = None
 massLumping       = False
-numericalFluxType = NumericalFlux.DoNothing
+numericalFluxType = NumericalFlux.Stress_IIPG_exterior
 conservativeFlux  = None
-shockCapturing    = None
+
+subgridError = None
+shockCapturing = None
 
 fullNewtonFlag = True
-multilevelNonlinearSolver = NonlinearSolvers.Newton
-levelNonlinearSolver      = NonlinearSolvers.Newton
+multilevelNonlinearSolver  = NonlinearSolvers.Newton
+levelNonlinearSolver       = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
-linearSmoother    = None
+linearSmoother = None
 
-matrix = LinearAlgebraTools.SparseMatrix
+matrix = SparseMatrix
 
 if ct.useOldPETSc:
     multilevelLinearSolver = LinearSolvers.PETSc
@@ -58,14 +60,14 @@ if ct.useSuperlu:
     multilevelLinearSolver = LinearSolvers.LU
     levelLinearSolver      = LinearSolvers.LU
 
-linear_solver_options_prefix = 'mcorr_'
-linearSolverConvergenceTest  = 'r-true'
+linear_solver_options_prefix = 'mesh_'
+linearSmoother = None
+linearSolverConvergenceTest = 'r-true'
 
 tolFac = 0.0
 linTolFac = 0.001
-l_atol_res = 0.001*ct.mcorr_nl_atol_res
-nl_atol_res = ct.mcorr_nl_atol_res
-useEisenstatWalker = False#True
-
-maxNonlinearIts = 50
+l_atol_res = 0.001*ct.mesh_nl_atol_res
+nl_atol_res = ct.mesh_nl_atol_res
+maxNonlinearIts = 4#should be linear
 maxLineSearches = 0
+

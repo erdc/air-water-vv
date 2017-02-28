@@ -1,67 +1,96 @@
-from proteus import *
-from redist_p import *
-from tank import *
+from proteus.default_n import *
+from proteus import (StepControl,
+                     TimeIntegration,
+                     NonlinearSolvers,
+                     LinearSolvers,
+                     LinearAlgebraTools,
+                     NumericalFlux)
+from proteus.mprans import RDLS
+import redist_p as physics
+from proteus import Context
 
-nl_atol_res = rd_nl_atol_res
-tolFac = 0.0
-nl_atol_res = rd_nl_atol_res
+ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+mesh = domain.MeshOptions
 
-linTolFac = 0.01
-l_atol_res = 0.01*rd_nl_atol_res
+# time stepping
+runCFL = ct.runCFL
 
-if redist_Newton:
-    timeIntegration = NoIntegration
-    stepController = Newton_controller
-    maxNonlinearIts = 50
-    maxLineSearches = 0
-    nonlinearSolverConvergenceTest = 'r'
-    levelNonlinearSolverConvergenceTest = 'r'
-    linearSolverConvergenceTest = 'r-true'
-    useEisenstatWalker = False
+# mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+
+
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
+femSpaces = {0: ct.basis}
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
+massLumping       = False
+numericalFluxType = NumericalFlux.DoNothing
+conservativeFlux  = None
+subgridError      = RDLS.SubgridError(coefficients=physics.coefficients,
+                                      nd=ct.domain.nd)
+shockCapturing    = RDLS.ShockCapturing(coefficients=physics.coefficients,
+                                        nd=ct.domain.nd,
+                                        shockCapturingFactor=ct.rd_shockCapturingFactor,
+                                        lag=ct.rd_lag_shockCapturing)
+
+fullNewtonFlag = True
+multilevelNonlinearSolver  = NonlinearSolvers.Newton
+levelNonlinearSolver       = NonlinearSolvers.Newton
+
+nonlinearSmoother = NonlinearSolvers.NLGaussSeidel
+linearSmoother    = None
+
+matrix = LinearAlgebraTools.SparseMatrix
+
+if ct.useOldPETSc:
+    multilevelLinearSolver = LinearSolvers.PETSc
+    levelLinearSolver      = LinearSolvers.PETSc
 else:
-    timeIntegration = BackwardEuler_cfl
+    multilevelLinearSolver = LinearSolvers.KSP_petsc4py
+    levelLinearSolver      = LinearSolvers.KSP_petsc4py
+if ct.useSuperlu:
+    multilevelLinearSolver = LinearSolvers.LU
+    levelLinearSolver      = LinearSolvers.LU
+
+if ct.redist_Newton:
+    timeIntegration = TimeIntegration.NoIntegration
+    stepController = StepControl.Newton_controller
+    maxNonlinearIts = 25
+    maxLineSearches = 0
+    nonlinearSolverConvergenceTest = 'rits'
+    levelNonlinearSolverConvergenceTest = 'rits'
+    linearSolverConvergenceTest = 'r-true'
+else:
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
     stepController = RDLS.PsiTC
-    runCFL=2.0
-    psitc['nStepsForce']=3
-    psitc['nStepsMax']=50
-    psitc['reduceRatio']=2.0
-    psitc['startRatio']=1.0
+    runCFL = 0.5
+    psitc['nStepsForce'] = 6
+    psitc['nStepsMax'] = 25
+    psitc['reduceRatio'] = 3.0
+    psitc['startRatio'] = 1.0
     rtol_res[0] = 0.0
-    atol_res[0] = rd_nl_atol_res
-    useEisenstatWalker = False
+    atol_res[0] = ct.rd_nl_atol_res
+    useEisenstatWalker = False#True
     maxNonlinearIts = 1
     maxLineSearches = 0
     nonlinearSolverConvergenceTest = 'rits'
     levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'r-true'
 
-femSpaces = {0:basis}
-       
-massLumping       = False
-numericalFluxType = DoNothing    
-conservativeFlux  = None
-subgridError      = RDLS.SubgridError(coefficients,nd)
-shockCapturing    = RDLS.ShockCapturing(coefficients,nd,shockCapturingFactor=rd_shockCapturingFactor,lag=rd_lag_shockCapturing)
-
-fullNewtonFlag = True
-multilevelNonlinearSolver  = Newton
-levelNonlinearSolver       = Newton
-
-nonlinearSmoother = NLGaussSeidel
-linearSmoother    = None
-
-matrix = SparseMatrix
-
-if useOldPETSc:
-    multilevelLinearSolver = PETSc
-    levelLinearSolver      = PETSc
-else:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
-
-if useSuperlu:
-    multilevelLinearSolver = LU
-    levelLinearSolver      = LU
-
 linear_solver_options_prefix = 'rdls_'
 
+nl_atol_res = ct.rd_nl_atol_res
+tolFac = 0.0
+linTolFac = 0.001
+l_atol_res = 0.001*ct.rd_nl_atol_res
+useEisenstatWalker = False#True
