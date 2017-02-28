@@ -26,7 +26,7 @@ opts=Context.Options([
     ("refinement", 16 ,"Refinement level"),
     ("cfl", 0.33 ,"Target cfl"),
     # run time
-    ("T", 10.0 ,"Simulation time"),
+    ("T", 3.0 ,"Simulation time"),
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     # run details

@@ -24,10 +24,10 @@ opts=Context.Options([
     # gauges
     ("gauge_output", True, "Produce gauge data."),
     # refinement
-    ("refinement", 16 ,"Refinement level"),
+    ("refinement", 32 ,"Refinement level"),
     ("cfl", 0.33 ,"Target cfl"),
     # run time
-    ("T", 60.0 ,"Simulation time"),
+    ("T", 3.0 ,"Simulation time"),
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     # run details
@@ -165,8 +165,8 @@ if opts.gauge_output:
     tank.attachPointGauges(
         'twp',
         gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
-                  (('p',), ((0.5, 0.5, 0),))),
-        activeTime=(0, 0.5),
+                  (('p',), ((3.22, 0.12, 0),))),
+        activeTime=(0, opts.T),
         sampleRate=0,
         fileName='combined_gauge_0_0.5_sample_all.csv'
     )

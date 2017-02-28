@@ -1,9 +1,32 @@
-
+"""
+Broad crested weir - Fritz and Hager (1998); Hager and Schwalt (1994)
+"""
 from math import *
 import proteus.MeshTools
-from proteus import Domain
+from proteus import (Domain, Context,
+                     FemTools as ft,
+                     #SpatialTools as st,
+                     MeshTools as mt,
+                     WaveTools as wt)
 from proteus.default_n import *   
 from proteus.Profiling import logEvent
+
+
+#opts=Context.Options([
+#	# predefined test cases
+#	("L",(3.5,0.7),"Size of the domain")
+#	("inflow_velocity",0.047,"Inflow velocity")
+#	# refinement
+#	("refinement",40,"Refinement level"),  
+#	("cfl", 0.9 ,"Target cfl"),
+#	# run time
+#	("T", 10.0 ,"Simulation time"),
+#    	("dt_fixed", 0.01, "Fixed time step"),
+#	# run details
+#	("useHex", False, "Use a hexahedral structured mesh"),
+#    	("gen_mesh", True ,"Generate new mesh")])
+
+
    
 #  Discretization -- input options  
 
@@ -62,7 +85,7 @@ elif spaceOrder == 2:
     
 # Domain and mesh
 #L = (0.584,0.350)
-L = (3.5 , 0.7)
+L = (3.5,0.7)
 
 #Obstacle or weir dimensions/position
 obst_portions = (0.5,0.401) #(width,height)
