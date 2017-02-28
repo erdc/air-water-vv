@@ -22,7 +22,7 @@ opts=Context.Options([
     ("g", (0.,-9.81,0.), "Direction of the waves (from left boundary)"),
     ("trans",10. ,"peak offset for solitary wave"),
     # mesh refinement
-    ("he", 0.1, "Set characteristic element size"),
+    ("he", 0.05, "Set characteristic element size"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("T", 10.0, "Simulation time"),
