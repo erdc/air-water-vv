@@ -34,6 +34,6 @@ diffusiveFluxBoundaryConditions = {0: {}}
 
 class PerturbedSurface_H:
     def uOfXT(self,x,t):
-        return smoothedHeaviside(ct.ecH * ct.he, ct.signedDistance(x))
+        return smoothedHeaviside(ct.ecH * ct.he, ct.signedDistance(x, 0.))
 	    
 initialConditions  = {0:PerturbedSurface_H()}

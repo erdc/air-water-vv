@@ -23,7 +23,7 @@ if ct.useRANS >= 1:
 else:
     Closure_0_model = None
     Closure_1_model = None
-        
+
 coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
                                    rho_0=ct.rho_0,
@@ -65,10 +65,12 @@ class PerturbedSurface_p:
         self.waterdepth=waterdepth
         self.amplitude=amplitude
     def uOfXT(self,x,t):
-        if ct.signedDistance(x) < 0:
-            return -(L[1] - self.waterdepth - self.amplitude * cos(x[0]))*ct.rho_1*ct.g[1] - (self.waterdepth + self.amplitude * cos(x[0]) - x[1])*ct.rho_0*ct.g[1]
+        d = ct.signedDistance(x, 0.)
+        if d <= 0:
+            return ct.pressure(x[0], x[1]-self.waterdepth, t, ct.h, ct.eps, ct.rho_0, -ct.g[1], ct.k, 0.)+(ct.tank_dim[1]-(self.waterdepth+ct.eta(x[2], 0.)))*ct.rho_1*(-ct.g[1])
+            # return (ct.tank_dim[1]-(self.waterdepth+ct.eta(x)))*ct.rho_1*(-ct.g[1])+((self.waterdepth+ct.eta(x))-x[1])*ct.rho_0*(-ct.g[1])
         else:
-            return -(L[1] - x[1])*ct.rho_1*ct.g[1]
+            return (ct.tank_dim[1] - x[1])*ct.rho_1*(-ct.g[1])
 
 class AtRest:
     def __init__(self):
