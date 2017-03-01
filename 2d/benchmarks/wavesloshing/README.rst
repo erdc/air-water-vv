@@ -11,7 +11,7 @@ mode. The computational domain is a 2D rectangular box with dimensions
 box. The initail conditions of the simulation are shown in the
 following figure,
 
-.. figure:: ./Sloshing.bmp
+.. figure:: ./wavesloshing_scheme.png
    :width: 100%
    :align: center
 

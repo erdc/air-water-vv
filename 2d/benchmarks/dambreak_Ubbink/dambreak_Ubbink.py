@@ -16,7 +16,7 @@ opts=Context.Options([
     ("water_level", 0.292, "Height of free surface above bottom"),
     ("water_width", 0.146, "Width of free surface from x- wall"),
     # tank
-    ("tank_dim", (0.584, 0.584), "Dimensions of the tank"),
+    ("tank_dim", (0.584,0.584), "Dimensions of the tank"),
     ("obstacle_dim", (0.024, 0.048),"Dimensions of the obstacle"),
     ("obstacle_x_start", 0.292,"x location of start of obstacle"),
     #gravity 
@@ -24,10 +24,10 @@ opts=Context.Options([
     # gauges
     ("gauge_output", True, "Produce gauge data."),
     ("lineGauge_x", 0.4, "x-coordinate of vertical line of gauges"),
-    ("pressure_pointGauge", (0.293,0.05,0.0), "Coordinates of point gauge for"
+    ("pressure_pointGauge", (0.292,0.04,0.0), "Coordinates of point gauge for"
                                               "pressure measurement."),
     # refinement
-    ("refinement", 12,"Refinement level"),
+    ("refinement",32,"Refinement level"),
     ("cfl", 0.33,"Target cfl"),
     # run time
     ("T", 0.8,"Simulation time"),
@@ -160,9 +160,9 @@ if opts.gauge_output:
     tank.attachPointGauges(
         'twp',
         gauges = ((('p',), (opts.pressure_pointGauge,)),),
-        activeTime=(0, 0.5),
+        activeTime=(0, opts.T),
         sampleRate=0,
-        fileName='pointGauge_pressure.txt'
+        fileName='pointGauge_pressure.csv'
     )
 
     tank.attachLineGauges(

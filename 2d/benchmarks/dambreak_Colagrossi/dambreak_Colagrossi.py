@@ -108,7 +108,7 @@ elif spaceOrder == 2:
         elementBoundaryQuadrature = ft.SimplexGaussQuadrature(nd - 1, 4)
 
 ##########################################
-# Numerical Options and Other Parameters #
+# Numerical Options and Other Parameters             #
 ##########################################
 
 weak_bc_penalty_constant = 100.0
@@ -168,7 +168,7 @@ if opts.gauge_output:
                   (('p',), ((3.22, 0.12, 0),))),
         activeTime=(0, opts.T),
         sampleRate=0,
-        fileName='combined_gauge_0_0.5_sample_all.csv'
+        fileName='combinedGauge.csv'
     )
 
     tank.attachLineGauges(

@@ -26,7 +26,7 @@ opts=Context.Options([
     ("refinement", 40,"Refinement level"),
     ("cfl", 0.33,"Target cfl"),
     # run time
-    ("T", 0.01,"Simulation time"),
+    ("T", 1.0,"Simulation time"),
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     # run details
@@ -157,16 +157,16 @@ else:
 tank = Tank2D(domain, tank_dim)
 
 # ----- GAUGES ----- #
-#
-# tank.attachPointGauges(
-#     'twp',
-#     gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
-#               (('p',), ((0.5, 0.5, 0),))),
-#     activeTime=(0, 0.5),
-#     sampleRate=0,
-#     fileName='combined_gauge_0_0.5_sample_all.csv'
-# )
-#
+
+tank.attachPointGauges(
+    'twp',
+     gauges = ((('u', 'v'), ((0.5, 0.5, 0), (0.5, 0.5, 0))),
+               (('p',), ((0.5, 0.5, 0),))),
+     activeTime=(0, opts.T),
+     sampleRate=0,
+     fileName='combined_gauge.csv'
+ )
+
 # tank.attachLineGauges(
 #     'vof',
 #     gauges = ((('vof',),((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))),),
