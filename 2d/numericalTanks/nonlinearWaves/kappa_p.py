@@ -47,9 +47,9 @@ coefficients = Kappa.Coefficients(V_model=int(ct.movingDomain)+0,
                                   sc_beta=ct.kappa_sc_beta)
 
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].k_dirichlet}
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].k_advective}
-diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].k_diffusive}}
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].k_dirichlet.init_cython()}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].k_advective.init_cython()}
+diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].k_diffusive.init_cython()}}
 
 
 

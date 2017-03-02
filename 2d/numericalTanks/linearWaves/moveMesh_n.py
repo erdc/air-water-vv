@@ -71,3 +71,4 @@ nl_atol_res = ct.mesh_nl_atol_res
 maxNonlinearIts = 4#should be linear
 maxLineSearches = 0
 
+auxiliaryVariables = ct.domain.auxiliaryVariables['moveMesh']
