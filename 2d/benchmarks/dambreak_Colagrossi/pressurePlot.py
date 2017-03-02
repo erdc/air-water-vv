@@ -38,40 +38,20 @@ with open (filename, 'rb') as csvfile:
 
 #####################################################################################
 
-#Choose to plot in time or in space
-    choose=(raw_input('Plotting pressure in time or in space? (ENTER t or s) : '))
-
-    if choose=='s':  
-# Choose which time step to plot  
-        pressure=[]
-        print('Number of rows : '+ str(nRows))
-        line = int(raw_input('Enter which line (time step) to plot : '))
-        pressure=a[line-1][1:]  
- # Plot pressure in space
-        import matplotlib.pyplot as plt
-        plt.plot(probes,pressure)
-        plt.xlabel('probes location [m]')    
-        plt.ylabel('pressure[Pa]')
-        plt.suptitle('timestep = %d [sec]' %(float(time[line-2])))
-        plt.show()
-        savefig('pressure_in_space_%d.png' %(line))
-
-    if choose=='t':    
 # Choose which probes to plot  
-        print('Number of probes : '+ str(len(probes)))
-        x = int(raw_input('Enter which probes to plot (range from 1 to number of probes: ')) 
-        pressure2=[]
-        for k in range(1,nRows):
-            pressure2.append(a[k][x])    
+    print('Number of probes : '+ str(len(probes)))
+    x = int(raw_input('Enter which probes to plot (range from 1 to number of probes: ')) 
+    pressure2=[]
+    for k in range(1,nRows):
+        pressure2.append(a[k][x])    
 # Plot pressure in time
-        import matplotlib.pyplot as plt
-        plt.plot(time,pressure2)
-        plt.xlabel('time step [sec]')    
-        plt.ylabel('pressure [Pa]')
-        plt.suptitle('probe = %d [m]' %(float(probes[x-1])))
-        #plt.ylim((4000,6500))
-        plt.show()
-        savefig('pressure_in_time_%d.png' %(x))
+    import matplotlib.pyplot as plt
+    plt.plot(time,pressure2)
+    plt.xlabel('time step [sec]')    
+    plt.ylabel('pressure [Pa]')
+    plt.suptitle('Pressure against time at (x,y)=(3.22,0.12)')
+    plt.show()
+    savefig('pressure_in_time.png')
 
 #####################################################################################
 

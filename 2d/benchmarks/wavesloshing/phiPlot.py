@@ -37,44 +37,24 @@ with open (filename, 'rb') as csvfile:
         nRows+=1
 
 #####################################################################################
-
-#Choose to plot in time or in space
-    choose=(raw_input('Plotting pressure in time or in space? (ENTER t or s) : '))
-
-    if choose=='s':  
-# Choose which time step to plot  
-        pressure=[]
-        print('Number of rows : '+ str(nRows))
-        line = int(raw_input('Enter which line (time step) to plot : '))
-        pressure=a[line-1][1:]  
- # Plot pressure in space
-        import matplotlib.pyplot as plt
-        plt.plot(probes,pressure)
-        plt.xlabel('probes location [m]')    
-        plt.ylabel('pressure[Pa]')
-        plt.suptitle('timestep = %d [sec]' %(float(time[line-2])))
-	plt.grid(True)
-        plt.show()
-        savefig('pressure_in_space_%d.png' %(line))
-
-    if choose=='t':    
+   
 # Choose which probes to plot  
-	print('Number of probes : '+ str(len(probes)))
-        x = int(raw_input('Enter which probes to plot (range from 1 to number of probes: ')) 
-        phi=[]
-        for k in range(1,nRows):
-            phi.append(a[k][x]+0.05)    
-# Plot pressure in time
-	import matplotlib.pyplot as plt
-	plt.plot(time,phi)
-	plt.xlabel('time [sec]')    
-	plt.ylabel('phi [m]')
-	plt.suptitle('Position of the interface at the left boundary plotted against time')
-	plt.xlim((0,2.5))
-	plt.ylim((0.04,0.06))
-	plt.grid(True)
-        plt.show()
-        savefig('phi_in_time_%d.png' %(x))
+    print('Number of probes : '+ str(len(probes)))
+    x = int(raw_input('Enter which probes to plot (range from 1 to number of probes: ')) 
+    phi=[]
+    for k in range(1,nRows):
+        phi.append(a[k][x]+0.05)    
+# Plot phi in time
+    import matplotlib.pyplot as plt
+    plt.plot(time,phi)
+    plt.xlabel('time [sec]')    
+    plt.ylabel('phi [m]')
+    plt.suptitle('Position of the interface at the left boundary plotted against time')
+    plt.xlim((0,2.5))
+    plt.ylim((0.04,0.06))
+    plt.grid(True)
+    plt.show()
+    savefig('phi_in_time.png')
 
 #####################################################################################
 

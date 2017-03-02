@@ -47,7 +47,7 @@ with open (filename, 'rb') as csvfile:
     for k in range(1,nRows):
         u.append(a[k][x1])
         v.append(a[k][x2])    
-# Plot pressure in time
+# Plot velocity in time
     import matplotlib.pyplot as plt
     plt.plot(time,u,'r',label='u')
     plt.plot(time,v,'b',label='v')

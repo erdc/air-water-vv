@@ -38,46 +38,27 @@ with open (filename, 'rb') as csvfile:
 
 #####################################################################################
 
-#Choose to plot in time or in space
-    choose=(raw_input('Plotting pressure in time or in space? (ENTER t or s) : '))
-
-    if choose=='s':  
-# Choose which time step to plot  
-        pressure=[]
-        print('Number of rows : '+ str(nRows))
-        line = int(raw_input('Enter which line (time step) to plot : '))
-        pressure=a[line-1][1:]  
- # Plot pressure in space
-        import matplotlib.pyplot as plt
-        plt.plot(probes,pressure)
-        plt.xlabel('probes location [m]')    
-        plt.ylabel('pressure[Pa]')
-        plt.suptitle('timestep = %d [sec]' %(float(time[line-2])))
-        plt.show()
-        savefig('pressure_in_space_%d.png' %(line))
-
-    if choose=='t':    
 # Choose which probes to plot  
-        print('Number of probes : '+ str(len(probes)))
-        x = int(raw_input('Enter which probes to plot (range from 1 to number of probes: ')) 
-        pressure2=np.zeros(nRows-1, dtype=float)
-        pressure2A=np.zeros(nRows-1, dtype=float)
-        timeA=np.zeros(nRows-1, dtype=float)
-        for k in range(1,nRows):
-	    pressure2[k-1]=(float(a[k][x]))    
-            timeA[k-1]=time[k-1]*(9.81/0.6)**0.5
-	pressure2A=pressure2/(998.2*9.81*0.6)
+    print('Number of probes : '+ str(len(probes)))
+    x = int(raw_input('Enter which probes to plot (range from 1 to number of probes: ')) 
+    pressure2=np.zeros(nRows-1, dtype=float)
+    pressure2A=np.zeros(nRows-1, dtype=float)
+    timeA=np.zeros(nRows-1, dtype=float)
+    for k in range(1,nRows):
+        pressure2[k-1]=(float(a[k][x]))    
+        timeA[k-1]=time[k-1]*(9.81/0.6)**0.5
+    pressure2A=pressure2/(998.2*9.81*0.6)
 # Plot pressure in time
-        import matplotlib.pyplot as plt
-        plt.plot(timeA,pressure2A)
-        plt.xlabel('time step [adim]')    
-        plt.ylabel('pressure [adim]')
-        plt.suptitle('probe = %d [m]' %(float(probes[x-1])))
-        plt.ylim((0,1.4))
-	plt.xlim((0,12))
-        plt.grid(True)
-	plt.show()
-        savefig('pressureAdim_in_time_%d.png' %(x))
+    import matplotlib.pyplot as plt
+    plt.plot(timeA,pressure2A)
+    plt.xlabel('time step [adim]')    
+    plt.ylabel('pressure [adim]')
+    plt.suptitle('Nondimensional pressure against time')
+    plt.ylim((0,1.4))
+    plt.xlim((0,12))
+    plt.grid(True)
+    plt.show()
+    savefig('pressureAdim_in_time.png')
 
 #####################################################################################
 

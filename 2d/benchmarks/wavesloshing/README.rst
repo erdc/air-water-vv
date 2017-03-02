@@ -7,7 +7,7 @@ therefore, we can consider that the flow evolution will obey to the
 linear sloshing theory. The output of Proteus can be compared with the
 analytical solution found in Ibrahim (2005) including only a symmetric
 mode. The computational domain is a 2D rectangular box with dimensions
-3.14m x 3.14m and the mean level of the water is in the middle of the
+0.1m x 0.1m and the mean level of the water is in the middle of the
 box. The initail conditions of the simulation are shown in the
 following figure,
 
