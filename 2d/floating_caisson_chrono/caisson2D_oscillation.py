@@ -6,29 +6,28 @@ from math import *
 import numpy as np
 
 
-
 opts=Context.Options([
     # predefined test cases
     ("water_level", 1.5, "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (1.596*4, 3.,), "Dimensions of the tank"),
-    ("tank_sponge", (1.596*2, 3.4), "Length of absorption zones (front/back, left/right)"),
+    ("tank_dim", (3.137*2, 3.,), "Dimensions of the tank"),
+    ("tank_sponge", (3.137, 3.137*2), "Length of absorption zones (front/back, left/right)"),
     ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
-    ("gauge_output", False, "Places Gauges in tank"),
+    ("gauge_output", True, "Places Gauges in tank"),
     ("gauge_fixed", False, "Places Gauges in tank"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
-    ("wave_period", 0.8, "Period of the waves"),
-    ("wave_height", 0.029, "Height of the waves"),
+    ("wave_period", 1.4185, "Period of the waves"),
+    ("wave_height", 0.07, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
-    ("wave_wavelength", 1.596, "Direction of the waves (from left boundary)"),
-    ("wave_type", 'Linear', "type of wave"),
-    ("Bcoeff", np.zeros(2,), "BCoeffs"),
-    ("Ycoeff", np.zeros(2,), "YCoeffs"),
+    ("wave_wavelength", 3.137, "Direction of the waves (from left boundary)"),
+    ("wave_type", 'Fenton', "type of wave"),
+    ("Bcoeff", np.array([6.9992068e-002,4.8922522e-005,-6.7217371e-007,1.6872617e-008,-1.7685194e-010,1.8800231e-012,0.0,0.0]), "BCoeffs"),
+    ("Ycoeff", np.array([6.9865422e-002,2.5069224e-003,1.3384697e-004,8.4828079e-006,5.9092756e-007,4.3715891e-008,3.3715231e-009,2.6808955e-010]), "YCoeffs"),
     # caisson
     ("caisson", True, "caisson"),
     ("caisson_dim", (0.5, 0.32), "Dimensions of the caisson"),
-    ("caisson_coords", (1.596*2., 1.41), "Dimensions of the caisson"),
+    ("caisson_coords", (3.137, 1.406), "Dimensions of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
     ("caisson_corner_r", 0.064, "radius of the corners of the caisson"),
     ("caisson_corner_side", 'bottom', "corners placement"),
@@ -39,7 +38,7 @@ opts=Context.Options([
     ("caisson_mass", 125., "Mass of the caisson"),
     ("caisson_inertia", 4.05, "Inertia of the caisson"),
     ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
-    ("chrono_dt", 0.000001, "time step of chrono"),
+    ("chrono_dt", 0.00001, "time step of chrono"),
     # mooring
     ("mooring", True, "add moorings"),
     ("mooring_type", 'prismatic', "type of moorings"),
@@ -50,12 +49,12 @@ opts=Context.Options([
     ("mooring_restlength", 0., "mooring (spring) rest length"),
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
-    ("he", 0.007, "Set characteristic element size"),
+    ("he", 0.01, "Set characteristic element size"),
     ("he_max", 10, "Set maximum characteristic element size"),
-    ("he_caisson", 0, "Set maximum characteristic element size on caisson boundary"),
+    ("he_caisson", 0.01, "Set maximum characteristic element size on caisson boundary"),
     ("he_max_water", 10, "Set maximum characteristic in water"),
-    ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value)"),
-    ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
+    ("refinement_freesurface", 0.25,"Set area of constant refinement around free surface (+/- value)"),
+    ("refinement_caisson", 0.75,"Set area of constant refinement (Box) around caisson (+/- value)"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
@@ -65,12 +64,11 @@ opts=Context.Options([
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
-    ("cfl", 0.33 , "Target cfl"),
-    ("nsave",  20, "Number of time steps to save per second"),
+    ("cfl", 0.4 , "Target cfl"),
+    ("nsave", 5, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ("sc", 0.25, "shockCapturing factor"),
-    ("tolfac", 0.001, "tolerance factor (*he**2)"),
-    ("mesh_tol", 0.001, "tolerance factor of mesh motion (*he**2)"),
+    ("weak_factor", 10., "weak bc penalty factor"),
     ("strong_dir", False, "strong dirichlet (True/False)"),
     ("parallel", True ,"Run in parallel")])
 
@@ -272,6 +270,7 @@ if opts.caisson:
     # let gmsh know that the caisson is IN the tank
     tank.setChildShape(caisson, 0)
 
+
 # ----- BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
@@ -282,8 +281,11 @@ if opts.tank_BC == 'freeslip':
 tank.BC['x+'].setNoSlip()
 tank.BC['sponge'].setNonMaterial()
 
-for bc in tank.BC_list:
-    bc.setFixedNodes()
+tank.BC['x-'].setFixedNodes()
+tank.BC['x+'].setFixedNodes()
+tank.BC['sponge'].setFixedNodes()
+tank.BC['y+'].setTank()  # sliding mesh nodes
+tank.BC['y-'].setTank()  #sliding mesh nodes
 
 
 # ----- GAUGES ----- #
@@ -346,70 +348,11 @@ if opts.gauge_output:
     #he = opts.caisson_dim[1]/10.0*(0.5**opts.refinement_level)
 
 
-
-import MeshRefinement as mr
-tank.MeshOptions = mr.MeshOptions(tank)
-if opts.caisson is True:
-    caisson.MeshOptions = mr.MeshOptions(caisson)
-if opts.refinement:
-    grading = opts.refinement_grading
-    he2 = opts.he
-    def mesh_grading(start, he, grading):
-        return '{0}*{2}^(1+log((-1/{2}*(abs({1})-{0})+abs({1}))/{0})/log({2}))'.format(he, start, grading)
-    # for seg in caisson.segments:
-    #     v0 = caisson.vertices[seg[0]]
-    #     v1 = caisson.vertices[seg[1]]
-    #     dist = np.linalg.norm(v1-v0)
-    #     direct = (v1-v0)/dist
-    #     points = np.arange(0., dist, he2)
-    #     xx = []
-    #     yy = []
-    #     for p in points:
-    #       pd = v0+p*direct
-    #       tank.MeshOptions.setRefinementFunction(mesh_grading(start='sqrt((x-{0})^2+(y-{1})^2)'.format(pd[0], pd[1]), he=he2, grading=grading))
-
-    if opts.caisson is True:
-        caisson.MeshOptions.setBoundaryLayerEdges(hwall_n=he_caisson, hwall_t=he2, ratio=grading, EdgesList=[i for i in range(len(caisson.segments))])
-
-    he_max = opts.he_max
-    # he_fs = he2
-    ecH = 3.
-    if opts.refinement_freesurface > 0:
-        box = opts.refinement_freesurface
-    else:
-        box = ecH*he2
-    tank.MeshOptions.refineBox(he2, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], waterLevel-box, waterLevel+box)
-    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-box), he=he2, grading=grading))
-    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+box), he=he2, grading=grading))
-    # tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-ecH*he2), he=he2, grading=grading))
-    # tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+ecH*he2), he=he2, grading=grading))
-    domain.MeshOptions.LcMax = he_max #coarse grid
-    if opts.use_gmsh is True and opts.refinement is True:
-        domain.MeshOptions.he = he_max #coarse grid
-    else:
-        domain.MeshOptions.he = he2 #coarse grid
-        domain.MeshOptions.LcMax = he2 #coarse grid
-
-
-
-tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
-
-#meshfile='T'+str(tank_dim[0])+str(tank_dim[1])
 st.assembleDomain(domain)
-append = False
-if opts.refinement_caisson and opts.caisson:
-    append = True
-    offset = opts.refinement_caisson
-    xmin = caisson_coords[0]-(caisson_dim[0]/2.+offset)
-    xmax = caisson_coords[0]+(caisson_dim[0]/2.+offset)
-    ymin = caisson_coords[1]-(caisson_dim[1]/2.+offset)
-    ymax = caisson_coords[1]+(caisson_dim[1]/2.+offset)
-    tank.MeshOptions.refineBox(he2, he_max, xmin, xmax, ymin, ymax)
-mr._assembleRefinementOptions(domain)
-from proteus import Comm
-comm = Comm.get()
-comm.barrier()
-geofile='meshgeo_he'+str(opts.he)+'max'+str(opts.he_max)+str(opts.he_max_water)+'_T'+str(tank_dim)+str(tank_sponge)
+domain.MeshOptions.use_gmsh = opts.use_gmsh
+domain.MeshOptions.genMesh = opts.genMesh
+domain.use_gmsh = opts.use_gmsh
+geofile='meshgeo_he'+str(opts.he)+'max'+str(opts.he_max)+str(opts.he_max_water)+'c'+str(opts.he_caisson)+'_T'+str(tank_dim)+str(tank_sponge)
 if opts.caisson:
     geofile += 'C'+str(caisson_dim)+str(caisson_coords)
 if opts.refinement:
@@ -421,43 +364,97 @@ geofile = geofile.replace('[', '')
 geofile = geofile.replace(']', '')
 geofile = geofile.replace('.', '-')
 geofile = geofile.replace(',', '_')
-if comm.isMaster():
-    mr.writeGeo(domain, geofile, append=append)
-    if append is True:
-        f = open(geofile+'.geo', 'a')
-        f.write('Point(200) = {{{0}}};\n'.format(str([xmin, ymin, 0])[1:-1]))
-        f.write('Point(201) = {{{0}}};\n'.format(str([xmax, ymin, 0])[1:-1]))
-        f.write('Point(202) = {{{0}}};\n'.format(str([xmax, ymax, 0])[1:-1]))
-        f.write('Point(203) = {{{0}}};\n'.format(str([xmin, ymax, 0])[1:-1]))
-        f.write('Line(200) = {{{0}}};\n'.format(str([200, 201])[1:-1]))
-        f.write('Line(201) = {{{0}}};\n'.format(str([201, 202])[1:-1]))
-        f.write('Line(202) = {{{0}}};\n'.format(str([202, 203])[1:-1]))
-        f.write('Line(203) = {{{0}}};\n'.format(str([203, 200])[1:-1]))
-
-        f.write('Field[{0}] = BoundaryLayer;\n'
-                'Field[{0}].hwall_n = {1};\n'
-                'Field[{0}].ratio = {2};\n'
-                'Field[{0}].EdgesList = {{200, 201, 202, 203}};\n'
-                .format(7, he2, grading))
-        f.write('Field[8] = Min; Field[8].FieldsList = {1, 2, 3, 4, 5, 6, 7};\n')
-        f.write('Background Field = 8;\n')
-        f.close()
 domain.geofile=geofile
-#f.write('Point(204) = {{{0}}};\n'.format(str([-tank_sponge[0], waterLevel-box, 0])[1:-1]))
-#f.write('Point(205) = {{{0}}};\n'.format(str([tank_dim[0]+tank_sponge[1], waterLevel-box, 0])[1:-1]))
-#f.write('Point(206) = {{{0}}};\n'.format(str([-tank_sponge[0], waterLevel+box, 0])[1:-1]))
-#f.write('Point(207) = {{{0}}};\n'.format(str([tank_dim[0]+tank_sponge[1], waterLevel+box, 0])[1:-1]))
-#f.write('Line(204) = {{{0}}};\n'.format(str([204, 205])[1:-1]))
-#f.write('Line(205) = {{{0}}};\n'.format(str([206, 207])[1:-1]))
+
+# MESH REFINEMENT
+
+import py2gmsh
+from MeshRefinement import geometry_to_gmsh
+mesh = geometry_to_gmsh(domain)
+grading = opts.refinement_grading
+he = opts.he
+he_max = opts.he_max
+he_max_water = opts.he_max_water
+ecH = 3.
+if opts.refinement_freesurface > 0:
+    box = opts.refinement_freesurface
+else:
+    box = ecH*he
+
+# refinement free surface
+box1 = py2gmsh.Fields.Box(mesh=mesh)
+box1.VIn = he
+box1.VOut = he_max
+box1.XMin = -tank_sponge[0]
+box1.XMax = tank_dim[0]+tank_sponge[1]
+box1.YMin = waterLevel-box
+box1.YMax = waterLevel+box
+
+p0 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel+box, 0.], mesh=mesh)
+p1 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel+box, 0.], mesh=mesh)
+p2 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel-box, 0.], mesh=mesh)
+p3 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel-box, 0.], mesh=mesh)
+l1 = py2gmsh.Entity.Line([p0, p1], mesh=mesh)
+l2 = py2gmsh.Entity.Line([p2, p3], mesh=mesh)
+
+bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+bl2.hwall_n = he
+bl2.ratio = grading
+bl2.EdgesList = [l1, l2]
+
+# max element size in water phase
+box2 = py2gmsh.Fields.Box(mesh=mesh)
+box2.VIn = he_max_water
+box2.VOut = he_max
+box2.XMin = -tank_sponge[0]
+box2.XMax = tank_dim[0]+tank_sponge[1]
+box2.YMin = 0
+box2.YMax = waterLevel
+
+if opts.refinement_caisson:
+    # boundary layer on caisson
+    bl1 = py2gmsh.Fields.BoundaryLayer()
+    bl1.hwall_n = he_caisson
+    bl1.ratio = grading
+    bl1.EdgesList = mesh.getLinesFromIndex([i+1 for i in range(len(caisson.segments))])
+    mesh.addField(bl1)
+    
+    # create circle (non-physical) around caisson
+    refinement_caisson = opts.refinement_caisson
+    p0 = py2gmsh.Entity.Point([caisson_coords[0], caisson_coords[1], 0.], mesh=mesh)
+    p1 = py2gmsh.Entity.Point([caisson_coords[0]-refinement_caisson, caisson_coords[1], 0.], mesh=mesh)
+    p2 = py2gmsh.Entity.Point([caisson_coords[0]+refinement_caisson, caisson_coords[1], 0.], mesh=mesh)
+    p3 = py2gmsh.Entity.Point([caisson_coords[0]-refinement_caisson+0.00001, caisson_coords[1], 0.], mesh=mesh)
+    c1 = py2gmsh.Entity.Circle(p1, p0, p2, nb=100, mesh=mesh)
+    c2 = py2gmsh.Entity.Circle(p2, p0, p3, nb=101, mesh=mesh)
+
+    # refined circle around caisson
+    b1 = py2gmsh.Fields.Ball(mesh=mesh)
+    b1.VIn = he
+    b1.VOut = he_max
+    b1.Radius = refinement_caisson
+    b1.XCenter = caisson_coords[0]
+    b1.YCenter = caisson_coords[1]
+    b1.ZCenter = 0.
+
+    # boundary layer on circle around caisson
+    bl3 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+    bl3.hwall_n = he
+    bl3.ratio = grading
+    bl3.EdgesList = [c1, c2]
+
+# background field
+fmin = py2gmsh.Fields.Min(mesh=mesh)
+fmin.FieldsList = [box1, box2, bl1, bl2, bl3, b1]
+mesh.setBackgroundField(fmin)
+
+# max element size
+mesh.Options.Mesh.CharacteristicLengthMax = he_max
+
+mesh.writeGeo(geofile+'.geo')
 
 
 
-
-
-
-domain.MeshOptions.use_gmsh = opts.use_gmsh
-domain.MeshOptions.genMesh = opts.genMesh
-domain.use_gmsh = opts.use_gmsh
 
 
 ##########################################
@@ -498,7 +495,7 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = 10.0/nu_0#Re
+weak_bc_penalty_constant = opts.weak_factor/nu_0#Re
 dt_init = opts.dt_init
 T = opts.T
 nDTout = int(opts.T*opts.nsave)
@@ -567,13 +564,14 @@ elif spaceOrder == 2:
 if opts.sc == 0.25:
     sc = 0.25 # default: 0.5. Test: 0.25
     sc_beta = 1. # default: 1.5. Test: 1.
+    epsFact_consrv_diffusion = 0.1 # default: 1.0. Test: 0.1. Safe: 10.
 elif opts.sc == 0.5:
     sc = 0.5
     sc_beta = 1.5
+    epsFact_consrv_diffusion = 10.0 # default: 1.0. Test: 0.1. Safe: 10.
 else:
     import sys
     sys.quit()
-epsFact_consrv_diffusion = 10.0 # default: 1.0. Test: 0.1. Safe: 10.
 ns_forceStrongDirichlet = opts.strong_dir
 backgroundDiffusionFactor=0.01
 if useMetrics:
@@ -631,8 +629,8 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-he = he2
-tolfac = opts.tolfac
+#tolfac = 0.001
+#mesh_tol = 0.001
 ns_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
 vof_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
 ls_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
