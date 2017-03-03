@@ -380,6 +380,7 @@ if opts.refinement_freesurface > 0:
     box = opts.refinement_freesurface
 else:
     box = ecH*he
+field_list = []
 
 # refinement free surface
 box1 = py2gmsh.Fields.Box(mesh=mesh)
@@ -389,6 +390,7 @@ box1.XMin = -tank_sponge[0]
 box1.XMax = tank_dim[0]+tank_sponge[1]
 box1.YMin = waterLevel-box
 box1.YMax = waterLevel+box
+field_list += [box1]
 
 p0 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel+box, 0.], mesh=mesh)
 p1 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel+box, 0.], mesh=mesh)
@@ -401,6 +403,7 @@ bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
 bl2.hwall_n = he
 bl2.ratio = grading
 bl2.EdgesList = [l1, l2]
+field_list += [bl2]
 
 # max element size in water phase
 box2 = py2gmsh.Fields.Box(mesh=mesh)
@@ -410,6 +413,7 @@ box2.XMin = -tank_sponge[0]
 box2.XMax = tank_dim[0]+tank_sponge[1]
 box2.YMin = 0
 box2.YMax = waterLevel
+field_list += [box2]
 
 if opts.refinement_caisson:
     # boundary layer on caisson
@@ -418,6 +422,7 @@ if opts.refinement_caisson:
     bl1.ratio = grading
     bl1.EdgesList = mesh.getLinesFromIndex([i+1 for i in range(len(caisson.segments))])
     mesh.addField(bl1)
+    field_list += [bl1]
     
     # create circle (non-physical) around caisson
     refinement_caisson = opts.refinement_caisson
@@ -436,16 +441,18 @@ if opts.refinement_caisson:
     b1.XCenter = caisson_coords[0]
     b1.YCenter = caisson_coords[1]
     b1.ZCenter = 0.
+    field_list += [b1]
 
     # boundary layer on circle around caisson
     bl3 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
     bl3.hwall_n = he
     bl3.ratio = grading
     bl3.EdgesList = [c1, c2]
+    field_list += [bl3]
 
 # background field
 fmin = py2gmsh.Fields.Min(mesh=mesh)
-fmin.FieldsList = [box1, box2, bl1, bl2, bl3, b1]
+fmin.FieldsList = field_list
 mesh.setBackgroundField(fmin)
 
 # max element size

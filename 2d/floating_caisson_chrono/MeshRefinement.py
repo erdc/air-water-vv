@@ -11,7 +11,7 @@ def geometry_to_gmsh(domain):
     if self.boundaryTags:
         for i, tag in enumerate(self.boundaryTags):
             phys = PhysicalGroup(nb=i, name=tag)
-            mesh.addEntity(phys)
+            mesh.addGroup(phys)
 
     for i, v in enumerate(self.vertices):
         if domain.nd == 2:
@@ -27,7 +27,6 @@ def geometry_to_gmsh(domain):
         lines_dict[i] = {}
         
     for i, s in enumerate(self.segments):
-        print s
         lines_dict[s[0]][s[1]] = i
         l = Line([mesh.points[s[0]+1], mesh.points[s[1]+1]])
         mesh.addEntity(l)
