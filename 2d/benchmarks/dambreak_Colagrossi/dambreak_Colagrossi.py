@@ -13,24 +13,25 @@ from proteus.Profiling import logEvent
 from proteus.mprans.SpatialTools import Tank2D
 
 
+# predefined options
 opts=Context.Options([
-    # predefined test cases
-    ("water_level", 0.6, "Height of free surface above bottom"),
-    ("water_width", 1.2, "Width of free surface from x- wall"),
+# water column 
+    ("water_level", 0.6, "Height of water column"),
+    ("water_width", 1.2, "Width of  water column"),
     # tank
     ("tank_dim", (3.22, 1.8), "Dimensions of the tank"),
     #gravity 
     ("g",(0,-9.81,0), "Gravity vector"),
     # gauges
     ("gauge_output", True, "Produce gauge data."),
-    # refinement
-    ("refinement", 32 ,"Refinement level"),
+    ("gauge_location_p", (3.22, 0.12, 0), "Pressure gauge location"),
+    # mesh refinement and timestep
+    ("refinement", 32 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
     ("cfl", 0.33 ,"Target cfl"),
-    # run time
+    # run time options
     ("T", 3.0 ,"Simulation time"),
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
-    # run details
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("structured", False, "Use a structured triangular mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
@@ -164,20 +165,13 @@ tank = Tank2D(domain, tank_dim)
 if opts.gauge_output:
     tank.attachPointGauges(
         'twp',
-        gauges = ((('u', 'v'), ((0.5, 0.5, 0), (1, 0.5, 0))),
-                  (('p',), ((3.22, 0.12, 0),))),
+        gauges = ((('p',), (opts.gauge_location_p,))),
         activeTime=(0, opts.T),
         sampleRate=0,
-        fileName='combinedGauge.csv'
+        fileName='pressureGauge.csv'
     )
 
-    tank.attachLineGauges(
-        'vof',
-        gauges = ((('vof',),(((0.495, 0.0, 0.0), (0.495, tank_dim[1], 0.0)),)),),
-        activeTime = (0., opts.T),
-        sampleRate = 0,
-        fileName = 'lineGauge.csv'
-    )
+
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
@@ -268,14 +262,14 @@ dissipation_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
 
 # ----- TURBULENCE MODELS ----- #
 
-ns_closure = 2  #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure = 0  #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
     ns_closure = 4
 
 ##########################################
-#            Signed Distance             #
+#            Initial conditions for free-surface                     #
 ##########################################
 
 def signedDistance(x):

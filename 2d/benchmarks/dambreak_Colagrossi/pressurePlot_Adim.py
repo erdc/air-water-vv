@@ -5,7 +5,7 @@ import collections as cll
 import csv
 
 # Put relative path below
-filename='combinedGauge.csv'
+filename='pressureGauge.csv'
 
 # Reading file
 with open (filename, 'rb') as csvfile:
