@@ -5,7 +5,7 @@ import collections as cll
 import csv
 
 # Put relative path below
-filename='pointGauge_pressure.csv'
+filename='pressureGauge.csv'
 
 # Reading file
 with open (filename, 'rb') as csvfile:
@@ -39,8 +39,7 @@ with open (filename, 'rb') as csvfile:
 #####################################################################################
 
 # Choose which probes to plot  
-    print('Number of probes : '+ str(len(probes)))
-    x = int(raw_input('Enter which probes to plot (range from 1 to number of probes: ')) 
+    x = 1
     pressure2=[]
     for k in range(1,nRows):
         pressure2.append(a[k][x])    
@@ -53,6 +52,20 @@ with open (filename, 'rb') as csvfile:
     plt.grid(True)
     plt.show()
     savefig('pressure_in_time.png')
+
+#####################################################################################
+
+# Print an output of pressure
+    maxPressure = max(pressure2)
+    s = 0
+    for i in range(1,len(pressure2)):
+        s = s+pressure2[i]
+    averagePressure = s/len(pressure2)
+    val = open('validation.txt', 'w')
+    val.write('Only for gauges taken at (x,y)=(0.292,0.04)'+'\n')
+    val.write('Maximum pressure [Pa]'+'\t'+'Average pressure [Pa]'+'\n')
+    val.write(str(maxPressure)+'\t'+'\t'+'\t'+str(averagePressure))
+    val.close()
 
 #####################################################################################
 

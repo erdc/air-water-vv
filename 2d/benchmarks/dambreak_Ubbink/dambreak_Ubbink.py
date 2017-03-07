@@ -11,10 +11,11 @@ from proteus import (Domain, Context,
 from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
 
+# predefined options
 opts=Context.Options([
-    # predefined test cases
-    ("water_level", 0.292, "Height of free surface above bottom"),
-    ("water_width", 0.146, "Width of free surface from x- wall"),
+    # water column
+    ("water_level", 0.292, "Height of water column"),
+    ("water_width", 0.146, "Width of water column"),
     # tank
     ("tank_dim", (0.584,0.584), "Dimensions of the tank"),
     ("obstacle_dim", (0.024, 0.048),"Dimensions of the obstacle"),
@@ -23,17 +24,14 @@ opts=Context.Options([
     ("g",(0,-9.81,0), "Gravity vector"),
     # gauges
     ("gauge_output", True, "Produce gauge data."),
-    ("lineGauge_x", 0.4, "x-coordinate of vertical line of gauges"),
-    ("pressure_pointGauge", (0.292,0.04,0.0), "Coordinates of point gauge for"
-                                              "pressure measurement."),
+    ("gauge_location_p", (0.292,0.04,0.0), "Pressure gauge location"),
     # refinement
-    ("refinement",32,"Refinement level"),
+    ("refinement",32,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"),
     ("cfl", 0.33,"Target cfl"),
     # run time
     ("T", 0.8,"Simulation time"),
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
-    # run details
     ("gen_mesh", True ,"Generate new mesh"),
     ("parallel", True ,"Run in parallel")])
 
@@ -159,20 +157,11 @@ if opts.gauge_output:
 
     tank.attachPointGauges(
         'twp',
-        gauges = ((('p',), (opts.pressure_pointGauge,)),),
+        gauges = ((('p',), (opts.gauge_location_p,)),),
         activeTime=(0, opts.T),
         sampleRate=0,
-        fileName='pointGauge_pressure.csv'
+        fileName='pressureGauge.csv'
     )
-
-    tank.attachLineGauges(
-        'vof',
-        gauges=((('vof',), (((opts.lineGauge_x, 0.0, 0.0),
-                             (opts.lineGauge_x, tank_dim[1], 0.0)),)),),
-        activeTime = (0., opts.T),
-        sampleRate = 0,
-        fileName = 'lineGauge.csv'
-    ) #[temp] artifacts point towards this being for some twp feature, not the vof points here, but it's unclear which (I'd guess pressure?)
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 

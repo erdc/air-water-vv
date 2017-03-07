@@ -5,15 +5,15 @@ import numpy as np
 from math import cos
 from proteus import (Domain, Context,
                      FemTools as ft,
-                     #SpatialTools as st,
                      MeshTools as mt,
                      WaveTools as wt)
 from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
 from proteus.mprans.SpatialTools import Tank2D
 
+# predefined options
 opts=Context.Options([
-    # predefined test cases
+    # water
     ("water_depth_fraction", 0.5, "Depth of the water relative to the tank height"),
     ("amplitude", 0.005, "Amplitude of the sloshing relative to tank height"),
     ("eps", 0.016, "wave depth"),
@@ -23,16 +23,15 @@ opts=Context.Options([
     ("g",(0,-9.81,0), "Gravity vector"),
     # gauges
     ("gauge_output", True, "Produce gauge data."),
-    # other
+    # mesh refinement and boundary condition
     ("he", 0.001,"Characteristic element size"),
     ("cfl", 0.5 ,"Target cfl"),
     ("opentop", True,"BC"),
-    # run time
+    # run time options
     ("T", 3.0 ,"Simulation time"),
     ("nsave", 0., "number of saves per second"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     ("dt_fixed", None, "fixed time step for proteus (scale with period)"),
-    # run details
     ("structured", False, "Use a (triangular) structured mesh"),
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
@@ -195,17 +194,6 @@ if opts.gauge_output:
         sampleRate=0,
         fileName='pointGauge_levelset.csv'
     )
-
-    # tank.attachLineGauges(
-    #     'twp',
-    #     gauges=((('p',), (((0., 0., 0.), (0., tank_dim[1], 0.)),
-    #                       ((tank_dim[0]/2., 0., 0.), (tank_dim[0]/2., tank_dim[1], 0.)),
-    #                       ((tank_dim[0], 0., 0.), (tank_dim[0], tank_dim[1], 0.)),
-    #     )),),
-    #     activeTime = (0., opts.T),
-    #     sampleRate = 0,
-    #     fileName = 'lineGauge.csv'
-    # )
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 

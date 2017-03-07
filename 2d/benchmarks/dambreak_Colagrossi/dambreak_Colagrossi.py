@@ -15,7 +15,7 @@ from proteus.mprans.SpatialTools import Tank2D
 
 # predefined options
 opts=Context.Options([
-# water column 
+    # water column 
     ("water_level", 0.6, "Height of water column"),
     ("water_width", 1.2, "Width of  water column"),
     # tank
@@ -165,7 +165,7 @@ tank = Tank2D(domain, tank_dim)
 if opts.gauge_output:
     tank.attachPointGauges(
         'twp',
-        gauges = ((('p',), (opts.gauge_location_p,))),
+        gauges = ((('p',), (opts.gauge_location_p,)),),
         activeTime=(0, opts.T),
         sampleRate=0,
         fileName='pressureGauge.csv'
