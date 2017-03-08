@@ -5,7 +5,6 @@ import numpy as np
 from math import sqrt
 from proteus import (Domain, Context,
                      FemTools as ft,
-                     #SpatialTools as st,
                      MeshTools as mt,
                      WaveTools as wt)
 from proteus.mprans import SpatialTools as st
@@ -192,6 +191,7 @@ nDTout = int(round(T / dt_fixed))
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
+he = tank_dim[0] / float(4 * refinement - 1)
 
 # ----- TANK ----- #
 
@@ -293,11 +293,15 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoUp=rho_1,
                                                     rhoDown=rho_0,
                                                     g=g,
-                                                    refLevel=tank_dim[1])
+                                                    refLevel=tank_dim[1],
+                                                    smoothing=3.0*he,
+                                                    )
 
 if not opts.waves:
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
-                                           waterLevel=waterLine_z)
+                                           waterLevel=waterLine_z,
+                                           smoothing=3.0*he,
+                                           )
 
 # import pdb
 # pdb.set_trace()
@@ -313,7 +317,7 @@ if air_vent:
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / float(4 * refinement - 1)
+he = he
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 

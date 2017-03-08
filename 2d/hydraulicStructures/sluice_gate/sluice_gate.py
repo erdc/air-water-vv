@@ -176,6 +176,7 @@ nDTout = int(round(T / dt_fixed))
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
+he = tank_dim[0] / float(4 * refinement - 1)
 
 # ----- TANK ----- #
 
@@ -276,17 +277,21 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoUp=rho_1,
                                                     rhoDown=rho_0,
                                                     g=g,
-                                                    refLevel=tank_dim[1])
+                                                    refLevel=tank_dim[1],
+                                                    smoothing=3.0*he,
+                                                    )
 if not opts.sponge_layers:
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
-                                           waterLevel=inflow_level)
+                                           waterLevel=inflow_level,
+                                           smoothing=3.0*he,
+                                           )
 
 tank.BC['gate'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / float(4 * refinement - 1)
+he = he
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 

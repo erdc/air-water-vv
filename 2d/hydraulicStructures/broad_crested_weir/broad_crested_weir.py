@@ -14,20 +14,23 @@ from proteus.Profiling import logEvent
 opts = Context.Options([
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
-    ("air_vent", False, "Include an air vent in the obstacle."),
+    ("air_vent", True, "Include an air vent in the obstacle."),
+    # air vent position
+    ("airvent_y1",0.25,"Vertical distance from bottom to the air ventilation boundary patch"),
+    ("airvent_dim",0.1,"Dimension of the air boundary patch"),
     # water
-    ("water_level", 0.462, "Height of (mean) free surface above bottom"),
-    ("water_width_over_obst", 0.1, "Initial width of free surface relative to"
+    ("water_level", 0.540, "Height of (mean) free surface above bottom"),
+    ("water_width_over_obst",1.5, "Initial width of free surface relative to"
                                    " the obstacle location"),
-    ("outflow_level", -1, "Height of (mean) free surface of water outflow "
+    ("outflow_level", 0.04, "Height of (mean) free surface of water outflow "
                           "give a negative number if no initial outflow."),
-    ("inflow_velocity", 0.047, "Wave or steady water inflow velocity"),
-    ("outflow_velocity", 0.0, "Initial wave or steady water outflow velocity"),
+    ("inflow_velocity", 0.139, "Wave or steady water inflow velocity"),
+    ("outflow_velocity", 3.0, "Initial wave or steady water outflow velocity"),
     # tank
     ("tank_dim", (3.5, 0.7), "Dimensions (x,y) of the tank"),
-    ("tank_sponge", (0.,0.), "Length of (generation, absorption) zones, if any"),
+    ("tank_sponge", (0.,0.5), "Length of (generation, absorption) zones, if any"),
     ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle."),
-    ("obstacle_x_start", 2.0, "x coordinate of the start of the obstacle"),
+    ("obstacle_x_start", 1.5, "x coordinate of the start of the obstacle"),
     # gauges
     ("gauge_output", True, "Produce gauge data"),
     ("lineGauge_x", 3.4, "x-coordinate of vertical line of gauges"),
@@ -35,7 +38,7 @@ opts = Context.Options([
     ("pointGauge_coord", (0.05, 0.65, 0.0), "Coordinate of point gauge measurement"),
     # refinement
     ("refinement", 40, "Refinement level"),
-    ("cfl", 0.9, "Target cfl"),
+    ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
@@ -44,8 +47,8 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 10.0, "Simulation time"),
-    ("dt_fixed", 0.02, "Fixed time step"),
+    ("T", 4.0, "Simulation time"),
+    ("dt_fixed", 0.025, "Fixed time step"),
     ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10)"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
@@ -56,7 +59,6 @@ opts = Context.Options([
 # water
 waterLine_z = opts.water_level
 waterLine_x = opts.water_width_over_obst
-
 if opts.outflow_level < 0.0:
     outflow_level = -(opts.tank_dim[0] ** 2) - (opts.tank_dim[1] ** 2)
 else:
@@ -76,8 +78,8 @@ obstacle_height = obstacle_dim[1]
 # air vent
 if opts.air_vent:
     air_vent = True
-    airvent_y1 = 2.5 * obstacle_height / 4.0
-    airvent_y2 = 3.5 * obstacle_height / 4.0
+    airvent_y1 = opts.airvent_y1
+    airvent_y2 = airvent_y1 + opts.airvent_dim
 else:
     air_vent = False
 
@@ -93,9 +95,12 @@ if obstacle_x_end > tank_dim[0] or obstacle_height > tank_dim[1]:
                      " outside of tank (height: %s, width: %s)"
                      % (obstacle_dim[1], obstacle_dim[0], obstacle_x_start,
                         tank_dim[1], tank_dim[0]))
-if waterLine_x + obstacle_x_end > tank_dim[0]:
+if waterLine_x + obstacle_dim[0] > tank_dim[0]:
     raise ValueError("ERROR: Water starts outside of tank at x = %s (tank: %s)"
-                     % (waterLine_x+obstacle_x_end, tank_dim[0]))
+                     % (waterLine_x+obstacle_dim[0], tank_dim[0]))
+if airvent_y2 > obstacle_height:
+    raise ValueError("ERROR: Air ventilation (%s) exceeds the obstacle (%s)"
+                     % (airvent_y2, obstacle_height))
 
 ##########################################
 #     Discretization Input Options       #
@@ -209,6 +214,7 @@ nDTout = int(round(T / dt_fixed))
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
+he = tank_dim[0] / float(4 * refinement - 1)
 
 # ----- TANK ----- #
 
@@ -226,6 +232,7 @@ tank = st.TankWithObstacles2D(domain=domain,
                               dim=tank_dim,
                               obstacles=weir,
                               special_boundaries=vent)
+
 
 # ----- WAVES ----- #
 if opts.waves:
@@ -310,24 +317,38 @@ if opts.gauge_output:
 
 # Open Top
 tank.BC['y+'].setAtmosphere()
+#tank.BC['y+'].setNoSlip()
 
 # Free Slip Tank
-tank.BC['y-'].setFreeSlip()
+#tank.BC['y-'].setFreeSlip()
+tank.BC['y-'].setNoSlip()
+
 
 # Outflow
+#tank.BC['x+'].setNoSlip()
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoUp=rho_1,
                                                     rhoDown=rho_0,
                                                     g=g,
-                                                    refLevel=tank_dim[1])
+                                                    refLevel=tank_dim[1],
+                                                    smoothing=3.0*he,
+                                                    )
 
 # Inflow / Sponge
 if not opts.waves:
-    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
-                                           waterLevel=waterLine_z)
-else:
-    tank.BC['sponge'].setNonMaterial()
-
+    #tank.BC['x-'].setFreeSlip()
+    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
+                                           waterLevel=waterLine_z,
+                                           smoothing=3.0*he,
+                                           )
+    pAdv = - inflow_velocity
+    tank.BC['x-'].p_advective.uOfXT = lambda x, t: pAdv
+    tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+    tank.setGenerationZones(x_n=True)
+    tank.setAbsorptionZones(x_p=True)
+    
+tank.BC['sponge'].setNonMaterial()
+    
 # import pdb
 # pdb.set_trace()
 if air_vent:
@@ -341,7 +362,7 @@ if air_vent:
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / float(4 * refinement - 1)
+he = he
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 
