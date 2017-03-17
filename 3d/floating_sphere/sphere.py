@@ -62,10 +62,10 @@ domain = Domain.PiecewiseLinearComplexDomain()
 
 tank = st.Cuboid(domain, dim=tank_dim, coords=np.array(tank_dim)/2.)
 
-sphere = st.Cuboid(domain, dim=[sphere_radius, sphere_radius, sphere_radius])
+sphere = st.Sphere(domain, radius=sphere_radius, nSectors=5)
 sphere.translate(sphere_coords)
 sphere.setHoles([sphere_coords])
-sphere.setBarycenter = sphere_coords
+sphere.setBarycenter(sphere_coords)
 
 st.assembleDomain(domain)  # must be called after defining shapes
 
