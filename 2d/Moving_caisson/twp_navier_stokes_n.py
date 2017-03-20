@@ -82,6 +82,6 @@ maxLineSearches = 0
 if ct.opts.conservativeFlux==True:
     conservativeFlux = {0:'pwl-bdm-opt'}
 
-auxiliaryVariables = ct.domain.auxiliaryVariables['twp']+[ct.point_output, ct.loadingsGauges]
+auxiliaryVariables = ct.domain.auxiliaryVariables['twp']#+[ct.point_output, ct.loadingsGauges]
 
 

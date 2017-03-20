@@ -12,32 +12,39 @@ opts=Context.Options([
     ("water_level", 0.325, "Height of free surface above bottom"),
     # Geometry
     ('Lgen', 1.0, 'Genaration zone in terms of wave lengths'),
-    ('Labs', 2.0, 'Absorption zone in terms of wave lengths'),
-    ('Ls', 2.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
+    ('Labs', 1.0, 'Absorption zone in terms of wave lengths'),
+    ('Ls', 1.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
     ('Lend', 1.0, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
     # waves
-    ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
+    ('wave', True, 'Enable wave generation'),
+    ('waveType', 'Fenton', 'Wavetype for regular waves, Linear or Fenton'),
     ("wave_period", 1.30, "Period of the waves"),
-    ("wave_height", 0.168, "Height of the waves"),
+    ("wave_height", 0.167, "Height of the waves"),
     ('wavelength', 2.121, 'Wavelength only if Fenton is activated'),
     ('Ycoeff', [0.21107604, 0.07318902, 0.02782228, 0.01234846, 0.00618291, 0.00346483, 0.00227917, 0.00194241], 'Ycoeff only if Fenton is activated'),
     ('Bcoeff', [0.23112932, 0.03504843, 0.00431442, 0.00036993, 0.00004245, 0.00001877, 0.00000776, 0.00000196], 'Bcoeff only if Fenton is activated'),
+    ('Nf', 8 ,'Number of frequency components for fenton waves'),
+    ('meanVelocity', [ 0., 0., 0.],'Velocity used for currents'),
+    ('phi0', 0.0 ,'Initial phase for waves'),
+    ('Uwind', [0.0, 0.0, 0.0], 'Set air velocity'),
+    ('fast', True ,'Switches ON fast cosh approximation'),
     # rubble mound
+    ('porousMedia', True, 'Enable porus media region'),
     ("hs", 0.175, "Height of the breakwater"),
     ("slope1", 1./3., "Slope1 of the breakwater"),
     ("slope2", 1./2., "Slope2 of the breakwater"),
     ('porosity', 0.4, "Porosity of the medium"),
-    ('d50', 0.020, "Mean diameter of the medium"),
+    ('d50', 0.01, "Mean diameter of the medium"),
     ('d15', None, "15% grading curve diameter of the medium"),
     ('Resistance', 'Shih', 'Ergun or Engelund or Shih'),
     # soil foundation
     ("springs", True, "Switch on/off soil module"),
-    ("Kx", 0.0, "Horizontal stiffness in Pa"),
-    ("Ky", 0.0, "Vertical stiffness in Pa"),
-    ("Krot", 19620., "Rotational stiffness in N"),
-    ("Cx", 0.0, "Damping factor in Pa s "),
-    ("Cy", 0.0, "Damping factor in Pa s "),
-    ("Crot", 121.6, "Rotational damping factor in N s "),
+    ("Kx", 541553.2, "Horizontal stiffness in Pa"),
+    ("Ky", 582633.7, "Vertical stiffness in Pa"),
+    ("Krot", 16246.6, "Rotational stiffness in N"),
+    ("Cx", 1694.2, "Damping factor in Pa s "),
+    ("Cy", 1757.32, "Damping factor in Pa s "),
+    ("Crot", 69.61, "Rotational damping factor in N s "),
     # caisson
     ("caisson2D", True, "Switch on/off caisson2D"),
     ('dimx', 0.300, 'X-dimension of the caisson2D'),
@@ -52,12 +59,16 @@ opts=Context.Options([
     ("m_dynamic", 0.500, "Dynamic friction factor between caisson2D and rubble mound"),
     ('scheme', 'Runge_Kutta', 'Numerical scheme applied to solve motion calculation (Runge_Kutta or Central_Difference)'),
     # numerical options
+    ("GenZone", True, 'Turn on generation zone at left side'),
+    ("AbsZone", True, 'Turn on absorption zone at right side'),
+    ("refinement_level", 0.0,"he=walength/refinement_level"),
     ("he", 0.02,"he=walength/refinement_level"),
     ("cfl", 0.450 ,"Target cfl"),
+    ("duration", 20., "Durarion of the simulation"),
     ("freezeLevelSet", True, "No motion to the levelset"),
     ("useVF", 1.0, "For density and viscosity smoothing"),
     ('movingDomain', True, "Moving domain and mesh option"),
-    ('conservativeFlux', False,'Fix post-processing velocity bug for porous interface'),
+    ('conservativeFlux', True,'Fix post-processing velocity bug for porous interface'),
     ])
 
 
@@ -95,35 +106,34 @@ gAbs=sqrt(sum(g**2))
 
 # ----- WAVE input ----- #
 
-if opts.waveType=='Linear':
+if opts.wave == True:
     waveinput = wt.MonochromaticWaves(period=period,
-                                      waveHeight=waveHeight,
-                                      mwl=mwl,
-                                      depth=waterLevel,
-                                      g=g,
-                                      waveDir=waveDir,
-                                      wavelength=None, # if wave is linear I can use None
-                                      waveType="Linear")
-
-if opts.waveType=='Fenton':
-    waveinput = wt.MonochromaticWaves(period=period,
-                                      waveHeight=waveHeight,
-                                      mwl=mwl,
-                                      depth=waterLevel,
-                                      g=g,
-                                      waveDir=waveDir,
-                                      wavelength=opts.wavelength, # if wave is linear I can use None
-                                      waveType="Fenton",
-                                      Ycoeff=opts.Ycoeff,
-                                      Bcoeff=opts.Bcoeff,
+                                  waveHeight=waveHeight,
+                                  mwl=mwl,
+                                  depth=waterLevel,
+                                  g=g,
+                                  waveDir=waveDir,
+                                  wavelength=opts.wavelength,       # used by fenton waves
+                                  waveType=opts.waveType, 
+                                  Ycoeff=np.array(opts.Ycoeff),     # used by fenton waves
+                                  Bcoeff=np.array(opts.Bcoeff),     # used by fenton waves
+                                  Nf=opts.Nf,                       # used by fenton waves
+                                  meanVelocity = np.array(opts.meanVelocity),
+                                  phi0 = opts.phi0,
+                                  fast = opts.fast,
                                       )
 
 #---------Domain Dimension
 
 nd = 2
-he = opts.he # MESH SIZE
-
 wl = waveinput.wavelength
+
+#---------MESH SIZE
+if opts.he == 0.0:
+    he = wl/opts.refinement_level
+else:
+    he = opts.he 
+
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # ----- SHAPES ----- #
@@ -178,47 +188,25 @@ else:
     L_leftSpo  = opts.Lgen*wl
     L_rightSpo = opts.Labs*wl
 
-    hs=opts.hs
-    slope1=opts.slope1
-    slope2=opts.slope2
-
-#-caisson2D
-    dimx=opts.dimx
-    dimy=opts.dimy
-    b=dimx
-
-#-Tank
+    #-Tank
     x1=L_leftSpo
     x2=x1+opts.Ls*wl
-    x3=x2+(hs/slope1)
+    x3=x2+L_rightSpo
 
-    xc1=x3+0.20
-    xc2=xc1+b
-    yc1=yc2=hs
-
-    x4=xc2+0.20
-    x5=x4+(hs/slope2)
-    x6=x5+opts.Lend*wl
-    x7=x6+L_rightSpo
-    tank_dim = [x7, 1.0]
+    tank_dim = [x3, 1.0]
     
     boundaryOrientations = {'y-': np.array([0., -1.,0.]),
                             'x+': np.array([0., -1.,0.]),
                             'y+': np.array([0., -1.,0.]),
                             'x-': np.array([-1., 0.,0.]),
                             'sponge': None,
-                            'porousLayer': None,
-                            'moving_porousLayer': None,
                            }
     boundaryTags = {'y-': 1,
                     'x+': 2,
                     'y+': 3,
                     'x-': 4,
                     'sponge': 5,
-                    'porousLayer': 6,
-                    'moving_porousLayer': 7,
                        }
-
 
 
 ##############################################################################################################################################################################################################
@@ -277,21 +265,15 @@ if opts.caisson2D==False:
 
     vertices=[[0.0, 0.0],#0
               [x1,  0.0],#1
-              [x2,  0.0],#2
-              [x3,  hs ],#3
-              [x4,  hs ],#4
-              [x5,  0.0],#5
-              [x6,  0.0],#6
-              [x7,  0.0],#7
-              [x7,    tank_dim[1]],#8
-              [x6,    tank_dim[1]],#9
-              [x1,    tank_dim[1]],#10
-              [0.0,   tank_dim[1]],#11
+              [x2, 0.0], #2
+              [x3,  0.0 ],#3
+              [x3,  tank_dim[1] ],#4
+              [x2,  tank_dim[1] ],#5
+              [x1,  tank_dim[1] ],#6
+              [0.0,  tank_dim[1] ],#7 
               ]
 
-    vertexFlags=np.array([1, 1, 1,
-                          6, 6,
-                          1, 1, 1,
+    vertexFlags=np.array([1, 1, 1, 1, 
                           3, 3, 3, 3,
                          ])
 
@@ -302,23 +284,23 @@ if opts.caisson2D==False:
               [4,5],
               [5,6],
               [6,7],
-              [7,8],
-              [8,9],
-              [9,10],
-              [10,11],
-              [11,0],
-
-              [1,10],
-              [6,9],
+              [7,0],
+              
+              [1,6],
               [2,5],
              ]
 
-    segmentFlags=np.array([1, 1,
-                           6, 6, 6,
-                           1, 1,
+    segmentFlags=np.array([1, 1, 1,
                            2, 3, 3, 3, 4,
-                           5, 5, 1,
+                           5, 5,
                           ])
+
+    regions = [ [ 0.90*x1 , 0.10*tank_dim[1] ],
+            [ 0.90*x2 , 0.90*tank_dim[1] ],
+            [ 0.95*x3 , 0.95*tank_dim[1] ] ]
+
+    regionFlags=np.array([1, 2, 3])
+
 else:
 
     vertices=[[0.0, 0.0],#0
@@ -373,12 +355,12 @@ else:
                            7, 7,
                           ])
 
-regions = [ [ 0.90*x1 , 0.10*tank_dim[1] ],
+    regions = [ [ 0.90*x1 , 0.10*tank_dim[1] ],
             [ 0.90*x2 , 0.90*tank_dim[1] ],
             [ xc1 , 0.50*hs ],
             [ 0.95*x7 , 0.95*tank_dim[1] ] ]
 
-regionFlags=np.array([1, 2, 3, 4])
+    regionFlags=np.array([1, 2, 3, 4])
 
 
 
@@ -444,7 +426,8 @@ Cx = opts.Cx
 Cy = opts.Cy
 Crot = opts.Crot
 
-caisson2D.setSprings(springs, Kx, Ky, Krot, Cx, Cy, Crot)
+if opts.caisson2D:
+    caisson2D.setSprings(springs, Kx, Ky, Krot, Cx, Cy, Crot)
 
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
@@ -452,37 +435,41 @@ caisson2D.setSprings(springs, Kx, Ky, Krot, Cx, Cy, Crot)
 #############################################################################################################################################################################################################################################################################################################################################################################################
 
 if opts.caisson2D:
+    # Caisson boundaries
     for bc in caisson.BC_list:
         if opts.caissonBC == 'FreeSlip':
             bc.setFreeSlip()
         if opts.caissonBC == 'NoSlip':
             bc.setNoSlip()
 
+# Tank Boundaries
 tank.BC['y+'].setAtmosphere()
-tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1)
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1, smoothing=3.0*he)
 tank.BC['y-'].setFreeSlip()
 tank.BC['x+'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 
-tank.BC['porousLayer'].reset()
-tank.BC['moving_porousLayer'].reset()
+if opts.caisson2D:
+    # Porous media buondaries
+    tank.BC['porousLayer'].reset()
+    tank.BC['moving_porousLayer'].reset()
 
-
-if opts.movingDomain==True:
-    for tb in [tank.BC['x+'], tank.BC['x-'], tank.BC['y+'], tank.BC['y-'], tank.BC['sponge'], tank.BC['porousLayer']]:
-        tb.hx_dirichlet.uOfXT= lambda x, t: 0.0
-        tb.hy_dirichlet.uOfXT= lambda x, t: 0.0
-        tb.hz_dirichlet.uOfXT= lambda x, t: 0.0
-        tb.u_stress.uOfXT=None
-        tb.v_stress.uOfXT=None
-        tb.w_stress.uOfXT=None
-    ms=tank.BC['moving_porousLayer']
-    ms.hx_dirichlet.uOfXT= None
-    ms.hy_dirichlet.uOfXT= None
-    ms.hz_dirichlet.uOfXT= lambda x, t: 0.0
-    ms.u_stress.uOfXT=None
-    ms.v_stress.uOfXT=None
-    ms.w_stress.uOfXT=None
+    # Moving Mesh Options
+    if opts.movingDomain==True:
+        for tb in [tank.BC['x+'], tank.BC['x-'], tank.BC['y+'], tank.BC['y-'], tank.BC['sponge'], tank.BC['porousLayer']]:
+            tb.hx_dirichlet.uOfXT= lambda x, t: 0.0
+            tb.hy_dirichlet.uOfXT= lambda x, t: 0.0
+            tb.hz_dirichlet.uOfXT= lambda x, t: 0.0
+            tb.u_stress.uOfXT=None
+            tb.v_stress.uOfXT=None
+            tb.w_stress.uOfXT=None
+        ms=tank.BC['moving_porousLayer']
+        ms.hx_dirichlet.uOfXT= None
+        ms.hy_dirichlet.uOfXT= None
+        ms.hz_dirichlet.uOfXT= lambda x, t: 0.0
+        ms.u_stress.uOfXT=None
+        ms.v_stress.uOfXT=None
+        ms.w_stress.uOfXT=None
 
 
 
@@ -491,57 +478,81 @@ if opts.movingDomain==True:
 ########################################################################################################################################################################################################################################################################################################################################################
 
 
+# Waves and Generation zone
+if opts.GenZone and opts.wave:
+    tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
+                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+                        waves=waveinput,
+                            )
 
-#tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
-#                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
-#                        waves=waveinput,
-#                        )
-tank.setPorousZones(flags=3,
+# Only Generation zone                        
+elif opts.GenZone:
+    tank.setAbsorptionZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
+                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+                        )
+
+# Porous zone
+if opts.porousMedia:
+    tank.setPorousZones(flags=3,
                     dragAlpha=dragAlpha, dragBeta=dragBeta,
                     porosity=porosity,
                    )
-tank.setAbsorptionZones(flags=4, epsFact_solid=float(L_rightSpo/2.),
-                        orientation=[-1., 0.], center=(float(x7-L_rightSpo/2.), 0., 0.),
+
+# Absorption zone
+if opts.AbsZone:
+    if opts.caisson2D:
+        tank.setAbsorptionZones(flags=4, epsFact_solid=float(L_rightSpo/2.),
+                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
                         )
+    else:
+        tank.setAbsorptionZones(flags=3, epsFact_solid=float(L_rightSpo/2.),
+                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+                        )        
 
 
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
 ############################################################################################################################################################################
-T = 30.*period
+T = opts.duration
 
 gauge_dx=0.25
-probes=np.linspace(0., tank_dim[0], (tank_dim[0]/gauge_dx)+1)
+tank_dim_x=int(tank_dim[0])
+nprobes=int(tank_dim_x/gauge_dx)+1
+probes=np.linspace(0., tank_dim_x, nprobes)
 PG=[]
-zProbes=hs*0.5
+if opts.caisson2D:
+    zProbes=hs*0.5
+else:
+    zProbes=opts.water_level*0.5
 for i in probes:
     PG.append((i, zProbes, 0.),)
 
-gauge_dy=0.01
-tol=np.array([1*(10**-5),1*(10**-5),0.])
-i_point_f=np.array([caisson.vertices[0][0],caisson.vertices[0][1],0.])
-i_point_f += -tol #to avoid floating point error
-i_point_b=np.array([caisson.vertices[1][0],caisson.vertices[1][1],0.])
-i_point_b += tol #to avoid floating point error
-yProbes = np.linspace(i_point_f[1],i_point_f[1]+dimy, (dimy/gauge_dy)+1.)
-LG1=[]
-LG2=[]
-for j in yProbes:
-    LG1.append((i_point_f[0],j,0.),)
-    LG2.append((i_point_b[0],j,0.),)
+if opts.caisson2D:
+    gauge_dy=0.01
+    tol=np.array([1*(10**-5),1*(10**-5),0.])
+    i_point_f=np.array([caisson.vertices[0][0],caisson.vertices[0][1],0.])
+    i_point_f += -tol #to avoid floating point error
+    i_point_b=np.array([caisson.vertices[1][0],caisson.vertices[1][1],0.])
+    i_point_b += tol #to avoid floating point error
+    yProbes = np.linspace(i_point_f[1],i_point_f[1]+dimy, int(dimy/gauge_dy)+1)
+    LG1=[]
+    LG2=[]
+    for j in yProbes:
+        LG1.append((i_point_f[0],j,0.),)
+        LG2.append((i_point_b[0],j,0.),)
 
-point_output=ga.PointGauges(gauges=((('p'),PG),
-                                 ),
-                          activeTime = (0., T),
-                          sampleRate=0.,
-                          fileName='pressure_gauges.csv')
+#point_output=ga.PointGauges(gauges=((('p'),PG),
+#                                 ),
+#                          activeTime = (0., T),
+#                          sampleRate=0.,
+#                         fileName='point_gauges.csv')
 
-loadingsGauges=ga.PointGauges(gauges=((('p'),LG1),
-                                      (('p'),LG2),
-                                 ),
-                          activeTime = (0., T),
-                          sampleRate=0.,
-                          fileName='loadings_gauges.csv')
+#loadingsGauges=ga.PointGauges(gauges=((('p'),LG1),
+#                                      (('p'),LG2),
+#                                 ),
+#                          activeTime = (0., T),
+#                          sampleRate=0.,
+#                          fileName='loadingsGauges.csv')
 
 levelset_output=ga.PointGauges(gauges=((('phi',),PG),
                                  ),
