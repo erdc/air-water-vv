@@ -37,20 +37,25 @@ for arg in sys.argv:
         proteus_install_path = proteus_install_path.partition(sys.prefix + '/')[-1]
         break
 
-setup(name='ChRigidBar',
+setup(name='DEM',
       version='0.0.1',
       description='Python tools for multiphysics modeling',
-      author='Chris Kees, Matthew Farthing, et al.',
-      author_email='chris.kees@us.army.mil',
-      url='http://proteus.usace.army.mil',
+      author='Chris Kees',
+      author_email='christopher.e.kees@usace.army.mil',
+      url='http://proteustoolkit.org',
       cmdclass = {'build_ext':build_ext},
-      ext_modules=[Extension("Bar",['Bar.pyx'],
-                             depends=['Bar.h'],
+      ext_modules=[Extension("DEM",['DEM.pyx'],
+                             depends=['DEM.h'],
                              language='c++',
-                             include_dirs=[numpy.get_include(),'proteus','/home/cekees/proteus/linux2/include', '/home/cekees/proteus/linux2/include/chrono', '/home/cekees/proteus/linux2/include/chrono/collision/bullet'],
-                             library_dirs=['/home/cekees/proteus/linux2/lib64'],
-                             libraries=['ChronoEngine',
-                                        'ChronoEngine_irrlicht',
+                             include_dirs=[numpy.get_include(),'proteus','/home/cekees/proteus/linux2/include', '/home/cekees/proteus/linux2/include'],
+                             library_dirs=['/home/cekees/proteus/linux2/lib'],
+                             libraries=['crrel_dem',
+                                        'tinyxml',
+                                        'yaml-cpp',
+                                        'deal_II',
+                                        'gcov',
+                                        'pthread',
                                         'stdc++','m'],
-                             extra_compile_args=["-std=c++11"])]
+                             extra_link_args=["-fopenmp","-Wl,-rpath=/home/cekees/proteus/linux2/lib"],
+                             extra_compile_args=["-g","-fopenmp"])]
       )
