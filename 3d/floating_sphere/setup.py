@@ -48,11 +48,9 @@ setup(name='ChRigidBody',
       ext_modules=[Extension("ChRigidBody",['ChRigidBody.pyx'],
                              depends=['ChRigidBody.h'],
                              language='c++',
-                             include_dirs=[numpy.get_include(),'proteus','/home/HR/tdl/PROTEUS/proteus/centos/include',
-                                           '/home/HR/tdl/PROTEUS/proteus/centos/include/chrono'],
-                             library_dirs=['/home/HR/tdl/PROTEUS/proteus/centos/lib', '/home/HR/tdl/PROTEUS/proteus/centos/lib64'],
+                             include_dirs=[numpy.get_include(),'proteus',PROTEUS_INCLUDE_DIR],
+                             library_dirs=[PROTEUS_LIB_DIR],
                              libraries=['ChronoEngine',
-                                        #'ChronoEngine_irrlicht',
                                         'stdc++','m'],
                              extra_compile_args=["-std=c++11"])]
       )
