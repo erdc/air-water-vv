@@ -175,7 +175,7 @@ if useMetrics not in [0.0, 1.0]:
     sys.exit()
 
 #  Discretization
-nd = 2
+nd = domain.nd
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
