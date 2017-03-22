@@ -13,20 +13,23 @@ from proteus.Profiling import logEvent
 opts = Context.Options([
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
-    ("air_vent", False, "Include an air vent in the obstacle."),
+    ("air_vent", True, "Include an air vent in the obstacle."),
+    # air vent position
+    ("airvent_y1",0.5,"Vertical distance from bottom to the air ventilation boundary patch"),
+    ("airvent_dim",0.25,"Dimension of the air boundary patch"),
     # water
     ("water_level", 1.4, "Height of (mean) free surface above bottom"),
-    ("water_width_over_obst", 0.02, "Initial width of free surface relative to"
+    ("water_width_over_obst", 1.5, "Initial width of free surface relative to"
                                    " the obstacle location"),
-    ("outflow_level", -1., "Height of (mean) free surface of water outflow "
+    ("outflow_level", 0.04, "Height of (mean) free surface of water outflow "
                           "give a negative number if no initial outflow."),
     ("inflow_velocity", 0.34, "Wave or steady water inflow velocity"),
-    ("outflow_velocity", 0.0, "Initial wave or steady water outflow velocity"),
+    ("outflow_velocity", 3.2, "Initial wave or steady water outflow velocity"),
     # tank
-    ("tank_dim", (7.5, 1.8), "Dimensions (x,y) of the tank"),
-    ("tank_sponge", (0., 0.), "Length of (generation, absorption) zones, if any"),
+    ("tank_dim", (3.0, 1.8), "Dimensions (x,y) of the tank"),
+    ("tank_sponge", (0.5, 0.5), "Length of (generation, absorption) zones, if any"),
     ("obstacle_dim", (0.01, 1.00), "Dimensions (x,y) of the obstacle."),
-    ("obstacle_x_start", 5.0, "x coordinate of the start of the obstacle"),
+    ("obstacle_x_start", 1.5 , "x coordinate of the start of the obstacle"),
     # gauges
     ("point_gauge_output", False, "Produce gauge data"),
     ("column_gauge_output", False, "Produce column gauge data"),
@@ -34,7 +37,7 @@ opts = Context.Options([
     ("point_gauge_y", 0.5, "Height of point gauge placement"),
     # refinement
     ("refinement", 40, "Refinement level"),
-    ("cfl", 0.9, "Target cfl"),
+    ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
@@ -75,8 +78,8 @@ obstacle_height = obstacle_dim[1]
 # air vent
 if opts.air_vent:
     air_vent = True
-    airvent_y1 = 2.0 * obstacle_height / 4.0
-    airvent_y2 = 3.0 * obstacle_height / 4.0
+    airvent_y1 = opts.airvent_y1
+    airvent_y2 = airvent_y1 + opts.airvent_dim
 else:
     air_vent = False
 
@@ -223,10 +226,10 @@ if opts.waves:
         wavelength = 0.5,
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
-    tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
 
-    tank.setGenerationZones(x_n=True, waves=wave)
-    tank.setAbsorptionZones(x_p=True)
+tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+tank.setAbsorptionZones(x_n=True)
+tank.setAbsorptionZones(x_p=True)
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -287,6 +290,7 @@ if opts.column_gauge_output:
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
+
 tank.BC['y-'].setFreeSlip()
 
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
@@ -298,23 +302,21 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     )
 
 if not opts.waves:
-    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
+    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
                                            waterLevel=waterLine_z,
                                            smoothing=3.0*he,
                                            )
+    tank.BC['x-'].p_advective.uOfXT = lambda x, t: - inflow_velocity
+    
+tank.BC['sponge'].setNonMaterial()
 
-# import pdb
-# pdb.set_trace()
 if air_vent:
-    tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1]) \
-                                                        * rho_1 * abs(g[1])
-    tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0
-    tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0
-    tank.BC['airvent'].v_diffusive.uOfXT = lambda x, t: 0
-    tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1
-    #tank.BC['airvent'].setTank()  #  unique boundary conditions in obstacle tanks don't have _b_or or _b_i setting yet (not sure how to pass that through intuitively) and thus cannot have setTank.  It could be set manually... but it's not really a big issue for the normal hydraulicStructures
-    #[temp] check against report - different set of conditions than in the code, which might solve issues if issues need solving
-
+    tank.BC['airvent'].reset()
+    tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1])*rho_1*abs(g[1])
+    tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0.0
+    tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1.0
+    tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0.0
+    
 # ----- MESH CONSTRUCTION ----- #
 
 he = he
@@ -332,17 +334,17 @@ ns_forceStrongDirichlet = False
 # ----- NUMERICAL PARAMETERS ----- #
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.5
+    ns_shockCapturingFactor = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
     ls_shockCapturingFactor = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
+    ls_sc_beta = 1.50
     vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
+    vof_sc_beta = 1.50
     rd_shockCapturingFactor = 0.25
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
@@ -350,7 +352,7 @@ if useMetrics:
                     = 3.0
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
-    redist_Newton = True
+    redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
@@ -390,13 +392,13 @@ else:
 
 # ----- NUMERICS: TOLERANCES ----- #
 
-ns_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-vof_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-ls_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-rd_nl_atol_res = max(1.0e-10, 0.005 * he)
-mcorr_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-kappa_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
-dissipation_nl_atol_res = max(1.0e-10, 0.001 * he ** 2)
+ns_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
+vof_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
+ls_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
+rd_nl_atol_res = max(1.0e-12, 5.0e-5 * he)
+mcorr_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
+kappa_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
+dissipation_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
 
 # ----- TURBULENCE MODELS ----- #
 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
