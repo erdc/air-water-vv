@@ -110,4 +110,3 @@ initialConditions = {0: P_IC(),
                      2: V_IC()}
 if nd == 3:
     initialConditions[3] = W_IC()
-
