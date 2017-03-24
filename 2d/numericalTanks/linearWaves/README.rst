@@ -8,8 +8,8 @@ from sinusoidal shape as the wave propagates in shallow water. The relation betw
 the wavelength and the water depth is expressed with the linear dispersion equation,
 which is valid for linear and weakly nonlinear waves.
 
-.. math::
-   \lambda = \frac{gT^2}{2\pi}tanh\left(2\pi\frac{\lambda}{d}\right)	
+.. math:: 
+    \lambda = \frac{gT^2}{2\pi}tanh\left(2\pi\frac{\lambda}{d}\right)		
 
 Where T is the wave period, lamdba is the wavelength, d is the water depth and g is
 the gravitational acceleration. According to this equation, for a given wave period,
