@@ -39,8 +39,7 @@ with open (filename, 'rb') as csvfile:
 #####################################################################################
 
 # Choose which probes to plot  
-    print('Number of probes : '+ str(len(probes)))
-    x = int(raw_input('Enter which probes to plot (range from 1 to number of probes: '))
+    x = 3
     pressure2=[]
     for k in range(1,nRows):
         pressure2.append(a[k][x])  
@@ -55,7 +54,20 @@ with open (filename, 'rb') as csvfile:
     plt.grid(True)
     plt.show()
     savefig('Pressure_in_time.png')
+    
+#####################################################################################
 
+# Print an output file to validate the results
+    maxPressureCal = max(pressure2)
+    maxPressureRef = 999.53
+    err = 100*abs(maxPressureRef-maxPressureCal)/maxPressureRef
+    val = open('validation_pressure.txt', 'w')
+    val.write('Only for gauges taken at (x,y)=(0.5,0.5)'+'\n')
+    val.write('Maximum pressure:'+'\n')
+    val.write('Reference'+'\t'+'Simulation'+'\t'+'\t'+'Error'+'\n')
+    val.write(str(maxPressureRef)+'\t'+str(maxPressureCal)+'\t'+str(err))
+    val.close()
+    
 #####################################################################################
 
 # Print an output file

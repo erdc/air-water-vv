@@ -5,7 +5,7 @@ import collections as cll
 import csv
 
 # Put relative path below
-filename='combinedGauge.csv'
+filename='pressureGauge.csv'
 
 # Reading file
 with open (filename, 'rb') as csvfile:
@@ -39,19 +39,38 @@ with open (filename, 'rb') as csvfile:
 #####################################################################################
 
 # Choose which probes to plot  
-    print('Number of probes : '+ str(len(probes)))
-    x = int(raw_input('Enter which probes to plot (range from 1 to number of probes: ')) 
-    pressure2=[]
+    x = 1 
+    pressure2=np.zeros(nRows-1, dtype=float)
+    pressure2A=np.zeros(nRows-1, dtype=float)
+    timeA=np.zeros(nRows-1, dtype=float)
     for k in range(1,nRows):
-        pressure2.append(a[k][x])    
+        pressure2[k-1]=(float(a[k][x]))    
+        timeA[k-1]=time[k-1]*(9.81/0.6)**0.5
+    pressure2A=pressure2/(998.2*9.81*0.6)
 # Plot pressure in time
     import matplotlib.pyplot as plt
-    plt.plot(time,pressure2)
-    plt.xlabel('time step [sec]')    
-    plt.ylabel('pressure [Pa]')
-    plt.suptitle('Pressure against time at (x,y)=(3.22,0.12)')
+    plt.plot(timeA,pressure2A)
+    plt.xlabel('time step [adim]')    
+    plt.ylabel('pressure [adim]')
+    plt.suptitle('Nondimensional pressure against time')
+    plt.ylim((0,1.4))
+    plt.xlim((0,12))
+    plt.grid(True)
     plt.show()
-    savefig('pressure_in_time.png')
+    savefig('pressureAdim_in_time.png')
+
+#####################################################################################
+
+# Print an output file to validate the results
+    maxPressureCal = max(pressure2A)
+    maxPressureRef = 0.876481416000
+    err = 100*abs(maxPressureRef-maxPressureCal)/maxPressureRef
+    val = open('validation.txt', 'w')
+    val.write('Only for gauges taken at (x,y)=(3.22,0.12)'+'\n')
+    val.write('Maximum nondimensionalized pressure:'+'\n')
+    val.write('Reference'+'\t'+'Simulation'+'\t'+'\t'+'Error'+'\n')
+    val.write(str(maxPressureRef)+'\t'+str(maxPressureCal)+'\t'+str(err))
+    val.close()
 
 #####################################################################################
 
