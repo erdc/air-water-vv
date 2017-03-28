@@ -34,7 +34,7 @@ opts=Context.Options([
     ("slope1", 1./3., "Slope1 of the breakwater"),
     ("slope2", 1./2., "Slope2 of the breakwater"),
     ('porosity', 0.4, "Porosity of the medium"),
-    ('d50', 0.01, "Mean diameter of the medium"),
+    ('d50', 0.020, "Mean diameter of the medium"),
     ('d15', None, "15% grading curve diameter of the medium"),
     ('Resistance', 'Shih', 'Ergun or Engelund or Shih'),
     # soil foundation
