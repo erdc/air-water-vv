@@ -36,7 +36,7 @@ opts=Context.Options([
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", True, "True/False"),
-    ("T", 60.0, "Simulation time"),
+    ("T", 40.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
@@ -112,13 +112,37 @@ for bc in tank.BC_list:
 # ----- GAUGES ----- #
 
 if opts.gauge_output:
-    gauge_dx = opts.wave_wavelength/10.
-    probes=np.linspace(0, tank_dim[0], (tank_dim[0])/gauge_dx+1)
+    if left or right:
+        gauge_dx = tank_sponge[0]/10.
+    else:
+        gauge_dx = tank_dim[0]/10.
+    probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
     PG=[]
     PG2=[]
     LIG = []
+    zProbes=waterLevel*0.5
     for i in probes:
-        LIG.append(((i, 0.001, 0.),(i, tank_dim[1]-0.001,0.)),)
+        PG.append((i, zProbes, 0.),)
+        PG2.append((i, waterLevel, 0.),)
+        if i == probes[0]:
+            LIG.append(((i, 0.+0.0001, 0.),(i, tank_dim[1]-0.0001,0.)),)
+        elif i != probes[0]:
+            LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('p',), PG),),
+        activeTime=(0, opts.T),
+        sampleRate=0,
+        fileName='pointGauge_pressure.csv'
+    )
+    tank.attachPointGauges(
+        'ls',
+        gauges = ((('phi',), PG),),
+        activeTime=(0, opts.T),
+        sampleRate=0,
+        fileName='pointGauge_levelset.csv'
+    )
+
     tank.attachLineIntegralGauges(
         'vof',
         gauges=((('vof',), LIG),),
@@ -126,6 +150,7 @@ if opts.gauge_output:
         sampleRate = 0,
         fileName = 'lineGauge.csv'
     )
+
 
 # ----- ASSEMBLE DOMAIN ----- #
 

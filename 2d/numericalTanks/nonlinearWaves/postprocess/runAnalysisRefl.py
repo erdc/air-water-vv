@@ -11,9 +11,9 @@ T = 3.
 H = 0.15
 depth = 1.
 L = 8.74
-folder = "../results"
+folder = "../output"
 os.chdir(folder)
-dataW = AT.readProbeFile("gaugeArray.csv")
+dataW = AT.readProbeFile("pressure_gaugeArray.csv")
 
 dataW[1] = dataW[1][::2]
 print dataW[1]

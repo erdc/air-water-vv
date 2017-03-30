@@ -32,9 +32,7 @@ bf = 1.2
 zc =[]
 for dd in range(0,len(dataW[3][0,:])):
     dat = AT.zeroCrossing(dataW[2],dataW[3][:,dd],Tstart, Tend,minfreq=1/(bf*T),maxfreq=(bf/T))
-    print "[period,pressure] = ", dat
     dat[1]=AT.pressureToHeight(dat[1],Z,depth,L,998.2,9.81)
-    print "[period,height] = ", dat
 
     zc.append(dat)
 
