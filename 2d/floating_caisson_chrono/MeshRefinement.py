@@ -47,7 +47,7 @@ def geometry_to_gmsh(domain):
                         # reversed
                         lineloop += [(lines_dict[ver][subf[k-1]]+1)]
                     else:
-                        l = Line(mesh.points[subf[k-1]+1], mesh.points[ver+1])
+                        l = Line([mesh.points[subf[k-1]+1], mesh.points[ver+1]])
                         mesh.addEntity(l)
                         lineloop += [l.nb]
                 ll = LineLoop(mesh.getLinesFromIndex(lineloop))
