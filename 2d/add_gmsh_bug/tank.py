@@ -38,7 +38,7 @@ opts=Context.Options([
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
-    ("movingDomain", True, "True/False"),
+    ("movingDomain", False, "True/False"),
     ("T", 50.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
@@ -112,7 +112,7 @@ if opts.tank_BC == 'noslip':
     tank.BC['y-'].setNoSlip()
 if opts.tank_BC == 'freeslip':
     tank.BC['y-'].setFreeSlip()
-tank.BC['x+'].setNoSlip()
+tank.BC['x+'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 
 for bc in tank.BC_list:

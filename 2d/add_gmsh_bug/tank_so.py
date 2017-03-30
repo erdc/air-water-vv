@@ -25,7 +25,7 @@ pnList = []
 # moving mesh
 if ct.movingDomain:
     pnList += [("moveMesh_p", "moveMesh_n")]
-
+    modelSpinUpList = [0]  # for initial conditions of movemesh
 # Navier-Stokes and VOF
 pnList += [("twp_navier_stokes_p", "twp_navier_stokes_n"),
            ("vof_p", "vof_n")]
@@ -54,7 +54,7 @@ else:  # use CFL
 needEBQ_GLOBAL = False
 needEBQ = False
 
-modelSpinUpList = [0]  # for initial conditions of movemesh
+
 
 if ct.opts.nsave == 0:
     if ct.dt_fixed > 0:
