@@ -1,30 +1,42 @@
-Linear wave propagation
-=======================
+Linear wave propagation and absorption
+==========================================================
 
-To consider a wave linear, its free-surface steepness must be low (~ 0.1%).
-Free surface steepness depends on the global wave steepness, H/lambda, where H is the
-wave height and lambda is the wave length, and the shape of the wave, which deviates
-from sinusoidal shape as the wave propagates in shallow water. The relation between
-the wavelength and the water depth is expressed with the linear dispersion equation,
-which is valid for linear and weakly nonlinear waves.
+To consider a wave linear, its free-surface slope must be very small (~ 0.1%).  The 
+free-surface slope depends on:
 
-.. math:: 
-    \lambda = \frac{gT^2}{2\pi}tanh\left(2\pi\frac{\lambda}{d}\right)		
+* The ratio of the wave height (:math:`H`) to the wavelength (:math:`L`), as an 
+indication of the free-surface slope magnitude.
+* The ratio of the wave height (:math:`H`) to the depth (:math:`d`), as an 
+indication for the wave profile shape.  
+Large height to depth ratios contribute in non-sinusoidal and steeper wave profiles.
+Given the wave period, the wavelength will be a function of the water depth.  
+So it is the wave period, water depth and the wave height that contribute to the 
+linearity or nonlinearity of the wave. 
+Their interrelation is summarised in the following figure (Lé Méhauté 1976).  
 
-Where T is the wave period, lamdba is the wavelength, d is the water depth and g is
-the gravitational acceleration. According to this equation, for a given wave period,
-the wavelength will be a function of the water depth.
+.. figure:: ./Mehaute_linear_waves_01.png 
 
-Plane regular linear waves are generated and absorbed in a 2D numerical tank using 
-PROTEUS.  Waves are generated at the inlet and they are either absorbed at the outlet 
-(passive absorption) or allowed to reflect back to the generation zone and absorbed 
-there (active absorption). The performance of the model is investigated in terms of 
-wave generation accuracy and active and passive absorption efficiency.
+where, the vertical axis corresponds to the no dimensional wave height and the 
+horizontal to the no dimensional water depth.  The term :math: `gT^2` is 
+proportional to the wavelength in deep water and the dot named A corresponds to the 
+tested case which is described below.   
 
-The numerical tank consists of a 2D rectangular box as shown in figure. The origin of
-the system of coordinates used to build the geometry is located at the 
-left bottom corner of the domain.
+The present problem consists of a 1.5m x 30.0m (height x length) numerical flume with 
+a flat bottom and a mean water depth equal to 1.0m. At the left boundary, a linear 
+wave is generated with a height of 0.025m and a period of 1.94s. There is a 5m 
+generation zone on the left side and a 10m absorption zone on the right.
 
-.. figure:: ./LinearWaveTank.jpg
-   :width: 100%
-   :align: center
+
+This case tests demonstrates the ability of PROTEUS to simulate the generation of 
+linear waves as well as their absorption.
+
+References
+--------------------------------
+
+- US Army Corps of Engineer (2002) Coastal Engineering Manual. Engineer Manual 
+1110-2-1100, US Army Corps of Engineers, Washington, DC (in 6 volumes)
+
+- Lé Méhauté, B., (1976). “Introduction to Hydrodynamics and water waves”, 
+Springer-Verlag, New York.
+
+
