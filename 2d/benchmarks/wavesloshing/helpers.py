@@ -1,6 +1,6 @@
 def CreateFig():
     from tables import  openFile
-    archive = openFile('wavesloshing_p.h5','r')
+    archive = openFile('wavesloshing.h5','r')
     import wavesloshing
     import wavesloshing_so
     import matplotlib.tri as mtri
