@@ -69,5 +69,3 @@ useEisenstatWalker = False#True
 
 maxNonlinearIts = 50
 maxLineSearches = 0
-
-auxiliaryVariables = ct.domain.auxiliaryVariables['ls_consrv']

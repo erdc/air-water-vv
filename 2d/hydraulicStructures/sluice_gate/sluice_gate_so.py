@@ -4,7 +4,6 @@ Split operator module for two-phase flow
 import os
 from proteus.default_so import *
 from proteus import Context
-from proteus.BoundaryConditions import BC_Base
 
 # Create context from main module
 name_so = os.path.basename(__file__)
@@ -22,7 +21,6 @@ try:
 except ImportError:
     raise ImportError, str(name) + '.py not found'
 
-BC_Base.getContext()
 
 if ct.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),

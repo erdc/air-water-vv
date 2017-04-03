@@ -15,7 +15,11 @@ mesh = domain.MeshOptions
 
 # time stepping
 runCFL = ct.runCFL
-timeIntegration = TimeIntegration.BackwardEuler_cfl
+if ct.timeIntegration == "VBDF":
+    timeIntegration = TimeIntegration.VBDF
+    timeOrder = 2
+else:
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
 stepController  = StepControl.Min_dt_controller
 
 # mesh options

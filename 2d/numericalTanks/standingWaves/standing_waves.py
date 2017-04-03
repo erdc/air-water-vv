@@ -16,7 +16,7 @@ opts = Context.Options([
     # test options
     ("water_level", 1., "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (20., 1.5,), "Dimensions of the tank"),
+    ("tank_dim", (15., 1.5,), "Dimensions of the tank"),
     ("generation", True, "Generate waves at the left boundary (True/False)"),
     ("absorption", False, "Absorb waves at the right boundary (True/False)"),
     ("tank_sponge", (5., 10.), "Length of generation/absorption zone"),
@@ -38,7 +38,7 @@ opts = Context.Options([
     ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
     # run time
-    ("T", 60.0, "Simulation time"),
+    ("T", 40.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
@@ -343,4 +343,4 @@ def twpflowPressure_init(x, t):
     smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi_L)
     - smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi)))
 
-tank.BC['y+'].p_dirichlet.uOfX = twpflowPressure_init
+tank.BC['y+'].p_dirichlet.uOfXT = twpflowPressure_init

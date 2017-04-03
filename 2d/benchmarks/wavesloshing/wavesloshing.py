@@ -397,12 +397,12 @@ def pressure(x, y, t, h, eps, rho, g, k, p0):
     y_ = y*k
     h_ = h*k
     w_ = omega(h_, eps)
-    t_ = (t+2*np.pi/(w_*np.sqrt(k*g))*0.25)*(w_*np.sqrt(k*g))
+    t_ = (t+2*np.pi/(w_*np.sqrt(k*abs(g[1])))*0.25)*(w_*np.sqrt(k*abs(g[1])))
     w_0 = w0(h_)
     dt = eps*d_phi0_d_t(x_, y_, t_, h_, w_0)+eps**2*d_phi1_d_t(x_, y_, t_, h_, w_0)+0.5*eps**3*d_phi2_d_t(x_, y_, t_, h_, w_0)
     dx = eps*d_phi0_d_x(x_, y_, t_, h_, w_0)+eps**2*d_phi1_d_x(x_, y_, t_, h_, w_0)+0.5*eps**3*d_phi2_d_x(x_, y_, t_, h_, w_0)
     dy = eps*d_phi0_d_y(x_, y_, t_, h_, w_0)+eps**2*d_phi1_d_y(x_, y_, t_, h_, w_0)+0.5*eps**3*d_phi2_d_y(x_, y_, t_, h_, w_0)
-    p = (-y_-dt*w_-0.5*dx**2-0.5*dy**2)*rho*g/k+p0
+    p = (-y_-dt*w_-0.5*dx**2-0.5*dy**2)*rho*abs(g[1])/k+p0
     return p
 
 def eta(x, t):

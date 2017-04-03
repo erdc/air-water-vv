@@ -15,18 +15,18 @@ from proteus.ctransportCoefficients import (smoothedHeaviside,
 
 opts = Context.Options([
     # test options
-    ("sponge_layers", True, "Use sponge layers"),
+    ("sponge_layers", False, "Use sponge layers"),
     ("tank_sponge", (2., 2.), "Length of (generation, absorption) zones, if any"),
     # water
     ("inflow_level", 2.5, "Height of (mean) free surface above bottom"),
-    ("outflow_level", 0.15, "Height of (mean) free surface of water outflow"),
-    ("inflow_velocity", 0.4148, "Wave or steady water inflow velocity"),
+    ("outflow_level", 0.18, "Height of (mean) free surface of water outflow"),
+    ("inflow_velocity", 0.415, "Wave or steady water inflow velocity"),
     ("outflow_velocity", 6.913, "Initial wave or steady water outflow velocity"),
     # tank
-    ("tank_dim", (4.0, 3.75), "Dimensions (x,y) of the tank"),
+    ("tank_dim", (8.0, 3.75), "Dimensions (x,y) of the tank"),
     ("sluice_width", 0.01, "Width of the sluice gate."),
     ("gate_height", 0.25, "Height of the opening beneath the gate."),
-    ("obstacle_x_start", 2.0, "x coordinate of the start of the obstacle"),
+    ("obstacle_x_start", 4.0, "x coordinate of the start of the obstacle"),
     # gauges
     ("point_gauge_output", True, "Produce gauge data"),
     ("column_gauge_output", True, "Produce column gauge data"),
@@ -176,6 +176,7 @@ nDTout = int(round(T / dt_fixed))
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
+he = tank_dim[0] / float(4 * refinement - 1)
 
 # ----- TANK ----- #
 
@@ -276,17 +277,23 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoUp=rho_1,
                                                     rhoDown=rho_0,
                                                     g=g,
-                                                    refLevel=tank_dim[1])
+                                                    refLevel=tank_dim[1],
+                                                    smoothing=3.0*he,
+                                                    )
 if not opts.sponge_layers:
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
-                                           waterLevel=inflow_level)
+                                           waterLevel=inflow_level,
+                                           smoothing=3.0*he,
+                                           )
+    pAdv = - inflow_velocity
+    tank.BC['x-'].p_advective.uOfXT = lambda x, t: pAdv
 
 tank.BC['gate'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / float(4 * refinement - 1)
+he = he
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 
