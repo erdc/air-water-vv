@@ -30,8 +30,8 @@ opts = Context.Options([
     # gauges
     ("point_gauge_output", True, "Produce gauge data"),
     ("column_gauge_output", True, "Produce column gauge data"),
-    ("gauge_dx", 0.5, "Horizontal spacing of gauges/gauge columns."),
-    ("point_gauge_y", 0.5, "Height of point gauge placement"),
+    ("gauge_dx", 0.1, "Horizontal spacing of gauges/gauge columns."),
+    ("point_gauge_y", 0.09, "Height of point gauge placement"),
     # refinement
     ("refinement", 25, "Refinement level"),
     ("cfl", 0.75, "Target cfl"),
@@ -261,12 +261,18 @@ if opts.point_gauge_output:
     tank.attachPointGauges('twp',
                            gauges=((('u','v'), point_gauge_locations),
                                    (('p',), point_gauge_locations)),
-                           fileName='combined_gauge_0_0.5_sample_all.txt')
+                           fileName='combined_gauge_0_0.5_sample_all.csv')
 
 if opts.column_gauge_output:
     tank.attachLineIntegralGauges('vof',
                                   gauges=((('vof',), column_gauge_locations),),
                                   fileName='column_gauge.csv')
+    column_under_gate = []
+    column_under_gate.append(((opts.obstacle_x_start+opts.sluice_width,0.0,0.0),
+                              (opts.obstacle_x_start+opts.sluice_width,opts.gate_height,0.0)))
+    tank.attachLineGauges('twp',
+                          gauges=((('u'), column_under_gate),),
+                          fileName='combined_column_gauge.csv')
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
@@ -279,9 +285,10 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     g=g,
                                                     refLevel=tank_dim[1],
                                                     smoothing=3.0*he,
+                                                    U=[outflow_velocity,0.,0.]
                                                     )
 if not opts.sponge_layers:
-    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
+    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
                                            waterLevel=inflow_level,
                                            smoothing=3.0*he,
                                            )
