@@ -100,7 +100,7 @@ class TestDambreakUbbinkTetgen(unittest.TestCase):
                         row2.append(j)
                 a.append(row2)
                 nRows+=1
-            # Making the pressure dimensionless   
+            # Takes the pressure   
             pressure2=[]
             for k in range(1,nRows):
                 pressure2.append(a[k][1])
