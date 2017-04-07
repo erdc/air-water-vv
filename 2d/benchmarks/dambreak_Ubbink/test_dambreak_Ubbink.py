@@ -4,7 +4,7 @@ import unittest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import dambreak_Colagrossi_so
+import dambreak_Ubbink_so
 import os
 from numpy import *
 from scipy import *
@@ -12,7 +12,7 @@ from pylab import *
 import collections as cll
 import csv
 
-class TestDambreakCollagrossiTetgen(unittest.TestCase):
+class TestDambreakUbbinkTetgen(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
@@ -27,8 +27,8 @@ class TestDambreakCollagrossiTetgen(unittest.TestCase):
 
     def teardown_method(self,method):
         """ Tear down function """
-        FileList = ['dambreak_Colagrossi.xmf',
-                    'dambreak_Colagrossi.h5']
+        FileList = ['dambreak_Ubbink.xmf',
+                    'dambreak_Ubbink.h5']
         for file in FileList:
             if os.path.isfile(file):
                 os.remove(file)
@@ -39,13 +39,13 @@ class TestDambreakCollagrossiTetgen(unittest.TestCase):
         from petsc4py import PETSc
         pList = []
         nList = []
-        for (p,n) in dambreak_Colagrossi_so.pnList:
+        for (p,n) in dambreak_Ubbink_so.pnList:
             pList.append(__import__(p))
             nList.append(__import__(n))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = dambreak_Colagrossi_so
-        so.name = "dambreak_Colagrossi"
+        so = dambreak_Ubbink_so
+        so.name = "dambreak_Ubbink"
         if so.sList == []:
             for i in range(len(so.pnList)):
                 s = default_s
@@ -72,7 +72,7 @@ class TestDambreakCollagrossiTetgen(unittest.TestCase):
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
-        ns.calculateSolution('dambreak_Colagrossi')
+        ns.calculateSolution('dambreak_Ubbink')
         assert(True)
 
         
@@ -101,18 +101,21 @@ class TestDambreakCollagrossiTetgen(unittest.TestCase):
                 a.append(row2)
                 nRows+=1
             # Making the pressure dimensionless   
-            pressure2=np.zeros(nRows-1, dtype=float)
-            pressure2A=np.zeros(nRows-1, dtype=float)
-            timeA=np.zeros(nRows-1, dtype=float)
+            pressure2=[]
             for k in range(1,nRows):
-                pressure2[k-1]=(float(a[k][1]))    
-                timeA[k-1]=time[k-1]*(9.81/0.6)**0.5
-            pressure2A=pressure2/(998.2*9.81*0.6)
+                pressure2.append(a[k][1])
             # Validation of the results
-            maxPressureCal = max(pressure2A)
-            maxPressureRef = 0.876481416000
-            err = 100*abs(maxPressureRef-maxPressureCal)/maxPressureRef
-            self.assertTrue(err<12.0)
+            maxPressure = max(pressure2)
+            s = 0
+            for i in range(1,len(pressure2)):
+                s = s+pressure2[i]
+            averagePressure = s/len(pressure2)
+            MaxPref = 3293.0
+            AvPref = 654.3
+            errMax = 100*abs(MaxPref-maxPressure)/MaxPref
+            errAv = 100*abs(AvPref-averagePressure)/AvPref
+            self.assertTrue(errMax<2.0)
+            self.assertTrue(errAv<0.5)
 
 if __name__ == '__main__':
     pass

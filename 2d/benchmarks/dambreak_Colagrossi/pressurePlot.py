@@ -68,7 +68,7 @@ with open (filename, 'rb') as csvfile:
     val = open('validation.txt', 'w')
     val.write('Only for gauges taken at (x,y)=(3.22,0.12)'+'\n')
     val.write('Maximum nondimensionalized pressure:'+'\n')
-    val.write('Reference'+'\t'+'Simulation'+'\t'+'\t'+'Error'+'\n')
+    val.write('Reference'+'\t'+'Simulation'+'\t'+'Error'+'\n')
     val.write(str(maxPressureRef)+'\t'+str(maxPressureCal)+'\t'+str(err))
     val.close()
 

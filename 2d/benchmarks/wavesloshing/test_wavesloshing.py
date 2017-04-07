@@ -4,15 +4,16 @@ import unittest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import dambreak_Colagrossi_so
+import wavesloshing_so
 import os
 from numpy import *
 from scipy import *
 from pylab import *
 import collections as cll
 import csv
+import wavesloshing
 
-class TestDambreakCollagrossiTetgen(unittest.TestCase):
+class TestWaveSloshingTetgen(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
@@ -27,8 +28,8 @@ class TestDambreakCollagrossiTetgen(unittest.TestCase):
 
     def teardown_method(self,method):
         """ Tear down function """
-        FileList = ['dambreak_Colagrossi.xmf',
-                    'dambreak_Colagrossi.h5']
+        FileList = ['wavesloshing.xmf',
+                    'wavesloshing.h5']
         for file in FileList:
             if os.path.isfile(file):
                 os.remove(file)
@@ -39,13 +40,13 @@ class TestDambreakCollagrossiTetgen(unittest.TestCase):
         from petsc4py import PETSc
         pList = []
         nList = []
-        for (p,n) in dambreak_Colagrossi_so.pnList:
+        for (p,n) in wavesloshing_so.pnList:
             pList.append(__import__(p))
             nList.append(__import__(n))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = dambreak_Colagrossi_so
-        so.name = "dambreak_Colagrossi"
+        so = wavesloshing_so
+        so.name = "wavesloshing"
         if so.sList == []:
             for i in range(len(so.pnList)):
                 s = default_s
@@ -72,13 +73,13 @@ class TestDambreakCollagrossiTetgen(unittest.TestCase):
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
-        ns.calculateSolution('dambreak_Colagrossi')
+        ns.calculateSolution('wavesloshing')
         assert(True)
 
         
     def test_validate(self):
         # Reading file
-        filename='pressureGauge.csv'
+        filename='pointGauge_levelset.csv'
         with open (filename, 'rb') as csvfile: 
             data=csv.reader(csvfile, delimiter=",")
             a=[]
@@ -100,19 +101,16 @@ class TestDambreakCollagrossiTetgen(unittest.TestCase):
                         row2.append(j)
                 a.append(row2)
                 nRows+=1
-            # Making the pressure dimensionless   
-            pressure2=np.zeros(nRows-1, dtype=float)
-            pressure2A=np.zeros(nRows-1, dtype=float)
-            timeA=np.zeros(nRows-1, dtype=float)
+            # Taking phi at the left boundary    
+            phi=[]
             for k in range(1,nRows):
-                pressure2[k-1]=(float(a[k][1]))    
-                timeA[k-1]=time[k-1]*(9.81/0.6)**0.5
-            pressure2A=pressure2/(998.2*9.81*0.6)
+                phi.append(a[k][1]+0.05)  
             # Validation of the results
-            maxPressureCal = max(pressure2A)
-            maxPressureRef = 0.876481416000
-            err = 100*abs(maxPressureRef-maxPressureCal)/maxPressureRef
-            self.assertTrue(err<12.0)
+            # Phi a the left boundary at last time step
+            Phi_f_Cal = phi[-1] 
+            Phi_f_Ana = -wavesloshing.eta(0.0,time[len(time)-1])+0.05 
+            err = 100*abs(Phi_f_Ana-Phi_f_Cal)/Phi_f_Ana
+	    self.assertTrue(err<2.0) # Error < 2.0%
 
 if __name__ == '__main__':
     pass

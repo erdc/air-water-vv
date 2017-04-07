@@ -1,6 +1,6 @@
 def CreateFig():
     from tables import  openFile
-    archive = openFile('dambreak_Colagrossi_p.h5','r')
+    archive = openFile('dambreak_Colagrossi0.h5','r')
     import dambreak_Colagrossi
     import dambreak_Colagrossi_so
     import matplotlib.tri as mtri
