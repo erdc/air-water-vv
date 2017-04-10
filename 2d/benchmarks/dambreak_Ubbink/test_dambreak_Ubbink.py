@@ -110,8 +110,8 @@ class TestDambreakUbbinkTetgen(unittest.TestCase):
             for i in range(1,len(pressure2)):
                 s = s+pressure2[i]
             averagePressure = s/len(pressure2)
-            MaxPref = 3293.0
-            AvPref = 654.3
+            MaxPref = 3286.4
+            AvPref = 631.6
             errMax = 100*abs(MaxPref-maxPressure)/MaxPref
             errAv = 100*abs(AvPref-averagePressure)/AvPref
             self.assertTrue(errMax<2.0)
