@@ -5,6 +5,7 @@ from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 import quiescent_water_test_gauges_so
+import quiescent_water_test_gauges as qw
 import os
 from numpy import *
 from scipy import *
@@ -116,25 +117,25 @@ class TestQuiescentWaterTetgen(unittest.TestCase):
         P_line = data_p_line[3]
         vof = data_vof[3]
         water_level = []
+        H = qw.tank_dim[1]
         for i in range(0,len(vof)):
-            water_level.append(1.8-vof[i])
+            water_level.append(H-vof[i])
         Y = []
         for i in range(0,len(data_p_line[1])):
             Y.append(data_p_line[1][i][1])
         Y = np.array(Y)
         # Definition of the theoretical pressure under and over water
-        rho_w = 998.2
-        rho_a = 1.205
-        g = 9.81
-        h = 0.6
-        H = 1.8
+        rho_w = qw.rho_0
+        rho_a = qw.rho_1
+        g = abs(qw.g[1])
+        h = qw.waterLine_z
         def p(y):
-            if np.any(y<=0.6):
+            if np.any(y<=h):
                 return rho_a*g*(H-h) + rho_w*g*(h-y)
             else:
                 return rho_a*g*(H-y)
         # Validation of the result
-        water_level_th = 0.6
+        water_level_th = qw.waterLine_z
         wl = water_level
         water_level_num = wl[-1][0]
         err_wl = 100*abs(water_level_th-water_level_num)/water_level_th
