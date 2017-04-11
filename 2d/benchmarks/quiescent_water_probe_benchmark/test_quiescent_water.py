@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 import pytest
-import unittest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 import quiescent_water_test_gauges_so
 import quiescent_water_test_gauges as qw
 import os
-from numpy import *
-from scipy import *
-from pylab import *
+import numpy as np
 import collections as cll
 import csv
 
-class TestQuiescentWaterTetgen(unittest.TestCase):
+class TestQuiescentWaterTetgen():
 
     @classmethod
     def setup_class(cls):
@@ -146,9 +143,9 @@ class TestQuiescentWaterTetgen(unittest.TestCase):
         for i in range(0,len(Y)-4): # Ignores the 4 last points beside the water surface
             S = S + abs(p(Y[i])-P_line[-1][i])/p(Y[i])
         err_pl = 100*S/(len(Y)-4)
-        self.assertTrue(err_wl<1.)
-        self.assertTrue(err_pp<1.)
-        self.assertTrue(err_pl<1.)
+        assert(err_wl<1.)
+        assert(err_pp<1.)
+        assert(err_pl<1.)
 
 if __name__ == '__main__':
     pass
