@@ -73,8 +73,7 @@ sphere.setBarycenter(sphere_coords)
 chrono_system = crb.System(np.array([0., 0., -9.81]))
 chrono_system.setTimeStep(opts.chrono_dt)
 
-sphere_body = crb.RigidBody(shape=sphere, system=chrono_system)
-sphere_body.setMass(opts.sphere_mass)
+sphere_body = crb.RigidBody(shape=sphere, system=chrono_system, mass=opts.sphere_mass)
 inertia = 2./5.*opts.sphere_mass*sphere_radius**2
 sphere_body.setInertiaXX(np.array([inertia, inertia, inertia]))
 
