@@ -1,18 +1,15 @@
 #!/usr/bin/env python
 import pytest
-import unittest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 import dambreak_Colagrossi_so
 import os
-from numpy import *
-from scipy import *
-from pylab import *
+import numpy as np
 import collections as cll
 import csv
 
-class TestDambreakCollagrossiTetgen(unittest.TestCase):
+class TestDambreakCollagrossiTetgen():
 
     @classmethod
     def setup_class(cls):
@@ -112,7 +109,7 @@ class TestDambreakCollagrossiTetgen(unittest.TestCase):
             maxPressureCal = max(pressure2A)
             maxPressureRef = 0.876481416000
             err = 100*abs(maxPressureRef-maxPressureCal)/maxPressureRef
-            self.assertTrue(err<12.0)
+            assert(err<12.0)
 
 if __name__ == '__main__':
     pass

@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 import pytest
-import unittest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 import wavesloshing_so
+import wavesloshing
 import os
-from numpy import *
-from scipy import *
-from pylab import *
+import numpy as np
 import collections as cll
 import csv
-import wavesloshing
 
-class TestWaveSloshingTetgen(unittest.TestCase):
+
+class TestWaveSloshingTetgen():
 
     @classmethod
     def setup_class(cls):
@@ -110,7 +108,7 @@ class TestWaveSloshingTetgen(unittest.TestCase):
             Phi_f_Cal = phi[-1] 
             Phi_f_Ana = -wavesloshing.eta(0.0,time[len(time)-1])+0.05 
             err = 100*abs(Phi_f_Ana-Phi_f_Cal)/Phi_f_Ana
-	    self.assertTrue(err<2.0) # Error < 2.0%
+	    assert(err<2.0) # Error < 2.0%
 
 if __name__ == '__main__':
     pass

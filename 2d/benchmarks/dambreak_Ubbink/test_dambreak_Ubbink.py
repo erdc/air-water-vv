@@ -1,18 +1,15 @@
 #!/usr/bin/env python
 import pytest
-import unittest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 import dambreak_Ubbink_so
 import os
-from numpy import *
-from scipy import *
-from pylab import *
+import numpy as np
 import collections as cll
 import csv
 
-class TestDambreakUbbinkTetgen(unittest.TestCase):
+class TestDambreakUbbinkTetgen():
 
     @classmethod
     def setup_class(cls):
@@ -110,12 +107,12 @@ class TestDambreakUbbinkTetgen(unittest.TestCase):
             for i in range(1,len(pressure2)):
                 s = s+pressure2[i]
             averagePressure = s/len(pressure2)
-            MaxPref = 3286.4
-            AvPref = 631.6
+            MaxPref = 3293.0
+            AvPref = 654.3
             errMax = 100*abs(MaxPref-maxPressure)/MaxPref
             errAv = 100*abs(AvPref-averagePressure)/AvPref
-            self.assertTrue(errMax<2.0)
-            self.assertTrue(errAv<0.5)
+            assert(errMax<2.0)
+            assert(errAv<0.5)
 
 if __name__ == '__main__':
     pass
