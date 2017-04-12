@@ -77,16 +77,27 @@ class PerturbedSurface_p:
                    - (self.waterLevel -x[1]) * ct.rho_0 * ct.g[1]
         else:
             return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1]
-
+        
 
 class AtRest:
     def __init__(self):
         pass
-
-    def uOfXT(self, x, t):
+    def uOfXT(self,x,t):
         return 0.0
+    
+
+class initialVelocity_u:
+    def __init__(self, waterLevel):
+        self.waterLevel = waterLevel
+    def uOfXT(self,x,t):
+        if x[0]<ct.waterLine_x and x[nd-1]<self.waterLevel:
+            return ct.opts.inflow_velocity
+        elif x[0] < ct.tank_dim[0]+ct.tank_sponge[1]:
+            return ct.twpflowVelocity_u_D(x, 0)
+        else: 
+            return 0.0
 
 
 initialConditions = {0: PerturbedSurface_p(ct.waterLine_z),
-                     1: AtRest(),
+                     1: initialVelocity_u(ct.waterLine_z),
                      2: AtRest()}

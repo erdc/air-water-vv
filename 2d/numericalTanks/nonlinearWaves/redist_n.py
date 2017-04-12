@@ -94,5 +94,3 @@ tolFac = 0.0
 linTolFac = 0.001
 l_atol_res = 0.001*ct.rd_nl_atol_res
 useEisenstatWalker = False#True
-
-auxiliaryVariables = ct.domain.auxiliaryVariables['redist']

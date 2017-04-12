@@ -1,5 +1,5 @@
 import numpy as np
-import WaveTools as WT
+from proteus import WaveTools as WT
 import math
        
 

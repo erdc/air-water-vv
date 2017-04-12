@@ -5,38 +5,32 @@ import numpy as np
 from math import sqrt
 from proteus import (Domain, Context,
                      FemTools as ft,
-                     #SpatialTools as st,
                      MeshTools as mt,
                      WaveTools as wt)
 from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
 
 opts = Context.Options([
-    # test options
-    ("waves", False, "Generate waves - uses sponge layers."),
     # water
-    ("inflow_level", 1.5, "Height of (mean) free surface of water above "
-                            "bottom for the inflow of water"),
-    ("outflow_level", 0.5, "Height of (mean) free surface of water above "
-                            "bottom for the outflow of water"),
-    ("inflow_velocity", 1.345, "Wave or steady water inflow velocity"),
-    ("outflow_velocity", 4.035, "Initial wave or steady water outflow velocity"),
+    ("inflow_level", 1.5, "Upstream water level"),
+    ("outflow_level", 0.5, "Downstream water level"),
+    ("inflow_velocity", 1.345, "Steady water inflow velocity"),
     # tank
-    ("tank_dim", (13.5, 2.1), "Dimensions (x,y) of the tank"),
-    ("generation", True, "Generate waves at left boundary"),
-    ("absorption", True, "Absorb waves at the right boundary"),
+    ("tank_dim", (8.0, 3.75), "Dimensions (x,y) of the tank"),
+    ("sponge_layers", False, "Use sponge layers"),
     ("tank_sponge", (2.,2.), "Length of (generation, absorption) zones, if any"),
+    # waves
+    ("waves", False, "Use waves"),
     # weir
-    ("obstacle_dim", (3.5, 0.5), "Dimensions (x,y) of the obstacle."),
-    ("obstacle_x_start", 6.0, "x coordinate of the start of the obstacle"),
-    ("cot_upstream_slope", 2.0, "Cotangent of upstream slope of obstacle "
-                                "(downstream is forced by obstacle width)"),
+    ("obstacle_dim", (3.0, 0.5), "Dimensions (x,y) of the obstacle."),
+    ("obstacle_x_start", 3.0, "x coordinate of the start of the obstacle"),
+    ("cot_upstream_slope", 2.0, "Cotangent of upstream slope of obstacle"),
     # gauges
     ("point_gauge_output", True, "Produce point gauge data"),
     ("column_gauge_output", True, "Produce column gauge data"),
     ("gauge_dx", 0.25, "Horizontal spacing of gauges/gauge columns"),
     # refinement
-    ("refinement", 68, "Refinement level"),
+    ("refinement", 40, "Refinement level"),
     ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
@@ -61,12 +55,10 @@ outflow_level = opts.outflow_level
 
 # flow
 inflow_velocity = opts.inflow_velocity
-outflow_velocity = opts.outflow_velocity
 
 # tank
 tank_dim = opts.tank_dim
 obstacle_dim = opts.obstacle_dim
-
 obstacle_height = obstacle_dim[1]
 obstacle_x_start = opts.obstacle_x_start
 obstacle_x_end = obstacle_x_start + obstacle_dim[0]
@@ -184,6 +176,7 @@ nDTout = int(round(T / dt_fixed))
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
+he = tank_dim[0] / float(4 * refinement - 1)
 
 # ----- TANK ----- #
 
@@ -195,11 +188,18 @@ tank = st.TankWithObstacles2D(domain=domain,
                               dim=tank_dim,
                               obstacles=weir)
 
-# ----- WAVES ----- #
+# ----- SPONGE & WAVES ----- #
+if opts.sponge_layers:
+    tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+    tank.setAbsorptionZones(x_n=True)
+    tank.setAbsorptionZones(x_p=True)
 
-wave = wt.MonochromaticWaves(
+if opts.waves:
+    # TODO: for now this is an actual wave, which we don't want.  We want a placid
+    # wave such that our generation and absorption zones enforce a steady flow.
+    wave = wt.MonochromaticWaves(
         period = 2,
-        waveHeight =0.018,
+        waveHeight = 0.0,
         mwl = inflow_level,
         depth = inflow_level,
         g = np.array(g),
@@ -207,10 +207,10 @@ wave = wt.MonochromaticWaves(
         wavelength = 0.5,
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
-tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-
-tank.setGenerationZones(x_n=opts.generation, waves=wave)
-tank.setAbsorptionZones(x_p=opts.absorption)
+    tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+    tank.setGenerationZones(x_n=True, waves=wave)
+    tank.setAbsorptionZones(x_p=True)
+    
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -278,24 +278,36 @@ if opts.column_gauge_output:
     tank.attachLineIntegralGauges('vof',
                                   gauges=((('vof',), column_gauge_locations),),
                                   fileName='column_gauge.csv')
+    column_over_crest = []
+    column_over_crest.append(((opts.obstacle_x_start+opts.obstacle_dim[0]/3.0,opts.obstacle_dim[1],0.0),
+                              (opts.obstacle_x_start+opts.obstacle_dim[0]/3.0,opts.tank_dim[1],0.0)))
+    tank.attachLineGauges('twp',
+                          gauges=((('u'), column_over_crest),),
+                          fileName='u_over_crest.csv')                          
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()
-
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoUp=rho_1,
                                                     rhoDown=rho_0,
                                                     g=g,
-                                                    refLevel=tank_dim[1])
-if not opts.generation:
-    tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.],
-                                           waterLevel=inflow_level)
+                                                    refLevel=tank_dim[1],
+                                                    smoothing=3.0*he,
+                                                    U=[0.,0.,0.],
+                                                    )
+
+tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
+                                       waterLevel=inflow_level,
+                                       smoothing=3.0*he,
+                                       )
+pAdv = - inflow_velocity
+tank.BC['x-'].p_advective.uOfXT = lambda x, t: pAdv
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / float(4 * refinement - 1)
+he = he
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 
@@ -316,7 +328,7 @@ if useMetrics:
     ls_shockCapturingFactor = 0.75
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.75
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
@@ -328,7 +340,7 @@ if useMetrics:
                     = 3.0
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
-    redist_Newton = True
+    redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0

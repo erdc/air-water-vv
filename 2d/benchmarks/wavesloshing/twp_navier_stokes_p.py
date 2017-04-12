@@ -67,7 +67,7 @@ class PerturbedSurface_p:
     def uOfXT(self,x,t):
         d = ct.signedDistance(x, 0.)
         if d <= 0:
-            return ct.pressure(x[0], x[1]-self.waterdepth, t, ct.h, ct.eps, ct.rho_0, -ct.g[1], ct.k, 0.)+(ct.tank_dim[1]-(self.waterdepth+ct.eta(x[2], 0.)))*ct.rho_1*(-ct.g[1])
+            return ct.pressure(x[0], x[1]-self.waterdepth, t, ct.h, ct.eps, ct.rho_0, ct.g, ct.k, 0.)+(ct.tank_dim[1]-(self.waterdepth+ct.eta(x[2], 0.)))*ct.rho_1*(-ct.g[1])
             # return (ct.tank_dim[1]-(self.waterdepth+ct.eta(x)))*ct.rho_1*(-ct.g[1])+((self.waterdepth+ct.eta(x))-x[1])*ct.rho_0*(-ct.g[1])
         else:
             return (ct.tank_dim[1] - x[1])*ct.rho_1*(-ct.g[1])

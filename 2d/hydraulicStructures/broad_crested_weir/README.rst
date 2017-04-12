@@ -10,19 +10,21 @@ weir, flow separation occurs at this location.
 
 As the flow propagates mainly in 2 directions, a 2D computational
 domain was used for the simulation.  The height of the domain is equal
-to :math:`0.7\mbox{m}` and the length might vary from case to case.
+to :math:`1.0\mbox{m}` and the length to :math: `3.5\mbox{m}`.
 The weir has a height of :math:`P=0.401\mbox{m}` and a width of
 :math:`b=0.5\mbox{m}`.  A uniform velocity distribution from bottom to
 free water level is imposed in the left wall boundary condition. The
 top of the domain is left open and the right wall of the domain allows
-the flow to leave the domain.  In the following figure, a simple
-sketch of the structure is presented showing the main parameters.
+the flow to leave the domain. A free-slip condition is set at the 
+bottom of the domain. There is an air ventilation on the right side of 
+the weir. In the following figure, a simple sketch of the structure is 
+presented showing the main parameters.
 
 .. figure:: ./BroadWeir.bmp
    :width: 100%
    :align: center
 
-where, :math:`uo` is the approach velocity, :math:`H` is the upstream
+where, :math:`u_0` is the approach velocity, :math:`H` is the upstream
 potential head, :math:`hv` is the upstream velocity head, :math:`Ht =
 H + hv` is the upstream total head, :math:`d` is the flow depth over
 the weir.

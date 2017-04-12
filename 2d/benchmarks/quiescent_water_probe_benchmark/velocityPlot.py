@@ -39,9 +39,8 @@ with open (filename, 'rb') as csvfile:
 #####################################################################################
 
  # Choose which probes to plot  
-    print('Number of probes : '+ str(len(probes)))
-    x1 = int(raw_input('Enter which probes to plot (range from 1 to number of probes: '))
-    x2 = int(raw_input('Enter which other probes to plot (range from 1 to number of probes: ')) 
+    x1 = 1
+    x2 = 2 
     u=[]
     v=[]
     for k in range(1,nRows):
@@ -60,7 +59,7 @@ with open (filename, 'rb') as csvfile:
     plt.grid(True)
     plt.show()
     savefig('Velocity_in_time.png')
-
+    
 #####################################################################################
 
 # Print an output file

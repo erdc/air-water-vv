@@ -3,19 +3,18 @@ Quiescent Water Test
 """
 import numpy as np
 from math import sqrt
-#[temp] remove sqrt if it isn't needed - it's just a temp so we know math is here
 from proteus import (Domain, Context,
                      FemTools as ft,
-                     #SpatialTools as st,
                      MeshTools as mt,
                      WaveTools as wt)
 from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
 from proteus.mprans.SpatialTools import Tank2D
 
+# predefined options
 opts=Context.Options([
-    # predefined test cases
-    ("water_level", 0.6, "Height of free surface above bottom"),
+    # water level
+    ("water_level", 0.6, "Height of water"),
     # tank
     ("tank_dim", (3.22 , 1.8), "Dimensions of the tank"),
     #gravity
@@ -23,13 +22,12 @@ opts=Context.Options([
     # probe dx
     ("dxProbe",0.25, "Probe spacing"),
     # refinement
-    ("refinement", 40,"Refinement level"),
+    ("refinement", 40,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"),
     ("cfl", 0.33,"Target cfl"),
-    # run time
+    # run time options
     ("T", 1.0,"Simulation time"),
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
-    # run details
     ("gen_mesh", True ,"Generate new mesh"),
     ("parallel", True ,"Run in parallel")])
 
@@ -158,22 +156,32 @@ tank = Tank2D(domain, tank_dim)
 
 # ----- GAUGES ----- #
 
+##tank.attachPointGauges(
+##    'twp',
+##    gauges = ((('u', 'v'), ((0.5, 0.5, 0), (0.5, 0.5, 0))),
+##              (('p',), ((0.5, 0.5, 0),))),
+##    activeTime=(0, opts.T),
+##    sampleRate=0,
+##    fileName='combined_gauge.csv')
+
 tank.attachPointGauges(
     'twp',
-     gauges = ((('u', 'v'), ((0.5, 0.5, 0), (0.5, 0.5, 0))),
-               (('p',), ((0.5, 0.5, 0),))),
-     activeTime=(0, opts.T),
-     sampleRate=0,
-     fileName='combined_gauge.csv'
- )
+    gauges = ((('p',), ((tank_dim[0], opts.water_level/2.0, 0.),)),),
+    activeTime=(0, opts.T),
+    sampleRate=0,
+    fileName='pressure_PointGauge.csv')
 
-# tank.attachLineGauges(
-#     'vof',
-#     gauges = ((('vof',),((0.495, 0.0, 0.0), (0.495, 1.8, 0.0))),),
-#     activeTime = (0., opts.T),
-#     sampleRate = 0,
-#     fileName = 'lineGauge.csv'
-# ) #[temp] Also has lineGauges_phi on the same points, running off of the old lineGauges_phi class when it was made. Both want 20 linePoints.
+column_p = [((tank_dim[0]/2.0,0.,0.),(tank_dim[0]/2.0,opts.water_level,0.))]
+tank.attachLineGauges(
+    'twp',
+    gauges = ((('p',), column_p),),
+    fileName = 'pressure_LineGauge.csv')
+
+column_vof = [((tank_dim[0]/2.0,0.,0.),(tank_dim[0]/2.0,tank_dim[1],0.))]
+tank.attachLineIntegralGauges(
+    'vof',
+    gauges = (((('vof'),), column_vof),),
+    fileName = 'vof_LineIntegralGauge.csv')
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
