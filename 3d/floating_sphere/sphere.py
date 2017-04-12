@@ -67,8 +67,6 @@ sphere.translate(sphere_coords)
 sphere.setHoles([sphere_coords])
 sphere.setBarycenter(sphere_coords)
 
-st.assembleDomain(domain)  # must be called after defining shapes
-
 
 # ----- CHRONO ----- #
 
@@ -103,6 +101,7 @@ for key, bc in sphere.BC.items():
 # moving mesh BC were created automatically when
 # making a chrono rigid body for the sphere
 
+st.assembleDomain(domain)  # must be called after defining shapes
 
 ##########################################
 # Numerical Options and other parameters #
