@@ -70,7 +70,7 @@ sphere.setBarycenter(sphere_coords)
 
 # ----- CHRONO ----- #
 
-chrono_system = crb.System(np.array([0., -9.81, 0.]))
+chrono_system = crb.System(np.array([0., 0., -9.81]))
 chrono_system.setTimeStep(opts.chrono_dt)
 
 sphere_body = crb.RigidBody(shape=sphere, system=chrono_system)
