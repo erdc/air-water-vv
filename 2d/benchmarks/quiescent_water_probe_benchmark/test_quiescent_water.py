@@ -9,8 +9,9 @@ import os
 import numpy as np
 import collections as cll
 import csv
+from proteus.test_utils import TestTools
 
-class TestQuiescentWaterTetgen():
+class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
     def setup_class(cls):

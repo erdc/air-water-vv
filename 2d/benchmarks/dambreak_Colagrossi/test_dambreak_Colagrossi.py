@@ -8,8 +8,9 @@ import os
 import numpy as np
 import collections as cll
 import csv
+from proteus.test_utils import TestTools
 
-class TestDambreakCollagrossiTetgen():
+class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
     def setup_class(cls):

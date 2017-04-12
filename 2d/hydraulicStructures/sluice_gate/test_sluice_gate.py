@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 import pytest
-import unittest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 import sluice_gate_so
 import os
-from numpy import *
-from scipy import *
-from pylab import *
+import numpy as np
 import collections as cll
 import csv
+from proteus.test_utils import TestTools
 
-class TestSluiceGateTetgen(unittest.TestCase):
+class TestSluiceGateTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
     def setup_class(cls):
@@ -122,7 +120,7 @@ class TestSluiceGateTetgen(unittest.TestCase):
             T_20_to_30.append(Q[i])
         Q_pr = np.mean(T_20_to_30) #Discharge between 20 s and 30 s obtained with PROTEUS
         err = 100*abs(Q_th-Q_pr)/Q_th
-        self.assertTrue(err<7.)
+        assert(err<7.)
         
 if __name__ == '__main__':
     pass
