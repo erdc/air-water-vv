@@ -10,33 +10,40 @@ opts=Context.Options([
     # predefined test cases
     ("water_level", 0.4, "Height of free surface above seabed"),
     # tank
-    ("tank_dim", (20.62, 0.7,), "Dimensions of the tank"),
-    ("tank_sponge", (3.72,7.44), "Length of relaxation zones zones (left, right)"),
+    ("tank_dim", (7.8, 0.7), "Dimensions of the tank"),
+    ("tank_sponge", (3.9,7.8), "Length of relaxation zones zones (left, right)"),
     ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
-    ("gauge_output", True, "Places Gauges in tank (5 per wavelength)"),
+    # gauges
+    #("gauge_output", True, "Places Gauges in tank (5 per wavelength)"),
+    ("point_gauge_output", True, "Produce point gauge output"),
+    ("column_gauge_output", True, "Produce column gauge output"),
+    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
-    ("wave_period", 2, "Period of the waves"),
-    ("wave_height", 0.05, "Height of the waves"),
+    ("wave_period", 2., "Period of the waves"),
+    ("wave_height", 0.15, "Height of the waves"),
     ("wave_dir", (1.,0.,0.), "Direction of the waves (from left boundary)"),
-    ("wave_wavelength",3.72, "Direction of the waves (from left boundary)"),
+    ("wave_wavelength",3.9, "Direction of the waves (from left boundary)"),
     ("wave_type", 'Fenton', "type of wave"),
-    ("Bcoeff", np.array([0.05392302,0.00359353,0.00020733,0.00000737,-0.00000016,-0.00000005,0.00000000,0.00000000]), "Bcoeffs"),
-    ("Ycoeff", np.array([0.04154750,0.00557540,0.00066333,0.00008224,0.00001091,0.00000154,0.00000023,0.00000007]), "Ycoeffs"),
+    ("Bcoeff", np.array([0.13540388,0.02480804,0.00426381,0.00055395,0.00002809,-0.00000926,-0.00000291,-0.00000030]), "Bcoeffs"),
+    ("Ycoeff", np.array([0.10563897,0.03899903,0.01306615,0.00457401,0.00172175,0.00070315,0.00033483,0.00024142]), "Ycoeffs"),
     ("fast", True, "switch for fast cosh calculations in WaveTools"),
     # mesh refinement
     ("refinement", False, "Gradual refinement"),
-    ("he", 0.02, "Set characteristic element size"),
+    ("he", 0.04, "Set characteristic element size"),
     ("he_max", 10, "Set maximum characteristic element size"),
     ("he_max_water", 10, "Set maximum characteristic in water phase"),
     ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
+    #RZ Darcy corrections#  
+    ("alpha_value",0.5,"alphaDarcy value"),
+    ("fscaling",1,"use fscaling!=0, to switch on frequnecy scaling"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
-    ("movingDomain", True, "True/False"),
-    ("T", 40.0, "Simulation time"),
+    ("movingDomain", False, "True/False"),
+    ("T", 30.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
@@ -50,8 +57,10 @@ opts=Context.Options([
 # ----- CONTEXT ------ #
 
 # waves
+omega = 1.
 if opts.waves is True:
     period = opts.wave_period
+    omega = 2*np.pi/opts.wave_period
     height = opts.wave_height
     mwl = depth = opts.water_level
     direction = opts.wave_dir
@@ -77,6 +86,11 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 
 # ----- SHAPES ----- #
+aa = opts.alpha_value
+scalef = omega
+if(opts.fscaling ==0):
+	scalef=1
+
 tank = st.Tank2D(domain, tank_dim)
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 left = right = False
@@ -87,9 +101,9 @@ if opts.waves is True:
     tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 if left:
     if opts.waves is True:
-        tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=0.5/1.004e-6)
+        tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=0.5*omega/1.004e-6)
     else:
-        tank.setAbsorptionZones(x_n=left, dragAlpha=0.5/1.004e-6)
+        tank.setAbsorptionZones(x_n=left, dragAlpha=aa*scalef/1.004e-6)
 else:
     tank.BC['x-'].setNoSlip()
 if right:
@@ -102,7 +116,7 @@ if opts.tank_BC == 'noslip':
     tank.BC['y-'].setNoSlip()
 if opts.tank_BC == 'freeslip':
     tank.BC['y-'].setFreeSlip()
-tank.BC['x+'].setNoSlip()
+tank.BC['x+'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 
 for bc in tank.BC_list:
@@ -111,46 +125,42 @@ for bc in tank.BC_list:
 
 # ----- GAUGES ----- #
 
-if opts.gauge_output:
-    if left or right:
-        gauge_dx = tank_sponge[0]/10.
-    else:
-        gauge_dx = tank_dim[0]/10.
-    probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
-    PG=[]
-    PG2=[]
-    LIG = []
-    zProbes=waterLevel*0.5
-    for i in probes:
-        PG.append((i, zProbes, 0.),)
-        PG2.append((i, waterLevel, 0.),)
-        if i == probes[0]:
-            LIG.append(((i, 0.+0.0001, 0.),(i, tank_dim[1]-0.0001,0.)),)
-        elif i != probes[0]:
-            LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
-    tank.attachPointGauges(
-        'twp',
-        gauges = ((('p',), PG),),
-        activeTime=(0, opts.T),
-        sampleRate=0,
-        fileName='pointGauge_pressure.csv'
-    )
-    tank.attachPointGauges(
-        'ls',
-        gauges = ((('phi',), PG),),
-        activeTime=(0, opts.T),
-        sampleRate=0,
-        fileName='pointGauge_levelset.csv'
-    )
+##if opts.gauge_output:
+##    gauge_dx = opts.wave_wavelength/10.
+##    probes=np.linspace(0, tank_dim[0], (tank_dim[0])/gauge_dx+1)
+##    PG=[]
+##    PG2=[]
+##    LIG = []
+##    for i in probes:
+##        LIG.append(((i, 0.001, 0.),(i, tank_dim[1]-0.001,0.)),)
+##    tank.attachLineIntegralGauges(
+##        'vof',
+##        gauges=((('vof',), LIG),),
+##        activeTime = (0., opts.T),
+##        sampleRate = 0,
+##        fileName = 'lineGauge.csv'
+##    )
 
-    tank.attachLineIntegralGauges(
-        'vof',
-        gauges=((('vof',), LIG),),
-        activeTime = (0., opts.T),
-        sampleRate = 0,
-        fileName = 'lineGauge.csv'
-    )
+column_gauge_locations = []
+point_gauge_locations = []
 
+if opts.point_gauge_output or opts.column_gauge_output:
+    gauge_y = waterLevel - 0.5 * depth
+    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
+    for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
+        point_gauge_locations.append((gauge_x, gauge_y, 0), )
+        column_gauge_locations.append(((gauge_x, 0., 0.),
+                                       (gauge_x, tank_dim[1], 0.)))
+
+if opts.point_gauge_output:
+    tank.attachPointGauges('twp',
+                           gauges=((('p',), point_gauge_locations),),
+                           fileName='pressure_gaugeArray.csv')
+
+if opts.column_gauge_output:
+    tank.attachLineIntegralGauges('vof',
+                                  gauges=((('vof',), column_gauge_locations),),
+                                  fileName='column_gauges.csv')
 
 # ----- ASSEMBLE DOMAIN ----- #
 
@@ -200,7 +210,6 @@ if domain.use_gmsh is True:
 ##########################################
 # Numerical Options and other parameters #
 ##########################################
-
 
 rho_0=998.2
 nu_0 =1.004e-6
@@ -301,9 +310,9 @@ elif spaceOrder == 2:
 
 
 # Numerical parameters
-sc = 0.25 # default: 0.5. Test: 0.25
-sc_beta = 1. # default: 1.5. Test: 1.
-epsFact_consrv_diffusion = 0.1 # default: 1.0. Test: 0.1
+sc = 0.5 # default: 0.5. Test: 0.25
+sc_beta = 1.5 # default: 1.5. Test: 1.
+epsFact_consrv_diffusion = 1. # default: 1.0. Test: 0.1
 ns_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 if useMetrics:
@@ -326,11 +335,11 @@ if useMetrics:
     epsFact_consrv_diffusion = epsFact_consrv_diffusion
     redist_Newton = True#False
     kappa_shockCapturingFactor = sc
-    kappa_lag_shockCapturing = False#True
+    kappa_lag_shockCapturing = True
     kappa_sc_uref = 1.0
     kappa_sc_beta = sc_beta
     dissipation_shockCapturingFactor = sc
-    dissipation_lag_shockCapturing = False#True
+    dissipation_lag_shockCapturing = True
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = sc_beta
 else:
@@ -361,14 +370,14 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = 1e-8 #max(1.0e-12,tolfac*he**2)
-vof_nl_atol_res = 1e-8 #max(1.0e-12,tolfac*he**2)
-ls_nl_atol_res = 1e-8 #max(1.0e-12,tolfac*he**2)
-mcorr_nl_atol_res = 1e-8 #max(1.0e-12,0.1*tolfac*he**2)
-rd_nl_atol_res = 1e-8 #max(1.0e-12,tolfac*he)
-kappa_nl_atol_res = 1e-8 #max(1.0e-12,tolfac*he**2)
-dissipation_nl_atol_res = 1e-8 #max(1.0e-12,tolfac*he**2)
-mesh_nl_atol_res = 1e-8 #max(1.0e-12,opts.mesh_tol*he**2)
+ns_nl_atol_res = 1e-6#max(1.0e-6,0.001*domain.MeshOptions.he**2)
+vof_nl_atol_res = 1e-6#max(1.0e-6,0.001*domain.MeshOptions.he**2)
+ls_nl_atol_res = 1e-6#max(1.0e-6,0.001*domain.MeshOptions.he**2)
+mcorr_nl_atol_res = 1e-6#max(1.0e-6,0.0001*domain.MeshOptions.he**2)
+rd_nl_atol_res = 1e-6#max(1.0e-6,0.01*domain.MeshOptions.he)
+kappa_nl_atol_res = 1e-6#max(1.0e-6,0.001*domain.MeshOptions.he**2)
+dissipation_nl_atol_res = 1e-6#max(1.0e-6,0.001*domain.MeshOptions.he**2)
+mesh_nl_atol_res = 1e-6#max(1.0e-6,0.001*domain.MeshOptions.he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
