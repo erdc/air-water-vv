@@ -18,7 +18,7 @@ def CreateFig():
     yg = np.linspace(0, domain.L[1], 20)
     xi, yi = np.meshgrid(xg,yg)
     plt.figure()
-    for it,t in enumerate(linear_waves_so.tnList[:]):
+    for it,t in enumerate(standing_waves_so.tnList[:]):
         phi = archive.getNode("/phi_t"+`it`)
         vof = archive.getNode("/vof_t"+`it`)
         wvof = np.ones(vof.shape,'d')
