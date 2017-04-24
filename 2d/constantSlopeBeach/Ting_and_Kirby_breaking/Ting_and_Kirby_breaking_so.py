@@ -21,9 +21,6 @@ try:
 except ImportError:
     raise ImportError, str(name) + '.py not found'
 
-from proteus.BoundaryConditions import BC_Base
-BC_Base.getContext()
-
 if ct.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
               ("vof_p",               "vof_n")]

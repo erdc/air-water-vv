@@ -188,7 +188,6 @@ depth = opts.wave_depth
 waveDir = np.array(opts.wave_dir)
 wavelength = opts.wavelength
 amplitude = waveheight / 2.0
-
 waves = wt.MonochromaticWaves(period=period,
                               waveHeight=waveheight,
                               mwl=waterLine_z,
@@ -197,8 +196,9 @@ waves = wt.MonochromaticWaves(period=period,
                               waveDir=waveDir,
                               wavelength=wavelength,
                               waveType='Fenton',
-                              Ycoeff=opts.y_coeff,
-                              Bcoeff=opts.b_coeff)
+                              Ycoeff=np.array(opts.y_coeff),
+                              Bcoeff=np.array(opts.b_coeff),
+                              Nf=len(opts.b_coeff))
 
 # ----- TIME STEPPING & VELOCITY----- #
 
@@ -314,7 +314,7 @@ else:  # no slip
 
 # waves
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waves,
-                                               wind_speed=windVelocity)
+                                               wind_speed=np.array(windVelocity))
 
 
 # ----- MESH CONSTRUCTION ----- #
