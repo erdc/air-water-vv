@@ -1,24 +1,24 @@
 def CreateFig():
     from tables import  openFile
-    archive = openFile('linear_waves.h5','r')
-    import linear_waves
-    import linear_waves_so
+    archive = openFile('tank.h5','r')
+    import tank
+    import tank_so
     import matplotlib.tri as mtri
     from matplotlib import pyplot as  plt
     import numpy as np
-    domain = linear_waves.domain
+    domain = tank.domain
     nodes = archive.getNode("/nodesSpatial_Domain0")
     x=nodes[:,0]
     y=nodes[:,1]
     elements = archive.getNode("/elementsSpatial_Domain0")
     triang = mtri.Triangulation(x, y, elements)
-    domain.L=linear_waves.tank_dim
+    domain.L=tank.tank_dim
     domain.x=[0.,0.]
     xg = np.linspace(0, domain.L[0], 20)
     yg = np.linspace(0, domain.L[1], 20)
     xi, yi = np.meshgrid(xg,yg)
     plt.figure()
-    for it,t in enumerate(linear_waves_so.tnList[:]):
+    for it,t in enumerate(tank_so.tnList[:]):
         phi = archive.getNode("/phi_t"+`it`)
         vof = archive.getNode("/vof_t"+`it`)
         wvof = np.ones(vof.shape,'d')
