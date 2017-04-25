@@ -74,7 +74,7 @@ plt.xlim((0.,30.))
 plt.ylim((-0.1,0.1))
 plt.suptitle('Surface elevation against time in the middle of the tank.')
 plt.grid()
-plt.show()
+#plt.show()
 plt.savefig('eta_LW.png')
 
 #####################################################################################
