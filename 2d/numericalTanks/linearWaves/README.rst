@@ -30,6 +30,7 @@ This case tests demonstrates the ability of PROTEUS to simulate the generation o
 linear waves as well as their absorption.
 
 The python test file named ``test_linearWaves.py`` is made up of three tests:
+
 * The first one is to know if the case can run.
 * The second test is to validate the results comparing them to the theory. For this 
 case we will compare the numerical and theoretical wave height in the middle of 

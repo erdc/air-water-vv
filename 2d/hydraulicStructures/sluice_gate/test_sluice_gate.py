@@ -105,7 +105,7 @@ class TestSluiceGateTetgen(TestTools.AirWaterVVTest):
         # Extracts the datas from the function readProbeFile  
         datalist = readProbeFile(filename)
         time = datalist[2]
-        # Calculates the time-average discharge over the crest
+        # Calculates the time-average discharge under the gate
         U = []
         for i in range(0,len(datalist[3])):
             U.append(np.mean(datalist[3][i]))
