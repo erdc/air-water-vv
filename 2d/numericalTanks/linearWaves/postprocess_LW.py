@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import linear_waves as lw
 from proteus import WaveTools as wt
+from AnalysisTools import signalFilter,zeroCrossing,reflStat
 
 #####################################################################################
 
@@ -94,3 +95,34 @@ val.write('Gauges taken between 6s and 18s'+'\n')
 val.write('Average error (%) between the theoretical function and the simulation:'+'\n')
 val.write(str(err))
 val.close()
+
+#####################################################################################
+
+# Reflection
+dataW = readProbeFile('column_gauges.csv')
+time = dataW[2]
+L = lw.opts.wavelength
+Nwaves = (lw.opts.tank_dim[0]+lw.opts.tank_sponge[0]+lw.opts.tank_sponge[1])/L
+T = lw.opts.wave_period
+Tend = time[-1]
+Tstart = Tend-Nwaves*T
+i_mid = len(dataW[3][0])/2-1
+time_int = np.linspace(time[0],Tend,len(time))
+data1 = np.zeros((len(time),len(dataW[3][0])),"d")
+bf = 1.2
+minf = 1./bf/T
+maxf = bf / T
+dx_array = lw.opts.gauge_dx
+Narray = int(round(L/6/dx_array))
+data = np.zeros((len(data1),3))
+zc = []
+for ii in range(0,3):
+    data1[:,i_mid+ii*Narray] = np.interp(time_int,time,dataW[3][:,i_mid+ii*Narray])
+    data[:,ii] = signalFilter(time,data1[:,i_mid+ii*Narray],minf, maxf, 1.1*maxf, 0.9*minf)
+    zc.append(zeroCrossing(time,data[:,ii]))
+H1 = zc[0][1]
+H2 = zc[1][1]
+H3 = zc[2][1]
+HH = reflStat(H1,H2,H3,Narray*dx_array,L)[0]
+RR = reflStat(H1,H2,H3,Narray*dx_array,L)[2]
+print "RR = ", RR

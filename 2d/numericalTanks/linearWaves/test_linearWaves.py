@@ -9,7 +9,11 @@ import os
 import numpy as np
 import collections as cll
 import csv
+from proteus.WaveTools import decompose_tseries
 from proteus.test_utils import TestTools
+from AnalysisTools import readProbeFile,signalFilter,zeroCrossing,reflStat
+
+
 
 class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
 
@@ -77,33 +81,7 @@ class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
         
     def test_validate(self):
         # Reading probes into the file
-        file_vof = 'column_gauges.csv'
-
-        def readProbeFile(filename):
-            with open (filename, 'rb') as csvfile:
-                data=np.loadtxt(csvfile, delimiter=",",skiprows=1)
-                time=data[:,0]
-                data = data[:,1:]
-                csvfile.seek(0)
-                header = csvfile.readline()
-                header = header.replace("time","")
-                header = header.replace("[","")
-                header = header.replace("]","")
-                header = header.replace(","," ")
-                header = header.split()
-                probeType = []
-                probex = []
-                probey = []
-                probez = []        
-                for ii in range(0,len(header),4):
-                    probeType.append(header[ii])
-                    probex.append(float(header[ii+1]))
-                    probey.append(float(header[ii+2]))
-                    probez.append(float(header[ii+3]))
-                probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
-                datalist = [probeType,probeCoord,time,data]
-                return datalist
-            
+        file_vof = 'column_gauges.csv'   
         # Exctracting probes
         data_vof = readProbeFile(file_vof)
         time = data_vof[2]
@@ -134,6 +112,34 @@ class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
         assert(err<3.0)
 
         
+    def test_reflection(self):
+        dataW = readProbeFile('column_gauges.csv')
+        time = dataW[2]
+        L = lw.opts.wavelength
+        Nwaves = (lw.opts.tank_dim[0]+lw.opts.tank_sponge[0]+lw.opts.tank_sponge[1])/L
+        T = lw.opts.wave_period
+        Tend = time[-1]
+        Tstart = Tend-Nwaves*T
+        i_mid = len(dataW[3][0])/2-1
+        time_int = np.linspace(time[0],Tend,len(time))
+        data1 = np.zeros((len(time),len(dataW[3][0])),"d")
+        bf = 1.2
+        minf = 1./bf/T
+        maxf = bf / T
+        dx_array = lw.opts.gauge_dx
+        Narray = int(round(L/6/dx_array))
+        data = np.zeros((len(data1),3))
+        zc = []
+        for ii in range(0,3):
+            data1[:,i_mid+ii*Narray] = np.interp(time_int,time,dataW[3][:,i_mid+ii*Narray])
+            data[:,ii] = signalFilter(time,data1[:,i_mid+ii*Narray],minf, maxf, 1.1*maxf, 0.9*minf)
+            zc.append(zeroCrossing(time,data[:,ii]))
+        H1 = zc[0][1]
+        H2 = zc[1][1]
+        H3 = zc[2][1]
+        HH = reflStat(H1,H2,H3,Narray*dx_array,L)[0]
+        RR = reflStat(H1,H2,H3,Narray*dx_array,L)[2]
+        assert(RR<0.03)
         
 if __name__ == '__main__':
     pass
