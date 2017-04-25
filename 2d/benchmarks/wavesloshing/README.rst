@@ -20,6 +20,14 @@ where, a is the amplitude of the sloshing wave.
 This case tests the ability of PROTEUS to simulate the free-surface
 evolution. For more details, see runfiles or references.
 
+The python test file named ``test_wavesloshing.py`` is made up of 
+two tests:
+* The first one is to know if the case can run.
+* The second test is to validate the results comparing them to the 
+theory. For this case we will compare the numerical and theoretical 
+position of the interface at the left boundary.
+One can run this test file typing ``py.test --boxed test_wavesloshing.py``.
+
 References
 ----------
 

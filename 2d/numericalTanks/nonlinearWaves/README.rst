@@ -1,5 +1,5 @@
 Nonlinear wave generation/absorption
-==============================================
+====================================
 
 Plane regular nonlinear waves are mild and high steepness waves that 
 propagate in a single direction, in uniform wave fronts.  The wave 
@@ -36,6 +36,14 @@ free-slip wall.
 This case tests demonstrates the ability of PROTEUS to simulate the 
 generation and propagation of non-linear waves as well as their 
 absorption. 
+
+The python test file named ``test_nonlinearWaves.py`` is made up of three tests:
+* The first one is to know if the case can run.
+* The second test is to validate the results comparing them to the theory. For 
+this case we will compare the numerical and theoretical wave height in the middle 
+of the tank.
+* The third one is to test the reflection. 
+One can run this test file typing ``py.test --boxed test_nonlinearWaves.py``.
 
 References
 ----------
