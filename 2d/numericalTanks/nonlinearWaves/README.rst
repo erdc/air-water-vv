@@ -40,9 +40,7 @@ absorption.
 The python test file named ``test_nonlinearWaves.py`` is made up of three tests:
 
 * The first one is to know if the case can run.
-* The second test is to validate the results comparing them to the theory. For 
-this case we will compare the numerical and theoretical wave height in the middle 
-of the tank.
+* The second test is to validate the results comparing them to the theory. For this case we will compare the numerical and theoretical wave height in the middle of the tank.
 * The third one is to test the reflection. 
 One can run this test file typing ``py.test --boxed test_nonlinearWaves.py``.
 

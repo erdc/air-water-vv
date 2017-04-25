@@ -47,9 +47,7 @@ The python test file named ``test_crump_weir.py`` is made up of
 two tests:
 
 * The first one is to know if the case can run.
-* The second test is to validate the results comparing them to the theory. 
-For this case we will compare the numerical and theoretical discharge 
-over the crest of the weir.
+* The second test is to validate the results comparing them to the theory. For this case we will compare the numerical and theoretical discharge over the crest of the weir.
 One can run this test file typing ``py.test --boxed test_crump_weir.py``.
 
 References

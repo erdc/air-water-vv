@@ -30,9 +30,7 @@ The python test file named ``test_sluice_gate.py`` is made up of
 two tests:
 
 * The first one is to know if the case can run.
-* The second test is to validate the results comparing them to the theory. 
-For this case we will compare the numerical and theoretical discharge 
-under the gate.
+* The second test is to validate the results comparing them to the theory. For this case we will compare the numerical and theoretical discharge under the gate.
 One can run this test file typing ``py.test --boxed test_sluice_gate.py``.
 
 References
