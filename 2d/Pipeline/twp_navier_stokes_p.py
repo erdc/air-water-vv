@@ -97,32 +97,20 @@ class PerturbedSurface_p:
     def __init__(self,waterLevel):
         self.waterLevel=ct.waterLevel
     def uOfXT(self,x,t):
-        if ct.signedDistance(x) < 0:
-            return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1] - (self.waterLevel - x[1])*ct.rho_0*ct.g[1]
-        else:
-            return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1]
+        return - (ct.tank_dim[1] - x[1])*ct.rho_0*ct.g[1]
 
 class U_IC:
     def uOfXT(self, x, t):
-        if ct.signedDistance(x) < 0:
-            return ct.opts.meanVelocity[0]
-        else:
-            return 0.0
+        return ct.opts.meanVelocity[0]
 
 class V_IC:
     def uOfXT(self, x, t):
-        if ct.signedDistance(x) < 0:
-            return ct.opts.meanVelocity[1]
-        else:
-            return 0.0
+        return ct.opts.meanVelocity[1]
 
 class W_IC:
     def uOfXT(self, x, t):
-        if ct.signedDistance(x) < 0:
-            return ct.opts.meanVelocity[2]
-        else:
-            return 0.0
-
+        return ct.opts.meanVelocity[2]
+        
 initialConditions = {0: PerturbedSurface_p(ct.waterLine_z),
                      1: U_IC(),
                      2: V_IC()}

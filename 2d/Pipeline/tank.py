@@ -32,13 +32,13 @@ opts=Context.Options([
     # circle2D
     ("circle2D", True, "Switch on/off circle2D"),
     ('radius', 0.125, 'Radius of the circle2D'),
-    ('gap', 0.3, 'Gap from the bottom in number of diameter'),    
+    ('gap', 0.7, 'Gap from the bottom in number of diameter'),    
     ('width', 1.0, 'Z-dimension of the circle2D'),
     ('mass', 46.41, 'Mass of the caisson2D [kg]'),    # density of polypropylene is 946 kg/m3
     ("rotation", not True, "Initial position for free oscillation"),
-    ('circleBC', 'FreeSlip', 'circle2D boundaries: NoSlip or FreeSlip'),
+    ('circleBC', 'NoSlip', 'circle2D boundaries: NoSlip or FreeSlip'),
     ('InputMotion', True, 'If True, set a motion as input rather than calculate it'),
-    ('At', [0.0, 0.0625, 0.0], 'Amplitude of imposed sinusoidal translational motion'),
+    ('At', [0.0, 0.075, 0.0], 'Amplitude of imposed sinusoidal translational motion'),
     ('Tt', [0.0, 1.30, 0.0], 'Period of imposed sinusoidal translational motion'), # fD/U adimensioanl frequency, from here I calculate T  3.125 2.604 2.232 1.953 1.736 1.562 1.420 1.302
     ('scheme', None, 'Numerical scheme applied to solve motion calculation (Runge_Kutta or Central_Difference)'),
     ("springs", not True, "Switch on/off soil module"),
@@ -93,9 +93,10 @@ windVelocity = np.array([0.,0.,0.])
 # ----- Phisical constants ----- #
 
 rho_0=998.2
-nu_0 =1.004e-6
-rho_1=1.205
-nu_1 =1.500e-5
+nu_0=1.004e-6
+rho_1=rho_0#1.205
+nu_1=nu_0#1.500e-5
+
 sigma_01=0.0
 g =np.array([0.,-9.8,0.])
 gAbs=sqrt(sum(g**2))
@@ -155,8 +156,8 @@ if opts.circle2D:
     tank_dim = [x5, opts.th]
 
 boundaryOrientations = {'y-': np.array([0., -1.,0.]),
-                        'x+': np.array([0., -1.,0.]),
-                        'y+': np.array([0., -1.,0.]),
+                        'x+': np.array([+1, 0.,0.]),
+                        'y+': np.array([0., +1.,0.]),
                         'x-': np.array([-1., 0.,0.]),
                         'sponge': None,
                         'circle': None,
@@ -289,6 +290,17 @@ elif opts.turbLength == 2:
 else:
     dissipationInflow = (kInflow**0.5) / (opts.scaleLength*opts.water_level)
 
+# pipeline conditions
+# skin-friction calculation (see Pope, pages 279, 301)
+cf = 0.664*(Re**-0.5)
+Ut = Ufree*sqrt(cf/2.)
+kappaP = (Ut**2)/sqrt(c_mu)
+dissipationP = sqrt(kappaP)/((c_mu**0.25)*0.41*he)
+
+# inlet values 
+kInflow = 0.0001*kappaP#None
+dissipationInflow =0.0001*dissipationP# None
+
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #############################################################################################################################################################################################################################################################################################################################################################################################
@@ -299,16 +311,21 @@ if opts.circle2D:
             bc.setFreeSlip()
         if opts.circleBC == 'NoSlip':
             bc.setNoSlip()
-            bc.setTurbulentZeroGradient
+            bc.setTurbulentDirichlet(kVal=kappaP, dissipationVal=dissipationP)
 
 if opts.wave==True:
     tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1)
     tank.BC['x+'].setFreeSlip()
 else:
-    tank.BC['x-'].setTwoPhaseVelocityInlet(U=opts.meanVelocity, waterLevel=opts.water_level, kInflow=kInflow, dissipationInflow=dissipationInflow)
+    tank.BC['x-'].setTwoPhaseVelocityInlet(U=opts.meanVelocity,  waterLevel=opts.water_level,
+                                           smoothing=he*3.0, Uwind=opts.meanVelocity,
+                                           kInflow=kInflow, dissipationInflow=dissipationInflow,
+                                           kInflowAir=kInflow, dissipationInflowAir=dissipationInflow)
+
     tank.BC['x+'].setHydrostaticPressureOutletWithDepth( seaLevel=opts.water_level, rhoUp=rho_1,
                                                          rhoDown=rho_0, g=g,
-                                                         refLevel=opts.water_level, U=opts.meanVelocity)
+                                                         refLevel=opts.th, smoothing=he*3.0,
+                                                         U=opts.meanVelocity, Uwind=opts.meanVelocity)
 
 tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()

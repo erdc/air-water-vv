@@ -53,9 +53,6 @@ class ConstantIC:
     def __init__(self,cval=0.0):
         self.cval=cval
     def uOfXT(self,x,t):
-        if ct.signedDistance(x) < 0:
-            return self.cval
-        else:
-            return 0.0
+        return self.cval
 
-initialConditions  = {0:ConstantIC(cval=dissipationInflow*0.001)}
+initialConditions  = {0:ConstantIC(cval=dissipationInflow)}
