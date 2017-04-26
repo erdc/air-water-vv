@@ -15,6 +15,7 @@ opts=Context.Options([
     ('Labs', 1.0, 'Absorption zone in terms of wave lengths'),
     ('Ls', 1.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
     ('Lend', 1.0, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
+    ('th', 1.0, 'Tank height'),
     # waves
     ('wave', True, 'Enable wave generation'),
     ('waveType', 'Fenton', 'Wavetype for regular waves, Linear or Fenton'),
@@ -33,8 +34,9 @@ opts=Context.Options([
     ("hs", 0.175, "Height of the breakwater"),
     ("slope1", 1./3., "Slope1 of the breakwater"),
     ("slope2", 1./2., "Slope2 of the breakwater"),
+    ('bermFound', 0.20, 'Horizontal length of the berm at the foundation top layer'),
     ('porosity', 0.4, "Porosity of the medium"),
-    ('d50', 0.020, "Mean diameter of the medium"),
+    ('d50', 0.030, "Mean diameter of the medium"),
     ('d15', None, "15% grading curve diameter of the medium"),
     ('Resistance', 'Shih', 'Ergun or Engelund or Shih'),
     # soil foundation
@@ -62,7 +64,7 @@ opts=Context.Options([
     ("GenZone", True, 'Turn on generation zone at left side'),
     ("AbsZone", True, 'Turn on absorption zone at right side'),
     ("refinement_level", 0.0,"he=walength/refinement_level"),
-    ("he", 0.02,"he=walength/refinement_level"),
+    ("he", 0.01,"he=walength/refinement_level"),
     ("cfl", 0.450 ,"Target cfl"),
     ("duration", 20., "Durarion of the simulation"),
     ("freezeLevelSet", True, "No motion to the levelset"),
@@ -126,7 +128,10 @@ if opts.wave == True:
 #---------Domain Dimension
 
 nd = 2
-wl = waveinput.wavelength
+if opts.wave:
+    wl = waveinput.wavelength
+else:
+    wl = 1.0
 
 #---------MESH SIZE
 if opts.he == 0.0:
@@ -139,74 +144,53 @@ else:
 # ----- SHAPES ----- #
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-if opts.caisson2D:
-    L_leftSpo  = opts.Lgen*wl
-    L_rightSpo = opts.Labs*wl
+L_leftSpo  = opts.Lgen*wl
+L_rightSpo = opts.Labs*wl
 
-    hs=opts.hs
-    slope1=opts.slope1
-    slope2=opts.slope2
+hs=opts.hs
+slope1=opts.slope1
+slope2=opts.slope2
 
 #-caisson2D
-    dimx=opts.dimx
-    dimy=opts.dimy
-    b=dimx
+dimx=opts.dimx
+dimy=opts.dimy
+b=dimx
 
 #-Tank
-    x1=L_leftSpo
-    x2=x1+opts.Ls*wl
-    x3=x2+(hs/slope1)
+xGen=L_leftSpo
+xToeFound=xGen+opts.Ls*wl
+xTopFound=xToeFound+(hs/slope1)
 
-    xc1=x3+0.20
-    xc2=xc1+b
-    yc1=yc2=hs
+xc1=xTopFound+opts.bermFound
+xc2=xc1+b
+xc3=xc2
+xc4=xc1
+yc1=yc2=hs
+yc3=yc4=hs+dimy
 
-    x4=xc2+0.20
-    x5=x4+(hs/slope2)
-    x6=x5+opts.Lend*wl
-    x7=x6+L_rightSpo
-    tank_dim = [x7, 1.0]
- 
-    boundaryOrientations = {'y-': np.array([0., -1.,0.]),
-                            'x+': np.array([0., -1.,0.]),
-                            'y+': np.array([0., -1.,0.]),
-                            'x-': np.array([-1., 0.,0.]),
-                            'sponge': None,
-                            'porousLayer': None,
-                            'moving_porousLayer': None,
-                           }     
-    boundaryTags = {'y-' : 1,
-                    'x+' : 2,
-                    'y+' : 3,
-                    'x-' : 4,
-                    'sponge' : 5,
-                    'porousLayer' : 6,
-                    'moving_porousLayer' : 7,
-                       }
+xTopFound2=xc2+opts.bermFound
+xToeFound2=xTopFound2+(hs/slope2)
+xAbs=xToeFound2+opts.Lend*wl
+xEnd=xAbs+L_rightSpo
+tank_dim = [xEnd, opts.th]
 
-else:
-    L_leftSpo  = opts.Lgen*wl
-    L_rightSpo = opts.Labs*wl
+boundaryOrientations = {'y-': np.array([0., -1.,0.]),
+                        'x+': np.array([+1., 0.,0.]),
+                        'y+': np.array([0., +1.,0.]),
+                        'x-': np.array([-1., 0.,0.]),
+                        'sponge': None,
+                        'porousLayer': None,
+                        'moving_porousLayer': None,
+                       }     
+boundaryTags = {'y-' : 1,
+                'x+' : 2,
+                'y+' : 3,
+                'x-' : 4,
+                'sponge' : 5,
+                'porousLayer' : 6,
+                'moving_porousLayer' : 7,
+                   }
 
-    #-Tank
-    x1=L_leftSpo
-    x2=x1+opts.Ls*wl
-    x3=x2+L_rightSpo
-
-    tank_dim = [x3, 1.0]
-    
-    boundaryOrientations = {'y-': np.array([0., -1.,0.]),
-                            'x+': np.array([0., -1.,0.]),
-                            'y+': np.array([0., -1.,0.]),
-                            'x-': np.array([-1., 0.,0.]),
-                            'sponge': None,
-                           }
-    boundaryTags = {'y-': 1,
-                    'x+': 2,
-                    'y+': 3,
-                    'x-': 4,
-                    'sponge': 5,
-                       }
 
 
 ##############################################################################################################################################################################################################
@@ -228,11 +212,9 @@ if opts.caisson2D:
 
 # --- Shape properties setup
     caisson = st.Rectangle(domain, dim=dim, coords=coords)
-    caisson.vertices[0][0]=xc1
-    caisson.vertices[0][1]=yc1
-    caisson.vertices[1][0]=xc2
-    caisson.vertices[1][1]=yc2
-
+    xc1, yc1 = caisson.vertices[0][0], caisson.vertices[0][1]
+    xc2, yc2 = caisson.vertices[1][0], caisson.vertices[1][1]
+   
 
 # --- Body properties setup
     caisson2D = bd.CaissonBody(shape=caisson, substeps=20)
@@ -261,15 +243,148 @@ if opts.caisson2D:
 # Tank
 #########################################################################################################################################################################################################
 
-if opts.caisson2D==False:
+if opts. porousMedia and opts.caisson2D:
 
     vertices=[[0.0, 0.0],#0
-              [x1,  0.0],#1
-              [x2, 0.0], #2
-              [x3,  0.0 ],#3
-              [x3,  tank_dim[1] ],#4
-              [x2,  tank_dim[1] ],#5
-              [x1,  tank_dim[1] ],#6
+              [xGen,  0.0],#1
+
+              [xToeFound, 0.0], #2
+              [xTopFound,  hs ],#3
+              [xTopFound2,  hs ],#4
+              [xToeFound2,  0.0],#5
+
+              [xAbs,  0.0],#6
+              [xEnd,  0.0],#7
+
+              [xEnd,    tank_dim[1]],#8
+              [xAbs,    tank_dim[1]],#9
+              [xGen,    tank_dim[1]],#10
+              [0.0,   tank_dim[1]],#11
+
+              [xc1, yc1], # Vertices shared between caisson and foundation must be the last
+              [xc2, yc2], # Vertices shared between caisson and foundation must be the last
+
+              ]
+
+    vertexFlags=np.array([1, 1,
+                          1, 6, 6, 1,
+                          1, 1,
+                          3, 3, 3, 3, 
+                          7, 7,
+                         ])
+
+    segments=[[0,1],
+              [1,2],
+
+              [2,3],
+              [4,5],
+
+              [5,6],
+              [6,7],
+              [7,8],
+              [8,9],
+
+              [9,10],
+              [10,11],
+              [11,0],
+
+              [1,10],
+              [6,9],
+
+              [2,5],
+              
+              [3,12],
+              [13,4],
+
+              ]
+
+    segmentFlags=np.array([1, 1,
+                           6, 6,
+                           1, 1,
+                           2, 3, 3, 3, 4,
+                           5, 5,
+                           1,
+                           7, 7,
+                           ])
+
+    facets =    [ [[1,6,9,10]], #first facet defined should be thew one with caisson inside
+                  [[0,1,10,11]],
+                  [[6,7,8,9]],
+                  [[2,3,4,5]],
+                ]
+                
+
+    facetFlags =  [1,2,3,4]
+
+
+    regions = [ [ 0.90*xGen , 0.10*tank_dim[1] ],
+                [ 0.95*xToeFound , 0.10*tank_dim[1] ],  
+                [ 0.99*xEnd , 0.99*tank_dim[1] ],
+                [ xTopFound , 0.50*hs          ],
+              ]
+
+    regionFlags=np.array([1, 2, 3, 4])
+
+
+elif opts.caisson2D and opts.porousMedia != True:
+
+    vertices=[[0.0, 0.0],#0
+              [xGen,  0.0],#1
+              [xAbs,  0.0],#2
+              [xEnd,  0.0],#3
+              [xEnd,    tank_dim[1]],#4
+              [xAbs,    tank_dim[1]],#5
+              [xGen,    tank_dim[1]],#6
+              [0.0,   tank_dim[1]],#7
+
+              [xc1, yc1], # Vertices shared between caisson and foundation must be the last
+              [xc2, yc2], # Vertices shared between caisson and foundation must be the last
+
+              ]
+
+    vertexFlags=np.array([1, 1, 1, 1,
+                          3, 3, 3, 3,
+                          7, 7, 
+                         ])
+
+    segments=[[0,1],#0
+              [1,2],#1
+              [2,3],#2
+              [3,4],#3
+              [4,5],#4
+              [5,6],#5
+              [6,7],#6
+              [7,0],#7
+              [1,6],#8
+              [2,5],#9
+             ]
+
+    segmentFlags=np.array([1, 1, 1,
+                           2, 3, 3, 3, 4,
+                           5, 5,
+                           ])
+
+    facets =  [ [[1,2,5,6]], #first facet defined should be thew one with caisson inside
+                [[0,1,6,7]],
+                [[2,3,4,5]] ]
+
+    facetFlags = [1,2,3]
+
+    regions = [ [ 0.90*xGen , 0.10*tank_dim[1] ],
+            [ 0.90*xAbs , 0.90*tank_dim[1] ],
+            [ 0.95*xEnd , 0.95*tank_dim[1] ] ]
+
+    regionFlags=np.array([1, 2, 3])
+
+else:
+
+    vertices=[[0.0, 0.0],#0
+              [xGen,  0.0],#1
+              [xAbs, 0.0], #2
+              [xEnd,  0.0 ],#3
+              [xEnd,  tank_dim[1] ],#4
+              [xAbs,  tank_dim[1] ],#5
+              [xGen,  tank_dim[1] ],#6
               [0.0,  tank_dim[1] ],#7 
               ]
 
@@ -295,72 +410,11 @@ if opts.caisson2D==False:
                            5, 5,
                           ])
 
-    regions = [ [ 0.90*x1 , 0.10*tank_dim[1] ],
-            [ 0.90*x2 , 0.90*tank_dim[1] ],
-            [ 0.95*x3 , 0.95*tank_dim[1] ] ]
+    regions = [ [ 0.90*xGen , 0.10*tank_dim[1] ],
+            [ 0.90*xAbs , 0.90*tank_dim[1] ],
+            [ 0.95*xEnd , 0.95*tank_dim[1] ] ]
 
     regionFlags=np.array([1, 2, 3])
-
-else:
-
-    vertices=[[0.0, 0.0],#0
-              [x1,  0.0],#1
-              [x2, 0.0], #2
-              [x3,  hs ],#3
-              [x4,  hs ],#4
-              [x5,  0.0],#5
-              [x6,  0.0],#6
-              [x7,  0.0],#7
-              [x7,    tank_dim[1]],#8
-              [x6,    tank_dim[1]],#9
-              [x1,    tank_dim[1]],#10
-              [0.0,   tank_dim[1]],#11
-              [xc1, yc1],#12
-              [xc2, yc2],#13
-              ]
-
-    vertexFlags=np.array([1, 1, 1,
-                          6, 6,
-                          1, 1, 1,
-                          3, 3, 3, 3,
-                          7, 7,
-                         ])
-
-    segments=[[0,1],
-              [1,2],
-              [2,3],
-
-              [4,5],
-              [5,6],
-              [6,7],
-              [7,8],
-              [8,9],
-              [9,10],
-              [10,11],
-              [11,0],
-
-              [2,5],
-              [1,10],
-              [6,9],
-              [3,12],
-              [13,4],
-             ]
-
-    segmentFlags=np.array([1, 1,
-                           6, 6,
-                           1, 1,
-                           2, 3, 3, 3, 4,
-                           1,
-                           5, 5,
-                           7, 7,
-                          ])
-
-    regions = [ [ 0.90*x1 , 0.10*tank_dim[1] ],
-            [ 0.90*x2 , 0.90*tank_dim[1] ],
-            [ xc1 , 0.50*hs ],
-            [ 0.95*x7 , 0.95*tank_dim[1] ] ]
-
-    regionFlags=np.array([1, 2, 3, 4])
 
 
 
@@ -414,7 +468,7 @@ if opts.Resistance=='Engelund':
 
 #Proteus scale in viscosity, so i need to divide alpha and beta by nu_0
 dragAlpha=(porosity**2)*Alpha/nu_0
-dragBeta=0.0#(porosity**3)*Beta/nu_0
+dragBeta=(porosity**3)*Beta/nu_0
 
 #----- Spring setup
 
@@ -449,11 +503,13 @@ tank.BC['y-'].setFreeSlip()
 tank.BC['x+'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 
-if opts.caisson2D:
+
+if opts.porousMedia:
     # Porous media buondaries
     tank.BC['porousLayer'].reset()
     tank.BC['moving_porousLayer'].reset()
 
+if opts.caisson2D:
     # Moving Mesh Options
     if opts.movingDomain==True:
         for tb in [tank.BC['x+'], tank.BC['x-'], tank.BC['y+'], tank.BC['y-'], tank.BC['sponge'], tank.BC['porousLayer']]:
@@ -472,7 +528,6 @@ if opts.caisson2D:
         ms.w_stress.uOfXT=None
 
 
-
 ########################################################################################################################################################################################################################################################################################################################################################
 # -----  GENERATION ZONE & ABSORPTION ZONE  ----- #
 ########################################################################################################################################################################################################################################################################################################################################################
@@ -480,34 +535,34 @@ if opts.caisson2D:
 
 # Waves and Generation zone
 if opts.GenZone and opts.wave:
-    tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
+    if opts.wave is not True:
+        waveinput=None
+    generationFlag = tank.regionFlags[0]    
+    tank.setGenerationZones(flags=generationFlag,
+                        epsFact_solid=float(L_leftSpo/2.),
                         orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
                         waves=waveinput,
                             )
 
-# Only Generation zone                        
-elif opts.GenZone:
-    tank.setAbsorptionZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
-                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
-                        )
-
-# Porous zone
-if opts.porousMedia:
-    tank.setPorousZones(flags=3,
+# Absorption and porous zones
+if opts.AbsZone and opts.porousMedia:
+    absorptionFlag = tank.regionFlags[-2]
+    tank.setAbsorptionZones(flags=absorptionFlag,
+                    epsFact_solid=float(L_rightSpo/2.),
+                    orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+                    )
+    porousFlag = tank.regionFlags[-1]
+    tank.setPorousZones(flags=porousFlag,
                     dragAlpha=dragAlpha, dragBeta=dragBeta,
                     porosity=porosity,
-                   )
+                   )   
+elif opts.AbsZone:
+    absorptionFlag = tank.regionFlags[-1]
+    tank.setAbsorptionZones(flags=absorptionFlag,
+                    epsFact_solid=float(L_rightSpo/2.),
+                    orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+                    )
 
-# Absorption zone
-if opts.AbsZone:
-    if opts.caisson2D:
-        tank.setAbsorptionZones(flags=4, epsFact_solid=float(L_rightSpo/2.),
-                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
-                        )
-    else:
-        tank.setAbsorptionZones(flags=3, epsFact_solid=float(L_rightSpo/2.),
-                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
-                        )        
 
 
 ############################################################################################################################################################################
@@ -541,24 +596,35 @@ if opts.caisson2D:
         LG1.append((i_point_f[0],j,0.),)
         LG2.append((i_point_b[0],j,0.),)
 
-#point_output=ga.PointGauges(gauges=((('p'),PG),
-#                                 ),
-#                          activeTime = (0., T),
-#                          sampleRate=0.,
-#                         fileName='point_gauges.csv')
 
-#loadingsGauges=ga.PointGauges(gauges=((('p'),LG1),
-#                                      (('p'),LG2),
-#                                 ),
-#                          activeTime = (0., T),
-#                          sampleRate=0.,
-#                          fileName='loadingsGauges.csv')
+#tank.attachPointGauges(
+#        'twp',
+#        gauges=((('p'),PG),),
+#        activeTime = (0., T),
+#        sampleRate=0.,
+#        fileName='point_gauges.csv')
 
-levelset_output=ga.PointGauges(gauges=((('phi',),PG),
-                                 ),
-                          activeTime = (0., T),
-                          sampleRate=0.,
-                          fileName='levelset_gauges.csv')
+#tank.attachPointGauges(
+#        'twp',
+#        gauges=((('p'),LG1),
+#                (('p'),LG2),),
+#        activeTime = (0., T),
+#        sampleRate=0.,
+#        fileName='loadingsGauges.csv')
+
+#tank.attachLineIntegralGauges(
+#        'vof',
+#        gauges=((('vof',), LIG),),
+#        activeTime = (0., opts.T),
+#        sampleRate = 0,
+#        fileName = 'lineVOFGauge.csv')
+
+tank.attachPointGauges(
+        'ls',
+        gauges=((('phi',),PG),),
+        activeTime = (0., T),
+        sampleRate=0.,
+        fileName='levelset_gauges.csv')
 
 
 ######################################################################################################################################################################################################################
