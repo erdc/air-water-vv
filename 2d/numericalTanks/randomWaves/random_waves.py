@@ -25,9 +25,9 @@ opts = Context.Options([
     #gravity 
     ("g", [0, -9.81, 0], "Gravity vector"),
     # waves
-    ("wave_period", 1.94, "Period of the waves"),
-    ("wave_height", 0.025, "Height of the waves"),
-    ("depth", 1., "Wave depth"),
+    ("Tp", 1.94, "Peak wave period"),
+    ("Hs", 0.05, "Significant wave height"),
+    ("depth", 1., "Water depth"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     ("wavelength", 5., "Wavelength"),
     # probe dx
@@ -35,7 +35,7 @@ opts = Context.Options([
     ("column_gauge_output", True, "Produce column gauge output"),
     ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges"),
     # refinement
-    ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
+    ("refLevel", 200, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
     # run time
     ("T", 30.0, "Simulation time"),
@@ -53,19 +53,14 @@ opts = Context.Options([
 waterLevel = opts.water_level
 
 # waves
-
-period = opts.wave_period
-height = opts.wave_height
-direction = opts.wave_dir
-
 Tstart = 0.
 Tend = 120.
 x0 = np.array([0., 0. ,0. ])
-Tp = 1.94
-Hs = 0.05
-mwl = opts.water_level
-depth = opts.depth
-waveDir = np.array([1.0, 0., 0.])
+Tp = opts.Tp #1.94
+Hs = opts.Hs #0.05
+mwl = opts.water_level #1.0
+depth = opts.depth #1.0
+waveDir = np.array(opts.wave_dir) #[1.,0.,0.]
 g = np.array(opts.g)
 N = 2000
 bandFactor = 2.0
@@ -75,6 +70,9 @@ Lgen = np.array([opts.tank_sponge[0], 0., 0.])
 
 wave = wt.RandomWavesFast(Tstart,Tend,x0,Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName,
                           spectral_params=None,phi=phi,Lgen=Lgen,Nwaves=30,Nfreq=64)
+
+# saving the phases in a .txt file
+np.savetxt("output/phases.txt", phi)
 
 # tank options
 tank_dim = opts.tank_dim
@@ -168,7 +166,7 @@ g = opts.g
 runCFL = opts.cfl
 T = opts.T
 dt_init = opts.dt_init
-dt_out = opts.wave_period / opts.nperiod
+dt_out = opts.Tp / opts.nperiod
 nDTout = int(round(T / dt_out))
 
 # ----- MISC ----- #
