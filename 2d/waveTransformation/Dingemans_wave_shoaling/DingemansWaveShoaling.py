@@ -17,6 +17,7 @@ opts = Context.Options([
     # tank
     ("tank_dim", (58., 1.26), "Dimensions (x,y) of the tank"),
     ("tank_sponge", (5., 5.), "Length of generation/absorption zone"),
+    ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
     # waves
     ("wave_period", 2.02, "Period of the waves"),
     ("wave_height", 0.02, "Height of the waves"),
@@ -27,17 +28,15 @@ opts = Context.Options([
                           0.00000000, 0.00000000, 0.00000000]), "YCoeff array from Fenton calculation tool"),
     ("b_coeff", np.array([0.01402408, 0.00008097, 0.00000013, 0.00000000, 0.00000000,
                           0.00000000, 0.00000000, 0.00000000]), "Bcoeff array from calculation tool"),
-    # gauges
-    ("column_gauge_output", True, "Produce column gauge output"),
-    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges"),
     # refinement
-    ("refLevel", 300, "Refinement level (w/respect to wavelength)"),
-    ("cfl", 0.9, "Target cfl"),
-    # run time
-    ("T", 30.0, "Simulation time (in numbers of wave_period's)"),
-    ("dt_init", 0.1, "Minimum initial time step (otherwise dt_fixed/10)"),
-    # run details
+    ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
+    ("cfl", 0.5, "Target cfl"),
+    # numerical options
     ("gen_mesh", True, "Generate new mesh"),
+    ("T", 30.0, "Simulation time (in numbers of wave_period's)"),
+    ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10)"),
+    ("dt_fixed", None, "Fixed (maximum) time step"),
+    ("nsave",  5, "Number of time steps to save per second"),
     ("parallel", True, "Run in parallel")])
 
 # ----- CONTEXT ------ #
@@ -167,11 +166,21 @@ waves = wt.MonochromaticWaves(period=period,
 
 # ----- TIME STEPPING & VELOCITY----- #
 
-T = opts.T * period
-dt_fixed = T
-dt_init = min(0.1 * dt_fixed, opts.dt_init)
+##T = opts.T * period
+##dt_fixed = T
+##dt_init = min(0.1 * dt_fixed, opts.dt_init)
+##runCFL = opts.cfl
+##nDTout = int(round(T / dt_fixed))
+
+dt_init = opts.dt_init
+T = opts.T
+nDTout = int(T*opts.nsave)
+if nDTout > 0:
+    dt_out = (T-dt_init)/nDTout
+else:
+    dt_out = 0
 runCFL = opts.cfl
-nDTout = int(round(T / dt_fixed))
+dt_fixed = opts.dt_fixed
 
 ##########################################
 #              Mesh & Domain             #
@@ -234,7 +243,10 @@ tank.attachLineIntegralGauges('vof', gauges=((('vof',),column_gauge_locations),)
 
 he = wavelength / refinement_level
 tank.BC['y+'].setAtmosphere()
-tank.BC['y-'].setNoSlip()
+if opts.tank_BC == 'noslip':
+    tank.BC['y-'].setNoSlip()
+if opts.tank_BC == 'freeslip':
+    tank.BC['y-'].setFreeSlip()
 tank.BC['x+'].setNoSlip()
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waves, smoothing=he*3., vert_axis=1)
 tank.BC['sponge'].setNonMaterial()

@@ -1,6 +1,7 @@
 """
 Split operator module for two-phase flow
 """
+
 import os
 from proteus.default_so import *
 from proteus import Context
@@ -14,39 +15,54 @@ elif '_so.pyc' in name_so[-7:]:
 else:
     raise NameError, 'Split operator module must end with "_so.py"'
 
-try:
-    case = __import__(name)
-    Context.setFromModule(case)
-    ct = Context.get()
-except ImportError:
-    raise ImportError, str(name) + '.py not found'
+case = __import__(name)
+Context.setFromModule(case)
+ct = Context.get()
 
-if ct.useOnlyVF:
-    pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
-              ("vof_p",               "vof_n")]
-else:
-    pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),
-              ("vof_p",               "vof_n"),
-              ("ls_p",                "ls_n"),
-              ("redist_p",            "redist_n"),
-              ("ls_consrv_p",         "ls_consrv_n")]
+# List of p/n files
+pnList = []
+
+# moving mesh
+if ct.movingDomain:
+    pnList += [("moveMesh_p", "moveMesh_n")]
+    modelSpinUpList = [0]  # for initial conditions of movemesh
     
-    
+# Navier-Stokes and VOF
+pnList += [("twp_navier_stokes_p", "twp_navier_stokes_n"),
+           ("vof_p", "vof_n")]
+
+# Level set
+if not ct.useOnlyVF:
+    pnList += [("ls_p", "ls_n"),
+               ("redist_p", "redist_n"),
+               ("ls_consrv_p", "ls_consrv_n")]
+
+# Turbulence
 if ct.useRANS > 0:
-    pnList.append(("kappa_p",
-                   "kappa_n"))
-    pnList.append(("dissipation_p",
-                   "dissipation_n"))
-name = "DingemansWaveShoaling_p"
+    pnList += [("kappa_p", "kappa_n"),
+               ("dissipation_p", "dissipation_n")]
 
-if ct.timeDiscretization == 'flcbdf':
-    systemStepControllerType = Sequential_MinFLCBDFModelStep
+if ct.dt_fixed:
     systemStepControllerType = Sequential_MinAdaptiveModelStep
-else:
+    dt_system_fixed = ct.dt_fixed
+    stepExactSystem=False
+else:  # use CFL
     systemStepControllerType = Sequential_MinAdaptiveModelStep
+    stepExactSystem=False
 
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0, ct.dt_init] + [i * ct.dt_fixed for i in range(1, ct.nDTout + 1)]
-archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
+if ct.opts.nsave == 0:
+    if ct.dt_fixed > 0:
+        archiveFlag = ArchiveFlags.EVERY_USER_STEP
+        if ct.dt_init < ct.dt_fixed:
+            tnList = [0., ct.dt_init, ct.dt_fixed, ct.T]
+        else:
+            tnList = [0., ct.dt_fixed, ct.T]
+    else:
+          tnList = [0., ct.dt_init, ct.T]
+else:
+    tnList=[0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_out for i in range(1,ct.nDTout+1)]
+
+
