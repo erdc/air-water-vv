@@ -201,6 +201,9 @@ if opts.absorption:
     tank.setAbsorptionZones(x_p=True)
 
 # ----- BOUNDARY CONDITIONS ----- #
+# waves
+smoothing = opts.he*3.
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 
 # open top
 tank.BC['y+'].setAtmosphere()
