@@ -86,11 +86,11 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 
 # ----- SHAPES ----- #
+smoothing = opts.he*3.
 aa = opts.alpha_value
 scalef = omega
 if(opts.fscaling ==0):
 	scalef=1
-
 tank = st.Tank2D(domain, tank_dim)
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 left = right = False
@@ -109,8 +109,6 @@ if right:
 # ----- BOUNDARY CONDITIONS ----- #
 
 # Waves
-
-smoothing = opts.he*3.
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 
 tank.BC['y+'].setAtmosphere()
