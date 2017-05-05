@@ -96,9 +96,6 @@ tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 left = right = False
 if tank_sponge[0]: left = True
 if tank_sponge[1]: right = True
-if opts.waves is True:
-    smoothing = opts.he*3.
-    tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 if left:
     if opts.waves is True:
         tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=0.5*omega/1.004e-6)
@@ -110,6 +107,11 @@ if right:
     tank.setAbsorptionZones(x_p=right)
 
 # ----- BOUNDARY CONDITIONS ----- #
+
+# Waves
+
+smoothing = opts.he*3.
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 
 tank.BC['y+'].setAtmosphere()
 if opts.tank_BC == 'noslip':
