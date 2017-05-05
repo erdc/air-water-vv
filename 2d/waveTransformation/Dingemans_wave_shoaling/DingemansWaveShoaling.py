@@ -18,16 +18,26 @@ opts = Context.Options([
     ("tank_dim", (58., 1.26), "Dimensions (x,y) of the tank"),
     ("tank_sponge", (5., 5.), "Length of generation/absorption zone"),
     ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
-    # waves
+    # waves case A
     ("wave_period", 2.02, "Period of the waves"),
     ("wave_height", 0.02, "Height of the waves"),
-    ("wave_depth", 1., "Wave depth"),
+    ("wave_depth", 0.86, "Wave depth"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     ("wavelength", 5.037, "Wavelength"),  # calculated by FFT
     ("y_coeff", np.array([0.01246994, 0.00018698, 0.00000300, 0.00000006, 0.00000000,
                           0.00000000, 0.00000000, 0.00000000]), "YCoeff array from Fenton calculation tool"),
     ("b_coeff", np.array([0.01402408, 0.00008097, 0.00000013, 0.00000000, 0.00000000,
                           0.00000000, 0.00000000, 0.00000000]), "Bcoeff array from calculation tool"),
+##    # waves case B
+##    ("wave_period", 1.01, "Period of the waves"),
+##    ("wave_height", 0.041, "Height of the waves"),
+##    ("wave_depth", 1., "Wave depth"),
+##    ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
+##    ("wavelength", 1.599, "Wavelength"),  # calculated by FFT
+##    ("y_coeff", np.array([0.08033197, 0.00328711, 0.00020129, 0.00001463, 0.00000117,
+##                          0.00000010, 0.00000001, 0.00000000]), "YCoeff array from Fenton calculation tool"),
+##    ("b_coeff", np.array([0.08035642, 0.00004394, -0.00000029, 0.00000002, 0.00000000,
+##                          0.00000000, 0.00000000, 0.00000000]), "Bcoeff array from calculation tool"),
     # refinement
     ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.5, "Target cfl"),
@@ -165,12 +175,6 @@ waves = wt.MonochromaticWaves(period=period,
                               fast=True)
 
 # ----- TIME STEPPING & VELOCITY----- #
-
-##T = opts.T * period
-##dt_fixed = T
-##dt_init = min(0.1 * dt_fixed, opts.dt_init)
-##runCFL = opts.cfl
-##nDTout = int(round(T / dt_fixed))
 
 dt_init = opts.dt_init
 T = opts.T

@@ -215,7 +215,8 @@ if opts.absorption:
 
 # ----- BOUNDARY CONDITIONS ----- #
 # waves
-smoothing = opts.he*3.
+he = opts.wavelength / refinement_level
+smoothing = he*3.
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 
 # open top
@@ -260,7 +261,6 @@ if opts.column_gauge_output:
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = opts.wavelength / refinement_level
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 
