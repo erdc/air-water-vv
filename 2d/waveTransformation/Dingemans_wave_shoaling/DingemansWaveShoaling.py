@@ -41,7 +41,7 @@ opts=Context.Options([
     ("fscaling",1,"use fscaling!=0, to switch on frequnecy scaling"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
-    ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
+    ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", False, "True/False"),
     ("T", 30.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
@@ -102,7 +102,8 @@ tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 tank.setGenerationZones(x_n=True, waves=waves)
 tank.setAbsorptionZones(x_p=True)
 
-smoothing = opts.he*3.
+he = opts.he
+smoothing = he*3.
 
 aa = opts.alpha_value
 scalef = omega
@@ -155,48 +156,62 @@ for i in range(len(gauge_x)):
 
 tank.attachLineIntegralGauges('vof', gauges=((('vof',),column_gauge_locations),), fileName='column_gauges.csv')
 
+tank.facets = np.array([[[i for i in range(12)]]]+[[[11, 12, 13, 10]]]+[[[8, 14, 15, 9]]])
+
 # ----- ASSEMBLE DOMAIN ----- #
 
 domain.MeshOptions.use_gmsh = opts.use_gmsh
 domain.MeshOptions.genMesh = opts.gen_mesh
-domain.MeshOptions.he = opts.he
+domain.MeshOptions.he = he
 domain.use_gmsh = opts.use_gmsh
 st.assembleDomain(domain)
 
 # ----- REFINEMENT OPTIONS ----- #
 
-import MeshRefinement as mr
-tank.MeshOptions = mr.MeshOptions(tank)
-if opts.refinement:
-    grading = opts.refinement_grading
-    he2 = opts.he
-    def mesh_grading(start, he, grading):
-        return '{0}*{2}^(1+log((-1/{2}*(abs({1})-{0})+abs({1}))/{0})/log({2}))'.format(he, start, grading)
-    he_max = opts.he_max
-    # he_fs = he2
-    ecH = 3.
-    if opts.refinement_freesurface > 0:
-        box = opts.refinement_freesurface
-    else:
-        box = ecH*he2
-    tank.MeshOptions.refineBox(he2, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], waterLevel-box, waterLevel+box)
-    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-box), he=he2, grading=grading))
-    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+box), he=he2, grading=grading))
-    domain.MeshOptions.LcMax = he_max #coarse grid
-    if opts.use_gmsh is True and opts.refinement is True:
-        domain.MeshOptions.he = he_max #coarse grid
-    else:
-        domain.MeshOptions.he = he2 #coarse grid
-        domain.MeshOptions.LcMax = he2 #coarse grid
-    tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
-else:
-    domain.MeshOptions.LcMax = opts.he
-mr._assembleRefinementOptions(domain)
-from proteus import Comm
-comm = Comm.get()
-if domain.use_gmsh is True:
-    mr.writeGeo(domain, 'mesh', append=False)
+import py2gmsh 
+from MeshRefinement import geometry_to_gmsh 
+mesh = geometry_to_gmsh(domain) 
 
+field_list = []
+box = 0.1001
+
+box1 = py2gmsh.Fields.Box(mesh=mesh) 
+box1.VIn = he/3.
+box1.VOut = he 
+box1.XMin = -tank_sponge[0] 
+box1.XMax = tank_dim[0]+tank_sponge[1] 
+box1.YMin = waterLevel-box 
+box1.YMax = waterLevel+box 
+field_list += [box1]
+
+p0 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel+box, 0.], mesh=mesh)
+p1 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel+box, 0.], mesh=mesh) 
+p2 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel-box, 0.], mesh=mesh) 
+p3 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel-box, 0.], mesh=mesh) 
+l1 = py2gmsh.Entity.Line([p0, p1], mesh=mesh) 
+l2 = py2gmsh.Entity.Line([p2, p3], mesh=mesh)
+
+grading = 1.05
+bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh) 
+bl2.hwall_n = he/3. 
+bl2.ratio = grading 
+bl2.EdgesList = [l1, l2] 
+field_list += [bl2] 
+
+
+fmin = py2gmsh.Fields.Min(mesh=mesh) 
+fmin.FieldsList = field_list 
+mesh.setBackgroundField(fmin) 
+
+mesh.Options.Mesh.CharacteristicLengthMax = he 
+
+domain.MeshOptions.genMesh = opts.gen_mesh 
+domain.MeshOptions.use_gmsh = opts.use_gmsh 
+domain.use_gmsh = opts.use_gmsh 
+
+geofile = 'mesh'
+mesh.writeGeo(geofile+'.geo') 
+domain.geofile = geofile
 
 
 ##########################################
@@ -370,6 +385,7 @@ rd_nl_atol_res = 1e-6#max(1.0e-6,0.01*domain.MeshOptions.he)
 kappa_nl_atol_res = 1e-6#max(1.0e-6,0.001*domain.MeshOptions.he**2)
 dissipation_nl_atol_res = 1e-6#max(1.0e-6,0.001*domain.MeshOptions.he**2)
 mesh_nl_atol_res = 1e-6#max(1.0e-6,0.001*domain.MeshOptions.he**2)
+mesh.writeGeo(geofile+'.geo') 
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
