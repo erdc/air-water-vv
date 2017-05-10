@@ -1,19 +1,23 @@
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
+print('here 1')
+from proteus.mbd import ChronoPythonHeaders
 from proteus.mbd import ChRigidBody as crb
+print('here 2')
 from math import *
 import numpy as np
+print('here 3')
 
 
 opts=Context.Options([
     # predefined test cases
-    ("water_level", 1., "Height of free surface above bottom"),
+    ("water_level", 0.5, "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (3., 2.,), "Dimensions of the tank"),
+    ("tank_dim", (1.5, 1.,), "Dimensions of the tank"),
     # caisson
     ("caisson_dim", (0.5, 0.2), "Dimensions of the caisson"),
-    ("caisson_coords", (1.5, 1.), "Dimensions of the caisson"),
+    ("caisson_coords", (0.75, 0.5), "Dimensions of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
     ("free_x", (1., 1., 1.), "Translational DOFs"),
     ("free_r", (0., 0., 0.), "Rotational DOFs"),
@@ -80,16 +84,13 @@ rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
 caisson.rotate(ang, pivot=caisson.barycenter)
 
 # CHRONO
-system = crb.System(np.array([0., -9.81, 0.]))
+system = crb.ProtChSystem(np.array([0., -9.81, 0.]))
 system.setTimeStep(opts.chrono_dt)
-body = crb.RigidBody(shape=caisson,
-                    system=system,
-                    center=caisson.barycenter[:2],
-                    rot=rotation_init,
-                    mass = opts.caisson_mass,
-                    inertia = np.array([0., 0., inertia]),
-                    free_x = np.array(opts.free_x),
-                    free_r = np.array(opts.free_r))
+body = crb.ProtChBody(shape=caisson, system=system)
+body.setRotation(rotation_init)
+body.SetMass(opts.caisson_mass)
+body.setConstraints(np.array(opts.free_x), np.array(opts.free_r))
+body.setInertiaXX(np.array([1.,1.,inertia]))
 body.setRecordValues(all_values=True)
 
 
