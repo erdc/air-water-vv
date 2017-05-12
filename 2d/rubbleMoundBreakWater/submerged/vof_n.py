@@ -75,4 +75,4 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 
-auxiliaryVariables = [ct.integral_output1,ct.integral_output2,ct.integral_output3]
+auxiliaryVariables = ct.domain.auxiliaryVariables['vof']
