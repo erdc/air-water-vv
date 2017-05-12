@@ -26,7 +26,6 @@ pnList = []
 if ct.movingDomain:
     pnList += [("moveMesh_p", "moveMesh_n")]
     modelSpinUpList = [0]  # for initial conditions of movemesh
-    
 # Navier-Stokes and VOF
 pnList += [("twp_navier_stokes_p", "twp_navier_stokes_n"),
            ("vof_p", "vof_n")]
@@ -42,7 +41,9 @@ if ct.useRANS > 0:
     pnList += [("kappa_p", "kappa_n"),
                ("dissipation_p", "dissipation_n")]
 
+#systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
 if ct.dt_fixed:
+#    systemStepControllerType = Sequential_FixedStep
     systemStepControllerType = Sequential_MinAdaptiveModelStep
     dt_system_fixed = ct.dt_fixed
     stepExactSystem=False
@@ -52,6 +53,8 @@ else:  # use CFL
 
 needEBQ_GLOBAL = False
 needEBQ = False
+
+
 
 if ct.opts.nsave == 0:
     if ct.dt_fixed > 0:
@@ -64,5 +67,4 @@ if ct.opts.nsave == 0:
           tnList = [0., ct.dt_init, ct.T]
 else:
     tnList=[0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_out for i in range(1,ct.nDTout+1)]
-
 

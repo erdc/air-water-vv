@@ -89,7 +89,7 @@ for i in range(istart,iend):
     S = S + (eta_th[i]-eta_num[i])**2
 err = np.sqrt(S/c)
 err = 100*err/(lw.opts.wave_height+waterLevel)
-val = open('validation_eta_NLW.txt', 'w')
+val = open('validation_eta_LW.txt', 'w')
 val.write('Eta in the middle of the tank.'+'\n')
 val.write('Gauges taken between 6s and 18s'+'\n')
 val.write('Average error (%) between the theoretical function and the simulation:'+'\n')

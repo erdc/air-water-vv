@@ -227,6 +227,7 @@ if opts.absorption:
 # waves
 
 
+
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 
 # open top

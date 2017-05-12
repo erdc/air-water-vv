@@ -42,7 +42,7 @@ class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
         from petsc4py import PETSc
         pList = []
         nList = []
-        for (p,n) in tank_so.pnList:
+        for (p,n) in linear_waves_so.pnList:
             pList.append(__import__(p))
             nList.append(__import__(n))
             if pList[-1].name == None:
