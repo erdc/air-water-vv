@@ -1,20 +1,20 @@
-import numpy as np
 import collections as cll
 import csv
 import os
 import matplotlib.pyplot as plt
-#import random_waves as rw
-from proteus import WaveTools as wt
-import math
+import random_waves as rw
+import numpy as np
+
 
 #####################################################################################
 
 ## Reading probes into the file
-folder = "output"
+folder = "no_relax"
 os.chdir(folder)
 file_vof = 'column_gauges.csv'
 file_p = 'pressure_gaugeArray.csv'
-
+file_s='../series.txt'
+eta_v= np.loadtxt(file_s)
 def readProbeFile(filename):
     with open (filename, 'rb') as csvfile:
         data = np.loadtxt(csvfile, delimiter=",",skiprows=1)
@@ -48,80 +48,63 @@ data_p = readProbeFile(file_p)
 # Eta for RandomWavesFast
 time = data_vof[2]
 vof = data_vof[3]
-tank_dim = [15., 1.5]   # rw.opts.tank_dim
-waterLevel = 1.   # rw.opts.water_level
+tank_dim = rw.opts.tank_dim
+waterLevel = rw.opts.water_level
 eta_fast = np.array(tank_dim[1]-vof[:,0]-waterLevel)
 
 # Eta for RandomWaves
-Tp = 1.94  # rw.Tp
-Hs = 0.05   # rw.Hs
-mwl = 1.0   # rw.mwl
-depth = 1.0 # rw.depth
-waveDir = np.array([1.,0.,0.])   # rw.waveDir
-g = np.array([0.,-9.81,0.])
-N = 2000   # rw.N
-bandFactor = 2.0   # rw.bandFactor
-spectName = 'JONSWAP'   # rw.spectName
-phi = np.loadtxt('phases.txt')
-wave_ref = wt.RandomWaves(Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName,spectral_params=None,phi=phi,fast=True)
-Tstart = 0.
-Tend = 120.
-x0 = np.array([0., 0. ,0. ])
-Lgen = np.array([5., 0., 0.])
+Tp = rw.Tp
+Hs = rw.Hs
+mwl = rw.mwl
+depth =  rw.depth
+waveDir = np.array(rw.waveDir)
+g = np.array(rw.g)
+N = 32   # rw.N
+bandFactor = rw.bandFactor
+spectName =  rw.spectName
+phi = rw.phi
+wave_ref = rw.wt.RandomWaves(Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName,spectral_params=None,phi=phi,fast=True)
+eta_bc= rw.tank.BC['x-'].vof_dirichlet.uOfXT
+zin = np.linspace(rw.he/2,rw.tank_dim[1]-rw.he/2,rw.tank_dim[1]/rw.he)
+
+
+Tstart = rw.Tstart
+Tend = rw.Tend
+x0 = rw.x0
+Lgen = np.array([0., 0., 0.])
 #wave_fast = wt.RandomWavesFast(Tstart,Tend,x0,Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName,
 #                               spectral_params=None,phi=phi,Lgen=Lgen,Nwaves=30,Nfreq=64)
 X = np.array([0., 0., 0.])
 eta_ref = []
+eta_bca = [ ]
 #eta_fast = []
 for i in range(0,len(time)):
     eta_ref.append(wave_ref.eta(X,time[i]))
+    aa = 0.
+    for ii in range(len(zin)):
+        xx =np.array([x0[0],zin[ii],x0[1]])
+        aa+=rw.he*eta_bc(xx,time[i])
+    eta_bca.append(tank_dim[1]-waterLevel -aa)
+        
+        
     #eta_fast.append(wave_fast.eta(X,time[i]))
 eta_ref = np.array(eta_ref)
+eta_bca = np.array(eta_bca)
 #eta_fast = np.array(eta_fast)
-
-# Pressure
-rho = 998.2
-a = wave_ref.ai
-k = wave_ref.ki
-omega = wave_ref.omega
-z = -0.5
-x = 0.
-P_ref = []
-for j in range(len(time)):
-    S = 0.
-    for i in range(N):
-        S += rho*abs(g[1])*a[i]*math.cos(k[i]*x-omega[i]*time[j]+phi[i])*math.cosh(k[i]*(depth+z))/math.cosh(k[i]*depth)
-    P_ref.append(S)
-P_fast = data_p[3][:,0]
-
-P_ref = np.array(P_ref)-np.mean(np.array(P_ref))
-P_fast = np.array(P_fast)-np.mean(np.array(P_fast))
 
 #####################################################################################
 
 # Plotting the probes
 plt.figure(num='eta')
-plt.plot(time, eta_fast, 'b', label='RandomWavesFast')
-plt.plot(time, eta_ref, 'r--', label='RandomWaves')
+plt.plot(time, eta_fast, 'b', label='End of RZ')
+plt.plot(time, eta_ref, 'r--', label='RandomWaves (calculated)')
+plt.plot(eta_v[:,0], eta_v[:,1], 'y--', label='RandomWaves (printed)')
+plt.plot(time, eta_bca, 'g:', label='setUnsteady (bc module)')
 plt.legend(loc='best')
 plt.xlabel('time [sec]')
 plt.ylabel('eta [m]')
+plt.ylim(-0.08,0.08)
 plt.suptitle('Surface elevation against time for the random waves')
 plt.grid()
 plt.show()
 plt.savefig('eta_RW.png')
-
-plt.figure(num='p')
-plt.plot(time, P_fast, 'b', label='RandomWavesFast')
-plt.plot(time, P_ref, 'r--', label='RandomWaves')
-plt.legend(loc='best')
-plt.xlabel('time [sec]')
-plt.ylabel('pressure [Pa]')
-plt.suptitle('Pressure against time for the random waves')
-plt.grid()
-plt.show()
-plt.savefig('pressure_RW.png')
-
-
-
-
