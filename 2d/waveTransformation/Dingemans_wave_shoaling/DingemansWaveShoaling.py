@@ -13,8 +13,11 @@ opts=Context.Options([
     ("water_level", 0.86, "Height of free surface above seabed"),
     # tank
     ("tank_dim", (58., 1.26), "Dimensions of the tank"),
+    ("generation", True, "Generate waves at the left boundary (True/False)"),
+    ("absorption", True, "Absorb waves at the right boundary (True/False)"),
     ("tank_sponge", (5., 5.), "Length of relaxation zones zones (left, right)"),
-    ("tank_BC", 'freeslip', "Boundary condition at the bottom of the tank (freeslip/noslip)"),
+    ("free_slip", True, "Should tank walls have free slip conditions "
+                        "(otherwise, no slip conditions will be applied)."),
     # waves
     ("waves", True, "Generate waves (True/False)"),
     ("wave_period", 2.02, "Period of the waves"),
@@ -36,9 +39,6 @@ opts=Context.Options([
     ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
-    #RZ Darcy corrections#  
-    ("alpha_value",0.5,"alphaDarcy value"),
-    ("fscaling",1,"use fscaling!=0, to switch on frequnecy scaling"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
@@ -84,6 +84,12 @@ tank_sponge = opts.tank_sponge
 
 domain = Domain.PlanarStraightLineGraphDomain()
 
+# refinement
+he = opts.he
+smoothing = he*3.
+
+# ----- TANK ------ #
+
 sloped_shore = [[[9.22, 0.],
                  [9.64, 0.06],
                  [15.01, 0.06],
@@ -97,30 +103,34 @@ tank = st.TankWithObstacles2D(domain=domain,
                               dim=tank_dim,
                               obstacles=sloped_shore)
 
-tank_sponge = opts.tank_sponge
+# ----- GENERATION / ABSORPTION LAYERS ----- #
+
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
-tank.setGenerationZones(x_n=True, waves=waves)
-tank.setAbsorptionZones(x_p=True)
+dragAlpha = 10.*omega/1e-6
 
-he = opts.he
-smoothing = he*3.
-
-aa = opts.alpha_value
-scalef = omega
-if(opts.fscaling ==0):
-	scalef=1
+if opts.generation:
+    tank.setGenerationZones(x_n=True, waves=waves, dragAlpha=dragAlpha, smoothing = smoothing)
+if opts.absorption:
+    tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
 
 # ----- BOUNDARY CONDITIONS ----- #
 
 # Waves
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(waves, smoothing=smoothing, vert_axis=1)
 
+# open top
 tank.BC['y+'].setAtmosphere()
-if opts.tank_BC == 'noslip':
-    tank.BC['y-'].setNoSlip()
-if opts.tank_BC == 'freeslip':
+
+if opts.free_slip:
     tank.BC['y-'].setFreeSlip()
-tank.BC['x+'].setFreeSlip()
+    tank.BC['x+'].setFreeSlip()
+    if not opts.generation:
+        tank.BC['x-'].setFreeSlip()
+else:  # no slip
+    tank.BC['y-'].setNoSlip()
+    tank.BC['x+'].setNoSlip()
+
+# sponge
 tank.BC['sponge'].setNonMaterial()
 
 for bc in tank.BC_list:
@@ -176,7 +186,7 @@ field_list = []
 box = 0.1001
 
 box1 = py2gmsh.Fields.Box(mesh=mesh) 
-box1.VIn = he/3.
+box1.VIn = 0.03
 box1.VOut = he 
 box1.XMin = -tank_sponge[0] 
 box1.XMax = tank_dim[0]+tank_sponge[1] 
@@ -193,7 +203,7 @@ l2 = py2gmsh.Entity.Line([p2, p3], mesh=mesh)
 
 grading = 1.05
 bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh) 
-bl2.hwall_n = he/3. 
+bl2.hwall_n = 0.03 
 bl2.ratio = grading 
 bl2.EdgesList = [l1, l2] 
 field_list += [bl2] 
