@@ -1,18 +1,22 @@
+"""
+Non linear waves
+"""
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
-from math import *
+import math
 import numpy as np
-
-
 
 opts=Context.Options([
     # predefined test cases
     ("water_level", 0.4, "Height of free surface above seabed"),
     # tank
     ("tank_dim", (7.8, 0.7), "Dimensions of the tank"),
+    ("generation", True, "Generate waves at the left boundary (True/False)"),
+    ("absorption", True, "Absorb waves at the right boundary (True/False)"),
     ("tank_sponge", (3.9,7.8), "Length of relaxation zones zones (left, right)"),
-    ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
+    ("free_slip", True, "Should tank walls have free slip conditions "
+                        "(otherwise, no slip conditions will be applied)."),
     # gauges
     #("gauge_output", True, "Places Gauges in tank (5 per wavelength)"),
     ("point_gauge_output", True, "Produce point gauge output"),
@@ -36,9 +40,6 @@ opts=Context.Options([
     ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
-    #RZ Darcy corrections#  
-    ("alpha_value",0.5,"alphaDarcy value"),
-    ("fscaling",1,"use fscaling!=0, to switch on frequnecy scaling"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
@@ -51,8 +52,6 @@ opts=Context.Options([
     ("nsave",  5, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ("parallel", True ,"Run in parallel")])
-
-
 
 # ----- CONTEXT ------ #
 
@@ -82,64 +81,48 @@ tank_sponge = opts.tank_sponge
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
-# caisson options
 
-
-# ----- SHAPES ----- #
+# refinement
 smoothing = opts.he*3.
-aa = opts.alpha_value
-scalef = omega
-if(opts.fscaling ==0):
-	scalef=1
+
+# ----- TANK ------ #
+
 tank = st.Tank2D(domain, tank_dim)
+
+# ----- GENERATION / ABSORPTION LAYERS ----- #
+
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
-left = right = False
-if tank_sponge[0]: left = True
-if tank_sponge[1]: right = True
-if left:
-    if opts.waves is True:
-        tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=0.5*omega/1.004e-6)
-    else:
-        tank.setAbsorptionZones(x_n=left, dragAlpha=aa*scalef/1.004e-6)
-else:
-    tank.BC['x-'].setNoSlip()
-if right:
-    tank.setAbsorptionZones(x_p=right)
+dragAlpha = 10.*omega/1e-6
+ 
+if opts.generation:
+    tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing = smoothing)
+if opts.absorption:
+    tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
 
 # ----- BOUNDARY CONDITIONS ----- #
 
 # Waves
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 
+# open top
 tank.BC['y+'].setAtmosphere()
-if opts.tank_BC == 'noslip':
-    tank.BC['y-'].setNoSlip()
-if opts.tank_BC == 'freeslip':
+
+if opts.free_slip:
     tank.BC['y-'].setFreeSlip()
-tank.BC['x+'].setFreeSlip()
+    tank.BC['x+'].setFreeSlip()
+    if not opts.generation:
+        tank.BC['x-'].setFreeSlip()
+else:  # no slip
+    tank.BC['y-'].setNoSlip()
+    tank.BC['x+'].setNoSlip()
+
+# sponge
 tank.BC['sponge'].setNonMaterial()
 
 for bc in tank.BC_list:
     bc.setFixedNodes()
 
-
 # ----- GAUGES ----- #
-
-##if opts.gauge_output:
-##    gauge_dx = opts.wave_wavelength/10.
-##    probes=np.linspace(0, tank_dim[0], (tank_dim[0])/gauge_dx+1)
-##    PG=[]
-##    PG2=[]
-##    LIG = []
-##    for i in probes:
-##        LIG.append(((i, 0.001, 0.),(i, tank_dim[1]-0.001,0.)),)
-##    tank.attachLineIntegralGauges(
-##        'vof',
-##        gauges=((('vof',), LIG),),
-##        activeTime = (0., opts.T),
-##        sampleRate = 0,
-##        fileName = 'lineGauge.csv'
-##    )
 
 column_gauge_locations = []
 point_gauge_locations = []

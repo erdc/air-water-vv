@@ -3,7 +3,7 @@ import collections as cll
 import csv
 import os
 import matplotlib.pyplot as plt
-import tank as tk
+import nonlinear_waves as nlw
 from proteus import WaveTools as wt
 from AnalysisTools import signalFilter,zeroCrossing,reflStat
 
@@ -47,8 +47,8 @@ data_vof = readProbeFile(file_vof)
 time = data_vof[2]
 vof = data_vof[3]
 eta_num = []
-tank_dim = tk.opts.tank_dim
-waterLevel = tk.opts.water_level
+tank_dim = nlw.opts.tank_dim
+waterLevel = nlw.opts.water_level
 i_mid = len(vof[0])/2-1
 for i in range(0, len(vof)):
     eta_num.append(tank_dim[1]-vof[i][i_mid]-waterLevel)
@@ -56,7 +56,7 @@ eta_num = np.array(eta_num)
 
 # Theoretical eta
 x = np.array(data_vof[1][2*i_mid])
-wave = tk.wave
+wave = nlw.wave
 eta_th = []
 for i in range(0,len(time)):
     eta_th.append(wave.eta(x,time[i]))
@@ -88,7 +88,7 @@ for i in range(istart,iend):
     c = c + 1.
     S = S + (eta_th[i]-eta_num[i])**2
 err = np.sqrt(S/c)
-err = 100*err/(tk.opts.wave_height+waterLevel)
+err = 100*err/(nlw.opts.wave_height+waterLevel)
 val = open('validation_eta_NLW.txt', 'w')
 val.write('Eta in the middle of the tank.'+'\n')
 val.write('Gauges taken between 6s and 18s'+'\n')
@@ -101,9 +101,9 @@ val.close()
 # Reflection
 dataW = readProbeFile('column_gauges.csv')
 time = dataW[2]
-L = tk.opts.wave_wavelength
-Nwaves = (tk.opts.tank_dim[0]+tk.opts.tank_sponge[0]+tk.opts.tank_sponge[1])/L
-T = tk.opts.wave_period
+L = nlw.opts.wave_wavelength
+Nwaves = (nlw.opts.tank_dim[0]+nlw.opts.tank_sponge[0]+nlw.opts.tank_sponge[1])/L
+T = nlw.opts.wave_period
 Tend = time[-1]
 Tstart = Tend-Nwaves*T
 i_mid = len(dataW[3][0])/2-1
@@ -112,7 +112,7 @@ data1 = np.zeros((len(time),len(dataW[3][0])),"d")
 bf = 1.2
 minf = 1./bf/T
 maxf = bf / T
-dx_array = tk.opts.gauge_dx
+dx_array = nlw.opts.gauge_dx
 Narray = int(round(L/6/dx_array))
 data = np.zeros((len(data1),3))
 zc = []

@@ -3,8 +3,8 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import tank_so
-import tank as tk
+import nonlinear_waves_so
+import nonlinear_waves as nlw
 import os
 import numpy as np
 import collections as cll
@@ -27,8 +27,8 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
 
     def teardown_method(self,method):
         """ Tear down function """
-        FileList = ['tank.xmf',
-                    'tank.h5']
+        FileList = ['nonlinear_waves.xmf',
+                    'nonlinear_waves.h5']
         for file in FileList:
             if os.path.isfile(file):
                 os.remove(file)
@@ -39,13 +39,13 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
         from petsc4py import PETSc
         pList = []
         nList = []
-        for (p,n) in tank_so.pnList:
+        for (p,n) in nonlinear_waves_so.pnList:
             pList.append(__import__(p))
             nList.append(__import__(n))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = tank_so
-        so.name = "tank"
+        so = nonlinear_waves_so
+        so.name = "nonlinear_waves"
         if so.sList == []:
             for i in range(len(so.pnList)):
                 s = default_s
@@ -72,7 +72,7 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
-        ns.calculateSolution('tank')
+        ns.calculateSolution('nonlinear_waves')
         assert(True)
 
         
@@ -84,15 +84,15 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
         time = data_vof[2]
         vof = data_vof[3]
         eta_num = []
-        tank_dim = tk.opts.tank_dim
-        waterLevel = tk.opts.water_level
+        tank_dim = nlw.opts.tank_dim
+        waterLevel = nlw.opts.water_level
         i_mid = len(vof[0])/2-1
         for i in range(0, len(vof)):
             eta_num.append(tank_dim[1]-vof[i][i_mid]-waterLevel)
         eta_num = np.array(eta_num)
         # Theoretical eta
         x = np.array(data_vof[1][2*i_mid])
-        wave = tk.wave
+        wave = nlw.wave
         eta_th = []
         for i in range(0,len(time)):
             eta_th.append(wave.eta(x,time[i]))
@@ -105,15 +105,15 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
             c = c + 1.
             S = S + (eta_th[i]-eta_num[i])**2
         err = np.sqrt(S/c)
-        err = 100*err/(tk.opts.wave_height+waterLevel)
-        assert(err<3.0)
+        err = 100*err/(nlw.opts.wave_height+waterLevel)
+        assert(err<5.0)
 
     def test_reflection(self):
         dataW = readProbeFile('column_gauges.csv')
         time = dataW[2]
-        L = tk.opts.wave_wavelength
-        Nwaves = (tk.opts.tank_dim[0]+tk.opts.tank_sponge[0]+tk.opts.tank_sponge[1])/L
-        T = tk.opts.wave_period
+        L = nlw.opts.wave_wavelength
+        Nwaves = (nlw.opts.tank_dim[0]+nlw.opts.tank_sponge[0]+nlw.opts.tank_sponge[1])/L
+        T = nlw.opts.wave_period
         Tend = time[-1]
         Tstart = Tend-Nwaves*T
         i_mid = len(dataW[3][0])/2-1
@@ -122,7 +122,7 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
         bf = 1.2
         minf = 1./bf/T
         maxf = bf / T
-        dx_array = tk.opts.gauge_dx
+        dx_array = nlw.opts.gauge_dx
         Narray = int(round(L/6/dx_array))
         data = np.zeros((len(data1),3))
         zc = []
@@ -135,7 +135,7 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
         H3 = zc[2][1]
         HH = reflStat(H1,H2,H3,Narray*dx_array,L)[0]
         RR = reflStat(H1,H2,H3,Narray*dx_array,L)[2]
-        assert(RR<0.06)
+        assert(RR<0.3)
         
 if __name__ == '__main__':
     pass

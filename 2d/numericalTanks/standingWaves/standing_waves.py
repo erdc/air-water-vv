@@ -2,7 +2,7 @@
 Standing Waves
 """
 import numpy as np
-from math import ceil
+import math
 from proteus import (Domain, Context,
                      FemTools as ft,
                      MeshTools as mt,
@@ -170,9 +170,9 @@ backgroundDiffusionFactor = 0.01
 
 #[temp] an attempt to match the intentions of refLevel instead of refinement
 #[temp] (wavelength based instead of dimension based)
-refinement_x = int(ceil(refinement_level * (tank_dim[0] + sum(tank_sponge))
+refinement_x = int(math.ceil(refinement_level * (tank_dim[0] + sum(tank_sponge))
                         / opts.wavelength))
-refinement_y = int(ceil(refinement_level * (tank_dim[1])
+refinement_y = int(math.ceil(refinement_level * (tank_dim[1])
                         / opts.wavelength))
 if useHex:
     nnx = refinement_x + 1
@@ -187,6 +187,10 @@ elif structured:
 else:
     domain = Domain.PlanarStraightLineGraphDomain()
 
+# refinement
+he = opts.wavelength / refinement_level
+smoothing = he*3.
+
 # ----- TANK ------ #
 
 tank = st.Tank2D(domain, tank_dim)
@@ -194,16 +198,17 @@ tank = st.Tank2D(domain, tank_dim)
 # ----- GENERATION / ABSORPTION LAYERS ----- #
 
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+omega = 2.*math.pi/period
+dragAlpha = 10.*omega/1e-6
 
 if opts.generation:
-    tank.setGenerationZones(x_n=True, waves=wave)
+    tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing = smoothing)
 if opts.absorption:
-    tank.setAbsorptionZones(x_p=True)
+    tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
 
 # ----- BOUNDARY CONDITIONS ----- #
+
 # waves
-he = opts.wavelength / refinement_level
-smoothing = he*3.
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 
 # open top

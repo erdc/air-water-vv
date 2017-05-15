@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import random_waves as rw
 import numpy as np
 
-
 #####################################################################################
 
 ## Reading probes into the file
@@ -15,6 +14,7 @@ file_vof = 'column_gauges.csv'
 file_p = 'pressure_gaugeArray.csv'
 file_s='../series.txt'
 eta_v= np.loadtxt(file_s)
+
 def readProbeFile(filename):
     with open (filename, 'rb') as csvfile:
         data = np.loadtxt(csvfile, delimiter=",",skiprows=1)
@@ -56,41 +56,36 @@ eta_fast = np.array(tank_dim[1]-vof[:,0]-waterLevel)
 Tp = rw.Tp
 Hs = rw.Hs
 mwl = rw.mwl
-depth =  rw.depth
+depth = rw.depth
 waveDir = np.array(rw.waveDir)
 g = np.array(rw.g)
-N = 32   # rw.N
+N = rw.N
 bandFactor = rw.bandFactor
 spectName =  rw.spectName
 phi = rw.phi
 wave_ref = rw.wt.RandomWaves(Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName,spectral_params=None,phi=phi,fast=True)
-eta_bc= rw.tank.BC['x-'].vof_dirichlet.uOfXT
+eta_bc = rw.tank.BC['x-'].vof_dirichlet.uOfXT
 zin = np.linspace(rw.he/2,rw.tank_dim[1]-rw.he/2,rw.tank_dim[1]/rw.he)
-
 
 Tstart = rw.Tstart
 Tend = rw.Tend
 x0 = rw.x0
 Lgen = np.array([0., 0., 0.])
-#wave_fast = wt.RandomWavesFast(Tstart,Tend,x0,Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName,
-#                               spectral_params=None,phi=phi,Lgen=Lgen,Nwaves=30,Nfreq=64)
+
 X = np.array([0., 0., 0.])
 eta_ref = []
-eta_bca = [ ]
-#eta_fast = []
+eta_bca = []
+
 for i in range(0,len(time)):
     eta_ref.append(wave_ref.eta(X,time[i]))
     aa = 0.
     for ii in range(len(zin)):
-        xx =np.array([x0[0],zin[ii],x0[1]])
-        aa+=rw.he*eta_bc(xx,time[i])
+        xx = np.array([x0[0],zin[ii],x0[1]])
+        aa += rw.he*eta_bc(xx,time[i])
     eta_bca.append(tank_dim[1]-waterLevel -aa)
-        
-        
-    #eta_fast.append(wave_fast.eta(X,time[i]))
+
 eta_ref = np.array(eta_ref)
 eta_bca = np.array(eta_bca)
-#eta_fast = np.array(eta_fast)
 
 #####################################################################################
 
@@ -108,3 +103,23 @@ plt.suptitle('Surface elevation against time for the random waves')
 plt.grid()
 plt.show()
 plt.savefig('eta_RW.png')
+
+#####################################################################################
+
+# Validation of the results
+
+S = 0.
+c = 0.
+for i in range(len(time)):
+    c += 1.
+    S += (eta_fast[i]-eta_ref[i])**2
+err = np.sqrt(S/c)
+err = 100*err/(rw.opts.Hs)
+val = open('validation_eta_RW.txt', 'w')
+val.write('Surface elevation against time for the random waves'+'\n')
+val.write('Gauges taken between 0s and 30s'+'\n')
+val.write('Average error (%) between the theoretical function and the simulation:'+'\n')
+val.write(str(err))
+val.close()
+
+

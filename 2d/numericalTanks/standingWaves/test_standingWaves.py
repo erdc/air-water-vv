@@ -129,7 +129,7 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
 
         # Validation of the result
         err = 100*abs(2*H-Hr)/(2*H)
-        assert(err<10.0)
+        assert(err<12.0)
         
 if __name__ == '__main__':
     pass

@@ -70,12 +70,8 @@ phi = np.loadtxt("phases.txt")
 Lgen = np.array([opts.tank_sponge[0], 0., 0.])
 
 wave = wt.RandomWaves(Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName, spectral_params=None, phi=phi, fast=True)
-# 
+ 
 wave.writeEtaSeries(Tstart,opts.T,x0,"series.txt")
-
-
-# saving the phases in a .txt file
-
 
 # tank options
 tank_dim = opts.tank_dim
@@ -203,10 +199,10 @@ elif structured:
 else:
     domain = Domain.PlanarStraightLineGraphDomain()
 
-
 # refinement
 he = opts.wavelength / refinement_level
 smoothing = he*3.
+
 # ----- TANK ------ #
 
 tank = st.Tank2D(domain, tank_dim)
@@ -215,7 +211,7 @@ tank = st.Tank2D(domain, tank_dim)
 
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 dragAlpha = 10.*omega/1e-6
-smoothing 
+ 
 if opts.generation:
     tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing = smoothing)
 if opts.absorption:
