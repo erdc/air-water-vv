@@ -83,6 +83,7 @@ class TestRandomWavesTetgen(TestTools.AirWaterVVTest):
         time = data_vof[2]
         vof = data_vof[3]
         # Eta for RandomWavesFast
+        tank_dim = rw.opts.tank_dim
         waterLevel = rw.opts.water_level
         eta_fast = np.array(tank_dim[1]-vof[:,0]-waterLevel)
         # Eta for RandomWaves
@@ -97,6 +98,8 @@ class TestRandomWavesTetgen(TestTools.AirWaterVVTest):
         spectName = rw.spectName
         phi = rw.phi
         wave_ref = rw.wt.RandomWaves(Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName,spectral_params=None,phi=phi,fast=True)
+        eta_ref = []
+        X = np.array([0., 0., 0.])
         for i in range(0,len(time)):
             eta_ref.append(wave_ref.eta(X,time[i]))
         eta_ref = np.array(eta_ref)
