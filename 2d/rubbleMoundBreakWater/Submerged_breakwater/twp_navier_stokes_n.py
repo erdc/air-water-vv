@@ -10,7 +10,11 @@ mesh = domain.MeshOptions
 
 #time stepping
 runCFL = ct.runCFL
-timeIntegration = TimeIntegration.BackwardEuler_cfl
+if ct.timeIntegration == "VBDF":
+    timeIntegration = TimeIntegration.VBDF
+    timeOrder = 2
+else:
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
 stepController  = StepControl.Min_dt_controller
 
 # mesh options
@@ -73,12 +77,11 @@ levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest             = 'r-true'
 
 tolFac = 0.0
-linTolFac = 0.00001
-l_atol_res = 0.001*ct.ns_nl_atol_res
+linTolFac = 0.01
+l_atol_res = 0.01*ct.ns_nl_atol_res
 nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
-if ct.opts.conservative_Flux==True:
-    conservativeFlux = {0:'pwl-bdm-opt'}
-# auxiliaryVariables = ct.domain.auxiliaryVariables #+ [ct.point_output]
+conservativeFlux = {0:'pwl-bdm-opt'}
+auxiliaryVariables = ct.domain.auxiliaryVariables['twp']

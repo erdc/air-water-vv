@@ -6,7 +6,6 @@ import os
 from proteus.default_so import *
 from proteus import Context
 
-
 # Create context from main module
 name_so = os.path.basename(__file__)
 if '_so.py' in name_so[-6:]:
@@ -16,12 +15,9 @@ elif '_so.pyc' in name_so[-7:]:
 else:
     raise NameError, 'Split operator module must end with "_so.py"'
 
-try:
-    case = __import__(name)
-    Context.setFromModule(case)
-    ct = Context.get()
-except ImportError:
-    raise ImportError, str(name) + '.py not found'
+case = __import__(name)
+Context.setFromModule(case)
+ct = Context.get()
 
 # List of p/n files
 pnList = []
@@ -29,7 +25,7 @@ pnList = []
 # moving mesh
 if ct.movingDomain:
     pnList += [("moveMesh_p", "moveMesh_n")]
-
+    modelSpinUpList = [0]  # for initial conditions of movemesh
 # Navier-Stokes and VOF
 pnList += [("twp_navier_stokes_p", "twp_navier_stokes_n"),
            ("vof_p", "vof_n")]
@@ -46,9 +42,29 @@ if ct.useRANS > 0:
                ("dissipation_p", "dissipation_n")]
 
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
-systemStepControllerType = Sequential_MinAdaptiveModelStep
+if ct.dt_fixed:
+#    systemStepControllerType = Sequential_FixedStep
+    systemStepControllerType = Sequential_MinAdaptiveModelStep
+    dt_system_fixed = ct.dt_fixed
+    stepExactSystem=False
+else:  # use CFL
+    systemStepControllerType = Sequential_MinAdaptiveModelStep
+    stepExactSystem=False
 
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0,ct.dt_init]+[ct.dt_init+i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
+
+
+if ct.opts.nsave == 0:
+    if ct.dt_fixed > 0:
+        archiveFlag = ArchiveFlags.EVERY_USER_STEP
+        if ct.dt_init < ct.dt_fixed:
+            tnList = [0., ct.dt_init, ct.dt_fixed, ct.T]
+        else:
+            tnList = [0., ct.dt_fixed, ct.T]
+    else:
+          tnList = [0., ct.dt_init, ct.T]
+else:
+    tnList=[0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_out for i in range(1,ct.nDTout+1)]
+

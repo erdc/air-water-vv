@@ -89,15 +89,9 @@ if nd == 3:
     advectiveFluxBoundaryConditions[3] = lambda x, flag: domain.bc[flag].w_advective.init_cython()
     diffusiveFluxBoundaryConditions[3] = {3: lambda x, flag: domain.bc[flag].w_diffusive.init_cython()}
 
-
-class PerturbedSurface_p:
-    def __init__(self,waterLevel):
-        self.waterLevel=ct.waterLevel
-    def uOfXT(self,x,t):
-        if ct.signedDistance(x) < 0:
-            return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1] - (self.waterLevel - x[1])*ct.rho_0*ct.g[1]
-        else:
-            return -(ct.tank_dim[1] - self.waterLevel)*ct.rho_1*ct.g[1]
+class P_IC:
+    def uOfXT(self, x, t):
+        return ct.twpflowPressure_init(x, t)
 
 class U_IC:
     def uOfXT(self, x, t):
@@ -111,7 +105,7 @@ class W_IC:
     def uOfXT(self, x, t):
         return 0.0
 
-initialConditions = {0: PerturbedSurface_p(ct.waterLine_z),
+initialConditions = {0: P_IC(),
                      1: U_IC(),
                      2: V_IC()}
 if nd == 3:
