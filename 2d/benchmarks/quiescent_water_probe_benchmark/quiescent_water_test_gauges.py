@@ -156,14 +156,32 @@ tank = Tank2D(domain, tank_dim)
 
 # ----- GAUGES ----- #
 
+##tank.attachPointGauges(
+##    'twp',
+##    gauges = ((('u', 'v'), ((0.5, 0.5, 0), (0.5, 0.5, 0))),
+##              (('p',), ((0.5, 0.5, 0),))),
+##    activeTime=(0, opts.T),
+##    sampleRate=0,
+##    fileName='combined_gauge.csv')
+
 tank.attachPointGauges(
     'twp',
-     gauges = ((('u', 'v'), ((0.5, 0.5, 0), (0.5, 0.5, 0))),
-               (('p',), ((0.5, 0.5, 0),))),
-     activeTime=(0, opts.T),
-     sampleRate=0,
-     fileName='combined_gauge.csv'
- )
+    gauges = ((('p',), ((tank_dim[0], opts.water_level/2.0, 0.),)),),
+    activeTime=(0, opts.T),
+    sampleRate=0,
+    fileName='pressure_PointGauge.csv')
+
+column_p = [((tank_dim[0]/2.0,0.,0.),(tank_dim[0]/2.0,opts.water_level,0.))]
+tank.attachLineGauges(
+    'twp',
+    gauges = ((('p',), column_p),),
+    fileName = 'pressure_LineGauge.csv')
+
+column_vof = [((tank_dim[0]/2.0,0.,0.),(tank_dim[0]/2.0,tank_dim[1],0.))]
+tank.attachLineIntegralGauges(
+    'vof',
+    gauges = (((('vof'),), column_vof),),
+    fileName = 'vof_LineIntegralGauge.csv')
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 

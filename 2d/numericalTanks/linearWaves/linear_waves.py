@@ -2,7 +2,7 @@
 Linear Wave Theory
 """
 import numpy as np
-from math import ceil
+import math
 from proteus import (Domain, Context,
                      FemTools as ft,
                      MeshTools as mt,
@@ -38,7 +38,7 @@ opts = Context.Options([
     ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
     # run time
-    ("T", 40.0, "Simulation time"),
+    ("T", 30.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
@@ -53,7 +53,6 @@ opts = Context.Options([
 waterLevel = opts.water_level
 
 # waves
-
 period = opts.wave_period
 height = opts.wave_height
 mwl = opts.water_level
@@ -170,9 +169,9 @@ backgroundDiffusionFactor = 0.01
 
 #[temp] an attempt to match the intentions of refLevel instead of refinement
 #[temp] (wavelength based instead of dimension based)
-refinement_x = int(ceil(refinement_level * (tank_dim[0] + sum(tank_sponge))
+refinement_x = int(math.ceil(refinement_level * (tank_dim[0] + sum(tank_sponge))
                         / opts.wavelength))
-refinement_y = int(ceil(refinement_level * (tank_dim[1])
+refinement_y = int(math.ceil(refinement_level * (tank_dim[1])
                         / opts.wavelength))
 if useHex:
     nnx = refinement_x + 1
@@ -187,20 +186,29 @@ elif structured:
 else:
     domain = Domain.PlanarStraightLineGraphDomain()
 
+#refinement
+he = opts.wavelength / refinement_level
+smoothing = he*3.
+
 # ----- TANK ------ #
 
 tank = st.Tank2D(domain, tank_dim)
+omega = 2.*math.pi/period
+dragAlpha = 10.*omega/1e-6
 
 # ----- GENERATION / ABSORPTION LAYERS ----- #
 
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 
 if opts.generation:
-    tank.setGenerationZones(x_n=True, waves=wave)
+    tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing=smoothing)
 if opts.absorption:
-    tank.setAbsorptionZones(x_p=True)
+    tank.setAbsorptionZones(x_p=True, dragAlpha=dragAlpha)
 
 # ----- BOUNDARY CONDITIONS ----- #
+
+# waves
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 
 # open top
 tank.BC['y+'].setAtmosphere()
@@ -244,7 +252,7 @@ if opts.column_gauge_output:
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = opts.wavelength / refinement_level
+
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 

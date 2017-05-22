@@ -16,20 +16,21 @@ opts = Context.Options([
     ("outflow_level", 0.5, "Downstream water level"),
     ("inflow_velocity", 1.345, "Steady water inflow velocity"),
     # tank
-    ("tank_dim", (6.0, 3.75), "Dimensions (x,y) of the tank"),
+    ("tank_dim", (8.0, 3.75), "Dimensions (x,y) of the tank"),
     ("sponge_layers", False, "Use sponge layers"),
-    ("tank_sponge", (2., 2.), "Length of (generation, absorption) zones, if any"),
     ("tank_sponge", (2.,2.), "Length of (generation, absorption) zones, if any"),
+    # waves
+    ("waves", False, "Use waves"),
     # weir
     ("obstacle_dim", (3.0, 0.5), "Dimensions (x,y) of the obstacle."),
-    ("obstacle_x_start", 2.0, "x coordinate of the start of the obstacle"),
+    ("obstacle_x_start", 3.0, "x coordinate of the start of the obstacle"),
     ("cot_upstream_slope", 2.0, "Cotangent of upstream slope of obstacle"),
     # gauges
-    ("point_gauge_output", False, "Produce point gauge data"),
-    ("column_gauge_output", False, "Produce column gauge data"),
+    ("point_gauge_output", True, "Produce point gauge data"),
+    ("column_gauge_output", True, "Produce column gauge data"),
     ("gauge_dx", 0.25, "Horizontal spacing of gauges/gauge columns"),
     # refinement
-    ("refinement", 25, "Refinement level"),
+    ("refinement", 40, "Refinement level"),
     ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
@@ -187,9 +188,13 @@ tank = st.TankWithObstacles2D(domain=domain,
                               dim=tank_dim,
                               obstacles=weir)
 
-# ----- SPONGE ----- #
+# ----- SPONGE & WAVES ----- #
 if opts.sponge_layers:
+    tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+    tank.setAbsorptionZones(x_n=True)
+    tank.setAbsorptionZones(x_p=True)
 
+if opts.waves:
     # TODO: for now this is an actual wave, which we don't want.  We want a placid
     # wave such that our generation and absorption zones enforce a steady flow.
     wave = wt.MonochromaticWaves(
@@ -203,9 +208,9 @@ if opts.sponge_layers:
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
     tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-
     tank.setGenerationZones(x_n=True, waves=wave)
     tank.setAbsorptionZones(x_p=True)
+    
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -273,6 +278,12 @@ if opts.column_gauge_output:
     tank.attachLineIntegralGauges('vof',
                                   gauges=((('vof',), column_gauge_locations),),
                                   fileName='column_gauge.csv')
+    column_over_crest = []
+    column_over_crest.append(((opts.obstacle_x_start+opts.obstacle_dim[0]/3.0,opts.obstacle_dim[1],0.0),
+                              (opts.obstacle_x_start+opts.obstacle_dim[0]/3.0,opts.tank_dim[1],0.0)))
+    tank.attachLineGauges('twp',
+                          gauges=((('u'), column_over_crest),),
+                          fileName='u_over_crest.csv')                          
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
@@ -284,6 +295,7 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     g=g,
                                                     refLevel=tank_dim[1],
                                                     smoothing=3.0*he,
+                                                    U=[0.,0.,0.],
                                                     )
 
 tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
