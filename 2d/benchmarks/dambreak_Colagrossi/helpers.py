@@ -1,12 +1,14 @@
 def CreateFig():
     from tables import  openFile
-    archive = openFile('dambreak_Colagrossi0.h5','r')
+    archive = openFile('dambreak_Colagrossi_p.h5','r')
     import dambreak_Colagrossi
     import dambreak_Colagrossi_so
     import matplotlib.tri as mtri
     from matplotlib import pyplot as  plt
     import numpy as np
     domain = dambreak_Colagrossi.domain
+    domain.L = dambreak_Colagrossi.tank_dim
+    domain.x = (0.,0.,0.)
     nodes = archive.getNode("/nodesSpatial_Domain0")
     x=nodes[:,0]
     y=nodes[:,1]
