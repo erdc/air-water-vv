@@ -83,5 +83,8 @@ nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
-conservativeFlux = {0:'pwl-bdm-opt'}
+if ct.opts.conservativeFlux:
+    conservativeFlux = {0:'pwl-bdm-opt'}
+else:
+    conservativeFlux = None
 auxiliaryVariables = ct.domain.auxiliaryVariables['twp']
