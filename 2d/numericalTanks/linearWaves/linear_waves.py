@@ -194,7 +194,7 @@ smoothing = he*3.
 
 tank = st.Tank2D(domain, tank_dim)
 omega = 2.*math.pi/period
-dragAlpha = 10.*omega/1e-6
+dragAlpha = 5.*omega/1e-6
 
 # ----- GENERATION / ABSORPTION LAYERS ----- #
 

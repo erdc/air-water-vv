@@ -199,7 +199,7 @@ tank = st.Tank2D(domain, tank_dim)
 
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 omega = 2.*math.pi/period
-dragAlpha = 10.*omega/1e-6
+dragAlpha = 5.*omega/1e-6
 
 if opts.generation:
     tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing = smoothing)
