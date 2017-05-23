@@ -17,7 +17,7 @@ opts=Context.Options([
     ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
     ("speed",0.0,"Speed of current if non-zero"),
-    ("bar_height",0.4,"Initial height of bar center above bottom"),
+    ("bar_height",0.7,"Initial height of bar center above bottom"),
     ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
     ("gen_mesh",True,"Generate new mesh"),
