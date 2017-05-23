@@ -51,6 +51,7 @@ setup(name='ChRigidBar',
                              library_dirs=['/home/cekees/proteus/linux2/lib64'],
                              libraries=['ChronoEngine',
                                         'ChronoEngine_irrlicht',
+                                        'ChronoEngine_fea',
                                         'stdc++','m'],
                              extra_compile_args=["-std=c++11"])]
       )
