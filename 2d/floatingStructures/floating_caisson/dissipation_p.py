@@ -44,9 +44,9 @@ coefficients = Dissipation.Coefficients(V_model=int(ct.movingDomain)+0,
                                         sc_beta=ct.dissipation_sc_beta)
 
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].dissipation_dirichlet}
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].dissipation_advective}
-diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].dissipation_diffusive}}
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].dissipation_dirichlet.init_cython()}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].dissipation_advective.init_cython()}
+diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].dissipation_diffusive.init_cython()}}
 
 
 
@@ -57,7 +57,7 @@ class ConstantIC:
         return self.cval
 
 kInflow = 0.
-dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*ct.tank.dim[nd-1])
+dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*ct.tank_dim[nd-1])
 if ct.useRANS >= 2:
     dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
 
