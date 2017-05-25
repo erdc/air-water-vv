@@ -234,8 +234,9 @@ tank = st.TankWithObstacles2D(domain=domain,
 
 
 # ----- WAVES ----- #
+omega = 1.
 if opts.waves:
-
+    omega=2*np.pi/2.
     wave = wt.MonochromaticWaves(
         period = 2,
         waveHeight =0.018,
@@ -246,10 +247,11 @@ if opts.waves:
         wavelength = 0.5,
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
-    
+ 
+dragAlpha = 5.*omega/nu_0
 tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-tank.setAbsorptionZones(x_n=True)
-tank.setAbsorptionZones(x_p=True)
+tank.setAbsorptionZones(x_n=True, dragAlpha = dragAlpha)
+tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
 
 # ----- VARIABLE REFINEMENT ----- #
 

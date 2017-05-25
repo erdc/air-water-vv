@@ -190,13 +190,17 @@ tank = st.TankWithObstacles2D(domain=domain,
 
 # ----- SPONGE & WAVES ----- #
 if opts.sponge_layers:
+    omega = 1.
+    dragAlpha = 5.*omega/nu_0
     tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-    tank.setAbsorptionZones(x_n=True)
-    tank.setAbsorptionZones(x_p=True)
+    tank.setAbsorptionZones(x_n=True, dragAlpha=dragAlpha)
+    tank.setAbsorptionZones(x_p=True, dragAlpha=dragAlpha)
 
 if opts.waves:
     # TODO: for now this is an actual wave, which we don't want.  We want a placid
     # wave such that our generation and absorption zones enforce a steady flow.
+    omega = 2*np.pi/2.
+    dragAlpha = 5.*omega/nu_0
     wave = wt.MonochromaticWaves(
         period = 2,
         waveHeight = 0.0,
@@ -208,8 +212,8 @@ if opts.waves:
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
     tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-    tank.setGenerationZones(x_n=True, waves=wave)
-    tank.setAbsorptionZones(x_p=True)
+    tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing=3.*he)
+    tank.setAbsorptionZones(x_p=True, dragAlpha=dragAlpha)
     
 
 # ----- VARIABLE REFINEMENT ----- #
