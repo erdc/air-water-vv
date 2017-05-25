@@ -8,7 +8,7 @@ import numpy as np
 #####################################################################################
 
 ## Reading probes into the file
-folder = "no_relax"
+folder = "output"
 os.chdir(folder)
 file_vof = 'column_gauges.csv'
 file_p = 'pressure_gaugeArray.csv'
