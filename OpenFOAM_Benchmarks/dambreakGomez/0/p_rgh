@@ -1,0 +1,94 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.0.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p_rgh;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 -1 -2 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    leftWall
+    {
+        type            buoyantPressure;
+        value           uniform 0;
+    }
+
+    rightWall
+    {
+        type            buoyantPressure;
+        value           uniform 0;
+    }
+
+    lowerWall
+    {
+        type            buoyantPressure;
+        value           uniform 0;
+    }
+
+    frontWall
+    {
+        type            buoyantPressure;
+        value           uniform 0;
+    }
+
+    rearWall
+    {
+        type            buoyantPressure;
+        value           uniform 0;
+    }
+    leftWallColumn
+    {
+        type            buoyantPressure;
+        value           uniform 0;
+    }
+
+    rightWallColumn
+    {
+        type            buoyantPressure;
+        value           uniform 0;
+    }
+
+    frontWallColumn
+    {
+        type            buoyantPressure;
+        value           uniform 0;
+    }
+
+    rearWallColumn
+    {
+        type            buoyantPressure;
+        value           uniform 0;
+    }    
+
+    atmosphere
+    {
+        type            totalPressure;
+        p0              uniform 0;
+        U               U;
+        phi             phi;
+        rho             rho;
+        psi             none;
+        gamma           1;
+        value           uniform 0;
+    }
+
+    defaultFaces
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //
