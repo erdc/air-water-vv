@@ -13,7 +13,7 @@ from proteus.Profiling import logEvent
 opts = Context.Options([
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
-    ("air_vent", True, "Include an air vent in the obstacle."),
+    ("air_vent", False, "Include an air vent in the obstacle."),
     # air vent position
     ("airvent_y1",0.5,"Vertical distance from bottom to the air ventilation boundary patch"),
     ("airvent_dim",0.25,"Dimension of the air boundary patch"),
@@ -27,6 +27,7 @@ opts = Context.Options([
     ("outflow_velocity", 3.2, "Initial wave or steady water outflow velocity"),
     # tank
     ("tank_dim", (3.0, 1.8), "Dimensions (x,y) of the tank"),
+    ("absorption", False, "Use absorption zones"),
     ("tank_sponge", (0.5, 0.5), "Length of (generation, absorption) zones, if any"),
     ("obstacle_dim", (0.01, 1.00), "Dimensions (x,y) of the obstacle."),
     ("obstacle_x_start", 1.5 , "x coordinate of the start of the obstacle"),
@@ -37,7 +38,7 @@ opts = Context.Options([
     ("point_gauge_y", 0.5, "Height of point gauge placement"),
     # refinement
     ("refinement", 40, "Refinement level"),
-    ("cfl", 0.75, "Target cfl"),
+    ("cfl", 0.33, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
@@ -47,7 +48,7 @@ opts = Context.Options([
                                    "variable_refine_borders as a result)."),
     # run time
     ("T", 10.0, "Simulation time"),
-    ("dt_fixed", 0.02, "Fixed time step"),
+    ("dt_fixed", 0.25, "Fixed time step"),
     ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10)"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
@@ -102,7 +103,7 @@ nLayersOfOverlapForParallel = 0
 # ---- SpaceOrder & Tool Usage ----- #
 spaceOrder = 1
 useOldPETSc = False
-useSuperlu = False
+useSuperlu = True
 useRBLES = 0.0
 useMetrics = 1.0
 useVF = 1.0
@@ -156,7 +157,6 @@ elif spaceOrder == 2:
 #   Physical, Time, & Misc. Parameters   #
 ##########################################
 
-weak_bc_penalty_constant = 100.0
 nLevels = 1
 backgroundDiffusionFactor = 0.01
 
@@ -227,9 +227,10 @@ if opts.waves:
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
 
-tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-tank.setAbsorptionZones(x_n=True)
-tank.setAbsorptionZones(x_p=True)
+if opts.absorption:
+    tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+    tank.setAbsorptionZones(x_n=True)
+    tank.setAbsorptionZones(x_p=True)
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -306,16 +307,18 @@ if not opts.waves:
                                            waterLevel=waterLine_z,
                                            smoothing=3.0*he,
                                            )
-    tank.BC['x-'].p_advective.uOfXT = lambda x, t: - inflow_velocity
-    
-tank.BC['sponge'].setNonMaterial()
+
+if opts.absorption:
+    tank.BC['sponge'].setNonMaterial()
 
 if air_vent:
-    tank.BC['airvent'].reset()
-    tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1])*rho_1*abs(g[1])
-    tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0.0
-    tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1.0
-    tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0.0
+    tank.BC['airvent'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
+                                                    rhoUp=rho_1,
+                                                    rhoDown=rho_0,
+                                                    g=g,
+                                                    refLevel=tank_dim[1],
+                                                    smoothing=3.0*he,
+                                                    )
     
 # ----- MESH CONSTRUCTION ----- #
 
@@ -332,26 +335,27 @@ st.assembleDomain(domain)
 ns_forceStrongDirichlet = False
 
 # ----- NUMERICAL PARAMETERS ----- #
+weak_bc_penalty_constant = 10.0/nu_0
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.25
+    ns_shockCapturingFactor = 0.75
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor = 0.25
+    ls_shockCapturingFactor = 0.75
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
     ls_sc_beta = 1.50
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = 0.75
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.50
-    rd_shockCapturingFactor = 0.25
+    rd_shockCapturingFactor = 0.75
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH = epsFact_consrv_dirac \
                     = 3.0
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
+    epsFact_consrv_diffusion = 10.0
     redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True  #False

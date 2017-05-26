@@ -17,7 +17,7 @@ opts = Context.Options([
     ("air_vent", True, "Include an air vent in the obstacle."),
     # air vent position
     ("airvent_y1",0.25,"Vertical distance from bottom to the air ventilation boundary patch"),
-    ("airvent_dim",0.1,"Dimension of the air boundary patch"),
+    ("airvent_dim",0.05,"Dimension of the air boundary patch"),
     # water
     ("water_level", 0.54, "Height of (mean) free surface above bottom"),
     ("water_width_over_obst",1.02, "Initial width of free surface relative to"
@@ -25,7 +25,7 @@ opts = Context.Options([
     ("outflow_level", 0.04, "Height of (mean) free surface of water outflow "
                           "give a negative number if no initial outflow."),
     ("inflow_velocity", 0.139, "Wave or steady water inflow velocity"),
-    ("outflow_velocity", 3.0, "Initial wave or steady water outflow velocity"),
+    ("outflow_velocity", 0.0, "Initial wave or steady water outflow velocity"),
     # tank
     ("tank_dim", (2.5, 1.0), "Dimensions (x,y) of the tank"),
     ("tank_sponge", (0.5,0.5), "Length of (generation, absorption) zones, if any"),
@@ -35,7 +35,7 @@ opts = Context.Options([
     ("gauge_output", True, "Produce gauge data"),
     # refinement
     ("refinement", 40, "Refinement level"),
-    ("cfl", 0.75, "Target cfl"),
+    ("cfl", 0.33, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
@@ -46,7 +46,7 @@ opts = Context.Options([
     # run time
     ("T", 4.0, "Simulation time"),
     ("dt_fixed", 0.025, "Fixed time step"),
-    ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10)"),
+    ("dt_init", 0.0001, "Minimum initial time step (otherwise dt_fixed/10)"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
     ("parallel", True, "Run in parallel")])
@@ -120,7 +120,7 @@ nLayersOfOverlapForParallel = 0
 # ---- SpaceOrder & Tool Usage ----- #
 spaceOrder = 1
 useOldPETSc = False
-useSuperlu = False
+useSuperlu = True
 useRBLES = 0.0
 useMetrics = 1.0
 useVF = 1.0
@@ -175,7 +175,6 @@ elif spaceOrder == 2:
 #   Physical, Time, & Misc. Parameters   #
 ##########################################
 
-weak_bc_penalty_constant = 100.0
 nLevels = 1
 backgroundDiffusionFactor = 0.01
 
@@ -232,7 +231,6 @@ tank = st.TankWithObstacles2D(domain=domain,
                               obstacles=weir,
                               special_boundaries=vent)
 
-
 # ----- WAVES ----- #
 if opts.waves:
 
@@ -247,9 +245,9 @@ if opts.waves:
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
     
-tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-tank.setAbsorptionZones(x_n=True)
-tank.setAbsorptionZones(x_p=True)
+#tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+#tank.setAbsorptionZones(x_n=True)
+#tank.setAbsorptionZones(x_p=True)
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -306,30 +304,37 @@ tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()
 
 # Outflow
+#tank.BC['x+'].setFreeSlip()
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoUp=rho_1,
                                                     rhoDown=rho_0,
                                                     g=g,
                                                     refLevel=tank_dim[1],
-                                                    smoothing=3.0*he,
+                                                    smoothing=1.5*he,
                                                     )
+
+
+tank.BC['sponge'].setNonMaterial()
 
 # Inflow / Sponge
 if not opts.waves:
+#    tank.BC['x-'].setFreeSlip()
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
                                            waterLevel=waterLine_z,
-                                           smoothing=3.0*he,
-                                           )
-    tank.BC['x-'].p_advective.uOfXT = lambda x, t: - inflow_velocity
-tank.BC['sponge'].setNonMaterial()
-    
+                                           smoothing=3.0*he)
 if air_vent:
-    tank.BC['airvent'].reset()
-    tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1])*rho_1*abs(g[1])
-    tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0.0
-    tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1.0
-    tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0.0
-    tank.BC['airvent'].v_diffusive.uOfXT = lambda x, t: 0.0
+    tank.BC['airvent'].setHydrostaticPressureOutletWithDepth(seaLevel=0.0,
+                                                             rhoUp=rho_1,
+                                                             rhoDown=rho_0,
+                                                             g=g,
+                                                             refLevel=tank_dim[1],
+                                                             smoothing=1.5*he)
+#    tank.BC['airvent'].reset()
+#    tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1])*rho_1*abs(g[1])
+#    tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0.0
+#    tank.BC['airvent'].u_dirichlet.uOfXT = lambda x, t: 0.0
+#    tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1.0
+#    tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0.0
     
 # ----- MESH CONSTRUCTION ----- #
 
@@ -343,7 +348,8 @@ st.assembleDomain(domain)
 
 # ----- STRONG DIRICHLET ----- #
 
-ns_forceStrongDirichlet = False #True
+ns_forceStrongDirichlet = False
+weak_bc_penalty_constant = 10.0/nu_0#Re
 
 # ----- NUMERICAL PARAMETERS ----- #
 
