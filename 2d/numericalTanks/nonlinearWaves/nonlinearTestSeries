@@ -11,7 +11,7 @@ mpirun -np 12 parun nonlinear_waves_so.py  -l 7 -v -O $PROTEUS/../air-water-vv/i
 #====================
 
 #4
-mpirun -np 12 parun nonlinear_waves_so.py  -l 7 -v -O $PROTEUS/../air-water-vv/inputTemplates/petsc.options.asm -D A4 -C "tank_dim=(20.62,0.7) tank_sponge=(3.9,7.8) wave_period=2. wave_height=0.15 wave_wavelength=3.9 Bcoeff=(0.13540388,0.02480804,0.00426381,0.00055395,0.00002809,-0.00000926,-0.00000291,-0.00000030) Ycoeff=(0.10563897,0.03899903,0.01306615,0.00457401,0.00172175,0.00070315,0.00033483,0.00024142) T=120. he=0.03"
+mpirun -np 12 parun nonlinear_waves_so.py  -l 7 -v -O $PROTEUS/../air-water-vv/inputTemplates/petsc.options.asm -D A4 -C "tank_dim=(20.62,0.7) tank_sponge=(3.9,7.8) wave_period=2. wave_height=0.15 wave_wavelength=3.9 Bcoeff=(0.13540388,0.02480804,0.00426381,0.00055395,0.00002809,-0.00000926,-0.00000291,-0.00000030) Ycoeff=(0.10563897,0.03899903,0.01306615,0.00457401,0.00172175,0.00070315,0.00033483,0.00024142) T=120. he=0.02"
 #====================
 
 #5
