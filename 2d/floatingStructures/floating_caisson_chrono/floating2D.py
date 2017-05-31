@@ -27,9 +27,10 @@ opts=Context.Options([
     # caisson
     ("caisson", True, "caisson"),
     ("caisson_dim", (0.5, 0.32), "Dimensions of the caisson"),
-    ("caisson_coords", (3.137, 1.406), "Dimensions of the caisson"),
+    ("caisson_ycoord", 1.406, "Dimensions of the caisson"),
+    ("caisson_xcoord", 3.137, "Dimensions of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
-    ("caisson_corner_r", 0., "radius of the corners of the caisson"),
+    ("caisson_corner_r", 0.064, "radius of the corners of the caisson"),
     ("caisson_corner_side", 'bottom', "corners placement"),
     ("caisson_BC", 'freeslip', "BC on caisson ('noslip'/'freeslip')"),
     ("free_x", (1.0, 1.0, 1.0), "Translational DOFs"),
@@ -151,10 +152,9 @@ if opts.caisson is True:
     free_x = opts.free_x
     free_r = opts.free_r
     rotation = np.radians(opts.rotation_angle)
-    if opts.caisson_coords is None:
-        coords = [tank_dim[0]/2., opts.water_level]
-    else:
-        coords = opts.caisson_coords
+    coords = [0,0]
+    coords[0] = opts.caisson_xcoord or tank_dim[0]/2.
+    coords[1] = opts.caisson_ycoord or tank_dim[1]/2.
     barycenter = (0, -dim[1]/2.+VCG, 0.)
     width = opts.caisson_width
     inertia = opts.caisson_inertia/width
@@ -299,6 +299,12 @@ if opts.caisson is True:
 
 # ----- SHAPES ----- #
 tank = st.Tank2D(domain, tank_dim)
+
+# Generation / Absorption zones
+if opts.waves is True:
+    dragAlpha = 5*(2*np.pi/period)
+else:
+    dragAlpha = 0.5/1.004e-6
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 left = right = False
 if tank_sponge[0]: left = True
@@ -306,15 +312,15 @@ if tank_sponge[1]: right = True
 if left:
     if opts.waves is True:
         smoothing = opts.he*3.
-        tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=0.5/1.004e-6)
+        tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=dragAlpha)
         tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
     else:
-        tank.setAbsorptionZones(x_n=left, dragAlpha=0.5/1.004e-6)
+        tank.setAbsorptionZones(x_n=left, dragAlpha=dragAlpha)
         tank.BC['x-'].setNoSlip()
 else:
     tank.BC['x-'].setNoSlip()
 if right:
-    tank.setAbsorptionZones(x_p=right)
+    tank.setAbsorptionZones(x_p=right, dragAlpha=dragAlpha)
 if opts.caisson:
     # let gmsh know that the caisson is IN the tank
     tank.setChildShape(caisson, 0)
@@ -396,9 +402,9 @@ if opts.gauge_output:
 
 
 domain.MeshOptions.he = opts.he
+domain.use_gmsh = opts.use_gmsh
 domain.MeshOptions.use_gmsh = opts.use_gmsh
 domain.MeshOptions.genMesh = opts.genMesh
-domain.use_gmsh = opts.use_gmsh
 mesh_fileprefix ='meshgeo_'+str(wavelength)
 mesh_fileprefix = mesh_fileprefix.replace(' ', '')
 mesh_fileprefix = mesh_fileprefix.replace('(', '')
@@ -408,10 +414,13 @@ mesh_fileprefix = mesh_fileprefix.replace(']', '')
 mesh_fileprefix = mesh_fileprefix.replace('.', '-')
 mesh_fileprefix = mesh_fileprefix.replace(',', '_')
 domain.MeshOptions.setOutputFiles(name=mesh_fileprefix)
+
+# ASSEMBLE DOMAIN
 st.assembleDomain(domain)
 
 # MESH REFINEMENT
 
+he = opts.he
 if opts.refinement is True:
     import py2gmsh
     from MeshRefinement import geometry_to_gmsh
@@ -504,7 +513,7 @@ if opts.refinement is True:
     # max element size
     mesh.Options.Mesh.CharacteristicLengthMax = he_max
 
-    mesh.writeGeo(geofile+'.geo')
+    mesh.writeGeo(mesh_fileprefix+'.geo')
 
 
 
