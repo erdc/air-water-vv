@@ -53,7 +53,7 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
         Profiling.verbose=True
         # PETSc solver configuration
         OptDB = PETSc.Options()
-        with open("../../../inputTemplates/petsc.options.asm") as f:
+        with open("~/PROTEUS/air-water-vv/inputTemplates/petsc.options.asm") as f:
             all = f.read().split()
             i=0
             while i < len(all):
