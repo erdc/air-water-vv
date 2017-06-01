@@ -12,7 +12,7 @@ opts=Context.Options([
     # predefined test cases
     ("water_level", 0.86, "Height of free surface above seabed"),
     # tank
-    ("tank_dim", (58., 1.26), "Dimensions of the tank"),
+    ("tank_dim", (58., 3.), "Dimensions of the tank"),
     ("generation", True, "Generate waves at the left boundary (True/False)"),
     ("absorption", True, "Absorb waves at the right boundary (True/False)"),
     ("tank_sponge", (5., 5.), "Length of relaxation zones zones (left, right)"),

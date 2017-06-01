@@ -208,9 +208,10 @@ if opts.sponge_layers:
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
     tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-
-    tank.setGenerationZones(x_n=True, waves=wave)
-    tank.setAbsorptionZones(x_p=True)
+    omega = 2*np.pi/2.
+    smoothing = 3.*he
+    tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing=smoothing)
+    tank.setAbsorptionZones(x_p=True, dragAlpha=dragAlpha)
 
 # ----- VARIABLE REFINEMENT ----- #
 

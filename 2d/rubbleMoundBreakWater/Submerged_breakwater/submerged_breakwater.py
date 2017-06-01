@@ -46,7 +46,7 @@ opts=Context.Options([
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
-    ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
+    ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", False, "True/False"),
     ("T", 30.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
@@ -55,6 +55,8 @@ opts=Context.Options([
     ("cfl", 0.5 , "Target cfl"),
     ("nsave",  5, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
+    ("useVF", 0., "Smoothing function at the water/air interface"),
+    ("conservativeFlux", False, "Switches ON/OFF postprocessing on velocity field"),
     ("parallel", True ,"Run in parallel")])
 
 # ----- Physical constants ----- #
@@ -91,7 +93,8 @@ waterLevel = opts.water_level
 domain = Domain.PlanarStraightLineGraphDomain()
 
 # refinement
-smoothing = opts.he*3.
+he = opts.he
+smoothing = he*3.
 
 # ----- TANK ------ #
 
@@ -144,7 +147,7 @@ dragBeta=0.0 #(porosity**3)*Beta/nu_0
 # ----- GENERATION / ABSORPTION LAYERS ----- #
 
 tank.setSponge(x_n=opts.Lgen*wavelength, x_p=opts.Labs*wavelength)
-dragAlpha = 10.*omega/1e-6
+dragAlpha = 10.*omega/nu_0
 tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing = smoothing)
 tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
 tank.setPorousZones(flags=tank.regionFlags[tank.regionIndice['obstacle1']], dragAlpha=dragAlpha_P, dragBeta=dragBeta, porosity=porosity)
@@ -174,6 +177,7 @@ for bc in tank.BC_list:
 
 # ----- GAUGES ----- #
 
+# Layout 1
 probes1 = []
 probes1.append(((x0-0.47, 0., 0.), (x0-0.47, tank_dim[1], 0.)),)
 probes1.append(((x0-0.35, 0., 0.), (x0-0.35, tank_dim[1], 0.)),)
@@ -187,14 +191,23 @@ probes2.append(((x0+1.125+1.50+0.56, 0.0, 0.0),           (x0+1.125+1.50+0.56, t
 probes2.append(((x0+1.125+1.50+0.56+0.30, 0.0, 0.0),      (x0+1.125+1.50+0.56+0.30, tank_dim[1], 0.0)),)  
 probes2.append(((x0+1.125+1.50+0.56+0.30+0.16, 0.0, 0.0), (x0+1.125+1.50+0.56+0.30+0.16, tank_dim[1], 0.0)),)  
 
-columnLines1=tuple(map(tuple,probes1))
-columnLines2=tuple(map(tuple,probes2))
+# GenZone
+genProbes = []
+dx = opts.Lgen*wavelength/10.
+for j in range(11):
+    genProbes.append(((-opts.Lgen*wavelength+j*dx, 0., 0.), (-opts.Lgen*wavelength+j*dx, tank_dim[1], 0.)),)
+
+columnLines1 = tuple(map(tuple,probes1))
+columnLines2 = tuple(map(tuple,probes2))
+columnLinesG = tuple(map(tuple,genProbes))
 
 tank.attachLineIntegralGauges('vof', gauges=((('vof',),columnLines1),), fileName='line_integral_gauges_1.csv')
 tank.attachLineIntegralGauges('vof', gauges=((('vof',),columnLines2),), fileName='line_integral_gauges_2.csv')
-
+tank.attachLineIntegralGauges('vof', gauges=((('vof',),columnLinesG),), fileName='line_integral_gauges_G.csv')
 
 # ----- ASSEMBLE DOMAIN ----- #
+
+tank.facets = np.array([[[0, 1, 2, 3]]]+[[[i for i in range(8)]]]+[[[7, 8, 9, 6]]]+[[[4, 10, 11, 5]]])
 
 domain.MeshOptions.use_gmsh = opts.use_gmsh
 domain.MeshOptions.genMesh = opts.gen_mesh
@@ -202,41 +215,52 @@ domain.MeshOptions.he = opts.he
 domain.use_gmsh = opts.use_gmsh
 st.assembleDomain(domain)
 
+
 # ----- REFINEMENT OPTIONS ----- #
 
-import MeshRefinement as mr
-#domain.MeshOptions = mr.MeshOptions(domain)
-tank.MeshOptions = mr.MeshOptions(tank)
-if opts.refinement:
-    grading = opts.refinement_grading
-    he2 = opts.he
-    def mesh_grading(start, he, grading):
-        return '{0}*{2}^(1+log((-1/{2}*(abs({1})-{0})+abs({1}))/{0})/log({2}))'.format(he, start, grading)
-    he_max = opts.he_max
-    # he_fs = he2
-    ecH = 3.
-    if opts.refinement_freesurface > 0:
-        box = opts.refinement_freesurface
-    else:
-        box = ecH*he2
-    tank.MeshOptions.refineBox(he2, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], waterLevel-box, waterLevel+box)
-    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-box), he=he2, grading=grading))
-    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+box), he=he2, grading=grading))
-    domain.MeshOptions.LcMax = he_max #coarse grid
-    if opts.use_gmsh is True and opts.refinement is True:
-        domain.MeshOptions.he = he_max #coarse grid
-    else:
-        domain.MeshOptions.he = he2 #coarse grid
-        domain.MeshOptions.LcMax = he2 #coarse grid
-    tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
-else:
-    domain.MeshOptions.LcMax = opts.he
-mr._assembleRefinementOptions(domain)
-from proteus import Comm
-comm = Comm.get()
-if domain.use_gmsh is True:
-    mr.writeGeo(domain, 'mesh', append=False)
+import py2gmsh 
+from MeshRefinement import geometry_to_gmsh 
+mesh = geometry_to_gmsh(domain)
 
+field_list = []
+box_size = 0.07
+
+box = py2gmsh.Fields.Box(mesh=mesh)
+box.VIn = 0.02 #he-he/4.
+box.VOut = he
+box.XMin = -opts.Lgen*wavelength
+box.XMax = tank_dim[0]+opts.Labs*wavelength
+box.YMin = waterLevel-box_size
+box.YMax = waterLevel+box_size
+field_list += [box]
+
+p0 = py2gmsh.Entity.Point([-opts.Lgen*wavelength, waterLevel+box_size, 0.], mesh=mesh)
+p1 = py2gmsh.Entity.Point([tank_dim[0]+opts.Labs*wavelength, waterLevel+box_size, 0.], mesh=mesh)
+p2 = py2gmsh.Entity.Point([-opts.Lgen*wavelength, waterLevel-box_size, 0.], mesh=mesh)
+p3 = py2gmsh.Entity.Point([tank_dim[0]+opts.Labs*wavelength, waterLevel-box_size, 0.], mesh=mesh)
+l1 = py2gmsh.Entity.Line([p0, p1], mesh=mesh)
+l2 = py2gmsh.Entity.Line([p2, p3], mesh=mesh)
+
+grading = 1.05
+bl = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+bl.hwall_n = 0.02 #he-he/4.
+bl.ratio = grading
+bl.EdgesList = [l1, l2]
+field_list += [bl]
+
+fmin = py2gmsh.Fields.Min(mesh=mesh)
+fmin.FieldsList = field_list
+mesh.setBackgroundField(fmin)
+
+mesh.Options.Mesh.CharacteristicLengthMax = he
+
+domain.MeshOptions.genMesh = opts.gen_mesh
+domain.MeshOptions.use_gmsh = opts.use_gmsh
+domain.use_gmsh = opts.use_gmsh
+
+geofile = 'mesh'
+mesh.writeGeo(geofile+'.geo')
+domain.geofile = geofile
 
 
 ##########################################
@@ -287,7 +311,7 @@ spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
-useVF = 1.0
+useVF = opts.useVF #1.0
 useOnlyVF = False
 useRANS = opts.useRANS # 0 -- None
             # 1 -- K-Epsilon
