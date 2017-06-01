@@ -25,7 +25,7 @@ def readProbeFile(filename):
         header = header.replace("time","")
         header = header.replace("[","")
         header = header.replace("]","")
-        header =  header.replace(","," ")
+        header = header.replace(","," ")
         header = header.split()
         probeType = []
         probex = []
