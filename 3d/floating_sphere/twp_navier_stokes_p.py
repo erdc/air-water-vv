@@ -1,14 +1,16 @@
 from proteus.default_p import *
 from proteus.mprans import RANS2P
+import numpy as np
 from proteus import Context
 
 ct = Context.get()
 domain = ct.domain
 nd = domain.nd
 mesh = domain.MeshOptions
+
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
-T = ct.T
+T = ct.T  # might not be necessary
 
 LevelModelType = RANS2P.LevelModel
 if ct.useOnlyVF:
@@ -21,6 +23,9 @@ if ct.useRANS >= 1:
     if ct.useOnlyVF:
         Closure_0_model = 2
         Closure_1_model = 3
+    if ct.movingDomain:
+        Closure_0_model += 1
+        Closure_1_model += 1
 else:
     Closure_0_model = None
     Closure_1_model = None
@@ -44,10 +49,10 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    rho_1=ct.rho_1,
                                    nu_1=ct.nu_1,
                                    g=ct.g,
-                                   nd=domain.nd,
-                                   ME_model=0,
-                                   VF_model=1,
-                                   LS_model=LS_model,
+                                   nd=nd,
+                                   ME_model=int(ct.movingDomain)+0,
+                                   VF_model=int(ct.movingDomain)+1,
+                                   LS_model=int(ct.movingDomain)+LS_model,
                                    Closure_0_model=Closure_0_model,
                                    Closure_1_model=Closure_1_model,
                                    epsFact_density=ct.epsFact_density,
@@ -66,55 +71,42 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    epsFact_solid=epsFact_solid,
                                    barycenters=ct.domain.barycenters)
 
-dirichletConditions = {
-    0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
-    1: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
-    2: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()
-}
 
-advectiveFluxBoundaryConditions = {
-    0: lambda x, flag: domain.bc[flag].p_advective.init_cython(),
-    1: lambda x, flag: domain.bc[flag].u_advective.init_cython(),
-    2: lambda x, flag: domain.bc[flag].v_advective.init_cython()
-}
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
+                       1: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
+                       2: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()}
 
-diffusiveFluxBoundaryConditions = {
-    0: {},
-    1: {1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
-    2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}
-}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].p_advective.init_cython(),
+                                   1: lambda x, flag: domain.bc[flag].u_advective.init_cython(),
+                                   2: lambda x, flag: domain.bc[flag].v_advective.init_cython()}
 
-class PerturbedSurface_p:
-    def __init__(self, waterLevel):
-        self.waterLevel = waterLevel
+diffusiveFluxBoundaryConditions = {0: {},
+                                   1: {1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
+                                   2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}}
 
+if nd == 3:
+    dirichletConditions[3] = lambda x, flag: domain.bc[flag].w_dirichlet.init_cython()
+    advectiveFluxBoundaryConditions[3] = lambda x, flag: domain.bc[flag].w_advective.init_cython()
+    diffusiveFluxBoundaryConditions[3] = {3: lambda x, flag: domain.bc[flag].w_diffusive.init_cython()}
+
+class P_IC:
     def uOfXT(self, x, t):
-        if ct.signedDistance(x) < 0:
-            return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1] \
-                   - (self.waterLevel -x[1]) * ct.rho_0 * ct.g[1]
-        else:
-            return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1]
-        
+        return ct.twpflowPressure_init(x, t)
 
-class AtRest:
-    def __init__(self):
-        pass
-    def uOfXT(self,x,t):
+class U_IC:
+    def uOfXT(self, x, t):
         return 0.0
-    
 
-class initialVelocity_u:
-    def __init__(self, waterLevel):
-        self.waterLevel = waterLevel
-    def uOfXT(self,x,t):
-        if x[0]<ct.waterLine_x and x[nd-1]<self.waterLevel:
-            return ct.opts.inflow_velocity
-        elif x[0] < ct.tank_dim[0]+ct.tank_sponge[1]:
-            return ct.twpflowVelocity_u_D(x, 0)
-        else: 
-            return 0.0
+class V_IC:
+    def uOfXT(self, x, t):
+        return 0.0
 
+class W_IC:
+    def uOfXT(self, x, t):
+        return 0.0
 
-initialConditions = {0: PerturbedSurface_p(ct.waterLine_z),
-                     1: initialVelocity_u(ct.waterLine_z),
-                     2: AtRest()}
+initialConditions = {0: P_IC(),
+                     1: U_IC(),
+                     2: V_IC()}
+if nd == 3:
+    initialConditions[3] = W_IC()
