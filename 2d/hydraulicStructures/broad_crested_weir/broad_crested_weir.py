@@ -28,6 +28,7 @@ opts = Context.Options([
     ("outflow_velocity", 0.0, "Initial wave or steady water outflow velocity"),
     # tank
     ("tank_dim", (2.5, 1.0), "Dimensions (x,y) of the tank"),
+    ("absorption", False, "Use generation/absorption zones"),
     ("tank_sponge", (0.5,0.5), "Length of (generation, absorption) zones, if any"),
     ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle."),
     ("obstacle_x_start", 1.0, "x coordinate of the start of the obstacle"),
@@ -35,7 +36,7 @@ opts = Context.Options([
     ("gauge_output", True, "Produce gauge data"),
     # refinement
     ("refinement", 40, "Refinement level"),
-    ("cfl", 0.33, "Target cfl"),
+    ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
@@ -120,7 +121,7 @@ nLayersOfOverlapForParallel = 0
 # ---- SpaceOrder & Tool Usage ----- #
 spaceOrder = 1
 useOldPETSc = False
-useSuperlu = True
+useSuperlu = not opts.parallel
 useRBLES = 0.0
 useMetrics = 1.0
 useVF = 1.0
@@ -244,10 +245,11 @@ if opts.waves:
         wavelength = 0.5,
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
-    
-#tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-#tank.setAbsorptionZones(x_n=True)
-#tank.setAbsorptionZones(x_p=True)
+
+if opts.absorption:
+    tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+    tank.setAbsorptionZones(x_n=True)
+    tank.setAbsorptionZones(x_p=True)
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -304,7 +306,6 @@ tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()
 
 # Outflow
-#tank.BC['x+'].setFreeSlip()
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoUp=rho_1,
                                                     rhoDown=rho_0,
@@ -314,11 +315,11 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     )
 
 
-tank.BC['sponge'].setNonMaterial()
+if opts.absorption:
+    tank.BC['sponge'].setNonMaterial()
 
 # Inflow / Sponge
 if not opts.waves:
-#    tank.BC['x-'].setFreeSlip()
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
                                            waterLevel=waterLine_z,
                                            smoothing=3.0*he)
@@ -329,12 +330,6 @@ if air_vent:
                                                              g=g,
                                                              refLevel=tank_dim[1],
                                                              smoothing=1.5*he)
-#    tank.BC['airvent'].reset()
-#    tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1])*rho_1*abs(g[1])
-#    tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0.0
-#    tank.BC['airvent'].u_dirichlet.uOfXT = lambda x, t: 0.0
-#    tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1.0
-#    tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0.0
     
 # ----- MESH CONSTRUCTION ----- #
 
@@ -388,16 +383,16 @@ else:
     ls_shockCapturingFactor = 0.9
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.9
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
+    vof_sc_beta = 1.5
     rd_shockCapturingFactor = 0.9
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
         = epsFact_vof = ecH = epsFact_consrv_dirac \
-        = 1.5
+        = 3.0
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
     redist_Newton = False
@@ -428,7 +423,7 @@ if useRANS == 1:
 elif useRANS == 2:
     ns_closure = 4
 else:
-    ns_closure = 2
+    ns_closure = 0
 
 ##########################################
 #            Signed Distance             #

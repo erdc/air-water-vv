@@ -25,6 +25,18 @@ else:
     Closure_0_model = None
     Closure_1_model = None
 
+# for absorption zones (defined as regions)
+if hasattr(domain, 'porosityTypes'):
+    porosityTypes = domain.porosityTypes
+    dragAlphaTypes = domain.dragAlphaTypes
+    dragBetaTypes = domain.dragBetaTypes
+    epsFact_solid = domain.epsFact_solid
+else:
+    porosityTypes = None
+    dragAlphaTypes = None
+    dragBetaTypes = None
+    epsFact_solid = None
+
 coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
                                    rho_0=ct.rho_0,
@@ -47,7 +59,12 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    eb_penalty_constant=ct.weak_bc_penalty_constant,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ct.ns_closure,
-                                   movingDomain=ct.movingDomain)
+                                   movingDomain=ct.movingDomain,
+                                   porosityTypes=porosityTypes,
+                                   dragAlphaTypes=dragAlphaTypes,
+                                   dragBetaTypes=dragBetaTypes,
+                                   epsFact_solid=epsFact_solid,
+                                   barycenters=ct.domain.barycenters)
 
 dirichletConditions = {
     0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),

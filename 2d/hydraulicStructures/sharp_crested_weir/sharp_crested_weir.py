@@ -16,7 +16,7 @@ opts = Context.Options([
     ("air_vent", False, "Include an air vent in the obstacle."),
     # air vent position
     ("airvent_y1",0.5,"Vertical distance from bottom to the air ventilation boundary patch"),
-    ("airvent_dim",0.25,"Dimension of the air boundary patch"),
+    ("airvent_dim",0.1,"Dimension of the air boundary patch"),
     # water
     ("water_level", 1.4, "Height of (mean) free surface above bottom"),
     ("water_width_over_obst", 1.5, "Initial width of free surface relative to"
@@ -38,7 +38,7 @@ opts = Context.Options([
     ("point_gauge_y", 0.5, "Height of point gauge placement"),
     # refinement
     ("refinement", 40, "Refinement level"),
-    ("cfl", 0.33, "Target cfl"),
+    ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
@@ -52,7 +52,7 @@ opts = Context.Options([
     ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10)"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
-    ("parallel", True, "Run in parallel")])
+    ("parallel", False, "Run in parallel")])
 
 # ----- CONTEXT ------ #
 
@@ -103,7 +103,7 @@ nLayersOfOverlapForParallel = 0
 # ---- SpaceOrder & Tool Usage ----- #
 spaceOrder = 1
 useOldPETSc = False
-useSuperlu = True
+useSuperlu = not opts.parallel
 useRBLES = 0.0
 useMetrics = 1.0
 useVF = 1.0
@@ -299,13 +299,12 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoDown=rho_0,
                                                     g=g,
                                                     refLevel=tank_dim[1],
-                                                    smoothing=3.0*he,
-                                                    )
+                                                    smoothing=1.5*he)
 
 if not opts.waves:
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
                                            waterLevel=waterLine_z,
-                                           smoothing=3.0*he,
+                                           smoothing=1.5*he,
                                            )
 
 if opts.absorption:
@@ -313,12 +312,11 @@ if opts.absorption:
 
 if air_vent:
     tank.BC['airvent'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
-                                                    rhoUp=rho_1,
-                                                    rhoDown=rho_0,
-                                                    g=g,
-                                                    refLevel=tank_dim[1],
-                                                    smoothing=3.0*he,
-                                                    )
+                                                             rhoUp=rho_1,
+                                                             rhoDown=rho_0,
+                                                             g=g,
+                                                             refLevel=tank_dim[1],
+                                                             smoothing=1.5*he)
     
 # ----- MESH CONSTRUCTION ----- #
 
@@ -338,18 +336,18 @@ ns_forceStrongDirichlet = False
 weak_bc_penalty_constant = 10.0/nu_0
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.75
+    ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor = 0.75
+    ls_shockCapturingFactor = 0.9
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.50
-    vof_shockCapturingFactor = 0.75
+    ls_sc_beta = 1.5
+    vof_shockCapturingFactor = 0.9
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.50
-    rd_shockCapturingFactor = 0.75
+    vof_sc_beta = 1.5
+    rd_shockCapturingFactor = 0.9
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH = epsFact_consrv_dirac \
@@ -357,14 +355,14 @@ if useMetrics:
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
     redist_Newton = False
-    kappa_shockCapturingFactor = 0.1
+    kappa_shockCapturingFactor = 0.9
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.1
+    kappa_sc_beta = 1.5
+    dissipation_shockCapturingFactor = 0.9
     dissipation_lag_shockCapturing = True  #False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = 1.5
 else:
     ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True
@@ -381,7 +379,7 @@ else:
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
         = epsFact_vof = ecH = epsFact_consrv_dirac \
-        = 1.5
+        = 3.0
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
     redist_Newton = False
@@ -396,13 +394,13 @@ else:
 
 # ----- NUMERICS: TOLERANCES ----- #
 
-ns_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
-vof_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
-ls_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
-rd_nl_atol_res = max(1.0e-12, 5.0e-5 * he)
-mcorr_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
-kappa_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
-dissipation_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
+ns_nl_atol_res = max(1.0e-10,0.001*he**2)
+vof_nl_atol_res = max(1.0e-10,0.001*he**2)
+ls_nl_atol_res = max(1.0e-10,0.001*he**2)
+rd_nl_atol_res = max(1.0e-10,0.005*he)
+mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
+kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
+dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
 
 # ----- TURBULENCE MODELS ----- #
 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -412,7 +410,7 @@ if useRANS == 1:
 elif useRANS == 2:
     ns_closure = 4
 else:
-    ns_closure = 2
+    ns_closure = 0
 
 ##########################################
 #            Signed Distance             #
