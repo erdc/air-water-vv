@@ -27,8 +27,6 @@ before_install:
 - cd ..
 
 install:
-- mvn -f Tests/pom.xml <com.mycompany.app>:<my-app>:<test>
-- travis_wait 240 mvn install
 - git lfs fetch
 - git lfs checkout
 - git clone https://github.com/erdc-cm/proteus
