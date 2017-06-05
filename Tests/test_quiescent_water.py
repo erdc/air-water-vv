@@ -1,15 +1,17 @@
 #!/usr/bin/env python
+import os
+os.chdir('2d/benchmarks/quiescent_water_probe_benchmark')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 import quiescent_water_test_gauges_so
 import quiescent_water_test_gauges as qw
-import os
 import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
+
 
 class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
 
@@ -27,7 +29,7 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
     def teardown_method(self,method):
         """ Tear down function """
         FileList = ['quiescent_water_test_gauges.xmf',
-                    'quiescent_water_test_gauges.h5']
+                    'quiescent_water_test_gauges0.h5',]
         for file in FileList:
             if os.path.isfile(file):
                 os.remove(file)
@@ -73,7 +75,6 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('quiescent_water_test_gauges')
         assert(True)
-
        
     def test_validate(self):
         # Reading probes into the file
