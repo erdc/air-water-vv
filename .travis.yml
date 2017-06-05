@@ -27,6 +27,7 @@ before_install:
 - cd ..
 
 install:
+- mvn -f Tests/pom.xml
 - travis_wait 240 mvn install
 - git lfs fetch
 - git lfs checkout
