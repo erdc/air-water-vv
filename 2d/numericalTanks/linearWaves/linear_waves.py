@@ -45,7 +45,7 @@ opts = Context.Options([
     ("useHex", False, "Use (hexahedral) structured mesh"),
     ("structured", False, "Use (triangular/tetrahedral) structured mesh"),
     ("nperiod", 10., "Number of time steps to save per period"),
-    ("parallel", True, "Run in parallel")])
+    ])
 
 # ----- CONTEXT ------ #
 

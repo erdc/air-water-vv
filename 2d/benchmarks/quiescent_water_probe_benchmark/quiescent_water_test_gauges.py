@@ -29,7 +29,7 @@ opts=Context.Options([
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     ("gen_mesh", True ,"Generate new mesh"),
-    ("parallel", True ,"Run in parallel")])
+    ])
 
 # ----- CONTEXT ------ #
 
