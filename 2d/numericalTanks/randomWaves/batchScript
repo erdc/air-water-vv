@@ -1,0 +1,2 @@
+mpirun -np $NCPUS parun random_waves_so.py  -l 7 -v -O $PROTEUS/../air-water-vv/inputTemplates/petsc.options.superlu_dist -D no_relax 
+
