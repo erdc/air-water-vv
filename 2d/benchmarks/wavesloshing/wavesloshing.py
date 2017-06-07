@@ -35,8 +35,7 @@ opts=Context.Options([
     ("structured", False, "Use a (triangular) structured mesh"),
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
-    ("use_gmsh", True ,"Generate new mesh"),
-    ("parallel", True ,"Run in parallel")])
+    ])
 
 # ----- CONTEXT ------ #
 

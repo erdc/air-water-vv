@@ -51,7 +51,7 @@ opts=Context.Options([
     ("cfl", 0.5 , "Target cfl"),
     ("nsave",  5, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
-    ("parallel", True ,"Run in parallel")])
+    ])
 
 # ----- CONTEXT ------ #
 
