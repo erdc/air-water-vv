@@ -16,7 +16,6 @@ opts=Context.Options([
     # water
     ("water_depth_fraction", 0.5, "Depth of the water relative to the tank height"),
     ("amplitude", 0.005, "Amplitude of the sloshing relative to tank height"),
-    ("eps", 0.016, "wave depth"),
     # tank
     ("tank_dim", (0.1 , 0.1), "Dimensions of the tank"),
     #gravity
@@ -49,7 +48,7 @@ water_depth = h = tank_dim[1]*opts.water_depth_fraction
 
 wavelength = tank_dim[0]*2.
 k = 2*np.pi/wavelength
-h = 0.05
+h = opts.water_depth_fraction*opts.tank_dim[1]
 eps = k*water_amplitude
 
 ##########################################
