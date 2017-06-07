@@ -49,8 +49,8 @@ install:
 - cd ..
 
 script:
-- py.test --boxed -v Tests/test_quiescent_water.py
-
+- set -o pipefail
+- hit build -v $TEST_PROFILE 2>&1 ¦ pv -i 15 -n ¦ cat > log.txt
 
 notifications:
   email:
