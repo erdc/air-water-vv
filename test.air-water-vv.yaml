@@ -1,5 +1,5 @@
 extends:
-    - file: stack.linux2.yaml
+    - file: linux.yaml
 
 build_stages:
     - name: test_airwatervv
