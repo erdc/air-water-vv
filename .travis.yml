@@ -50,8 +50,7 @@ install:
 - cd ..
 
 script:
-- set -o pipefail
-- hit build -v $TEST_PROFILE 2>&1
+- proteus/hashdist/bin/hit build -v $TEST_PROFILE 2>&1
 
 notifications:
   email:
