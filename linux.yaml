@@ -1,7 +1,0 @@
-extends:
-    - file: private/proteus-mprans.yaml
-
-parameters:
-    platform: linux
-    fortran: true
-    PATH: /usr/bin:/bin
