@@ -50,7 +50,8 @@ install:
 - cd ..
 
 script:
-- proteus/hashdist/bin/hit build -v $TEST_PROFILE 2>&1
+- proteus/hashdist/bin/hit build -v py.test --boxed -v Tests/test_quiescent_water.py
+
 
 notifications:
   email:
