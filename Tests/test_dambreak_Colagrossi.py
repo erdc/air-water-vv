@@ -75,43 +75,43 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
         assert(True)
 
         
-    def test_validate(self):
-        # Reading file
-        filename='pressureGauge.csv'
-        with open (filename, 'rb') as csvfile: 
-            data=csv.reader(csvfile, delimiter=",")
-            a=[]
-            time=[]
-            probes=[]
-            nRows=0
-            for row in data:
-                if nRows!=0:
-                    time.append(float(row[0]))
-                if nRows==0:              
-                    for i in row:              
-                        if i!= '      time':   
-                            i=float(i[14:24])  
-                            probes.append(i)   
-                row2=[]
-                for j in row:
-                    if j!= '      time' and nRows>0.:
-                        j=float(j)
-                        row2.append(j)
-                a.append(row2)
-                nRows+=1
-            # Making the pressure dimensionless   
-            pressure2=np.zeros(nRows-1, dtype=float)
-            pressure2A=np.zeros(nRows-1, dtype=float)
-            timeA=np.zeros(nRows-1, dtype=float)
-            for k in range(1,nRows):
-                pressure2[k-1]=(float(a[k][1]))    
-                timeA[k-1]=time[k-1]*(9.81/0.6)**0.5
-            pressure2A=pressure2/(998.2*9.81*0.6)
-            # Validation of the results
-            maxPressureCal = max(pressure2A)
-            maxPressureRef = 0.876481416000
-            err = 100*abs(maxPressureRef-maxPressureCal)/maxPressureRef
-            assert(err<12.0)
+#    def test_validate(self):
+#        # Reading file
+#        filename='pressureGauge.csv'
+#        with open (filename, 'rb') as csvfile: 
+#            data=csv.reader(csvfile, delimiter=",")
+#            a=[]
+#            time=[]
+#            probes=[]
+#            nRows=0
+#            for row in data:
+#                if nRows!=0:
+#                    time.append(float(row[0]))
+#                if nRows==0:              
+#                    for i in row:              
+#                        if i!= '      time':   
+#                            i=float(i[14:24])  
+#                            probes.append(i)   
+#                row2=[]
+#                for j in row:
+#                    if j!= '      time' and nRows>0.:
+#                        j=float(j)
+#                        row2.append(j)
+#                a.append(row2)
+#                nRows+=1
+#            # Making the pressure dimensionless   
+#            pressure2=np.zeros(nRows-1, dtype=float)
+#            pressure2A=np.zeros(nRows-1, dtype=float)
+#            timeA=np.zeros(nRows-1, dtype=float)
+#            for k in range(1,nRows):
+#                pressure2[k-1]=(float(a[k][1]))    
+#                timeA[k-1]=time[k-1]*(9.81/0.6)**0.5
+#            pressure2A=pressure2/(998.2*9.81*0.6)
+#            # Validation of the results
+#            maxPressureCal = max(pressure2A)
+#            maxPressureRef = 0.876481416000
+#            err = 100*abs(maxPressureRef-maxPressureCal)/maxPressureRef
+#            assert(err<12.0)
 
 if __name__ == '__main__':
     pass

@@ -1,8 +1,0 @@
-build_stages:
-    - name: test_airwatervv
-      handler: bash
-      bash: |
-         py.test --boxed -v Tests/test_quiescent_water.py
-         py.test --boxed -v Tests/test_dambreak_Colagrossi.py
-         py.test --boxed -v Tests/test_dambreak_Ubbink.py
-         py.test --boxed -v Tests/test_wavesloshing.py

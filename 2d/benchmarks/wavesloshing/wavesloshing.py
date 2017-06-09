@@ -28,7 +28,7 @@ opts=Context.Options([
     ("cfl", 0.5 ,"Target cfl"),
     ("opentop", True,"BC"),
     # run time options
-    ("T", 3.0 ,"Simulation time"),
+    ("T", 0.1 ,"Simulation time"),
     ("nsave", 0., "number of saves per second"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     ("dt_fixed", None, "fixed time step for proteus (scale with period)"),
