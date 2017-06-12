@@ -76,40 +76,40 @@ class TestWaveSloshingTetgen(TestTools.AirWaterVVTest):
         assert(True)
 
         
-    def test_validate(self):
-        # Reading file
-        filename='pointGauge_levelset.csv'
-        with open (filename, 'rb') as csvfile: 
-            data=csv.reader(csvfile, delimiter=",")
-            a=[]
-            time=[]
-            probes=[]
-            nRows=0
-            for row in data:
-                if nRows!=0:
-                    time.append(float(row[0]))
-                if nRows==0:              
-                    for i in row:              
-                        if i!= '      time':   
-                            i=float(i[14:24])  
-                            probes.append(i)   
-                row2=[]
-                for j in row:
-                    if j!= '      time' and nRows>0.:
-                        j=float(j)
-                        row2.append(j)
-                a.append(row2)
-                nRows+=1
-            # Taking phi at the left boundary    
-            phi=[]
-            for k in range(1,nRows):
-                phi.append(a[k][1]+0.05)  
-            # Validation of the results
-            # Phi a the left boundary at last time step
-            Phi_f_Cal = phi[-1] 
-            Phi_f_Ana = -wavesloshing.eta(0.0,time[len(time)-1])+0.05 
-            err = 100*abs(Phi_f_Ana-Phi_f_Cal)/Phi_f_Ana
-	    assert(err<2.0) # Error < 2.0%
+#     def test_validate(self):
+#         # Reading file
+#         filename='pointGauge_levelset.csv'
+#         with open (filename, 'rb') as csvfile: 
+#             data=csv.reader(csvfile, delimiter=",")
+#             a=[]
+#             time=[]
+#             probes=[]
+#             nRows=0
+#             for row in data:
+#                 if nRows!=0:
+#                     time.append(float(row[0]))
+#                 if nRows==0:              
+#                     for i in row:              
+#                         if i!= '      time':   
+#                             i=float(i[14:24])  
+#                             probes.append(i)   
+#                 row2=[]
+#                 for j in row:
+#                     if j!= '      time' and nRows>0.:
+#                         j=float(j)
+#                         row2.append(j)
+#                 a.append(row2)
+#                 nRows+=1
+#             # Taking phi at the left boundary    
+#             phi=[]
+#             for k in range(1,nRows):
+#                 phi.append(a[k][1]+0.05)  
+#             # Validation of the results
+#             # Phi a the left boundary at last time step
+#             Phi_f_Cal = phi[-1] 
+#             Phi_f_Ana = -wavesloshing.eta(0.0,time[len(time)-1])+0.05 
+#             err = 100*abs(Phi_f_Ana-Phi_f_Cal)/Phi_f_Ana
+# 	    assert(err<2.0) # Error < 2.0%
 
 if __name__ == '__main__':
     pass

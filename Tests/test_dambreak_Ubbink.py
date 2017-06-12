@@ -75,46 +75,46 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
         assert(True)
 
         
-    def test_validate(self):
-        # Reading file
-        filename='pressureGauge.csv'
-        with open (filename, 'rb') as csvfile: 
-            data=csv.reader(csvfile, delimiter=",")
-            a=[]
-            time=[]
-            probes=[]
-            nRows=0
-            for row in data:
-                if nRows!=0:
-                    time.append(float(row[0]))
-                if nRows==0:              
-                    for i in row:              
-                        if i!= '      time':   
-                            i=float(i[14:24])  
-                            probes.append(i)   
-                row2=[]
-                for j in row:
-                    if j!= '      time' and nRows>0.:
-                        j=float(j)
-                        row2.append(j)
-                a.append(row2)
-                nRows+=1
-            # Takes the pressure   
-            pressure2=[]
-            for k in range(1,nRows):
-                pressure2.append(a[k][1])
-            # Validation of the results
-            maxPressure = max(pressure2)
-            s = 0
-            for i in range(1,len(pressure2)):
-                s = s+pressure2[i]
-            averagePressure = s/len(pressure2)
-            MaxPref = 3293.0
-            AvPref = 654.3
-            errMax = 100*abs(MaxPref-maxPressure)/MaxPref
-            errAv = 100*abs(AvPref-averagePressure)/AvPref
-            assert(errMax<2.0)
-            assert(errAv<0.5)
+#    def test_validate(self):
+#        # Reading file
+#        filename='pressureGauge.csv'
+#        with open (filename, 'rb') as csvfile: 
+#            data=csv.reader(csvfile, delimiter=",")
+#            a=[]
+#            time=[]
+#            probes=[]
+#            nRows=0
+#            for row in data:
+#                if nRows!=0:
+#                    time.append(float(row[0]))
+#                if nRows==0:              
+#                    for i in row:              
+#                        if i!= '      time':   
+#                            i=float(i[14:24])  
+#                            probes.append(i)   
+#                row2=[]
+#                for j in row:
+#                    if j!= '      time' and nRows>0.:
+#                        j=float(j)
+#                        row2.append(j)
+#                a.append(row2)
+#                nRows+=1
+#            # Takes the pressure   
+#            pressure2=[]
+#            for k in range(1,nRows):
+#                pressure2.append(a[k][1])
+#            # Validation of the results
+#            maxPressure = max(pressure2)
+#            s = 0
+#            for i in range(1,len(pressure2)):
+#                s = s+pressure2[i]
+#            averagePressure = s/len(pressure2)
+#            MaxPref = 3293.0
+#            AvPref = 654.3
+#            errMax = 100*abs(MaxPref-maxPressure)/MaxPref
+#            errAv = 100*abs(AvPref-averagePressure)/AvPref
+#            assert(errMax<2.0)
+#            assert(errAv<0.5)
 
 if __name__ == '__main__':
     pass
