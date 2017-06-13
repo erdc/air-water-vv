@@ -1,24 +1,27 @@
-def CreateFig():
+def CreateFig(casefile):
+    '''casefile is the name of the python file used as the test case to run. For example, casefile would be linear_waves to access linear_waves.py and linear_waves_so.py. casefile is implemented as a string'''
+    
+    testcase_so=__import__(casefile+'_so')
+    testcase=__import__(casefile)
     from tables import  openFile
-    archive = openFile('nonlinear_waves.h5','r')
-    import nonlinear_waves as tank
-    import nonlinear_waves_so as tank_so
+    archive = openFile(casefile+'.h5','r')
     import matplotlib.tri as mtri
     from matplotlib import pyplot as  plt
     import numpy as np
-    domain = tank.domain
+    
+    domain = testcase.domain
     nodes = archive.getNode("/nodesSpatial_Domain0")
     x=nodes[:,0]
     y=nodes[:,1]
     elements = archive.getNode("/elementsSpatial_Domain0")
     triang = mtri.Triangulation(x, y, elements)
-    domain.L=tank.tank_dim
+    domain.L=testcase.tank_dim
     domain.x=[0.,0.,0.]
     xg = np.linspace(0, domain.L[0], 20)
     yg = np.linspace(0, domain.L[1], 20)
     xi, yi = np.meshgrid(xg,yg)
     plt.figure()
-    for it,t in enumerate(tank_so.tnList[:]):
+    for it,t in enumerate(testcase_so.tnList[:]):
         phi = archive.getNode("/phi_t"+`it`)
         vof = archive.getNode("/vof_t"+`it`)
         wvof = np.ones(vof.shape,'d')
@@ -29,7 +32,7 @@ def CreateFig():
         plt.xlabel(r'z[m]')
         plt.ylabel(r'x[m]')
         colors = ['b','g','r','c','m','y','k','w']
-        #plt.xlim(domain.x[0]-0.1*domain.L[0],domain.x[0]+domain.L[0]+0.1*domain.L[0])    
+        plt.xlim(domain.x[0]-0.1*domain.L[0],domain.x[0]+domain.L[0]+0.1*domain.L[0])    
         for si,s in enumerate(domain.segments):
             plt.plot([domain.vertices[s[0]][0],
                      domain.vertices[s[1]][0]],

@@ -1,13 +1,16 @@
-def CreateFig():
+def CreateFig(casefile):
+    '''casefile is the name of the python file used as the test case to run. For example, casefile would be linear_waves to access linear_waves.py and linear_waves_so.py. casefile is implemented as a string'''
+    
+    testcase_so=__import__(casefile+'_so')
+    testcase=__import__(casefile)
     from tables import  openFile
-    archive = openFile('dambreak_Colagrossi_p.h5','r')
-    import dambreak_Colagrossi
-    import dambreak_Colagrossi_so
+    archive = openFile(casefile+'.h5','r')
     import matplotlib.tri as mtri
     from matplotlib import pyplot as  plt
     import numpy as np
-    domain = dambreak_Colagrossi.domain
-    domain.L = dambreak_Colagrossi.tank_dim
+    
+    domain = testcase.domain
+    domain.L = testcase.tank_dim
     domain.x = (0.,0.,0.)
     nodes = archive.getNode("/nodesSpatial_Domain0")
     x=nodes[:,0]
@@ -18,7 +21,7 @@ def CreateFig():
     yg = np.linspace(0, domain.L[1], 20)
     xi, yi = np.meshgrid(xg,yg)
     plt.figure()
-    for it,t in enumerate(dambreak_Colagrossi_so.tnList[:]):
+    for it,t in enumerate(testcase_so.tnList[:]):
         phi = archive.getNode("/phi_t"+`it`)
         vof = archive.getNode("/vof_t"+`it`)
         wvof = np.ones(vof.shape,'d')
