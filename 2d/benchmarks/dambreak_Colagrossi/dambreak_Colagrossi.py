@@ -29,7 +29,7 @@ opts=Context.Options([
     ("refinement", 32 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
     ("cfl", 0.33 ,"Target cfl"),
     # run time options
-    ("T", 3.0 ,"Simulation time"),
+    ("T", 0.09 ,"Simulation time"),
     ("dt_fixed", 0.01, "Fixed time step"),
     ("dt_init", 0.001 ,"Maximum initial time step"),
     ("useHex", False, "Use a hexahedral structured mesh"),
