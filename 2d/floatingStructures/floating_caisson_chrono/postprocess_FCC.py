@@ -5,7 +5,7 @@ import math
 import AnalysisTools as at
 
 ## Reading probes into the file
-folder = "output_rot[FAILED]"
+folder = "output"
 os.chdir(folder)
 probes = 'record_rectangle1.csv'        
         
