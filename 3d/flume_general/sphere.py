@@ -5,6 +5,7 @@ import numpy as np
 
 
 opts=Context.Options([
+    ("inflow_velocity", 3., "upstream mean velocity"),
     ("water_level", 1., "Height of free surface above bottom"),
     # tank
     ("tank_x", 2., "Length of tank"),
@@ -70,8 +71,20 @@ st.assembleDomain(domain)  # must be called after defining shapes
 
 tank.BC['z+'].setAtmosphere()
 tank.BC['z-'].setNoSlip()
-tank.BC['x-'].setNoSlip()
-tank.BC['x+'].setNoSlip()
+# Inflow / Sponge
+tank.BC['x-'].setTwoPhaseVelocityInlet(U=[opts.inflow_velocity,0.,0.],
+                                       waterLevel=water_level,
+                                       smoothing=3.0*opts.he,
+)
+# Outflow
+tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=water_level,
+                                                    rhoUp=rho_1,
+                                                    rhoDown=rho_0,
+                                                    g=g,
+                                                    refLevel=tank_dim[1],
+                                                    smoothing=3.0*opts.he,
+                                                    )
+
 tank.BC['y-'].setNoSlip()
 tank.BC['y+'].setNoSlip()
 for key, bc in tank.BC.items():

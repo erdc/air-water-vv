@@ -95,7 +95,7 @@ class P_IC:
 
 class U_IC:
     def uOfXT(self, x, t):
-        return 0.0
+        return ct.inflow_velocity
 
 class V_IC:
     def uOfXT(self, x, t):
