@@ -46,7 +46,7 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 10.0, "Simulation time"),
+    ("T", 0.05, "Simulation time"),
     ("dt_fixed", 0.02, "Fixed time step"),
     ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10)"),
     # run details
