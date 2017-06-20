@@ -80,3 +80,7 @@ maxNonlinearIts = 50
 maxLineSearches = 0
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['ls']
+if ct.isosurface:
+    auxiliaryVariables = [ct.isosurface]+auxiliaryVariables
+
+

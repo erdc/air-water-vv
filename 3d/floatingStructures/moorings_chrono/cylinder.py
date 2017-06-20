@@ -25,14 +25,21 @@ opts=Context.Options([
     ("free_r", (1., 1., 1.), "Rotational DOFs"),
     ("VCG", 0.0758, "VCG"),
     ("moorings", True, "moorings"),
+    # waves
+    ("waves", True, "Generate waves (True/False)"),
+    ("wave_period", 1., "Period of the waves"),
+    ("wave_height", 0.15, "Height of the waves"),
+    ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     # mesh refinement
     ("he", 0.2, "Set characteristic element size"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "use_gmsh"),
+    ("refinement", True, "ref"),
     ("refinement_freesurface", 0.1, "ref"),
+    ("refinement_grading", 1.2, "ref"),
     ("movingDomain", True, "True/False"),
-    ("T", 10.0, "Simulation time"),
+    ("T", 50.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("chrono_dt", 1e-4, "time step in chrono"),
@@ -41,15 +48,16 @@ opts=Context.Options([
     ("nsave", 5, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ("sc", 0.25, "shockCapturing factor"),
-    ("parallel", True ,"Run in parallel")])
+    ])
 
+sampleRate = 0.05
 
 rho_0=998.2
 nu_0 =1.004e-6
 rho_1=1.205
 nu_1 =1.500e-5
 sigma_01=0.0
-g = [0., 0., -9.81]
+g = np.array([0., 0., -9.81])
 
 # ----- CONTEXT ------ #
 
@@ -58,7 +66,6 @@ water_level = opts.water_level
 
 # tank options
 tank_dim = [opts.tank_x, opts.tank_y, opts.tank_z]
-cylinder_coords = opts.cylinder_coords
 cylinder_radius = opts.cylinder_radius
 cylinder_height = opts.cylinder_height
 free_x = np.array(opts.free_x)
@@ -66,15 +73,49 @@ free_r = np.array(opts.free_r)
 chrono_dt = opts.chrono_dt
 
 
+wavelength=1.
+# general options
+
+if opts.waves is True:
+    height = opts.wave_height
+    mwl = depth = opts.water_level
+    direction = np.array(opts.wave_dir)
+    period = opts.wave_period
+    BCoeffs = np.zeros(3)
+    YCoeffs = np.zeros(3)
+    wave = wt.MonochromaticWaves(period=period,
+                                 waveHeight=height,
+                                 mwl=mwl,
+                                 depth=depth,
+                                 g=g,
+                                 waveDir=direction,
+                                 wavelength=wavelength,
+                                 waveType='Linear',
+                                 Ycoeff=YCoeffs,
+                                 Bcoeff=BCoeffs,
+                                 Nf=len(BCoeffs),
+                                 fast=False)
+    wavelength = wave.wavelength
+
+print("WAVELENGTH: ", wavelength)
+
+# tank options
+if opts.waves is True:
+    tank_dim = (2*wavelength, opts.tank_y, water_level*2)
+    tank_sponge = (1*wavelength, 2*wavelength, 0., 0.)
+else:
+    tank_sponge = [0.,0., 0., 0.]
+cylinder_coords = [tank_dim[0]/2., tank_dim[1]/2., opts.cylinder_coords[2]]
+
 # ----- DOMAIN ----- #
 
-geofile = 'mesh'
 domain = Domain.PiecewiseLinearComplexDomain()
 
 
 # ----- SHAPES ----- #
 
-tank = st.Cuboid(domain, dim=tank_dim, coords=np.array(tank_dim)/2.)
+tank = st.Tank3D(domain, tank_dim)
+#tank = st.Cuboid(domain, dim=tank_dim, coords=np.array(tank_dim)/2.)
 #tank = st.Tank3D(domain, dim=(5., 5., 1.8))
 barycenter = cylinder_coords-np.array([0.,0.,cylinder_height/2.])+np.array([0.,0.,opts.VCG])
 
@@ -93,22 +134,26 @@ if opts.cylinder is True:
 # ----- CHRONO ----- #
 
 g = np.array([0., 0., -9.81])
-system = crb.ProtChSystem(g)
+system = crb.ProtChSystem(g, sampleRate=sampleRate)
 print('processor', system.chrono_processor)
 print('mode', system.parallel_mode)
+#system.chrono_processor = 0
+#system.parallel_mode = False
 system.setTimeStep(chrono_dt)
+system.build_kdtree = True
 timestepper = "Euler"
 if timestepper == "HHT":
     system.setTimestepperType("HHT")
-mesh = crb.Mesh(system)
 
 if opts.cylinder is True:
     body = crb.ProtChBody(system, shape=cylinder)
     body.setConstraints(free_x=free_x, free_r=free_r)
     body.ChBody.SetMass(opts.cylinder_mass)
     body.setRecordValues(all_values=True)
+    body.ChBody.SetBodyFixed(False)
 
 if opts.moorings is True:
+    mesh = crb.Mesh(system)
     mooring_X = 6.660
 
     anchor = np.array([mooring_X, 0., 0.9])
@@ -134,7 +179,7 @@ if opts.moorings is True:
     EA = 1e20
     d = 4.786e-3
     A0 = (np.pi*d**2/4)
-    nb_elems = 20
+    nb_elems = 100
     dens = 0.1446/A0
     E = 1e9
     l1 = MooringLine(L=L, w=w, EA=EA, anchor=anchor1, fairlead=fairlead1, tol=1e-8)
@@ -155,31 +200,24 @@ if opts.moorings is True:
     m2 = crb.ProtChMoorings(system=system, mesh=mesh, length=L, nb_elems=nb_elems, d=d, rho=dens, E=E, beam_type=cable_type)
     m3 = crb.ProtChMoorings(system=system, mesh=mesh, length=L, nb_elems=nb_elems, d=d, rho=dens, E=E, beam_type=cable_type)
 
-
     m1.setNodesPositionFunction(l1.s)
     m2.setNodesPositionFunction(l2.s)
     m3.setNodesPositionFunction(l3.s)
-    m1.setNodesPosition()
-    m2.setNodesPosition()
-    m3.setNodesPosition()
 
-    m1.buildNodes()
-    m2.buildNodes()
-    m3.buildNodes()
-
-    pos1 = m1.getNodesPosition()
-    m1.fixFrontNode(True)
-    m2.fixFrontNode(True)
-    m3.fixFrontNode(True)
+    moorings = [m1, m2, m3]
+    for m in moorings:
+        m.external_forces_from_ns = True
+        m.setNodesPosition()
+        m.buildNodes()
+        m.setFluidDensityAtNodes(np.array([rho_0 for i in range(m.nodes_nb)]))
+        m.fixFrontNode(True)
 
     #m1.fixBackNode(True)
     #m2.fixBackNode(True)
     #m3.fixBackNode(True)
 
-    if opts.cylinder is True:
-        m1.attachBackNodeToBody(body)
-        m2.attachBackNodeToBody(body)
-        m3.attachBackNodeToBody(body)
+        if opts.cylinder is True:
+            m.attachBackNodeToBody(body)
 
     # FLOOR
     pos1 = m1.getNodesPosition()
@@ -187,7 +225,7 @@ if opts.moorings is True:
     pos3 = m3.getNodesPosition()
 
     Efloor = 2e4
-    material = pych.ChMaterialSurfaceDEM()
+    material = pych.ChMaterialSurfaceSMC()
     material.SetYoungModulus(Efloor)
     material.SetFriction(0.3)
     material.SetRestitution(0.2)
@@ -200,17 +238,18 @@ if opts.moorings is True:
     extra = '_'+cable_type+'_'+str(Efloor)+'_detached_I'
     if np.sum(opts.free_x) == 0:
         extra += 'fixed'
-    m1.setName('mooring1_'+timestepper+extra)
-    m2.setName('mooring2_'+timestepper+extra)
-    m3.setName('mooring3_'+timestepper+extra)
+    m1.setName('mooring1')
+    m2.setName('mooring2')
+    m3.setName('mooring3')
 
     box_pos = np.array([0.,0.,-0.11])
     box_dim = np.array([20.,20.,0.2])
     vec = pych.ChVector(0., 0., -0.11)
-    #box = pych.ChBodyEasyBox(system, box_dim[0], box_dim[1], box_dim[2], 1000, True)
-    #box.SetPos(vec)
-    #box.SetMaterialSurface(material)
-    #box.SetBodyFixed(True)
+    box = pych.ChBodyEasyBox(box_dim[0], box_dim[1], box_dim[2], 1000, True)
+    box.SetPos(vec)
+    box.SetMaterialSurface(material)
+    box.SetBodyFixed(True)
+    system.addBodyEasyBox(box)
 
 
 # ----- BOUNDARY CONDITIONS ----- #
@@ -218,15 +257,41 @@ if opts.moorings is True:
 # to change individual BC functions, example:
 # tank.BC['x-'].u_dirichlet.uOfXT = lambda x, t: 3.*t
 tank.BC['z+'].setAtmosphere()
-tank.BC['z-'].setNoSlip()
-tank.BC['x-'].setNoSlip()
-tank.BC['x+'].setNoSlip()
-tank.BC['y-'].setNoSlip()
-tank.BC['y+'].setNoSlip()
+tank.BC['z-'].setFreeSlip()
+tank.BC['x-'].setFreeSlip()
+tank.BC['x+'].setFreeSlip()
+tank.BC['y-'].setFreeSlip()
+tank.BC['y+'].setFreeSlip()
+tank.BC['sponge'].setNonMaterial()
 for key, bc in tank.BC.items():
     # fix the nodes on the wall of tank
     # in case of moving domain
     bc.setFixedNodes()
+
+if opts.waves is True:
+    tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1], y_n=tank_sponge[2], y_p=tank_sponge[3])
+    left = right = False
+    if tank_sponge[0]: left = True
+    if tank_sponge[1]: right = True
+    if opts.waves is True:
+        dragAlpha = 5*(2*np.pi/period)/nu_0
+    else:
+        dragAlpha = 0.5/nu_0
+    if left:
+        if opts.waves is True:
+            smoothing = opts.he*3.
+            tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=dragAlpha)
+            tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=2)
+        else:
+            tank.setAbsorptionZones(x_n=left, dragAlpha=dragAlpha)
+            tank.BC['x-'].setNoSlip()
+    else:
+        tank.BC['x-'].setNoSlip()
+    if right:
+        tank.setAbsorptionZones(x_p=right, dragAlpha=dragAlpha)
+
+
+
 
 if opts.cylinder is True:
     for key, bc in cylinder.BC.items():
@@ -252,123 +317,59 @@ tank_sponge = [0,0]
 
 
 
-from py2gmsh2 import Fields, Entity
-from MeshRefinement import geometry_to_gmsh
-mesh = geometry_to_gmsh(domain)
-grading = 1.03
-he = opts.he
-he_max = 10.
-he_max_water = 10.
-ecH = 3.
-if opts.refinement_freesurface > 0:
-    box = opts.refinement_freesurface
-else:
-    box = ecH*he
-field_list = []
 
-# refinement free surface
-#box1 = Fields.Box(mesh=mesh)
-#box1.VIn = he/10.
-#box1.VOut = he_max
-#box1.XMin = -tank_sponge[0]
-#box1.XMax = tank_dim[0]+tank_sponge[1]
-#box1.XMin = -tank_sponge[1]
-#box1.XMax = tank_dim[1]+tank_sponge[1]
-#box1.ZMin = water_level-box
-#box1.ZMax = water_level+box
-#field_list += [box1]
+grading = np.cbrt(opts.refinement_grading*12/np.sqrt(2))/np.cbrt(1.*12/np.sqrt(2))  # convert change of volume to change of element size
+geofile = 'mesh'+str(int(tank_dim[0]*1000))+str(int(tank_sponge[0]*1000))+str(int(he*1000))
+if opts.refinement is True:
+    import py2gmsh
+    from MeshRefinement import geometry_to_gmsh
+    mesh = geometry_to_gmsh(domain)
+    grading = np.cbrt(opts.refinement_grading*12/np.sqrt(2))/np.cbrt(1.*12/np.sqrt(2))  # convert change of volume to change of element size
+    he = opts.he
+    he_max = 10.
+    he_max_water = 10.
+    ecH = 3.
+    if opts.refinement_freesurface > 0:
+        box = opts.refinement_freesurface
+    else:
+        box = ecH*he
+    field_list = []
 
-#p0 = Entity.Point([0., 0., water_level+box], mesh=mesh)
-#p1 = Entity.Point([0., tank_dim[1], water_level+box], mesh=mesh)
-#p2 = Entity.Point([tank_dim[0], tank_dim[1], water_level+box], mesh=mesh)
-#p3 = Entity.Point([tank_dim[0], 0., water_level+box], mesh=mesh)
-#l1 = Entity.Line([p0, p1], mesh=mesh)
-#l2 = Entity.Line([p1, p2], mesh=mesh)
-#l3 = Entity.Line([p2, p3], mesh=mesh)
-#l4 = Entity.Line([p3, p0], mesh=mesh)
-#ll1 = Entity.LineLoop([l1, l2, l3, l4], mesh=mesh)
-#s1 = Entity.PlaneSurface([ll1], mesh=mesh)
-#
-#p10 = Entity.Point([0., 0., water_level-box], mesh=mesh)
-#p11 = Entity.Point([0., tank_dim[1], water_level-box], mesh=mesh)
-#p12 = Entity.Point([tank_dim[0], tank_dim[1], water_level-box], mesh=mesh)
-#p13 = Entity.Point([tank_dim[0], 0., water_level-box], mesh=mesh)
-#l11 = Entity.Line([p10, p11], mesh=mesh)
-#l12 = Entity.Line([p11, p12], mesh=mesh)
-#l13 = Entity.Line([p12, p13], mesh=mesh)
-#l14 = Entity.Line([p13, p10], mesh=mesh)
-#ll2 = Entity.LineLoop([l11, l12, l13, l14], mesh=mesh)
-#s2 = Entity.PlaneSurface([ll2], mesh=mesh)
-#
-#bl2 = Fields.BoundaryLayer(mesh=mesh)
-#bl2.hwall_n = he
-#bl2.ratio = grading
-#bl2.EdgesList = [l1, l2, l3, l4]
-#field_list += [bl2]
-#
-#bl2 = Fields.BoundaryLayer(mesh=mesh)
-#bl2.hwall_n = he
-#bl2.ratio = grading
-#bl2.EdgesList = [l11, l12, l13, l14]
-#field_list += [bl2]
+    # refinement free surface
+    box1 = py2gmsh.Fields.Box(mesh=mesh)
+    box1.VIn = he
+    box1.VOut = he_max
+    box1.XMin = -tank_sponge[0]
+    box1.XMax = tank_dim[0]+tank_sponge[1]
+    box1.YMin = 0
+    box1.YMax = tank_dim[1]
+    box1.ZMin = water_level-box
+    box1.ZMax = water_level+box
+    field_list += [box1]
 
-# max element size in water phase
-#box2 = Fields.Box(mesh=mesh)
-#box2.VIn = he_max_water
-#box2.VOut = he_max
-#box2.XMin = -tank_sponge[0]
-#box2.XMax = tank_dim[0]+tank_sponge[1]
-#box2.YMin = 0
-#box2.YMax = water_level
-#field_list += [box2]
-#
-#if opts.cylinder:
-#    # boundary layer on caisson
-#    bl1 = Fields.BoundaryLayer()
-#    bl1.hwall_n = he
-#    bl1.ratio = grading
-#    bl1.EdgesList = mesh.getLinesFromIndex([i+1 for i in range(len(cylinder.segments))])
-#    mesh.addField(bl1)
-#    field_list += [bl1]
+    def mesh_grading(start, he, grading):
+        return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
 
-#if opts.refinement_caisson:
-#    # create circle (non-physical) around caisson
-#    refinement_caisson = opts.refinement_caisson
-#    p0 = .Entity.Point([caisson_coords[0], caisson_coords[1], 0.], mesh=mesh)
-#    p1 = .Entity.Point([caisson_coords[0]-refinement_caisson, caisson_coords[1], 0.], mesh=mesh)
-#    p2 = .Entity.Point([caisson_coords[0]+refinement_caisson, caisson_coords[1], 0.], mesh=mesh)
-#    p3 = .Entity.Point([caisson_coords[0]-refinement_caisson+0.00001, caisson_coords[1], 0.], mesh=mesh)
-#    c1 = .Entity.Circle(p1, p0, p2, nb=100, mesh=mesh)
-#    c2 = .Entity.Circle(p2, p0, p3, nb=101, mesh=mesh)
-#
-#    # refined circle around caisson
-#    b1 = .Fields.Ball(mesh=mesh)
-#    b1.VIn = he
-#    b1.VOut = he_max
-#    b1.Radius = refinement_caisson
-#    b1.XCenter = caisson_coords[0]
-#    b1.YCenter = caisson_coords[1]
-#    b1.ZCenter = 0.
-#    field_list += [b1]
-#
-#    # boundary layer on circle around caisson
-#    bl3 = .Fields.BoundaryLayer(mesh=mesh)
-#    bl3.hwall_n = he
-#    bl3.ratio = grading
-#    bl3.EdgesList = [c1, c2]
-#    field_list += [bl3]
+    math1 = py2gmsh.Fields.MathEval(mesh=mesh)
+    math1.F = mesh_grading(start='sqrt((z-{zmax})^2)'.format(zmax=water_level+box), he=he, grading=grading)
+    field_list += [math1]
 
-# background field
-#fmin = Fields.Min(mesh=mesh)
-#fmin.FieldsList = field_list
-#mesh.setBackgroundField(fmin)
+    math2 = py2gmsh.Fields.MathEval(mesh=mesh)
+    math2.F = mesh_grading(start='sqrt((z-{zmin})^2)'.format(zmin=water_level+box), he=he, grading=grading)
+    field_list += [math2]
 
-# max element size
-mesh.Options.Mesh.CharacteristicLengthMax = he_max
+    # background field
+    fmin = py2gmsh.Fields.Min(mesh=mesh)
+    fmin.FieldsList = field_list
+    mesh.setBackgroundField(fmin)
 
-mesh.writeGeo(geofile+'.geo')
+    # max element size
+    mesh.Options.Mesh.CharacteristicLengthMax = he_max
+
+    mesh.writeGeo(geofile+'.geo')
 
 domain.use_gmsh = opts.use_gmsh
+domain.MeshOptions.genMesh = opts.genMesh
 domain.geofile = geofile
 domain.MeshOptions.use_gmsh = opts.use_gmsh
 
@@ -565,3 +566,21 @@ def twpflowPressure_init(x, t):
     phi = x[nd-1] - water_level
     return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi)))
+
+#isosurface = None
+from proteus.Isosurface import Isosurface
+isosurface = Isosurface(isosurfaces=(('phi', (0.,)),), domain=domain, format='h5', sampleRate=sampleRate)
+
+
+def load_simulation_globals():
+    """Put some variables we need in engine namespace.
+
+    These can then be retrieved by clients for inspection, visualization, etc.
+    """
+    nodes = isosurface.nodes_array
+    triangles = isosurface.elements_array
+    x = nodes[:,0]
+    y = nodes[:,1]
+    z = nodes[:,2]
+    vertices = nodes
+    nn = len(x)

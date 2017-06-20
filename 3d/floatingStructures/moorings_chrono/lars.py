@@ -15,7 +15,7 @@ spheres =[]
 from proteus.mbd import ChRigidBody as crb
 
 g = np.array([0., 0., -9.807])
-system = crb.System(g)
+system = crb.ProtChSystem(g)
 system.setTimeStep(0.001)
 timestepper = "Euler"
 if timestepper == "HHT":
@@ -48,11 +48,12 @@ l1.setVariables()
 
 func = lambda s: (s, s, s)
 
-body = crb.RigidBody(system, free_x=np.array([0.,0.,0.]), free_r=np.array([0.,0.,0.]))
-body.setMass(50.)
+body = crb.ProtChBody(system)
+body.setConstraints(free_x=np.array([0.,0.,0.]), free_r=np.array([0.,0.,0.]))
+body.ChBody.SetMass(50.)
 #body.setPosition(pos[-1])
 
-moorings = crb.Moorings(system, mesh, length, nb_elems, d, rho, E, "CableANCF")
+moorings = crb.ProtChMoorings(system, mesh, length, nb_elems, d, rho, E, "CableANCF")
 external_forces_bool = True
 moorings.external_forces_manual = external_forces_bool
 Cd = False
@@ -69,7 +70,8 @@ pos = moorings.getNodesPosition()
 
 
 
-material = crb.ChMaterialSurfaceDEM()
+from proteus.mbd import pyChronoCore as cc
+material = cc.ChMaterialSurfaceSMC()
 material.SetYoungModulus(2e4)
 material.SetFriction(0.3)
 material.SetRestitution(0.2)
@@ -85,11 +87,11 @@ moorings.setContactMaterial(material)
 
 box_pos = np.array([0.,0.,-0.11])
 box_dim = np.array([20.,1.,0.2])
-vec = crb.ChVector(0., 0., -0.11)
-box = crb.ChBodyEasyBox(system, box_dim[0], box_dim[1], box_dim[2], 1000, True)
-box.SetPos(vec)
-box.SetMaterialSurface(material)
-box.SetBodyFixed(True)
+vec = cc.ChVector(0., 0., -0.11)
+#box = cc.ChBodyEasyBox(system, box_dim[0], box_dim[1], box_dim[2], 1000, True)
+#box.SetPos(vec)
+#box.SetMaterialSurface(material)
+#box.SetBodyFixed(True)
 
 # Some variables used inside the simulation loop
 fps = 100

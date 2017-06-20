@@ -49,4 +49,4 @@ if nd == 3:
     dirichletConditions[2] = lambda x, flag: domain.bc[flag].hz_dirichlet.init_cython()
     fluxBoundaryConditions[2] = 'noFlow'
     diffusiveFluxBoundaryConditions[2] = {}
-    stressFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].w_stress
+    stressFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].w_stress.init_cython()
