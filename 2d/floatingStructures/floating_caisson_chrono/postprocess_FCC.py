@@ -22,7 +22,7 @@ for i in range(0,len(rotq_e3)):
 alpha = np.array(alpha)
 
 it = np.where(time>2.5)[0][0]
-period = at.zeroCrossing(time[:it],alpha[:it])[0]
+period = at.zeroCrossing(time[:it],alpha[:it],up=False)[0]
 
 period_ref = 0.93
 err = abs(period_ref-period)/abs(period_ref)
