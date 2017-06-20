@@ -12,7 +12,7 @@ opts=Context.Options([
     # predefined test cases
     ("water_level", 1.5, "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (3.137*2, 3., 3.,), "Dimensions of the tank"),
+    ("tank_dim", (3.137*2, 2.5, 3.,), "Dimensions of the tank"),
     ("tank_sponge", (3.137, 3.137*2), "Length of absorption zones (front/back, left/right)"),
     ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
     ("gauge_output", False, "Places Gauges in tank"),
@@ -59,7 +59,7 @@ opts=Context.Options([
     ("he_max_water", 10, "Set maximum characteristic in water"),
     ("refinement_freesurface", 0.25,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_caisson", 0.75,"Set area of constant refinement (Box) around caisson (+/- value)"),
-    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
+    ("refinement_grading", 1.2, "Grading of refinement/coarsening (default: 20% volume)"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
@@ -77,6 +77,13 @@ opts=Context.Options([
     ("parallel", True ,"Run in parallel")])
 
 
+rho_0 = 998.2
+nu_0 = 1.004e-6
+rho_1 = 1.205
+nu_1 = 1.500e-5
+sigma_01 = 0.0
+g = np.array([0., 0., -9.81])
+
 
 # ----- CONTEXT ------ #
 
@@ -84,7 +91,6 @@ wavelength=1.
 # general options
 waterLevel = opts.water_level
 rotation_angle = np.radians(opts.rotation_angle)
-g = np.array([0., 0., -9.81])
 
 # waves
 if opts.waves is True:
@@ -310,22 +316,6 @@ if opts.caisson is True:
 
 # ----- SHAPES ----- #
 tank = st.Tank3D(domain, tank_dim)
-tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
-left = right = False
-if tank_sponge[0]: left = True
-if tank_sponge[1]: right = True
-if left:
-    if opts.waves is True:
-        smoothing = opts.he*3.
-        tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=0.5/1.004e-6)
-        tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
-    else:
-        tank.setAbsorptionZones(x_n=left, dragAlpha=0.5/1.004e-6)
-        tank.BC['x-'].setNoSlip()
-else:
-    tank.BC['x-'].setNoSlip()
-if right:
-    tank.setAbsorptionZones(x_p=right)
 if opts.caisson:
     # let gmsh know that the caisson is IN the tank
     tank.setChildShape(caisson, 0)
@@ -336,11 +326,15 @@ tank.segmentFlags = None
 
 # ----- BOUNDARY CONDITIONS ----- #
 
-tank.BC['y+'].setAtmosphere()
+tank.BC['z+'].setAtmosphere()
 if opts.tank_BC == 'noslip':
+    tank.BC['z-'].setNoSlip()
     tank.BC['y-'].setNoSlip()
+    tank.BC['y+'].setNoSlip()
 if opts.tank_BC == 'freeslip':
+    tank.BC['z-'].setFreeSlip()
     tank.BC['y-'].setFreeSlip()
+    tank.BC['y+'].setFreeSlip()
 tank.BC['x+'].setNoSlip()
 tank.BC['sponge'].setNonMaterial()
 
@@ -349,6 +343,30 @@ tank.BC['x+'].setFixedNodes()
 tank.BC['sponge'].setFixedNodes()
 tank.BC['y+'].setTank()  # sliding mesh nodes
 tank.BC['y-'].setTank()  #sliding mesh nodes
+tank.BC['z+'].setTank()  # sliding mesh nodes
+tank.BC['z-'].setTank()  #sliding mesh nodes
+
+# absorption/generation zones
+tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+left = right = False
+if tank_sponge[0]: left = True
+if tank_sponge[1]: right = True
+if opts.waves is True:
+    dragAlpha = 5*(2*np.pi/period)/nu_0
+else:
+    dragAlpha = 0.5/nu_0
+if left:
+    if opts.waves is True:
+        smoothing = opts.he*3.
+        tank.setGenerationZones(x_n=left, waves=wave, smoothing=smoothing, dragAlpha=dragAlpha)
+        tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
+    else:
+        tank.setAbsorptionZones(x_n=left, dragAlpha=dragAlpha)
+        tank.BC['x-'].setNoSlip()
+else:
+    tank.BC['x-'].setNoSlip()
+if right:
+    tank.setAbsorptionZones(x_p=right, dragAlpha=dragAlpha)
 
 
 # ----- GAUGES ----- #
@@ -428,32 +446,57 @@ domain.use_gmsh = opts.use_gmsh
 
 # MESH REFINEMENT
 
-import py2gmsh
-from MeshRefinement import geometry_to_gmsh
-mesh = geometry_to_gmsh(domain)
-grading = opts.refinement_grading
-he = opts.he
-he_max = opts.he_max
-he_max_water = opts.he_max_water
-ecH = 3.
-if opts.refinement_freesurface > 0:
-    box = opts.refinement_freesurface
-else:
-    box = ecH*he
-field_list = []
+grading = np.cbrt(opts.refinement_grading*12/np.sqrt(2))/np.cbrt(1.*12/np.sqrt(2))  # convert change of volume to change of element size
+if opts.refinement is True:
+    import py2gmsh
+    from MeshRefinement import geometry_to_gmsh
+    mesh = geometry_to_gmsh(domain)
+    grading = np.cbrt(opts.refinement_grading*12/np.sqrt(2))/np.cbrt(1.*12/np.sqrt(2))  # convert change of volume to change of element size
+    he = opts.he
+    he_max = opts.he_max
+    he_max_water = opts.he_max_water
+    ecH = 3.
+    if opts.refinement_freesurface > 0:
+        box = opts.refinement_freesurface
+    else:
+        box = ecH*he
+    field_list = []
 
-# refinement free surface
-#box1 = py2gmsh.Fields.Box(mesh=mesh)
-#box1.VIn = he
-#box1.VOut = he_max
-#box1.XMin = -tank_sponge[0]
-#box1.XMax = tank_dim[0]+tank_sponge[1]
-#box1.YMin = 0
-#box1.YMax = tank_dim[1]
-#box1.ZMin = waterLevel-box
-#box1.ZMax = waterLevel+box
-#field_list += [box1]
-#
+    # refinement free surface
+    box1 = py2gmsh.Fields.Box(mesh=mesh)
+    box1.VIn = he
+    box1.VOut = he_max
+    box1.XMin = -tank_sponge[0]
+    box1.XMax = tank_dim[0]+tank_sponge[1]
+    box1.YMin = 0
+    box1.YMax = tank_dim[1]
+    box1.ZMin = waterLevel-box
+    box1.ZMax = waterLevel+box
+    field_list += [box1]
+
+    def mesh_grading(start, he, grading):
+        return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
+
+    math1 = py2gmsh.Fields.MathEval(mesh=mesh)
+    math1.F = mesh_grading(start='sqrt((z-{zmax})^2)'.format(zmax=waterLevel+box), he=he, grading=grading)
+    field_list += [math1]
+
+    math2 = py2gmsh.Fields.MathEval(mesh=mesh)
+    math2.F = mesh_grading(start='sqrt((z-{zmin})^2)'.format(zmin=waterLevel+box), he=he, grading=grading)
+    field_list += [math2]
+
+    #cylinder1 = py2gmsh.Fields.Cylinder(mesh=mesh)
+    #cylinder1.Radius = 
+    #cylinder1.VIn = he
+    #cylinder1.VOut = he_max
+    #cylinder1.XAxis = 
+    #cylinder1.Yaxis = 
+    #cylinder1.ZAxis =
+    #cylinder1.XCenter = caisson_coords[0]
+    #cylinder1.YCenter = caisson_coords[1]
+    #cylinder1.ZCenter = caisson_coords[2]
+
+
 #p0 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel+box, 0.], mesh=mesh)
 #p1 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel+box, 0.], mesh=mesh)
 #p2 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel-box, 0.], mesh=mesh)
@@ -466,8 +509,8 @@ field_list = []
 #bl2.ratio = grading
 #bl2.EdgesList = [l1, l2]
 #field_list += [bl2]
-#
-## max element size in water phase
+
+# max element size in water phase
 #box2 = py2gmsh.Fields.Box(mesh=mesh)
 #box2.VIn = he_max_water
 #box2.VOut = he_max
@@ -475,17 +518,19 @@ field_list = []
 #box2.XMax = tank_dim[0]+tank_sponge[1]
 #box2.YMin = 0
 #box2.YMax = waterLevel
+#box2.ZMin = waterLevel+0.1
+#box2.ZMax = waterLevel-0.1
 #field_list += [box2]
-#
+
 #if opts.caisson:
-#    # boundary layer on caisson
-#    bl1 = py2gmsh.Fields.BoundaryLayer()
-#    bl1.hwall_n = he_caisson
-#    bl1.ratio = grading
-#    bl1.EdgesList = mesh.getLinesFromIndex([i+1 for i in range(len(caisson.segments))])
-#    mesh.addField(bl1)
-#    field_list += [bl1]
-#
+    # boundary layer on caisson
+#bl1 = py2gmsh.Fields.BoundaryLayer()
+#bl1.hwall_n = he_caisson
+#bl1.ratio = grading
+#bl1.EdgesList = mesh.getLinesFromIndex([i+1 for i in range(len(caisson.segments))])
+#mesh.addField(bl1)
+#field_list += [bl1]
+
 #if opts.refinement_caisson:
 #    # create circle (non-physical) around caisson
 #    refinement_caisson = opts.refinement_caisson
@@ -493,8 +538,8 @@ field_list = []
 #    p1 = py2gmsh.Entity.Point([caisson_coords[0]-refinement_caisson, caisson_coords[1], 0.], mesh=mesh)
 #    p2 = py2gmsh.Entity.Point([caisson_coords[0]+refinement_caisson, caisson_coords[1], 0.], mesh=mesh)
 #    p3 = py2gmsh.Entity.Point([caisson_coords[0]-refinement_caisson+0.00001, caisson_coords[1], 0.], mesh=mesh)
-#    c1 = py2gmsh.Entity.Circle(p1, p0, p2, nb=100, mesh=mesh)
-#    c2 = py2gmsh.Entity.Circle(p2, p0, p3, nb=101, mesh=mesh)
+#    c1 = py2gmsh.Entity.Circle(p1, p0, p2, mesh=mesh)
+#    c2 = py2gmsh.Entity.Circle(p2, p0, p3, mesh=mesh)
 #
 #    # refined circle around caisson
 #    b1 = py2gmsh.Fields.Ball(mesh=mesh)
@@ -505,21 +550,21 @@ field_list = []
 #    b1.YCenter = caisson_coords[1]
 #    b1.ZCenter = 0.
 #    field_list += [b1]
-#
-#    # boundary layer on circle around caisson
+
+    # boundary layer on circle around caisson
 #    bl3 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
 #    bl3.hwall_n = he
 #    bl3.ratio = grading
 #    bl3.EdgesList = [c1, c2]
 #    field_list += [bl3]
-#
+
 # background field
-#fmin = py2gmsh.Fields.Min(mesh=mesh)
-#fmin.FieldsList = field_list
-#mesh.setBackgroundField(fmin)
+fmin = py2gmsh.Fields.Min(mesh=mesh)
+fmin.FieldsList = field_list
+mesh.setBackgroundField(fmin)
 
 # max element size
-mesh.Options.Mesh.CharacteristicLengthMax = 0.1#he_max
+mesh.Options.Mesh.CharacteristicLengthMax = he_max
 
 mesh.writeGeo(fileprefix+'.geo')
 
@@ -530,15 +575,6 @@ mesh.writeGeo(fileprefix+'.geo')
 ##########################################
 # Numerical Options and other parameters #
 ##########################################
-
-
-rho_0=998.2
-nu_0 =1.004e-6
-rho_1=1.205
-nu_1 =1.500e-5
-sigma_01=0.0
-g = [0., -9.81]
-
 
 
 
