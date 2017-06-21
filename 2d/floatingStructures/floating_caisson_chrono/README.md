@@ -2,7 +2,7 @@
 
 ## Benchmark Layout
 
-This benchmark consists of testing the roll motion (free or under wave loads) of a floating caisson in 2 dimensions. The computational domain is a rectangular tank with default dimensions of 5m x 1.2m, with default floating caisson dimensions are 0.3m x 0.1m. Initially, water in the tank is at rest and the default water level is 0.9m. The walls of the tank have no slip boundary conditions and the top is left open.
+This benchmark consists of testing the roll motion (free or under wave loads) of a floating caisson in 2 dimensions. The computational domain is a rectangular tank with default dimensions of 5m x 1.2m, with default floating caisson dimensions are 0.3m x 0.1m. Initially, water in the tank is at rest and the default water level is 0.9m. The walls of the tank have no slip boundary conditions and the top is left open. This case is using Chrono.
 
 ![Alt text](floating_caisson.png)
 
