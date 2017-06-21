@@ -11,7 +11,7 @@ from proteus.test_utils import TestTools
 import AnalysisTools as at
 import math
 
-class TestFloatingCaissonChronoTetgen(TestTools.AirWaterVVTest):
+class TestFloatingCaissonBDTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
     def setup_class(cls):

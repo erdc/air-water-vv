@@ -22,11 +22,11 @@ for i in range(0,len(rotq_e3)):
 alpha = np.array(alpha)
 
 it = np.where(time>2.5)[0][0]
-period = at.zeroCrossing(time[:it],alpha[:it],up=False)[0]
+period = at.zeroCrossing(time[:it],alpha[:it])[0]
 
 period_ref = 0.93
 err = abs(period_ref-period)/abs(period_ref)
-val = open('validation_FCC.txt', 'w')
+val = open('validation_FCBD.txt', 'w')
 val.write('Period for the rotation angle'+'\n')
 val.write('Theory'+'\t'+'Simulation'+'\t'+'\t'+'Error (%)'+'\n')
 val.write(str(period_ref)+'\t'+str(period)+'\t'+str(err))
@@ -35,7 +35,7 @@ val.close()
 plt.plot(time,alpha)
 plt.xlabel('time [sec]')
 plt.ylabel('rotation angle [deg]')
-plt.suptitle('Rotation angle for the floating caisson 2D')
+plt.suptitle('Rotation angle for the floating caisson 2D (body dynamics)')
 plt.xlim((0.,4.5))
 plt.grid(True)
 plt.savefig('rotation_angle.png')
