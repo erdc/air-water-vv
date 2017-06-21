@@ -71,8 +71,8 @@ he = L[0]/float(4*Refinement-1)
 #he*=0.5
 #he*=0.5
 nLevels = 1
-#parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
-parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
+parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
+#parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 
 structured=False  
@@ -263,7 +263,7 @@ else:
 
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=0.8
+T=0.03
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.001)
 runCFL=0.33
@@ -371,4 +371,11 @@ def signedDistance(x):
             return phi_x
         else:
             return sqrt(phi_x**2 + phi_z**2)
+
+from proteus.MeshAdaptPUMI import MeshAdaptPUMI
+adaptMesh = True
+adaptMesh_nSteps = 1
+adaptMesh_numIter = 2
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=0.1, hmin=0.02, numIter=adaptMesh_numIter,sfConfig="ERM",logType="on",targetError=100,targetElementCount=5000)
+useModel=False#True
 
