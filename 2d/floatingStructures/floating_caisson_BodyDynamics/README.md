@@ -25,11 +25,11 @@ where:
 | water_level    | Height of free surface above bottom                                 | 0.9           |
 | tank_dim       | Dimensions of the tank                                              | (1., 1.2)     |
 | tank_sponge    | Length of absorption zones (left, right)                            | (2., 2.)      |
-| waves          | Boolean to indicate if waves will be generated                      | False         |
-| caisson_dim    | Dimensions of the floating caisson                                  | (0.3, 0.1)    |
-| caisson_coords | Coordinates of caisson (default: middle of the tank at water level) | None          |
-| caisson_width  | Width of the caisson                                                | 0.9           |
+| dimx           | X-dimension of the caisson2D                                        | 0.3           |
+| dimy           | Y-dimension of the caisson2D                                        | 0.1           |
+| center         | Coordinates of caisson center                                       | (0.5, 0.9)    |
+| width          | Width of the caisson                                                | 0.9           |
 | free_x         | Translational degrees of freedom                                    | (0., 0., 0.)  |
 | free_r         | Rotational degrees of freedom                                       | (0., 0., 1.)  |
-| inertia        | Inertia of the caisson                                              | 0.236         |
+| caisson_inertia| Inertia of the caisson [kg.m2]                                      | 0.236         |
 | rotation_angle | Angle of initial rotation (in degrees)                              | 15.           |

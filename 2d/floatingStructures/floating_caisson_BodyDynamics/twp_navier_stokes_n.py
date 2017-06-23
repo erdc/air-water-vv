@@ -10,11 +10,7 @@ mesh = domain.MeshOptions
 
 #time stepping
 runCFL = ct.runCFL
-if ct.timeIntegration == "VBDF":
-    timeIntegration = TimeIntegration.VBDF
-    timeOrder = 2
-else:
-    timeIntegration = TimeIntegration.BackwardEuler_cfl
+timeIntegration = TimeIntegration.BackwardEuler_cfl
 stepController  = StepControl.Min_dt_controller
 
 # mesh options
@@ -83,9 +79,9 @@ nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
-conservativeFlux = {0:'pwl-bdm-opt'}
-if ct.opts.caisson is True:
-    auxs = [ct.system]
-else:
-    auxs = []
-auxiliaryVariables = ct.domain.auxiliaryVariables['twp']+auxs
+if ct.opts.conservativeFlux==True:
+    conservativeFlux = {0:'pwl-bdm-opt'}
+
+auxiliaryVariables = ct.domain.auxiliaryVariables['twp']
+
+

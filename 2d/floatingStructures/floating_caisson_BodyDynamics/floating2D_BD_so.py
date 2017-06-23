@@ -6,6 +6,7 @@ import os
 from proteus.default_so import *
 from proteus import Context
 
+
 # Create context from main module
 name_so = os.path.basename(__file__)
 if '_so.py' in name_so[-6:]:
@@ -15,9 +16,17 @@ elif '_so.pyc' in name_so[-7:]:
 else:
     raise NameError, 'Split operator module must end with "_so.py"'
 
-case = __import__(name)
-Context.setFromModule(case)
-ct = Context.get()
+try:
+    case = __import__(name)
+    Context.setFromModule(case)
+    ct = Context.get()
+except ImportError:
+    raise ImportError, str(name) + '.py not found'
+
+from proteus import BoundaryConditions
+
+for BC in ct.domain.bc:
+    BC.getContext()
 
 # List of p/n files
 pnList = []
@@ -42,29 +51,9 @@ if ct.useRANS > 0:
                ("dissipation_p", "dissipation_n")]
 
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
-if ct.dt_fixed:
-#    systemStepControllerType = Sequential_FixedStep
-    systemStepControllerType = Sequential_MinAdaptiveModelStep
-    dt_system_fixed = ct.dt_fixed
-    stepExactSystem=False
-else:  # use CFL
-    systemStepControllerType = Sequential_MinAdaptiveModelStep
-    stepExactSystem=False
+systemStepControllerType = Sequential_MinAdaptiveModelStep
 
 needEBQ_GLOBAL = False
 needEBQ = False
 
-modelSpinUpList = [0]  # for initial conditions of movemesh
-
-if ct.opts.nsave == 0:
-    if ct.dt_fixed > 0:
-        archiveFlag = ArchiveFlags.EVERY_USER_STEP
-        if ct.dt_init < ct.dt_fixed:
-            tnList = [0., ct.dt_init, ct.dt_fixed, ct.T]
-        else:
-            tnList = [0., ct.dt_fixed, ct.T]
-    else:
-          tnList = [0., ct.dt_init, ct.T]
-else:
-    tnList=[0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_out for i in range(1,ct.nDTout+1)]
-
+tnList = [0.0,ct.dt_init]+[ct.dt_init+i*ct.dt_fixed for i in range(1,ct.nDTout+1)]

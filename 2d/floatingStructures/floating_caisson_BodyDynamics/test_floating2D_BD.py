@@ -2,7 +2,7 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import floating2D_so
+import floating2D_BD_so
 import os
 import numpy as np
 import collections as cll
@@ -26,8 +26,8 @@ class TestFloatingCaissonBDTetgen(TestTools.AirWaterVVTest):
 
     def teardown_method(self,method):
         """ Tear down function """
-        FileList = ['floating2D.xmf',
-                    'floating2D.h5']
+        FileList = ['floating2D_BD.xmf',
+                    'floating2D_BD.h5']
         for file in FileList:
             if os.path.isfile(file):
                 os.remove(file)
@@ -38,13 +38,13 @@ class TestFloatingCaissonBDTetgen(TestTools.AirWaterVVTest):
         from petsc4py import PETSc
         pList = []
         nList = []
-        for (p,n) in floating2D_so.pnList:
+        for (p,n) in floating2D_BD_so.pnList:
             pList.append(__import__(p))
             nList.append(__import__(n))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = floating2D_so
-        so.name = "floating2D"
+        so = floating2D_BD_so
+        so.name = "floating2D_BD"
         if so.sList == []:
             for i in range(len(so.pnList)):
                 s = default_s
@@ -71,26 +71,25 @@ class TestFloatingCaissonBDTetgen(TestTools.AirWaterVVTest):
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
-        ns.calculateSolution('floating2D')
+        ns.calculateSolution('floating2D_BD')
         assert(True)
 
         
     def test_validate(self):
-        probes = 'record_rectangle1.csv'
+        probes = 'caisson2D.csv'
         datalist = at.readProbeFile(probes)
         time = datalist[1]
         data = datalist[2]
-        rotq_e3 = data[:,7]
+        rz = data[:,5]
         alpha = []
-        for i in range(0,len(rotq_e3)):
-            alpha.append(2*math.asin(rotq_e3[i]))
-            alpha[i] *= 360/(2*math.pi)
+        for i in range(0,len(rz)):
+            alpha.append(rz[i]*180/math.pi)
         alpha = np.array(alpha)
         it = np.where(time>2.5)[0][0]
-        period = at.zeroCrossing(time[:it],alpha[:it])[0]
+        period = at.zeroCrossing(time[:it],alpha[:it],up=False)[0]
         period_ref = 0.93
-        err = abs(period_ref-period)/abs(period_ref)
-        assert(err<2.0)
+        err = 100*abs(period_ref-period)/abs(period_ref)
+        assert(err<7.0)
 
 
 if __name__ == '__main__':

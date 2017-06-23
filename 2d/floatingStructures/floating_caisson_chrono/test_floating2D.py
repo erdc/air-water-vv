@@ -87,10 +87,10 @@ class TestFloatingCaissonChronoTetgen(TestTools.AirWaterVVTest):
             alpha[i] *= 360/(2*math.pi)
         alpha = np.array(alpha)
         it = np.where(time>2.5)[0][0]
-        period = at.zeroCrossing(time[:it],alpha[:it])[0]
+        period = at.zeroCrossing(time[:it],alpha[:it],up=False)[0]
         period_ref = 0.93
-        err = abs(period_ref-period)/abs(period_ref)
-        assert(err<2.0)
+        err = 100*abs(period_ref-period)/abs(period_ref)
+        assert(err<4.0)
 
 
 if __name__ == '__main__':

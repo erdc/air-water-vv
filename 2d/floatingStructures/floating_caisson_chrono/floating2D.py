@@ -12,8 +12,8 @@ opts=Context.Options([
     ("water_level", 0.9, "Height of free surface above bottom"),
     # tank
     ("tank_dim", (1., 1.2,), "Dimensions of the tank"),
-    ("tank_sponge", (2., 2.), "Length of absorption zones (front/back, left/right)"),
-    ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
+    ("tank_sponge", (2., 2.), "Length of relaxation zones (front/back, left/right)"),
+    ("tank_BC", 'FreeSlip', "Tank boundary conditions: NoSlip or FreeSlip"),
     ("gauge_output", False, "Places Gauges in tank"),
     ("gauge_fixed", False, "Places Gauges in tank"),
     # waves
@@ -25,13 +25,13 @@ opts=Context.Options([
     ("eps", 0.5, "eps"),
     ("w", 0., "frequency"),
     # caisson
-    ("caisson", True, "caisson"),
+    ("caisson", True, "Switch on/off caisson"),
     ("caisson_dim", (0.3, 0.1), "Dimensions of the caisson"),
     ("caisson_ycoord", 0.9, "y coord of the caisson center"),
     ("caisson_xcoord", 0.5, "x coord of the caisson center"),
     ("caisson_width", 0.9, "Width of the caisson"),
     ("caisson_corner_r", 0.0, "radius of the corners of the caisson"), #0.064
-    ("caisson_corner_side", 'bottom', "corners placement"),
+    ("caisson_corner_side", 'bottom', "corners placement"),#
     ("caisson_BC", 'freeslip', "BC on caisson ('noslip'/'freeslip')"),
     ("free_x", (0., 0., 0.), "Translational DOFs"),
     ("free_r", (0., 0., 1.0), "Rotational DOFs"),
@@ -40,14 +40,6 @@ opts=Context.Options([
     ("caisson_inertia", 0.236, "Inertia of the caisson"),
     ("rotation_angle", 15., "Initial rotation angle (in degrees)"),
     ("chrono_dt", 0.00001, "time step of chrono"),
-    # mooring
-    ("mooring", False, "add moorings"),
-    ("mooring_type", 'prismatic', "type of moorings"),
-    ("mooring_anchor", (2./2.,2.,0.), "anchor coordinates (absolute coorinates)"),
-    ("mooring_fairlead", (0.,0.,0.), "fairlead cooridnates (relative coordinates from barycenter)"),
-    ("mooring_K", 197.58, "mooring (spring) stiffness"),
-    ("mooring_R", 19.8, "mooring (spring) damping"),
-    ("mooring_restlength", 0., "mooring (spring) rest length"),
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
     ("he", 0.04, "Set characteristic element size"),
@@ -72,7 +64,6 @@ opts=Context.Options([
     ("weak_factor", 10., "weak bc penalty factor"),
     ("strong_dir", False, "strong dirichlet (True/False)"),
     ("parallel", True ,"Run in parallel")])
-
 
 
 # ----- CONTEXT ------ #
@@ -269,20 +260,6 @@ if opts.caisson is True:
     # customised functions
     body.setConstraints(free_x=np.array(opts.free_x), free_r=np.array(opts.free_r))
     body.setRecordValues(all_values=True)
-    if opts.mooring is True:
-        if opts.mooring_type == 'spring':
-            body.addSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
-                           fairlead=np.array(opts.mooring_fairlead),
-                           anchor=np.array(opts.mooring_anchor),
-                           rest_length=opts.mooring_restlength)
-        elif opts.mooring_type == 'prismatic':
-            body.addPrismaticLinksWithSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
-                           pris1=np.array([0.,caisson.barycenter[1],0.]),
-                           pris2=np.array([0.,0.,0.]),
-                           rest_length=caisson.barycenter[0])
-
-
-
     for bc in caisson.BC_list:
         if opts.caisson_BC == 'noslip':
             bc.setNoSlip()
@@ -329,9 +306,9 @@ if opts.caisson:
 # ----- BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
-if opts.tank_BC == 'noslip':
+if opts.tank_BC == 'NoSlip':
     tank.BC['y-'].setNoSlip()
-if opts.tank_BC == 'freeslip':
+if opts.tank_BC == 'FreeSlip':
     tank.BC['y-'].setFreeSlip()
 tank.BC['x+'].setNoSlip()
 tank.BC['sponge'].setNonMaterial()

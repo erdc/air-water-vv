@@ -1,31 +1,27 @@
 import numpy as np
-import os
 import matplotlib.pyplot as plt
 import math
 import AnalysisTools as at
 
 ## Reading probes into the file
-folder = "output"
-os.chdir(folder)
-probes = 'record_rectangle1.csv'        
+probes = 'caisson2D.csv'        
         
 datalist = at.readProbeFile(probes)
 probeType = datalist[0]
 time = datalist[1]
 data = datalist[2]
-rotq_e3 = data[:,7]
+rz = data[:,5]
 
 alpha = []
-for i in range(0,len(rotq_e3)):
-    alpha.append(2*math.asin(rotq_e3[i]))
-    alpha[i] *= 360/(2*math.pi)
+for i in range(0,len(rz)):
+    alpha.append(rz[i]*180/math.pi)
 alpha = np.array(alpha)
 
 it = np.where(time>2.5)[0][0]
-period = at.zeroCrossing(time[:it],alpha[:it])[0]
+period = at.zeroCrossing(time[:it],alpha[:it],up=False)[0]
 
 period_ref = 0.93
-err = abs(period_ref-period)/abs(period_ref)
+err = 100*abs(period_ref-period)/abs(period_ref)
 val = open('validation_FCBD.txt', 'w')
 val.write('Period for the rotation angle'+'\n')
 val.write('Theory'+'\t'+'Simulation'+'\t'+'\t'+'Error (%)'+'\n')

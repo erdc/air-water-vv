@@ -25,7 +25,7 @@ it = np.where(time>2.5)[0][0]
 period = at.zeroCrossing(time[:it],alpha[:it],up=False)[0]
 
 period_ref = 0.93
-err = abs(period_ref-period)/abs(period_ref)
+err = 100*abs(period_ref-period)/abs(period_ref)
 val = open('validation_FCC.txt', 'w')
 val.write('Period for the rotation angle'+'\n')
 val.write('Theory'+'\t'+'Simulation'+'\t'+'\t'+'Error (%)'+'\n')
