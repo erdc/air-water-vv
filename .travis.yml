@@ -46,16 +46,10 @@ install:
 - ./hashdist/bin/hit init-home
 - ./hashdist/bin/hit remote add https://dl.dropboxusercontent.com/u/26353144/hashdist_src --objects="source"
 - ./hashdist/bin/hit remote add https://dl.dropboxusercontent.com/u/26353144/hashdist_ubuntu_14_04 --objects="build"
-- cd stack
-- ../hashdist/bin/hit build -v default.yaml
-- cd ..
-- make profile
-- FC=gfortran CC=mpicc CXX=mpicxx make install
-- export PATH=$PWD/linux2/bin:$PATH
-- export LD_LIBRARY_PATH=$PWD/linux2/lib:$LD_LIBRARY_PATH
+- make hashdist_package
+- export PATH=$PWD/stack/proteus_stack/bin:$PATH
+- export LD_LIBRARY_PATH=$PWD/stack/proteus_stack/lib:$LD_LIBRARY_PATH
 - export SSL_CERT_DIR=/etc/ssl/certs
-- ls $SSL_CERT_DIR
-- cd ..
 
 script:
 - py.test --boxed -v $TEST_PROFILE
