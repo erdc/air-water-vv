@@ -38,7 +38,7 @@ install:
 - sudo apt-get install gfortran pv
 - git lfs fetch
 - git lfs checkout
-- git clone https://github.com/erdc-cm/proteus -b add_fem_dem
+- git clone https://github.com/erdc-cm/proteus
 - cd proteus
 - make hashdist
 - make stack
