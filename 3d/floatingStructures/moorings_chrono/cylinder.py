@@ -28,7 +28,7 @@ opts=Context.Options([
     # waves
     ("waves", True, "Generate waves (True/False)"),
     ("wave_period", 1., "Period of the waves"),
-    ("wave_height", 0.15, "Height of the waves"),
+    ("wave_height", 0.04, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     # mesh refinement
     ("he", 0.2, "Set characteristic element size"),
@@ -42,7 +42,7 @@ opts=Context.Options([
     ("T", 50.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
-    ("chrono_dt", 1e-4, "time step in chrono"),
+    ("chrono_dt", 1e-5, "time step in chrono"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
     ("cfl", 0.4, "Target cfl"),
     ("nsave", 5, "Number of time steps to save per second"),
@@ -71,7 +71,6 @@ cylinder_height = opts.cylinder_height
 free_x = np.array(opts.free_x)
 free_r = np.array(opts.free_r)
 chrono_dt = opts.chrono_dt
-
 
 wavelength=1.
 # general options
@@ -105,7 +104,14 @@ if opts.waves is True:
     tank_sponge = (1*wavelength, 2*wavelength, 0., 0.)
 else:
     tank_sponge = [0.,0., 0., 0.]
-cylinder_coords = [tank_dim[0]/2., tank_dim[1]/2., opts.cylinder_coords[2]]
+
+
+#Palm = True
+#if Palm is True:
+#    tank_dim = (6., 5., water_level*2.)
+#    tank_sponge = (1*wavelength, 2*wavelength, 0., 0.)
+    
+
 
 # ----- DOMAIN ----- #
 
@@ -117,16 +123,16 @@ domain = Domain.PiecewiseLinearComplexDomain()
 tank = st.Tank3D(domain, tank_dim)
 #tank = st.Cuboid(domain, dim=tank_dim, coords=np.array(tank_dim)/2.)
 #tank = st.Tank3D(domain, dim=(5., 5., 1.8))
-barycenter = cylinder_coords-np.array([0.,0.,cylinder_height/2.])+np.array([0.,0.,opts.VCG])
 
 if opts.cylinder is True:
     nPoints = int(2*np.pi*cylinder_radius/opts.he)
+    cylinder_coords = [tank_dim[0]/2., tank_dim[1]/2., water_level+cylinder_height/2.-opts.cylinder_draft]
+    barycenter = cylinder_coords-np.array([0.,0.,cylinder_height/2.])+np.array([0.,0.,opts.VCG])
     cylinder = st.Cylinder(domain, radius=cylinder_radius, height=cylinder_height, coords=cylinder_coords, barycenter=barycenter, nPoints=nPoints)
     #cylinder.translate(cylinder_coords)
     cylinder.setHoles([cylinder_coords])
     cylinder.holes_ind = np.array([0])
     cylinder.setBarycenter(barycenter)
-
     tank.setChildShape(cylinder, 0)
 
 
@@ -135,8 +141,6 @@ if opts.cylinder is True:
 
 g = np.array([0., 0., -9.81])
 system = crb.ProtChSystem(g, sampleRate=sampleRate)
-print('processor', system.chrono_processor)
-print('mode', system.parallel_mode)
 #system.chrono_processor = 0
 #system.parallel_mode = False
 system.setTimeStep(chrono_dt)
@@ -151,6 +155,11 @@ if opts.cylinder is True:
     body.ChBody.SetMass(opts.cylinder_mass)
     body.setRecordValues(all_values=True)
     body.ChBody.SetBodyFixed(False)
+    Ixx = Iyy = 0.9
+    Izz = cylinder_radius**2/2.*opts.cylinder_mass
+    from proteus.mbd import pyChronoCore as pcc
+    inert = pcc.ChVector(Ixx, Iyy, Izz)
+    body.ChBody.SetInertiaXX(inert)
 
 if opts.moorings is True:
     mesh = crb.Mesh(system)
@@ -180,8 +189,9 @@ if opts.moorings is True:
     d = 4.786e-3
     A0 = (np.pi*d**2/4)
     nb_elems = 100
-    dens = 0.1446/A0
+    dens = 0.1447/A0
     E = 1e9
+    E = 1.6e6/A0
     l1 = MooringLine(L=L, w=w, EA=EA, anchor=anchor1, fairlead=fairlead1, tol=1e-8)
     l2 = MooringLine(L=L, w=w, EA=EA, anchor=anchor2, fairlead=fairlead2, tol=1e-8)
     l3 = MooringLine(L=L, w=w, EA=EA, anchor=anchor3, fairlead=fairlead3, tol=1e-8)
@@ -196,6 +206,7 @@ if opts.moorings is True:
     E = np.array([E])
     dens = np.array([dens])
     cable_type = "CableANCF"
+    #cable_type = "BeamEuler"
     m1 = crb.ProtChMoorings(system=system, mesh=mesh, length=L, nb_elems=nb_elems, d=d, rho=dens, E=E, beam_type=cable_type)
     m2 = crb.ProtChMoorings(system=system, mesh=mesh, length=L, nb_elems=nb_elems, d=d, rho=dens, E=E, beam_type=cable_type)
     m3 = crb.ProtChMoorings(system=system, mesh=mesh, length=L, nb_elems=nb_elems, d=d, rho=dens, E=E, beam_type=cable_type)
@@ -205,19 +216,24 @@ if opts.moorings is True:
     m3.setNodesPositionFunction(l3.s)
 
     moorings = [m1, m2, m3]
+
+    body2 = crb.ProtChBody(system) # for anchor
+    body2.ChBody.SetBodyFixed(True)
+
     for m in moorings:
+        m.setDragCoefficients(tangential=0.5, normal=2.5, segment_nb=0)
+        m.setAddedMassCoefficients(tangential=0., normal=3.8, segment_nb=0)
+        if opts.waves is True:
+            m.setFluidVelocityFunction(wave.u) # acts only out of domain
         m.external_forces_from_ns = True
+        m.external_forces_manual = True
         m.setNodesPosition()
         m.buildNodes()
         m.setFluidDensityAtNodes(np.array([rho_0 for i in range(m.nodes_nb)]))
-        m.fixFrontNode(True)
-
-    #m1.fixBackNode(True)
-    #m2.fixBackNode(True)
-    #m3.fixBackNode(True)
 
         if opts.cylinder is True:
             m.attachBackNodeToBody(body)
+            m.attachFrontNodeToBody(body)
 
     # FLOOR
     pos1 = m1.getNodesPosition()
@@ -235,16 +251,12 @@ if opts.moorings is True:
     m2.setContactMaterial(material)
     m3.setContactMaterial(material)
 
-    extra = '_'+cable_type+'_'+str(Efloor)+'_detached_I'
-    if np.sum(opts.free_x) == 0:
-        extra += 'fixed'
     m1.setName('mooring1')
     m2.setName('mooring2')
     m3.setName('mooring3')
 
-    box_pos = np.array([0.,0.,-0.11])
-    box_dim = np.array([20.,20.,0.2])
     vec = pych.ChVector(0., 0., -0.11)
+    box_dim = [20.,20.,0.2]
     box = pych.ChBodyEasyBox(box_dim[0], box_dim[1], box_dim[2], 1000, True)
     box.SetPos(vec)
     box.SetMaterialSurface(material)
