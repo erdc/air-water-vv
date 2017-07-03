@@ -21,6 +21,6 @@ Tests
 The python test file named ``test_quiescent_water.py`` is made up of 
 two tests:
 
-* The first one is check that the test runs successfully.
+* The first test is to check that the run is successfully completed.
 * The second test is to validate the readings of the probes by comparing them to theoretical values. For this case we will compare the numerical and theoretical pressure and water level.
 One can run this test file typing ``py.test --boxed test_quiescent_water.py``.

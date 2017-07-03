@@ -24,7 +24,7 @@ Tests
 The python test file named ``test_dambreak_Colagrossi.py`` is made up of 
 two tests:
 
-* The first one is to know if the case can run.
+* The first test is to check that the run is successfully completed.
 * The second test is to validate the results comparing them to reference values. For this case we will compare the numerical and reference maximum pressure for a given point.
 One can run this test file typing ``py.test --boxed test_dambreak_Colagrossi.py``.
 

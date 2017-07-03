@@ -29,7 +29,7 @@ Tests
 Tests are introduced in the python test file named ``test_dambreak_Ubbink.py`` is made up of 
 two tests:
 
-* The first one is to check that the case runs successfully.
+* The first test is to check that the run is successfully completed.
 * The second test is to assess changes in results by comparing them to reference values. Reference values correspond to average and maximum pressure on a probe located to the obstacle. 
 
 Due to lack of validation data, reference values are set by the numerical results of the first commit of this case. One can run this test file typing ``py.test --boxed test_dambreak_Ubbink.py``.
