@@ -10,7 +10,7 @@ placed in the middle of the container's base. The top of the domain is left open
 the boundary patches act as free slip walls.  In the following figure, a
 sketch of the dambreak initial conditions is shown.
 
-.. figure:: ./dambreakUbbink.bmp
+.. figure:: ./dambreakUbbink.jpg
    :width: 100%
    :align: center
 
