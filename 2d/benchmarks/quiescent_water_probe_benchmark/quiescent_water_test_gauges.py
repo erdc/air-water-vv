@@ -14,7 +14,7 @@ from proteus.mprans.SpatialTools import Tank2D
 # predefined options
 opts=Context.Options([
     # water level
-    ("water_level", 0.6, "Height of water"),
+    ("water_level", 0.6, "Water level"),
     # tank
     ("tank_dim", (3.22 , 1.8), "Dimensions of the tank"),
     #gravity
