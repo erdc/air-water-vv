@@ -14,24 +14,24 @@ from proteus.Profiling import logEvent
 # predefined options
 opts=Context.Options([
     # water column
-    ("water_level", 0.292, "Height of water column"),
-    ("water_width", 0.146, "Width of water column"),
+    ("water_level", 0.292, "Height of water column in m"),
+    ("water_width", 0.146, "Width of water column in m"),
     # tank
-    ("tank_dim", (0.584,0.584), "Dimensions of the tank"),
-    ("obstacle_dim", (0.024, 0.048),"Dimensions of the obstacle"),
-    ("obstacle_x_start", 0.292,"x location of start of obstacle"),
+    ("tank_dim", (0.584,0.584), "Dimensions of the tank in m"),
+    ("obstacle_dim", (0.024, 0.048),"Dimensions of the obstacle in m"),
+    ("obstacle_x_start", 0.292,"x location of start of obstacle  in m"),
     #gravity 
-    ("g",(0,-9.81,0), "Gravity vector"),
+    ("g",(0,-9.81,0), "Gravity vector  in m/s^2"),
     # gauges
     ("gauge_output", True, "Produce gauge data."),
-    ("gauge_location_p", (0.292,0.04,0.0), "Pressure gauge location"),
+    ("gauge_location_p", (0.292,0.04,0.0), "Pressure gauge location in m"),
     # refinement
     ("refinement",32,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"),
     ("cfl", 0.33,"Target cfl"),
     # run time
-    ("T", 0.03,"Simulation time"),
-    ("dt_fixed", 0.01, "Fixed time step"),
-    ("dt_init", 0.001 ,"Maximum initial time step"),
+    ("T", 0.03,"Simulation time in m"),
+    ("dt_fixed", 0.01, "Fixed time step  in s"),
+    ("dt_init", 0.001 ,"Maximum initial time step  in s"),
     ("gen_mesh", True ,"Generate new mesh"),
     ])
 
