@@ -2,17 +2,17 @@ Dambreak flow with obstacle - Ubbink (1997)
 ===========================================
 
 The problem comprises a 0.292m x 1.146m (height x width) column of
-water in a container, initially at rest.  A small obstacle (0.024m x 0.048m) is
-placed in the middle of the container's base.  Under the action of gravity
-the water column collapses, interacts with the obstacle leading to a formation of a jet that impacts to a wall.
-The computational domain is a 2D rectangular box with dimensions
-0.584m x 0.584m.  The top of the domain is left open, when the rest of
+water in a rectangular container (0.584 m x 0.584 m), initially at rest.  A small obstacle (0.024m x 0.048m) is
+placed in the middle of the container's base. The top of the domain is left open, when the rest of
 the boundary patches act as free slip walls.  In the following figure, a
 sketch of the dambreak initial conditions is shown.
 
 .. figure:: ./dambreakUbbink.bmp
    :width: 100%
    :align: center
+
+Under the action of gravity the water column collapses and interacts with the obstacle leading 
+to a formation of a jet that impacts to a wall.
 
 This case tests the ability of PROTEUS to simulate the free-surface
 evolution and during the interaction of the dambreak front with the
