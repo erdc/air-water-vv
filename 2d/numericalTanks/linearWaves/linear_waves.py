@@ -14,12 +14,12 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 opts = Context.Options([
     # test options
-    ("water_level", 1., "Water levelrom y=0"),
+    ("water_level", 1., "Water level from y=0"),
     # tank
-    ("tank_dim", (15., 1.5,), "Dimensions of the tank in m"),
+    ("tank_dim", (15., 1.5,), "Dimensions of the operational domain of the tank in m (l x h)"),
     ("generation", True, "Generate waves at the left boundary (True/False)"),
     ("absorption", True, "Absorb waves at the right boundary (True/False)"),
-    ("tank_sponge", (5., 10.), "Length of generation/absorption zone in m"),
+    ("tank_sponge", (5., 10.), "Length of generation/absorption zone in m (left, right)"),
     ("free_slip", True, "Should tank walls have free slip conditions "
                         "(otherwise, no slip conditions will be applied)."),
     #gravity 

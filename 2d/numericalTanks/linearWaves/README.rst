@@ -1,7 +1,7 @@
 Linear wave propagation and absorption
 ======================================
 
-Water waves with low steepness are considered linear (:math:`H/L` < 0.1%, where :math:`H` is the wave height and :math:`L` is the wavelength). This means that the form of the waves is sinusoidal and high order terms are negligible. In terms of classification in the Lé Méhauté (1976) diagram, linear waves are located at the lower right part (see below)
+Water waves with low steepness are considered linear (:math:`H/L` < 0.1%, where :math:`H` is the wave height and :math:`L` is the wavelength). This means that the form of the waves is sinusoidal and high order terms are negligible. The wavelength, wave period and water depth are interdependent through the linear dispersion relation. In terms of classification in the Lé Méhauté (1976) diagram, linear waves are located at the lower right part (see below)
 
 .. figure:: ./Mehaute_linear_waves_01.png 
 
