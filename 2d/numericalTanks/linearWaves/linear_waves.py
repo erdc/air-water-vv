@@ -33,13 +33,13 @@ opts = Context.Options([
     # probe dx
     ("point_gauge_output", True, "Generate point gauge output"),
     ("column_gauge_output", True, "Generate column gauge output"),
-    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges"),
+    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges in m"),
     # refinement
     ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
     # run time
     ("T", 0.1, "Simulation time in s"),
-    ("dt_init", 0.001, "Initial time s in step"),
+    ("dt_init", 0.001, "Initial time step in s"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
     ("useHex", False, "Use (hexahedral) structured mesh"),

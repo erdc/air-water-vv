@@ -1,2 +1,0 @@
-mpirun -np 2 parun random_waves_so.py  -l 7 -v -O $PROTEUS/../air-water-vv/inputTemplates/petsc.options.superlu_dist -D a5 
-
