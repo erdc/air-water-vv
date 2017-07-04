@@ -1,5 +1,5 @@
 """
-Random Waves
+Random Waves Fast
 """
 import numpy as np
 import math
