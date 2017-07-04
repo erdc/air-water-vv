@@ -1,6 +1,9 @@
 Nonlinear wave generation/absorption
 ====================================
 
+Description
+-----------
+
 Plane regular nonlinear waves are mild and high steepness waves that 
 propagate in a single direction, in uniform wave fronts.  The wave 
 profile deviates from the sinusoidal shape, and it typically exhibits 
@@ -23,6 +26,8 @@ The numerical wave flume represents the geometry used in Higuera et al 2013 for 
 This case tests demonstrates the ability of PROTEUS to simulate the 
 generation, propagation and absorption of regular non-linear waves. 
 
+Tests
+------
 The python test file named ``test_nonlinearWaves.py`` is made up of three tests:
 
 * The first test checks that the run is completed successfully.
