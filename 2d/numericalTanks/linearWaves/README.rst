@@ -1,6 +1,9 @@
 Linear wave propagation and absorption
 ======================================
 
+Description
+-----------
+
 Water waves with low steepness are considered linear (:math:`H/L` < 0.1%, where :math:`H` is the wave height and :math:`L` is the wavelength). This means that the form of the waves is sinusoidal and high order terms are negligible. The wavelength, wave period and water depth are interdependent through the linear dispersion relation. In terms of classification in the Lé Méhauté (1976) diagram, linear waves are located at the lower right part (see below)
 
 .. figure:: ./Mehaute_linear_waves_01.png 
@@ -12,6 +15,9 @@ generation zone on the left side and a 10m absorption zone on the right.
 
 This case tests demonstrates the ability of Proteus to simulate the generation, propagation
 and absorption of of linear water waves.
+
+Tests
+-----
 
 The python test file named ``test_linearWaves.py`` is made up of three tests:
 

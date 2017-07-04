@@ -1,6 +1,9 @@
 Nonlinear wave generation/absorption
 ====================================
 
+Description
+-----------
+
 Plane regular nonlinear waves are mild and high steepness waves that 
 propagate in a single direction, in uniform wave fronts.  The wave 
 profile deviates from the sinusoidal shape, and it typically exhibits 
@@ -11,7 +14,7 @@ Fenton (1988) proposes a method for calculating the nonlinear wave
 properties and profile, which is adopted for the generation of 
 nonlinear waves within Proteus. 
 
-In terms of classification, linear waves are in the right top area of the following diagram (Lé Méhauté 1976), where the vertical axis corresponds to the non dimensional wave height and the horizontal to the non dimensional water depth, with gT\:sup:`2`\ being proportional to the wavelength.
+In terms of classification, linear waves are in the right top area of the following diagram (Lé Méhauté 1976), where the vertical axis corresponds to the non dimensional wave height and the horizontal to the non dimensional water depth, with gT\ :sup:`2` being proportional to the wavelength.
 
 
 .. figure:: ./Mehaute_nonlinear_waves_01.png
@@ -23,6 +26,8 @@ The numerical wave flume represents the geometry used in Higuera et al 2013 for 
 This case tests demonstrates the ability of PROTEUS to simulate the 
 generation, propagation and absorption of regular non-linear waves. 
 
+Tests
+------
 The python test file named ``test_nonlinearWaves.py`` is made up of three tests:
 
 * The first test checks that the run is completed successfully.
