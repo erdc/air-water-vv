@@ -22,7 +22,7 @@ The python test file named ``test_nonlinearWaves.py`` is made up of three tests:
 * The first test checks that the run is completed successfully.
 * The second test is to validate the generation of random waves sequence at the exit of the generation zone by comparing it to the theoretical solution. 
 
-One can run this test file typing ``py.test --boxed test_nonlinearWaves.py``.
+One can run this test file typing ``py.test --boxed test_randomWaves.py``.
 
 References
 ----------
