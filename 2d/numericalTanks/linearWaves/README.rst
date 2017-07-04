@@ -17,7 +17,7 @@ The python test file named ``test_linearWaves.py`` is made up of three tests:
 
 * The first test checks that the run is completed successfully.
 * The second test is to validate the results comparing them to the theory. For this case we will compare the numerical and theoretical wave height in the middle of the tank. The wave height is calculated using pressure probes results combined with linear theory predictions
-* The third test evaluates wave reflection and compares to a threshold. The calculation of reflection is performed by applying Isaacson's 3rd method (Isaacson 1991) to signal filtered to the primary harmonic.
+* The third test evaluates wave reflection and compares to a threshold. The calculation of reflection is performed by applying Isaacson's 3rd method (Isaacson 1991) to the primary harmonic of the signal.
 One can run this test file typing ``py.test --boxed test_linearWaves.py``.
 
 References
