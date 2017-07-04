@@ -31,7 +31,6 @@ References
   
 - Dean and Dalrymple, (1991). Water Wave Mechanics for Engineers and Scientists, World Scientific, Singapore 
 
-- Isaacson (1991), Measurement of regular wave reflection, Journal of Waterway Port Coastal and Ocean Engineering 117(6), 553-569
 
 
 
