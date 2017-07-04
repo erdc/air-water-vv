@@ -14,7 +14,7 @@ Fenton (1988) proposes a method for calculating the nonlinear wave
 properties and profile, which is adopted for the generation of 
 nonlinear waves within Proteus. 
 
-In terms of classification, linear waves are in the right top area of the following diagram (Lé Méhauté 1976), where the vertical axis corresponds to the non dimensional wave height and the horizontal to the non dimensional water depth, with gT\:sup:`2`\ being proportional to the wavelength.
+In terms of classification, linear waves are in the right top area of the following diagram (Lé Méhauté 1976), where the vertical axis corresponds to the non dimensional wave height and the horizontal to the non dimensional water depth, with gT\ :sup:`2` being proportional to the wavelength.
 
 
 .. figure:: ./Mehaute_nonlinear_waves_01.png
