@@ -4,7 +4,7 @@ Random waves generation/absorption
 Random waves typically consist of non-repeatable wave sequences, so each individual wave has different characteristics. Random waves in nature usually obey spectral distributions e.g. JONSWAP and Pierson-Moskowitz spectra and their statistical properties can be predicted. An example of a spectral distribution is shown in the figure below.
 
 .. figure:: ./Spectrum.PNG
-   :width: 100%
+   :width: 75%
    :align: center
 
 
