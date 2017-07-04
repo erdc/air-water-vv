@@ -27,10 +27,9 @@ One can run this test file typing ``py.test --boxed test_randomWaves.py``.
 References
 ----------
 
-- Fenton JD (1988) The numerical solution of steady water wave 
-  problems, Comp and Geosc, 14(3), 357-368
+- Goda, (2009). Random Seas and Design of Maritime Structures, World Scientific, Singapore
   
-- Lé Méhauté, B., (1976). “Introduction to Hydrodynamics and water waves”, Springer-Verlag, New York.
+- Dean and Dalrymple, (1991). Water Wave Mechanics for Engineers and Scientists, World Scientific, Singapore 
 
 - Isaacson (1991), Measurement of regular wave reflection, Journal of Waterway Port Coastal and Ocean Engineering 117(6), 553-569
 
