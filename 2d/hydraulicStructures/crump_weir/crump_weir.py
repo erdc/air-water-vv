@@ -12,25 +12,25 @@ from proteus.Profiling import logEvent
 
 opts = Context.Options([
     # water
-    ("inflow_level", 1.5, "Upstream water level"),
-    ("outflow_level", 0.5, "Downstream water level"),
-    ("inflow_velocity", 1.345, "Steady water inflow velocity"),
+    ("inflow_level", 1.5, "Upstream water level in m"),
+    ("outflow_level", 0.5, "Downstream water level in m"),
+    ("inflow_velocity", 1.345, "Inflow velocity in m/s"),
     # tank
-    ("tank_dim", (8.0, 3.75), "Dimensions (x,y) of the tank"),
+    ("tank_dim", (8.0, 3.75), "Dimensions (x,y) of the domain (excluding relaxation zones)"),
     ("sponge_layers", False, "Use sponge layers"),
     ("tank_sponge", (2.,2.), "Length of (generation, absorption) zones, if any"),
     # waves
-    ("waves", False, "Use waves"),
+    ("waves", False, "Use waveTools"),
     # weir
-    ("obstacle_dim", (3.0, 0.5), "Dimensions (x,y) of the obstacle."),
-    ("obstacle_x_start", 3.0, "x coordinate of the start of the obstacle"),
+    ("obstacle_dim", (3.0, 0.5), "Width and height of the triangular obstacle in m"),
+    ("obstacle_x_start", 3.0, "x coordinate of the start of the obstacle in m"),
     ("cot_upstream_slope", 2.0, "Cotangent of upstream slope of obstacle"),
     # gauges
     ("point_gauge_output", True, "Produce point gauge data"),
     ("column_gauge_output", True, "Produce column gauge data"),
-    ("gauge_dx", 0.25, "Horizontal spacing of gauges/gauge columns"),
+    ("gauge_dx", 0.25, "Horizontal spacing of gauges/gauge columns in m"),
     # refinement
-    ("refinement", 40, "Refinement level"),
+    ("refinement", 40, "Refinement level he = tank_dim[0] / float(4 * refinement - 1)"),
     ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
@@ -40,9 +40,9 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 30.0, "Simulation time"),
-    ("dt_fixed", 0.25, "Fixed time step"),
-    ("dt_init", 0.1, "Minimum initial time step (otherwise dt_fixed/10)"),
+    ("T", 30.0, "Simulation time in s"),
+    ("dt_fixed", 0.25, "Fixed time step in s"),
+    ("dt_init", 0.1, "Minimum initial time step (otherwise dt_fixed/10) in s"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
     ])

@@ -18,22 +18,22 @@ opts = Context.Options([
     ("sponge_layers", False, "Use sponge layers"),
     ("tank_sponge", (2., 2.), "Length of (generation, absorption) zones, if any"),
     # water
-    ("inflow_level", 2.5, "Height of (mean) free surface above bottom"),
-    ("outflow_level", 0.18, "Height of (mean) free surface of water outflow"),
-    ("inflow_velocity", 0.415, "Wave or steady water inflow velocity"),
-    ("outflow_velocity", 6.913, "Initial wave or steady water outflow velocity"),
+    ("inflow_level", 2.5, "Inflow water level in m"),
+    ("outflow_level", 0.18, "Outflow water level in m "),
+    ("inflow_velocity", 0.415, "Inflow velocity in m/s"),
+    ("outflow_velocity", 6.913, "Outflow velocity in m/s"),
     # tank
-    ("tank_dim", (8.0, 3.75), "Dimensions (x,y) of the tank"),
-    ("sluice_width", 0.01, "Width of the sluice gate."),
-    ("gate_height", 0.25, "Height of the opening beneath the gate."),
+    ("tank_dim", (8.0, 3.75), "Dimensions (x,y) of the tank (excluding the relaxation zones)"),
+    ("sluice_width", 0.01, "Thickness of the sluice gate in m"),
+    ("gate_height", 0.25, "Height of the opening beneath the gate in m"),
     ("obstacle_x_start", 4.0, "x coordinate of the start of the obstacle"),
     # gauges
     ("point_gauge_output", True, "Produce gauge data"),
     ("column_gauge_output", True, "Produce column gauge data"),
-    ("gauge_dx", 0.1, "Horizontal spacing of gauges/gauge columns."),
-    ("point_gauge_y", 0.09, "Height of point gauge placement"),
+    ("gauge_dx", 0.1, "Horizontal spacing of gauges/gauge columns in m"),
+    ("point_gauge_y", 0.09, "Height of point gauge placement in m"),
     # refinement
-    ("refinement", 25, "Refinement level"),
+    ("refinement", 25, "Refinement level he = tank_dim[0]/(4*refinement-1)"),
     ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                       "refinement regions (include 0 and "
@@ -43,9 +43,9 @@ opts = Context.Options([
                                      " (should have 1 more value than"
                                      " variable_refine_borders as a result)."),
     # run time
-    ("T", 30.0, "Simulation time"),
-    ("dt_fixed", 0.25, "Fixed time step"),
-    ("dt_init", 0.1, "Minimum initial time step (otherwise dt_fixed/10)"),
+    ("T", 30.0, "Simulation time in s"),
+    ("dt_fixed", 0.25, "Fixed time step in s"),
+    ("dt_init", 0.1, "Minimum initial time step (otherwise dt_fixed/10) in s"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),])
 
