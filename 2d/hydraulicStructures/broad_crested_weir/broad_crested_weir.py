@@ -16,25 +16,23 @@ opts = Context.Options([
     ("waves", False, "Generate waves - uses sponge layers."),
     ("air_vent", True, "Include an air vent in the obstacle."),
     # air vent position
-    ("airvent_y1",0.25,"Vertical distance from bottom to the air ventilation boundary patch"),
-    ("airvent_dim",0.1,"Dimension of the air boundary patch"),
+    ("airvent_y1",0.25,"Vertical distance from bottom to the air ventilation lower boundary in m"),
+    ("airvent_dim",0.1,"Dimension of the air boundary patch in m"),
     # water
-    ("water_level", 0.54, "Height of (mean) free surface above bottom"),
-    ("water_width_over_obst",1.02, "Initial width of free surface relative to"
-                                   " the obstacle location"),
-    ("outflow_level", 0.04, "Height of (mean) free surface of water outflow "
-                          "give a negative number if no initial outflow."),
-    ("inflow_velocity", 0.139, "Wave or steady water inflow velocity"),
-    ("outflow_velocity", 3.0, "Initial wave or steady water outflow velocity"),
+    ("water_level", 0.54, "Mean level from y=0 in m"
+    ("water_width_over_obst",1.02, "Domain length upstream of the obstacle in m"
+    ("outflow_level", 0.04, "Estimated mean water level at the outlet in m "
+    ("inflow_velocity", 0.139, "Water inflow velocity in m/s"),
+    ("outflow_velocity", 3.0, "Estimated water outflow velocity in m/s"),
     # tank
-    ("tank_dim", (2.5, 1.0), "Dimensions (x,y) of the tank"),
-    ("tank_sponge", (0.5,0.5), "Length of (generation, absorption) zones, if any"),
-    ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle."),
-    ("obstacle_x_start", 1.0, "x coordinate of the start of the obstacle"),
+    ("tank_dim", (2.5, 1.0), "Dimensions (x,y) of the tank in m"),
+    ("tank_sponge", (0.5,0.5), "Length of (generation, absorption) zones in m, if any"),
+    ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle. in m"),
+    ("obstacle_x_start", 1.0, "x coordinate of the start of the obstacle in m"),
     # gauges
     ("gauge_output", True, "Produce gauge data"),
     # refinement
-    ("refinement", 40, "Refinement level"),
+    ("refinement", 40, "Refinement level (tank_dim[0] / float(4 * refinement - 1)"),
     ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
@@ -44,9 +42,9 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 4.0, "Simulation time"),
-    ("dt_fixed", 0.025, "Fixed time step"),
-    ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10)"),
+    ("T", 4.0, "Simulation time in s "),
+    ("dt_fixed", 0.025, "Fixed time step in s"),
+    ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10) in s"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
     ])
