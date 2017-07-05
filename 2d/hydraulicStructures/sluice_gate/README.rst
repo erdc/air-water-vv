@@ -1,6 +1,9 @@
 Sluice gate
 ===========
 
+Description
+----------
+
 An under-shot sluice gate is a hydraulic structure mainly used as a
 flow control device in open-channels, where the discharge downstream
 can be related to the upstream head and therefore controlled.  It is
@@ -25,6 +28,9 @@ the opening of the gate, d1 is the water depth downstream of the gate.
 
 This case tests the ability of PROTEUS to simulate the free-surface
 evolution.  For more details, see runfiles or references.
+
+Tests
+-----
 
 The python test file named ``test_sluice_gate.py`` is made up of 
 two tests:
