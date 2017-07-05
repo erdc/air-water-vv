@@ -1,6 +1,9 @@
 Broad crested weir
 ==================
 
+Description
+-----------
+
 A broad-crested weir is a standard hydraulic structure used as
 discharge measuring device and flow control device in open
 channel. This type of weir can be described as a simple solid
