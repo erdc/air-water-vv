@@ -7,16 +7,16 @@ a triangular channel obstruction consisting of a 1:2 upstream and a
 1:5 downstream slope.The slope upstream is designed to avoid material
 sedimentation while the downstream side is designed to stabilize the
 flow. The weir spans the width of the channel and obstructs the
-natural flow of the water.The following two flow conditions are
-tested:
+natural flow of the water. The flow past a crump weir can be 
+affected by the downstream level in the following two manners:
 
-* Modular flow conditions, where the flow regime is not affected by
+* Modular flow, where the flow regime is not affected by
   the downstream conditions. In this condition there is a direct
   relation between the flow rate and the upstream head. The modular
   flow condition is verified when the ratio between the downstream and
   the upstream total head is less or equal to 0.75.
 
-* Non-modular flow conditions, where the flow regime is affected by
+* Non-modular flow, where the flow regime is affected by
   the downstream conditions. This happens when the weir operates in
   submerged conditions.  The flow rate in this case is related to the
   total head upstream and downstream of the weir and therefore both
@@ -24,7 +24,7 @@ tested:
 
 The computational domain is a 2D rectangular box with height equal to
 2.1m the length might vary from case to case.The weir has a height of
-:math:`P=0.5\mbox{m}` and a width of :math:`b=3.5\mbox{m}`.  A uniform
+P=0.5 m and a width of b=3.5 m.  A uniform
 velocity distribution from bottom to free water level is imposed in
 the left wall boundary condition.  The top of the domain is left
 open. The right wall of the domain allows the flow to leave the domain
