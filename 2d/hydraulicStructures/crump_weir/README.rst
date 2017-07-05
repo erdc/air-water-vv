@@ -1,6 +1,9 @@
 Crump weir
 ==========
 
+Description
+---------
+
 A crump weir is a typical hydraulic structure mainly used as a
 measurement device in open-channels as well as for flow control. It is
 a triangular channel obstruction consisting of a 1:2 upstream and a
@@ -42,6 +45,9 @@ This case tests the ability of PROTEUS to simulate the free-surface
 evolution and the results of the simulations can be compared with the
 data in the following references.  For more details, see runfiles or
 references.
+
+Tests
+-----
 
 The python test file named ``test_crump_weir.py`` is made up of 
 two tests:
