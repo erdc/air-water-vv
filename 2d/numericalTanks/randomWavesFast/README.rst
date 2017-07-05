@@ -9,7 +9,7 @@ In this particular case, the generation methodology is optimised to allow fast g
 Tests (to be added)
 -----
 
-The python test file named ``test_nonlinearWaves.py`` is made up of two tests:
+The python test file named ``test_randomWaves.py`` is made up of two tests:
 
 * The first test checks that the run is completed successfully.
 * The second test is to validate the generation of random waves sequence at the exit of the generation zone by comparing it to the theoretical solution. 
