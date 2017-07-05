@@ -7,16 +7,16 @@ a triangular channel obstruction consisting of a 1:2 upstream and a
 1:5 downstream slope.The slope upstream is designed to avoid material
 sedimentation while the downstream side is designed to stabilize the
 flow. The weir spans the width of the channel and obstructs the
-natural flow of the water.The following two flow conditions are
-tested:
+natural flow of the water. The flow past a crump weir can be 
+affected by the downstream level in the following two manners:
 
-* Modular flow conditions, where the flow regime is not affected by
+* Modular flow, where the flow regime is not affected by
   the downstream conditions. In this condition there is a direct
   relation between the flow rate and the upstream head. The modular
   flow condition is verified when the ratio between the downstream and
   the upstream total head is less or equal to 0.75.
 
-* Non-modular flow conditions, where the flow regime is affected by
+* Non-modular flow, where the flow regime is affected by
   the downstream conditions. This happens when the weir operates in
   submerged conditions.  The flow rate in this case is related to the
   total head upstream and downstream of the weir and therefore both
