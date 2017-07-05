@@ -10,7 +10,7 @@ increase in the water level upstream, before spilling over the
 structure.  The computational domain is a 2D rectangular box with
 height equal to 1.8m and the length might vary from case to case. The
 weir has a height of P=1.0m and a small width of
-:math: `b=0.01` m.  A uniform velocity distribution from bottom
+b=0.01 m.  A uniform velocity distribution from bottom
 to the free water level is imposed in the left wall boundary
 condition. The top of the domain is left open and the right wall
 allows the flow to leave the domain. A ventilation patch is also introduced at the downstream face of the weir
@@ -21,11 +21,9 @@ parameters.
    :width: 100%
    :align: center
 
-where, :math: `u_0` is the approach velocity, :math: `H` is the upstream
-potential head, :math: `hv` is the upstream velocity head, :math: `Ht =
-H + hv` is the upstream total head, :math: `h` is the thickness of the
-nappe, :math: `d1` is the backwater depth beneath the nappe, :math: `d2`
-is the backwater depth downstream of the nappe.
+where, u_0 is the approach velocity, H is the upstream
+potential head, hv is the upstream velocity head, Ht = H + hv is the upstream total head, h is the thickness of the
+nappe, d1 is the backwater depth beneath the nappe, d2 is the backwater depth downstream of the nappe.
 
 This case tests the ability of PROTEUS to simulate the free-surface
 evolution and the flow separation. The results of the simulations can
