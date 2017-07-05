@@ -23,19 +23,19 @@ test consists of a single directory including
 Checklist for adding new test problems
 ------------------------
 
-- Clone or fork this repository
-- Create a new branch
-- Add a new subdirectory with the contents of your test case
-- Fit the new test case in the existing folder structure, by creating a new category if applicable
-- Document the case by creating a README file, and preferably include appropriate sketches
-- Make your case modular by including in the context any parameters subject to change
-- Carefully document the context parameters and other parts of the code
-- Create a test to check that the case runs without errors 
-- Create test to check that results compare well with some reference results (e.g. experiments)
-- Push the branch to the remote repository
-- Make a pull request, preferebly by recommending a reviewer
-- The reviewer will ensure that all steps above have been followed
-- Once accepted, include your name in contributors
+- [] Clone or fork this repository
+- [] Create a new branch
+- [] Add a new subdirectory with the contents of your test case
+- [] Fit the new test case in the existing folder structure, by creating a new category if applicable
+- [] Document the case by creating a README file, and preferably include appropriate sketches
+- [] Make your case modular by including in the context any parameters subject to change
+- [] Carefully document the context parameters and other parts of the code
+- [] Create a test to check that the case runs without errors 
+- [] Create test to check that results compare well with some reference results (e.g. experiments)
+- [] Push the branch to the remote repository
+- [] Make a pull request, preferebly by recommending a reviewer
+- [] The reviewer will ensure that all steps above have been followed
+- [] Once accepted, include your name in contributors
 
 Contributors
 ------------
