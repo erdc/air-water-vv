@@ -17,7 +17,7 @@ free water level is imposed in the left wall boundary condition. The
 top of the domain is left open and the right wall of the domain allows
 the flow to leave the domain. A free-slip condition is set at the 
 bottom of the domain. There is an air ventilation on the right side of 
-the weir to maintain atmospheric pressure at the nappe. In the following figure, a simple sketch of the structure is 
+the weir to maintain atmospheric pressure below the nappe. In the following figure, a simple sketch of the structure is 
 presented showing the main parameters.
 
 .. figure:: ./BroadWeir.bmp
