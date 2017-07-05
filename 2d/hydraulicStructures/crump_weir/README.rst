@@ -34,7 +34,7 @@ right boundary.
 
 In the following figure a simple sketch of the structure is presented.
 
-.. figure:: ./CrumpWeirBSISO.jpg
+.. figure:: ./crump.jpg
    :width: 100%
    :align: center
 
