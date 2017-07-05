@@ -1,6 +1,9 @@
 Sharp crested weir
 ==================
 
+Description
+----------
+
 A rectangular sharp-crested weir is a hydraulic structure mainly used
 as a flow control and measurement device in open-channels. It is a
 channel obstruction made from a thin plate with a sharp edge at the
