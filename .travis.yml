@@ -1,0 +1,61 @@
+dist: trusty
+sudo: true
+
+language: python
+
+env:
+- TEST_PROFILE="Tests/test_quiescent_water.py"
+- TEST_PROFILE="Tests/test_dambreak_Colagrossi.py"
+- TEST_PROFILE="Tests/test_dambreak_Ubbink.py"
+- TEST_PROFILE="Tests/test_wavesloshing.py"
+- TEST_PROFILE="Tests/test_linearWaves.py"
+- TEST_PROFILE="Tests/test_nonlinearWaves.py"
+- TEST_PROFILE="Tests/test_standingWaves.py"
+- TEST_PROFILE="Tests/test_randomWaves.py"
+
+
+python:
+- 2.7
+
+addons:
+  apt:
+    packages:
+    - gfortran
+    - libffi-dev
+    - libssl-dev
+    - python-lzma
+
+before_install:
+- pip install pyliblzma
+- wget https://github.com/git-lfs/git-lfs/releases/download/v1.5.5/git-lfs-linux-amd64-1.5.5.tar.gz
+- tar xzvf git-lfs-linux-amd64-1.5.5.tar.gz
+- cd git-lfs-1.5.5
+- PREFIX=${HOME} ./install.sh
+- export PATH=${HOME}/bin:${PATH}
+- cd ..
+
+install:
+- sudo apt-get install gfortran pv
+- git lfs fetch
+- git lfs checkout
+- git clone https://github.com/erdc-cm/proteus
+- cd proteus
+- make hashdist
+- make stack
+- make stack/default.yaml
+- ./hashdist/bin/hit init-home
+- ./hashdist/bin/hit remote add https://dl.dropboxusercontent.com/u/26353144/hashdist_src --objects="source"
+- ./hashdist/bin/hit remote add https://dl.dropboxusercontent.com/u/26353144/hashdist_ubuntu_14_04 --objects="build"
+- make hashdist_package
+- export PATH=$PWD/stack/proteus_stack/bin:$PATH
+- export LD_LIBRARY_PATH=$PWD/stack/proteus_stack/lib:$LD_LIBRARY_PATH
+- export SSL_CERT_DIR=/etc/ssl/certs
+- cd ..
+
+script:
+- py.test --boxed -v $TEST_PROFILE
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always
