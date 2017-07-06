@@ -66,7 +66,7 @@ if opts.waves is True:
     mwl = depth = opts.water_level
     direction = opts.wave_dir
     wave = wt.MonochromaticWaves(period=period, waveHeight=height, mwl=mwl, depth=depth,
-                                 g=opts.g, waveDir=direction,
+                                 g=np.array(opts.g), waveDir=direction,
                                  wavelength=opts.wave_wavelength,
                                  waveType=opts.wave_type,
                                  Ycoeff=np.array(opts.Ycoeff),
@@ -132,7 +132,7 @@ point_gauge_locations = []
 if opts.point_gauge_output or opts.column_gauge_output:
     gauge_y = waterLevel - 0.5 * depth
     number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
-    for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
+    for gauge_x in np.linspace(0, tank_dim[0], int(number_of_gauges)):
         point_gauge_locations.append((gauge_x, gauge_y, 0), )
         column_gauge_locations.append(((gauge_x, 0., 0.),
                                        (gauge_x, tank_dim[1], 0.)))
