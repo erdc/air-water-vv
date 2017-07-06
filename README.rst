@@ -17,8 +17,8 @@ test consists of a single directory including
   the problem
 - A set of input files for a code
   (e.g. https://github.com/erdc-cm/proteus)
-- (Optional) a script for results postprocessing
-- A scipt for running regression tests
+- A script for results postprocessing (Optional)
+- A script for running regression tests
 
 Checklist for adding new test problems
 ------------------------
@@ -32,6 +32,7 @@ Checklist for adding new test problems
 - Carefully document the context parameters and other parts of the code
 - Create a test to check that the case runs without errors 
 - Create test to check that results compare well with some reference results (e.g. experiments)
+- Include the path of the test script in .travis.yaml file
 - Push the branch to the remote repository
 - Make a pull request, preferebly by recommending a reviewer
 - The reviewer will ensure that all steps above have been followed
