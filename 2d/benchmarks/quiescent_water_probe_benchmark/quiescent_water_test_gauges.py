@@ -14,20 +14,20 @@ from proteus.mprans.SpatialTools import Tank2D
 # predefined options
 opts=Context.Options([
     # water level
-    ("water_level", 0.6, "Height of water"),
+    ("water_level", 0.6, "Water level in m"),
     # tank
-    ("tank_dim", (3.22 , 1.8), "Dimensions of the tank"),
+    ("tank_dim", (3.22 , 1.8), "Dimensions of the tank in m"),
     #gravity
-    ("g",(0,-9.81,0), "Gravity vector"),
+    ("g",(0,-9.81,0), "Gravity vector in m/s^2"),
     # probe dx
-    ("dxProbe",0.25, "Probe spacing"),
+    ("dxProbe",0.25, "Probe spacing in m"),
     # refinement
     ("refinement", 40,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"),
     ("cfl", 0.33,"Target cfl"),
     # run time options
-    ("T", 0.1,"Simulation time"),
-    ("dt_fixed", 0.01, "Fixed time step"),
-    ("dt_init", 0.001 ,"Maximum initial time step"),
+    ("T", 0.1,"Simulation time in s"),
+    ("dt_fixed", 0.01, "Fixed time step in s"),
+    ("dt_init", 0.001 ,"Maximum initial time step in s"),
     ("gen_mesh", True ,"Generate new mesh"),
     ])
 

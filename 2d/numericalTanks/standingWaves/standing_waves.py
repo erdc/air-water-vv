@@ -14,32 +14,32 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 opts = Context.Options([
     # test options
-    ("water_level", 1., "Height of free surface above bottom"),
+    ("water_level", 1., "Water level from y=0"),
     # tank
-    ("tank_dim", (5., 1.5,), "Dimensions of the tank"),
+    ("tank_dim", (5., 1.5,), "Dimensions of the operational domain of the tank in m (l x h)"),
     ("generation", True, "Generate waves at the left boundary (True/False)"),
     ("absorption", False, "Absorb waves at the right boundary (True/False)"),
-    ("tank_sponge", (5., 0.), "Length of generation/absorption zone"),
+    ("tank_sponge", (5., 0.), "Length of generation/absorption zone in m (left, right)"),
     ("free_slip", True, "Should tank walls have free slip conditions "
                         "(otherwise, no slip conditions will be applied)."),
     # gravity
-    ("g", [0, -9.81, 0], "Gravity vector"),
+    ("g", [0, -9.81, 0], "Gravity vector in m/s^2"),
     # waves
-    ("wave_period", 1.94, "Period of the waves"),
-    ("wave_height", 0.025, "Height of the waves"),
-    ("depth", 1., "Wave depth"),
+    ("wave_period", 1.94, "Period of the waves in s"),
+    ("wave_height", 0.025, "Height of the waves in m"),
+    ("depth", 1., "Wave depth in m"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
-    ("wavelength", 5., "Wavelength"),
+    ("wavelength", 5., "Wavelength in m"),
     # probe dx
     ("point_gauge_output", True, "Produce point gauge output"),
     ("column_gauge_output", True, "Produce column gauge output"),
-    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges"),
+    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges in m"),
     # refinement
     ("refLevel", 200, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
     # run time
-    ("T", 0.1, "Simulation time"),
-    ("dt_init", 0.001, "Initial time step"),
+    ("T", 0.1, "Simulation time in s"),
+    ("dt_init", 0.001, "Initial time step in s"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
     ("useHex", False, "Use (hexahedral) structured mesh"),

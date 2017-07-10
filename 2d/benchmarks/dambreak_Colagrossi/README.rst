@@ -1,10 +1,11 @@
 Dambreak flow - Collagrosi and Landrini (2003)
 ==============================================
 
-The problem consists of a 0.60m x 1.20m (height x width) column of
-water, initially at rest, that collapses under the action of gravity
-and impacts to a wall.  The computational domain is a rectangular box
-with a heigth of 1.80m and a width of 3.22m.  The top of the domain is
+Description
+-----------
+The problem comprises a 0.60m x 1.20m (height x width) column of
+water in a 1.8 m high and 3.22 m wide container. The column collapses under the action of gravity
+and impacts to a wall. The top of the domain is
 left open, when the rest of the boundary patches act as free slip walls.
 In the following figure, a sketch of the dambreak initial conditions
 is shown.
@@ -18,10 +19,12 @@ evolution and forces / pressures on structures, according to data that
 are available in the following references.  For more details, see
 runfiles or references.
 
+Tests
+-------
 The python test file named ``test_dambreak_Colagrossi.py`` is made up of 
 two tests:
 
-* The first one is to know if the case can run.
+* The first test is to check that the run is successfully completed.
 * The second test is to validate the results comparing them to reference values. For this case we will compare the numerical and reference maximum pressure for a given point.
 One can run this test file typing ``py.test --boxed test_dambreak_Colagrossi.py``.
 

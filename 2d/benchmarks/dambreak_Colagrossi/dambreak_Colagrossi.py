@@ -16,22 +16,22 @@ from proteus.mprans.SpatialTools import Tank2D
 # predefined options
 opts=Context.Options([
     # water column 
-    ("water_level", 0.6, "Height of water column"),
-    ("water_width", 1.2, "Width of  water column"),
+    ("water_level", 0.6, "Height of water column in m"),
+    ("water_width", 1.2, "Width of  water column in m"),
     # tank
-    ("tank_dim", (3.22, 1.8), "Dimensions of the tank"),
+    ("tank_dim", (3.22, 1.8), "Dimensions of the tank  in m"),
     #gravity 
-    ("g",(0,-9.81,0), "Gravity vector"),
+    ("g",(0,-9.81,0), "Gravity vector in m/s^2"),
     # gauges
-    ("gauge_output", True, "Produce gauge data."),
-    ("gauge_location_p", (3.22, 0.12, 0), "Pressure gauge location"),
+    ("gauge_output", True, "Produce gauge data"),
+    ("gauge_location_p", (3.22, 0.12, 0), "Pressure gauge location in m"),
     # mesh refinement and timestep
     ("refinement", 32 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
     ("cfl", 0.33 ,"Target cfl"),
     # run time options
-    ("T", 0.09 ,"Simulation time"),
-    ("dt_fixed", 0.01, "Fixed time step"),
-    ("dt_init", 0.001 ,"Maximum initial time step"),
+    ("T", 0.09 ,"Simulation time in s"),
+    ("dt_fixed", 0.01, "Fixed time step in s"),
+    ("dt_init", 0.001 ,"Maximum initial time step in s"),
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("structured", False, "Use a structured triangular mesh"),
     ("gen_mesh", True ,"Generate new mesh"),

@@ -1,5 +1,5 @@
 """
-Non linear waves
+Random Waves
 """
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
@@ -8,41 +8,44 @@ import math
 import numpy as np
 
 opts=Context.Options([
-    # predefined test cases
-    ("water_level", 1., "Height of free surface above seabed"),
+    # test options
+    ("water_level", 1.,  "Water level from y=0"),
     # tank
-    ("tank_dim", (15., 2.), "Dimensions of the tank"),
+    ("tank_dim", (15., 1.5,), "Dimensions of the operational domain of the tank in m (l x h)"),
     ("generation", True, "Generate waves at the left boundary (True/False)"),
     ("absorption", True, "Absorb waves at the right boundary (True/False)"),
-    ("tank_sponge", (5.,10.), "Length of relaxation zones zones (left, right)"),
+    ("tank_sponge", (5., 10.), "Length of generation/absorption zone in m (left, right)"),
     ("free_slip", True, "Should tank walls have free slip conditions "
                         "(otherwise, no slip conditions will be applied)."),
+    #gravity 
+    ("g", [0, -9.81, 0], "Gravity vector in m/s^2"),
+    # waves
+    ("waves", True, "Generate waves (True/False)"),
+    ("Tp", 1.94, "Peak wave period in s"),
+    ("Hs", 0.05, "Significant wave height in m"),
+    ("depth", 1., "Water depth in m"),
+    ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
+    ("wavelength", 5., "Wavelength of the peak period component in m"),
+    ("fast", True, "switch for fast cosh calculations in WaveTools"),
     # gauges
     #("gauge_output", True, "Places Gauges in tank (5 per wavelength)"),
     ("point_gauge_output", True, "Produce point gauge output"),
     ("column_gauge_output", True, "Produce column gauge output"),
-    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges"),
-    # waves
-    ("waves", True, "Generate waves (True/False)"),
-    ("wave_period", 1.94, "Period of the waves"),
-    ("wave_height", 0.05, "Height of the waves"),
-    ("wave_dir", (1.,0.,0.), "Direction of the waves (from left boundary)"),
-    ("wave_wavelength",5., "Direction of the waves (from left boundary)"),
-    ("fast", True, "switch for fast cosh calculations in WaveTools"),
+    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges in m"),
     # mesh refinement
     ("refinement", False, "Gradual refinement"),
-    ("he", 0.02, "Set characteristic element size"),
-    ("he_max", 0.05, "Set maximum characteristic element size"),
+    ("he", 0.02, "Set characteristic element size in m"),
+    ("he_max", 0.05, "Set maximum characteristic element size in m"),
     ("he_max_water", 10, "Set maximum characteristic in water phase"),
-    ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value)"),
-    ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
+    ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value) in m"),
+    ("refinement_caisson", 0.,"Set area of constant refinement (Box) around potential structure (+/- value) in m"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", False, "True/False"),
-    ("T", 250.0, "Simulation time"),
-    ("dt_init", 0.001, "Initial time step"),
+    ("T", 250.0, "Simulation time in s"),
+    ("dt_init", 0.001, "Initial time step in s"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
     ("cfl", 0.5 , "Target cfl"),
@@ -56,9 +59,9 @@ opts=Context.Options([
 omega = 1.
 
 if opts.waves is True:
-    Tp = opts.wave_period
-    omega = 2*np.pi/opts.wave_period
-    Hs = opts.wave_height
+    Tp = opts.Tp
+    omega = 2*np.pi/opts.Tp
+    Hs = opts.Hs
     bandFactor = 2.
     spectName = "JONSWAP"
     spectral_params=None
@@ -67,7 +70,7 @@ if opts.waves is True:
     Tend = 2.*opts.T
     x0 = np.array([0., 0. ,0. ])
     waveDir = np.array(opts.wave_dir) #[1.,0.,0.]
-    g = np.array([0.,-9.81,0.])
+    g = np.array(opts.g)
     N = 2000
     phi = np.loadtxt("phases.txt")
     Lgen = np.array([opts.tank_sponge[0], 0., 0.])
