@@ -12,7 +12,10 @@ env:
 - TEST_PROFILE="Tests/test_nonlinearWaves.py"
 - TEST_PROFILE="Tests/test_standingWaves.py"
 - TEST_PROFILE="Tests/test_randomWaves.py"
-
+- TEST_PROFILE="Tests/test_broad_crested_weir.py"
+- TEST_PROFILE="Tests/test_crump_weir.py"
+- TEST_PROFILE="Tests/test_sharp_crested_weir.py"
+- TEST_PROFILE="Tests/test_sluice_gate.py"
 
 python:
 - 2.7
