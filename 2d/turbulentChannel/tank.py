@@ -276,10 +276,10 @@ else:
 
 tank.setTurbulentWall(wallTop)
 tank.BC['y+'].setWallFunction(wallTop)
-tank.BC['y+'].u_diffusive.resetBC()
+#tank.BC['y+'].u_diffusive.resetBC()
 tank.setTurbulentWall(wallBottom)
 tank.BC['y-'].setWallFunction(wallBottom)
-tank.BC['y-'].u_diffusive.resetBC()
+#tank.BC['y-'].u_diffusive.resetBC()
 
 tank.BC['sponge'].setNonMaterial()
 
@@ -292,16 +292,16 @@ if opts.GenZone == True and opts.wave == True:
     tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
                         orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
                         waves=waveinput,
-                        )
+                            dragAlpha=0.1)
 elif opts.GenZone == True:
     tank.setAbsorptionZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
                         orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
-                        )
+                            dragAlpha=0.1)
 
 if opts.AbsZone == True:
     tank.setAbsorptionZones(flags=3, epsFact_solid=float(L_rightSpo/2.),
                         orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
-                        )
+                            dragAlpha=0.1)
 
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
