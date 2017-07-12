@@ -28,7 +28,7 @@ opts=Context.Options([
     ("cfl", 0.5 ,"Target cfl"),
     ("opentop", True,"Enabling atmosphere boundary at the top"),
     # run time options
-    ("T", 0.1 ,"Simulation time in s"),
+    ("T", 10. ,"Simulation time in s"),
     ("nsave", 0., "number of saves per second"),
     ("dt_init", 0.001 ,"Maximum initial time step in s"),
     ("dt_fixed", None, "fixed time step for proteus (scale with period) in s"),

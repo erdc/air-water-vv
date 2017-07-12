@@ -32,8 +32,58 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
                 os.remove(file)
             else:
                 pass
-            
-    def test_run(self):
+    
+    fast = pytest.mark.skipif(not pytest.config.getoption("--runfast"), 
+            reason="need --runfast option to run")
+    
+    slow = pytest.mark.skipif(pytest.config.getoption("--runfast"), 
+            reason="no --runfast option to run")
+
+    @fast
+    def test_run_fast(self):
+        os.chdir('2d/benchmarks/dambreak_Ubbink/')
+        from petsc4py import PETSc
+        pList = []
+        nList = []
+        for (p,n) in dambreak_Ubbink_so.pnList:
+            pList.append(__import__(p))
+            nList.append(__import__(n))
+            if pList[-1].name == None:
+                pList[-1].name = p
+        so = dambreak_Ubbink_so
+        so.name = "dambreak_Ubbink"
+        if so.sList == []:
+            for i in range(len(so.pnList)):
+                s = default_s
+                so.sList.append(s)
+        Profiling.logLevel=7
+        Profiling.verbose=True
+        # PETSc solver configuration
+        OptDB = PETSc.Options()
+        with open("../../../inputTemplates/petsc.options.asm") as f:
+            all = f.read().split()
+            i=0
+            while i < len(all):
+                if i < len(all)-1:
+                    if all[i+1][0]!='-':
+                        print "setting ", all[i].strip(), all[i+1]
+                        OptDB.setValue(all[i].strip('-'),all[i+1])
+                        i=i+2
+                    else:
+                        print "setting ", all[i].strip(), "True"
+                        OptDB.setValue(all[i].strip('-'),True)
+                        i=i+1
+                else:
+                    print "setting ", all[i].strip(), "True"
+                    OptDB.setValue(all[i].strip('-'),True)
+                    i=i+1
+        so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01)+1))]
+        ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
+        ns.calculateSolution('dambreak_Ubbink')
+        assert(True)
+    
+    @slow
+    def test_run_slow(self):
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -73,7 +123,7 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
         ns.calculateSolution('dambreak_Ubbink')
         assert(True)
 
-        
+    @slow    
     def test_validate(self):
         # Reading file
         filename='pressureGauge.csv'

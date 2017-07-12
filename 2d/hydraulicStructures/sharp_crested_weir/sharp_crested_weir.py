@@ -15,8 +15,8 @@ opts = Context.Options([
     ("waves", False, "Generate waves - uses sponge layers."),
     ("air_vent", True, "Include an air vent in the obstacle."),
     # air vent position
-    ("airvent_y1",0.5,"Vertical distance from bottom to the lower 
-                       vertex of the air ventilation boundary patch in m"),
+    ("airvent_y1",0.5,"Vertical distance from bottom to the lower" 
+                      "vertex of the air ventilation boundary patch in m"),
     ("airvent_dim",0.25,"Dimension of the air boundary patch in m"),
     # water
     ("water_level", 1.4,  "Mean level at inflow from y=0 in m"),
@@ -45,7 +45,7 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 10.0, "Simulation time in s"),
+    ("T", 30.0, "Simulation time in s"),
     ("dt_fixed", 0.02, "Fixed time step in s"),
     ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10) in s"),
     # run details

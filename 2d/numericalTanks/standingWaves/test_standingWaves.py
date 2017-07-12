@@ -32,8 +32,58 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
                 os.remove(file)
             else:
                 pass
-            
-    def test_run(self):
+
+    fast = pytest.mark.skipif(not pytest.config.getoption("--runfast"), 
+            reason="need --runfast option to run")
+    
+    slow = pytest.mark.skipif(pytest.config.getoption("--runfast"), 
+            reason="no --runfast option to run")
+
+    @fast
+    def test_run_fast(self):
+        os.chdir('2d/numericalTanks/standingWaves')
+        from petsc4py import PETSc
+        pList = []
+        nList = []
+        for (p,n) in standing_waves_so.pnList:
+            pList.append(__import__(p))
+            nList.append(__import__(n))
+            if pList[-1].name == None:
+                pList[-1].name = p
+        so = standing_waves_so
+        so.name = "standing_waves"
+        if so.sList == []:
+            for i in range(len(so.pnList)):
+                s = default_s
+                so.sList.append(s)
+        Profiling.logLevel=7
+        Profiling.verbose=True
+        # PETSc solver configuration
+        OptDB = PETSc.Options()
+        with open("../../../inputTemplates/petsc.options.asm") as f:
+            all = f.read().split()
+            i=0
+            while i < len(all):
+                if i < len(all)-1:
+                    if all[i+1][0]!='-':
+                        print "setting ", all[i].strip(), all[i+1]
+                        OptDB.setValue(all[i].strip('-'),all[i+1])
+                        i=i+2
+                    else:
+                        print "setting ", all[i].strip(), "True"
+                        OptDB.setValue(all[i].strip('-'),True)
+                        i=i+1
+                else:
+                    print "setting ", all[i].strip(), "True"
+                    OptDB.setValue(all[i].strip('-'),True)
+                    i=i+1
+        so.tnList=[0.0,sw.dt_init]+[sw.dt_init + i*sw.dt_out for i in range(1,int(round(0.1/sw.dt_out)+1))]  
+        ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
+        ns.calculateSolution('standing_waves')
+        assert(True)
+    
+    @slow
+    def test_run_slow(self):
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -72,11 +122,10 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('standing_waves')
         assert(True)
-
-        
+    
+    @slow    
     def test_validate(self):
         file_p = 'pressure_gaugeArray.csv'
-
         def readProbeFile(filename):
             with open (filename, 'rb') as csvfile:
                 data=np.loadtxt(csvfile, delimiter=",",skiprows=1)
@@ -101,7 +150,6 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
                 probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
                 datalist = [probeType,probeCoord,time,data]
                 return datalist
-
         # Exctracting probes
         data_p = readProbeFile(file_p)
         T = sw.opts.wave_period #1.94
@@ -112,7 +160,6 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
         pressure = data_p[3][:,-1]
         Z = -depth + data_p[1][0][1]
         Nwaves = (sw.opts.tank_dim[0]+sw.opts.tank_sponge[0]+sw.opts.tank_sponge[1])/L
-
         # Calculating the height with the pressure
         def pressureToHeight(data,Z,depth,wavelength,rho,g):
             k = 2*math.pi/wavelength
@@ -126,7 +173,6 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
         p_period = pressure[istart:iend_period]
         p_0 = max(p_period)-min(p_period)
         Hr = pressureToHeight(p_0,Z,depth,L,998.2,9.81)
-
         # Validation of the result
         err = 100*abs(2*H-Hr)/(2*H)
         assert(err<12.0)
