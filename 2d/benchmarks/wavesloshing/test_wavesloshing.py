@@ -3,8 +3,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import wavesloshing_so
-import wavesloshing
 import os
 import numpy as np
 import collections as cll
@@ -43,6 +41,8 @@ class TestWaveSloshingTetgen(TestTools.AirWaterVVTest):
     @fast
     def test_run_fast(self):
         os.chdir('2d/benchmarks/wavesloshing')
+        import wavesloshing_so
+        import wavesloshing
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -85,6 +85,8 @@ class TestWaveSloshingTetgen(TestTools.AirWaterVVTest):
 
     @slow
     def test_run_slow(self):
+        import wavesloshing_so
+        import wavesloshing
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -126,6 +128,8 @@ class TestWaveSloshingTetgen(TestTools.AirWaterVVTest):
 
     @slow    
     def test_validate(self):
+        import wavesloshing_so
+        import wavesloshing
         # Reading file
         filename='pointGauge_levelset.csv'
         with open (filename, 'rb') as csvfile: 

@@ -4,7 +4,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import sharp_crested_weir_so
 import numpy as np
 import collections as cll
 import csv
@@ -42,6 +41,7 @@ class TestSharpCrestedWeirTetgen(TestTools.AirWaterVVTest):
     @fast
     def test_run_fast(self):
         os.chdir('2d/hydraulicStructures/sharp_crested_weir')
+        import sharp_crested_weir_so
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -84,6 +84,7 @@ class TestSharpCrestedWeirTetgen(TestTools.AirWaterVVTest):
    
     @slow        
     def test_run_slow(self):
+        import sharp_crested_weir_so
         from petsc4py import PETSc
         pList = []
         nList = []

@@ -3,8 +3,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import linear_waves_so
-import linear_waves as lw
 import os
 import numpy as np
 import collections as cll
@@ -47,6 +45,8 @@ class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
     @fast
     def test_run_fast(self):
         os.chdir('2d/numericalTanks/linearWaves')
+        import linear_waves_so
+        import linear_waves as lw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -89,6 +89,8 @@ class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
 
     @slow
     def test_run_slow(self):
+        import linear_waves_so
+        import linear_waves as lw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -130,6 +132,8 @@ class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
 
     @slow    
     def test_validate(self):
+        import linear_waves_so
+        import linear_waves as lw
         # Reading probes into the file
         file_vof = 'column_gauges.csv'   
         # Exctracting probes
@@ -163,6 +167,8 @@ class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
 
     @slow    
     def test_reflection(self):
+        import linear_waves_so
+        import linear_waves as lw
         dataW = readProbeFile('column_gauges.csv')
         time = dataW[2]
         L = lw.opts.wavelength

@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import pytest
 from proteus.iproteus import *
-import standing_waves_so
-import standing_waves as sw
 import os
 import numpy as np
 import collections as cll
@@ -42,6 +40,8 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
     @fast
     def test_run_fast(self):
         os.chdir('2d/numericalTanks/standingWaves')
+        import standing_waves_so
+        import standing_waves as sw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -84,6 +84,8 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
     
     @slow
     def test_run_slow(self):
+        import standing_waves_so
+        import standing_waves as sw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -125,6 +127,8 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
     
     @slow    
     def test_validate(self):
+        import standing_waves_so
+        import standing_waves as sw
         file_p = 'pressure_gaugeArray.csv'
         def readProbeFile(filename):
             with open (filename, 'rb') as csvfile:

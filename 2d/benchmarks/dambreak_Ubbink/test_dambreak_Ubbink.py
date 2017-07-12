@@ -3,7 +3,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import dambreak_Ubbink_so
 import os
 import numpy as np
 import collections as cll
@@ -42,6 +41,7 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
     @fast
     def test_run_fast(self):
         os.chdir('2d/benchmarks/dambreak_Ubbink/')
+        import dambreak_Ubbink_so
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -85,6 +85,7 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
     @slow
     def test_run_slow(self):
         from petsc4py import PETSc
+        import dambreak_Ubbink_so
         pList = []
         nList = []
         for (p,n) in dambreak_Ubbink_so.pnList:
@@ -125,6 +126,7 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
 
     @slow    
     def test_validate(self):
+        import dambreak_Ubbink_so
         # Reading file
         filename='pressureGauge.csv'
         with open (filename, 'rb') as csvfile: 

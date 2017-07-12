@@ -3,7 +3,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import sluice_gate_so
 import os
 import numpy as np
 import collections as cll
@@ -42,6 +41,7 @@ class TestSluiceGateTetgen(TestTools.AirWaterVVTest):
     @fast
     def test_run_fast(self):
         os.chdir('2d/hydraulicStructures/sluice_gate')
+        import sluice_gate_so
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -84,6 +84,7 @@ class TestSluiceGateTetgen(TestTools.AirWaterVVTest):
 
     @slow
     def test_run_slow(self):
+        import sluice_gate_so
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -125,6 +126,7 @@ class TestSluiceGateTetgen(TestTools.AirWaterVVTest):
 
     @slow    
     def test_validate(self):
+        import sluice_gate_so
         # Reading probes into the file
         filename='combined_column_gauge.csv'
         def readProbeFile(filename):

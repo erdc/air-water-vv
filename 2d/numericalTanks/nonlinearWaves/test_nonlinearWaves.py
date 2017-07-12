@@ -3,8 +3,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import nonlinear_waves_so
-import nonlinear_waves as nlw
 import os
 import numpy as np
 import collections as cll
@@ -44,6 +42,8 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
     @fast
     def test_run_fast(self):
         os.chdir('2d/numericalTanks/nonlinearWaves')
+        import nonlinear_waves_so
+        import nonlinear_waves as nlw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -86,6 +86,8 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
 
     @slow        
     def test_run_slow(self):
+        import nonlinear_waves_so
+        import nonlinear_waves as nlw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -127,6 +129,8 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
 
     @slow    
     def test_validate(self):
+        import nonlinear_waves_so
+        import nonlinear_waves as nlw
         # Reading probes into the file
         file_vof = 'column_gauges.csv'
         # Exctracting probes
@@ -160,6 +164,8 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
 
     @slow
     def test_reflection(self):
+        import nonlinear_waves_so
+        import nonlinear_waves as nlw
         dataW = readProbeFile('column_gauges.csv')
         time = dataW[2]
         L = nlw.opts.wave_wavelength

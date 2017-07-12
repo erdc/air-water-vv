@@ -3,8 +3,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import dambreak_Colagrossi_so
-import dambreak_Colagrossi as dc
 import os
 import numpy as np
 import collections as cll
@@ -43,6 +41,8 @@ class TestDambreakColagrossiTetgen(TestTools.AirWaterVVTest):
     @fast
     def test_run_fast(self):
         os.chdir('2d/benchmarks/dambreak_Colagrossi/')
+        import dambreak_Colagrossi_so
+        import dambreak_Colagrossi as dc
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -86,6 +86,8 @@ class TestDambreakColagrossiTetgen(TestTools.AirWaterVVTest):
     @slow
     def test_run_slow(self):
         from petsc4py import PETSc
+        import dambreak_Colagrossi_so
+        import dambreak_Colagrossi as dc
         pList = []
         nList = []
         for (p,n) in dambreak_Colagrossi_so.pnList:
@@ -126,6 +128,8 @@ class TestDambreakColagrossiTetgen(TestTools.AirWaterVVTest):
 
     @slow
     def test_validate(self):
+        import dambreak_Colagrossi_so
+        import dambreak_Colagrossi as dc
         # Reading file
         filename='pressureGauge.csv'
         with open (filename, 'rb') as csvfile: 

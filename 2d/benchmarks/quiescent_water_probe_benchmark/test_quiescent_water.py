@@ -3,8 +3,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import quiescent_water_test_gauges_so
-import quiescent_water_test_gauges as qw
 import os
 import numpy as np
 import collections as cll
@@ -43,6 +41,8 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
     @fast
     def test_run_fast(self):
         os.chdir('2d/benchmarks/quiescent_water_probe_benchmark')
+        import quiescent_water_test_gauges_so
+        import quiescent_water_test_gauges as qw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -85,6 +85,8 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
     
     @slow
     def test_run_slow(self):
+        import quiescent_water_test_gauges_so
+        import quiescent_water_test_gauges as qw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -126,6 +128,8 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
 
     @slow   
     def test_validate(self):
+        import quiescent_water_test_gauges_so
+        import quiescent_water_test_gauges as qw
         # Reading probes into the file
         file_pressurePoint = 'pressure_PointGauge.csv'
         file_pressureLine = 'pressure_LineGauge.csv'

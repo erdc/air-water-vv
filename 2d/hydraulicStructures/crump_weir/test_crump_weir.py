@@ -3,8 +3,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import crump_weir_so
-import crump_weir as cw
 import os
 import numpy as np
 import collections as cll
@@ -42,6 +40,8 @@ class TestCrumpWeirTetgen(TestTools.AirWaterVVTest):
     
     @fast
     def test_run_fast(self):
+        import crump_weir_so
+        import crump_weir as cw
         os.chdir('2d/hydraulicStructures/crump_weir')
         from petsc4py import PETSc
         pList = []
@@ -85,6 +85,8 @@ class TestCrumpWeirTetgen(TestTools.AirWaterVVTest):
 
     @slow
     def test_run_slow(self):
+        import crump_weir_so
+        import crump_weir as cw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -126,6 +128,8 @@ class TestCrumpWeirTetgen(TestTools.AirWaterVVTest):
 
     @slow    
     def test_validate(self):
+        import crump_weir_so
+        import crump_weir as cw
         # Reading probes into the file
         file_vof='column_gauge.csv'
         file_u='u_over_crest.csv'
