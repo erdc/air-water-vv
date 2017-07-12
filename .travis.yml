@@ -16,6 +16,8 @@ env:
 - TEST_PROFILE="2d/hydraulicStructures/crump_weir/test_crump_weir.py"
 - TEST_PROFILE="2d/hydraulicStructures/sharp_crested_weir/test_sharp_crested_weir.py"
 - TEST_PROFILE="2d/hydraulicStructures/sluice_gate/test_sluice_gate.py"
+- TEST_PROFILE="2d/floatingStructures/floating_caisson_chrono/test_caissonChrono.py"
+- TEST_PROFILE="2d/floatingStructures/floating_caisson_BodyDynamics/test_caissonBD.py"  
 
 python:
 - 2.7

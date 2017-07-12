@@ -2,7 +2,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import floating2D_so
 import os
 import numpy as np
 import collections as cll
@@ -33,8 +32,61 @@ class TestFloatingCaissonChronoTetgen(TestTools.AirWaterVVTest):
                 os.remove(file)
             else:
                 pass
-            
+
+    fast = pytest.mark.skipif(not pytest.config.getoption("--runfast"), 
+            reason="need --runfast option to run")
+    
+    slow = pytest.mark.skipif(pytest.config.getoption("--runfast"), 
+            reason="no --runfast option to run")
+    
+    @fast
     def test_run(self):
+        os.chdir('2d/floatingStructures/floating_caisson_chrono')
+        import floating2D_so
+        import floating2D as f2d
+        from petsc4py import PETSc
+        pList = []
+        nList = []
+        for (p,n) in floating2D_so.pnList:
+            pList.append(__import__(p))
+            nList.append(__import__(n))
+            if pList[-1].name == None:
+                pList[-1].name = p
+        so = floating2D_so
+        so.name = "floating2D"
+        if so.sList == []:
+            for i in range(len(so.pnList)):
+                s = default_s
+                so.sList.append(s)
+        Profiling.logLevel=7
+        Profiling.verbose=True
+        # PETSc solver configuration
+        OptDB = PETSc.Options()
+        with open("../../../inputTemplates/petsc.options.asm") as f:
+            all = f.read().split()
+            i=0
+            while i < len(all):
+                if i < len(all)-1:
+                    if all[i+1][0]!='-':
+                        print "setting ", all[i].strip(), all[i+1]
+                        OptDB.setValue(all[i].strip('-'),all[i+1])
+                        i=i+2
+                    else:
+                        print "setting ", all[i].strip(), "True"
+                        OptDB.setValue(all[i].strip('-'),True)
+                        i=i+1
+                else:
+                    print "setting ", all[i].strip(), "True"
+                    OptDB.setValue(all[i].strip('-'),True)
+                    i=i+1
+        so.tnList=[0.0,f2d.dt_init]+[f2d.dt_init + i*f2d.dt_out for i in range(1,int(round(0.3/f2d.dt_out)+1))]  
+        ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
+        ns.calculateSolution('floating2D')
+        assert(True)
+
+    @slow
+    def test_run_slow(self):
+        import floating2D_so
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -74,7 +126,7 @@ class TestFloatingCaissonChronoTetgen(TestTools.AirWaterVVTest):
         ns.calculateSolution('floating2D')
         assert(True)
 
-        
+    @slow    
     def test_validate(self):
         probes = 'record_rectangle1.csv'
         datalist = at.readProbeFile(probes)
