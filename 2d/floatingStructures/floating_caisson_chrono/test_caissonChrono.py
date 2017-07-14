@@ -9,6 +9,7 @@ import csv
 from proteus.test_utils import TestTools
 import AnalysisTools as at
 import math
+from proteus import Profiling
 
 class TestFloatingCaissonChronoTetgen(TestTools.AirWaterVVTest):
 
@@ -125,7 +126,7 @@ class TestFloatingCaissonChronoTetgen(TestTools.AirWaterVVTest):
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('floating2D')
         assert(True)
-
+     
     @slow    
     def test_validate(self):
         probes = 'record_rectangle1.csv'
