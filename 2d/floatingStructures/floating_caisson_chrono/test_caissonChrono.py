@@ -41,7 +41,7 @@ class TestFloatingCaissonChronoTetgen(TestTools.AirWaterVVTest):
             reason="no --runfast option to run")
     
     @fast
-    def test_run(self):
+    def test_run_fast(self):
         os.chdir('2d/floatingStructures/floating_caisson_chrono')
         import floating2D_so
         import floating2D as f2d
