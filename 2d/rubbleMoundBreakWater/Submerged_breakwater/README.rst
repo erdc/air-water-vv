@@ -13,8 +13,7 @@ of the media is 3.5 wavelenghts long. The absorption zone is 2 wavelenghts long.
 Many tests are done with different wave heights (0.03, 0.04, ..., 0.11, 0.12) and different wave periods 
 (1.0, 1.5, 2.0).
 
-This benchmarks only using the proteus branch lmaurel/improved_TankWithObs2D_.
-.. _lmaurel/improved_TankWithObs2D: https://github.com/lmaurel/proteus/tree/lmaurel/improved_TankWithObs2D
+This benchmark can only be used with the proteus branch lmaurel/improve_TankObs2D (https://github.com/lmaurel/proteus/tree/lmaurel/improve_TankObs2D)
 
 References
 ----------
