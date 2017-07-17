@@ -14,7 +14,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 opts = Context.Options([
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
-    ("air_vent", True, "Include an air vent in the obstacle."),
+    ("air_vent", False, "Include an air vent in the obstacle."),
     # air vent position
     ("airvent_y1",0.25,"Vertical distance from bottom to the lower"
                        " vertex of the air ventilation boundary in m"),
