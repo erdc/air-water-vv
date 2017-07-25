@@ -7,6 +7,8 @@ def CreateFig():
     from matplotlib import pyplot as  plt
     import numpy as np
     domain = dambreak_Ubbink.domain
+    domain.L = dambreak_Ubbink.tank_dim
+    domain.x = (0.,0.,0.)
     nodes = archive.getNode("/nodesSpatial_Domain0")
     x=nodes[:,0]
     y=nodes[:,1]
@@ -16,6 +18,7 @@ def CreateFig():
     yg = np.linspace(0, domain.L[1], 20)
     xi, yi = np.meshgrid(xg,yg)
     plt.figure()
+
     for it,t in enumerate(dambreak_Ubbink_so.tnList[:]):
         phi = archive.getNode("/phi_t"+`it`)
         vof = archive.getNode("/vof_t"+`it`)
@@ -47,3 +50,4 @@ def CreateFig():
         plt.axis('equal')
         plt.xlim((0,domain.L[0]))
         plt.savefig('phi%4.4d.png' % (it,))
+        return;
