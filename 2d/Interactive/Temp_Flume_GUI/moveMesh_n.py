@@ -8,7 +8,6 @@ from proteus import (FemTools,
 import moveMesh_p as physics
 #from proteus import Context
 import Context
-from floating2D import *
 
 ct = Context.get()
 domain = ct.domain
