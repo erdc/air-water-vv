@@ -5,11 +5,11 @@ from proteus import(StepControl,
                     LinearAlgebraTools,
                     LinearSolvers,
                     NumericalFlux,
-                    #Context
+                    Context
                    )
 from proteus.mprans import RDLS
 import redist_p as physics
-import Context
+#import Context
 ct = Context.get()
 mesh = ct.domain.MeshOptions
 

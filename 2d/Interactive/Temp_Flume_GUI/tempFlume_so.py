@@ -3,8 +3,8 @@ Split operator module for two-phase flow
 """
 import os
 from proteus.default_so import *
-#from proteus import Context
-import Context
+from proteus import Context
+#import Context
 
 # Create context from main module
 name_so = os.path.basename(__file__)

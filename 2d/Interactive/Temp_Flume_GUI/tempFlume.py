@@ -4,7 +4,7 @@ A Broad Crested Weir
 import numpy as np
 from math import sqrt
 import proteus.MeshTools
-from proteus import (Domain,
+from proteus import (Domain, Context,
                      FemTools as ft,
                      MeshTools as mt,
                      WaveTools as wt)
@@ -14,7 +14,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.mprans import BodyDynamics as bd
 from math import *
 import pandas as pd
-import Context
+#import Context
 
 opts = Context.Options([
     # test options
@@ -309,24 +309,24 @@ def Update_Model():
                 bc.setFreeSlip()
 
     # --- Body properties setup
-        bridge2D = bd.RigidBody(shape=caisson)
-        free_x = opts.free_x # Translational DOFs
-        free_r = opts.free_r  # Rotational DOFs
-        bridge2D.setMass(mass)
-        bridge2D.It= I/bridge2D.mass/caisson_width
-        bridge2D.setConstraints(free_x=free_x, free_r=free_r)
-        bridge2D.setNumericalScheme(scheme=opts.scheme)
-        bridge2D.setRecordValues(filename='bridge2D', all_values=True)
+        #bridge2D = bd.RigidBody(shape=caisson)
+        #free_x = opts.free_x # Translational DOFs
+        #free_r = opts.free_r  # Rotational DOFs
+        #bridge2D.setMass(mass)
+        #bridge2D.It= I/bridge2D.mass/caisson_width
+        #bridge2D.setConstraints(free_x=free_x, free_r=free_r)
+        #bridge2D.setNumericalScheme(scheme=opts.scheme)
+        #bridge2D.setRecordValues(filename='bridge2D', all_values=True)
 
     #----- Spring setup
-        if opts.springs:
-            Kx = opts.Kx
-            Ky = opts.Ky
-            Krot = opts.Krot
-            Cx = opts.Cx
-            Cy = opts.Cy
-            Crot = opts.Crot
-            bridge2D.setSprings(opts.springs, Kx, Ky, Krot, Cx, Cy, Crot)
+        #if opts.springs:
+        #    Kx = opts.Kx
+        #    Ky = opts.Ky
+        #    Krot = opts.Krot
+        #    Cx = opts.Cx
+        #    Cy = opts.Cy
+        #    Crot = opts.Crot
+        #    bridge2D.setSprings(opts.springs, Kx, Ky, Krot, Cx, Cy, Crot)
 ###########################################################################################################################################################################
 # ----- Turbulence ----- #
 ###########################################################################################################################################################################

@@ -3,7 +3,7 @@ A Broad Crested Weir
 """
 import numpy as np
 #import proteus.MeshTools
-from proteus import (Domain,
+from proteus import (Domain, Context,
                      FemTools as ft,
                      MeshTools as mt,
                      WaveTools as wt)
@@ -13,7 +13,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.mprans import BodyDynamics as bd
 from math import sqrt
 import pandas as pd
-import Context
+#import Context
 from proteus.MeshAdaptPUMI import MeshAdaptPUMI
 
 opts = Context.Options([

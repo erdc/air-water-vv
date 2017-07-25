@@ -1,5 +1,5 @@
 from proteus.default_n import *
-from proteus import (#Context,
+from proteus import (Context,
                      LinearAlgebraTools,
                      LinearSolvers,
                      NonlinearSolvers,
@@ -7,7 +7,7 @@ from proteus import (#Context,
                      TimeIntegration
                      )
 import ls_consrv_p as physics
-import Context
+#import Context
 ct = Context.get()
 domain = ct.domain
 nd = ct.domain.nd

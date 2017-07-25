@@ -4,11 +4,11 @@ from proteus import (StepControl,
                      NonlinearSolvers,
                      LinearSolvers,
                      LinearAlgebraTools,
-                     #Context
+                     Context
                     )
 import ls_p as physics
 from proteus.mprans import NCLS
-import Context
+#import Context
 ct = Context.get()
 mesh = ct.domain.MeshOptions
 

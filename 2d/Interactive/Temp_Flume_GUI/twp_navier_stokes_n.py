@@ -1,5 +1,5 @@
 from proteus.default_n import *
-from proteus import (#Context,
+from proteus import (Context,
                      LinearAlgebraTools,
                      LinearSolvers,
                      NonlinearSolvers,
@@ -8,7 +8,7 @@ from proteus import (#Context,
                      )
 from proteus.mprans import RANS2P
 import twp_navier_stokes_p as physics
-import Context
+#import Context
 
 #from broad_crested_weir import *
 ct = Context.get()
