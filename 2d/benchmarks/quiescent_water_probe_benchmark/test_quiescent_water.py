@@ -3,8 +3,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import quiescent_water_test_gauges_so
-import quiescent_water_test_gauges as qw
 import os
 import numpy as np
 import collections as cll
@@ -33,8 +31,62 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
                 os.remove(file)
             else:
                 pass
-            
-    def test_run(self):
+
+    fast = pytest.mark.skipif(not pytest.config.getoption("--runfast"), 
+            reason="need --runfast option to run")
+    
+    slow = pytest.mark.skipif(pytest.config.getoption("--runfast"), 
+            reason="no --runfast option to run")
+    
+    @fast
+    def test_run_fast(self):
+        os.chdir('2d/benchmarks/quiescent_water_probe_benchmark')
+        import quiescent_water_test_gauges_so
+        import quiescent_water_test_gauges as qw
+        from petsc4py import PETSc
+        pList = []
+        nList = []
+        for (p,n) in quiescent_water_test_gauges_so.pnList:
+            pList.append(__import__(p))
+            nList.append(__import__(n))
+            if pList[-1].name == None:
+                pList[-1].name = p
+        so = quiescent_water_test_gauges_so
+        so.name = "quiescent_water_test_gauges"
+        if so.sList == []:
+            for i in range(len(so.pnList)):
+                s = default_s
+                so.sList.append(s)
+        Profiling.logLevel=7
+        Profiling.verbose=True
+        # PETSc solver configuration
+        OptDB = PETSc.Options()
+        with open("../../../inputTemplates/petsc.options.asm") as f:
+            all = f.read().split()
+            i=0
+            while i < len(all):
+                if i < len(all)-1:
+                    if all[i+1][0]!='-':
+                        print "setting ", all[i].strip(), all[i+1]
+                        OptDB.setValue(all[i].strip('-'),all[i+1])
+                        i=i+2
+                    else:
+                        print "setting ", all[i].strip(), "True"
+                        OptDB.setValue(all[i].strip('-'),True)
+                        i=i+1
+                else:
+                    print "setting ", all[i].strip(), "True"
+                    OptDB.setValue(all[i].strip('-'),True)
+                    i=i+1
+        so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.1/0.01)+1))]
+        ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
+        ns.calculateSolution('quiescent_water_test_gauges')
+        assert(True)
+    
+    @slow
+    def test_run_slow(self):
+        import quiescent_water_test_gauges_so
+        import quiescent_water_test_gauges as qw
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -74,8 +126,10 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
         ns.calculateSolution('quiescent_water_test_gauges')
         assert(True)
 
-       
+    @slow   
     def test_validate(self):
+        import quiescent_water_test_gauges_so
+        import quiescent_water_test_gauges as qw
         # Reading probes into the file
         file_pressurePoint = 'pressure_PointGauge.csv'
         file_pressureLine = 'pressure_LineGauge.csv'

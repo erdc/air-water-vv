@@ -7,6 +7,15 @@ This case works with Body Dynamics.
 
 ![Alt text](floating_caisson.png)
 
+## Test
+
+The python test file named `test_caissonBD.py` is made up of two tests:
+
+* The first one is to know if the case can run.
+* The second test is to validate the results comparing them to the theory. For this case we will compare the numerical and theoretical period of the rotation angle.
+
+One can run this test file typing `py.test --boxed -v test_caissonBD.py`.
+
 ## Running
 
 The benchmark can be run using the following command:

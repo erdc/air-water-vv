@@ -2,8 +2,6 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import random_waves_so
-import random_waves as rw
 import os
 import numpy as np
 import collections as cll
@@ -33,8 +31,9 @@ class TestRandomWavesFastTetgen(TestTools.AirWaterVVTest):
                 os.remove(file)
             else:
                 pass
-            
-    def test_run(self):
+
+   def test_run(self):
+        import random_waves_so
         from petsc4py import PETSc
         pList = []
         nList = []
@@ -74,8 +73,8 @@ class TestRandomWavesFastTetgen(TestTools.AirWaterVVTest):
         ns.calculateSolution('random_waves')
         assert(True)
 
-        
     def test_validate(self):
+        import random_waves as rw
         # Reading probes into the file
         file_vof = 'column_gauges.csv'
         # Exctracting probes

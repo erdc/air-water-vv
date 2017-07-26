@@ -24,42 +24,15 @@ nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
 triangleOptions = mesh.triangleOptions
 
+
+
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
-tolFac = 0.0
-nl_atol_res = ct.rd_nl_atol_res
 
-linTolFac = 0.01
-l_atol_res = 0.01*ct.rd_nl_atol_res
-useEisenstatWalker = False
+femSpaces = {0: ct.basis}
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
-if ct.redist_Newton:
-    timeIntegration = TimeIntegration.NoIntegration
-    stepController = StepControl.Newton_controller
-    maxNonlinearIts = 50
-    maxLineSearches = 0
-    nonlinearSolverConvergenceTest = 'rits'
-    levelNonlinearSolverConvergenceTest = 'rits'
-    linearSolverConvergenceTest = 'r-true'
-else:
-    timeIntegration = TimeIntegration.BackwardEuler_cfl
-    stepController = RDLS.PsiTC
-    runCFL=2.0
-    psitc['nStepsForce']=3
-    psitc['nStepsMax']=50
-    psitc['reduceRatio']=10.0
-    psitc['startRatio']=1.0
-    rtol_res[0] = 0.0
-    atol_res[0] = ct.rd_nl_atol_res
-    useEisenstatWalker = False#True
-    maxNonlinearIts = 1
-    maxLineSearches = 0
-    nonlinearSolverConvergenceTest = 'rits'
-    levelNonlinearSolverConvergenceTest = 'rits'
-    linearSolverConvergenceTest = 'r-true'
-
-femSpaces = {0:ct.basis}
-       
 massLumping       = False
 numericalFluxType = NumericalFlux.DoNothing
 conservativeFlux  = None
@@ -85,11 +58,39 @@ if ct.useOldPETSc:
 else:
     multilevelLinearSolver = LinearSolvers.KSP_petsc4py
     levelLinearSolver      = LinearSolvers.KSP_petsc4py
-
 if ct.useSuperlu:
     multilevelLinearSolver = LinearSolvers.LU
     levelLinearSolver      = LinearSolvers.LU
 
+if ct.redist_Newton:
+    timeIntegration = TimeIntegration.NoIntegration
+    stepController = StepControl.Newton_controller
+    maxNonlinearIts = 25
+    maxLineSearches = 0
+    nonlinearSolverConvergenceTest = 'rits'
+    levelNonlinearSolverConvergenceTest = 'rits'
+    linearSolverConvergenceTest = 'r-true'
+else:
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
+    stepController = RDLS.PsiTC
+    runCFL = 0.5
+    psitc['nStepsForce'] = 6
+    psitc['nStepsMax'] = 25
+    psitc['reduceRatio'] = 3.0
+    psitc['startRatio'] = 1.0
+    rtol_res[0] = 0.0
+    atol_res[0] = ct.rd_nl_atol_res
+    useEisenstatWalker = False#True
+    maxNonlinearIts = 1
+    maxLineSearches = 0
+    nonlinearSolverConvergenceTest = 'rits'
+    levelNonlinearSolverConvergenceTest = 'rits'
+    linearSolverConvergenceTest = 'r-true'
+
 linear_solver_options_prefix = 'rdls_'
 
-auxiliaryVariables = ct.domain.auxiliaryVariables['redist']
+nl_atol_res = ct.rd_nl_atol_res
+tolFac = 0.0
+linTolFac = 0.001
+l_atol_res = 0.001*ct.rd_nl_atol_res
+useEisenstatWalker = False#True

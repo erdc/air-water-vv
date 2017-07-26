@@ -1,15 +1,15 @@
 #!/usr/bin/env python
+import os
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import os
 import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
 
-class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
+class TestSharpCrestedWeirTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
     def setup_class(cls):
@@ -24,34 +24,34 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
 
     def teardown_method(self,method):
         """ Tear down function """
-        FileList = ['dambreak_Ubbink.xmf',
-                    'dambreak_Ubbink.h5']
+        FileList = ['sharp_crested_weir.xmf',
+                    'sharp_crested_weir.h5']
         for file in FileList:
             if os.path.isfile(file):
                 os.remove(file)
             else:
                 pass
-    
+
     fast = pytest.mark.skipif(not pytest.config.getoption("--runfast"), 
             reason="need --runfast option to run")
     
     slow = pytest.mark.skipif(pytest.config.getoption("--runfast"), 
             reason="no --runfast option to run")
-
+    
     @fast
     def test_run_fast(self):
-        os.chdir('2d/benchmarks/dambreak_Ubbink/')
-        import dambreak_Ubbink_so
+        os.chdir('2d/hydraulicStructures/sharp_crested_weir')
+        import sharp_crested_weir_so
         from petsc4py import PETSc
         pList = []
         nList = []
-        for (p,n) in dambreak_Ubbink_so.pnList:
+        for (p,n) in sharp_crested_weir_so.pnList:
             pList.append(__import__(p))
             nList.append(__import__(n))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = dambreak_Ubbink_so
-        so.name = "dambreak_Ubbink"
+        so = sharp_crested_weir_so
+        so.name = "sharp_crested_weir"
         if so.sList == []:
             for i in range(len(so.pnList)):
                 s = default_s
@@ -77,24 +77,24 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
                     print "setting ", all[i].strip(), "True"
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
-        so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01)+1))]
+        so.tnList=[0.0,0.001]+[0.001 + i*0.02 for i in range(1,int(round(0.05/0.02)+1))]  
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
-        ns.calculateSolution('dambreak_Ubbink')
+        ns.calculateSolution('sharp_crested_weir')
         assert(True)
-    
-    @slow
+   
+    @slow        
     def test_run_slow(self):
+        import sharp_crested_weir_so
         from petsc4py import PETSc
-        import dambreak_Ubbink_so
         pList = []
         nList = []
-        for (p,n) in dambreak_Ubbink_so.pnList:
+        for (p,n) in sharp_crested_weir_so.pnList:
             pList.append(__import__(p))
             nList.append(__import__(n))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = dambreak_Ubbink_so
-        so.name = "dambreak_Ubbink"
+        so = sharp_crested_weir_so
+        so.name = "sharp_crested_weir"
         if so.sList == []:
             for i in range(len(so.pnList)):
                 s = default_s
@@ -121,51 +121,9 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
-        ns.calculateSolution('dambreak_Ubbink')
+        ns.calculateSolution('sharp_crested_weir')
         assert(True)
-
-    @slow    
-    def test_validate(self):
-        import dambreak_Ubbink_so
-        # Reading file
-        filename='pressureGauge.csv'
-        with open (filename, 'rb') as csvfile: 
-            data=csv.reader(csvfile, delimiter=",")
-            a=[]
-            time=[]
-            probes=[]
-            nRows=0
-            for row in data:
-                if nRows!=0:
-                    time.append(float(row[0]))
-                if nRows==0:              
-                    for i in row:              
-                        if i!= '      time':   
-                            i=float(i[14:24])  
-                            probes.append(i)   
-                row2=[]
-                for j in row:
-                    if j!= '      time' and nRows>0.:
-                        j=float(j)
-                        row2.append(j)
-                a.append(row2)
-                nRows+=1
-            # Takes the pressure   
-            pressure2=[]
-            for k in range(1,nRows):
-                pressure2.append(a[k][1])
-            # Validation of the results
-            maxPressure = max(pressure2)
-            s = 0
-            for i in range(1,len(pressure2)):
-                s = s+pressure2[i]
-            averagePressure = s/len(pressure2)
-            MaxPref = 3293.0
-            AvPref = 654.3
-            errMax = 100*abs(MaxPref-maxPressure)/MaxPref
-            errAv = 100*abs(AvPref-averagePressure)/AvPref
-            assert(errMax<2.0)
-            assert(errAv<0.5)
-
+        
+       
 if __name__ == '__main__':
     pass

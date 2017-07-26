@@ -38,7 +38,7 @@ opts = Context.Options([
     ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
     # run time
-    ("T", 0.1, "Simulation time in s"),
+    ("T", 30., "Simulation time in s"),
     ("dt_init", 0.001, "Initial time step in s"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),

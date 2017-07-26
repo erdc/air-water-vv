@@ -29,7 +29,7 @@ opts=Context.Options([
     ("refinement",32,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"),
     ("cfl", 0.33,"Target cfl"),
     # run time
-    ("T", 0.03,"Simulation time in m"),
+    ("T", 0.8,"Simulation time in m"),
     ("dt_fixed", 0.01, "Fixed time step  in s"),
     ("dt_init", 0.001 ,"Maximum initial time step  in s"),
     ("gen_mesh", True ,"Generate new mesh"),
