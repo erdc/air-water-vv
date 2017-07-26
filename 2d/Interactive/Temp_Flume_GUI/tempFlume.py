@@ -49,7 +49,7 @@ opts = Context.Options([
     ("outflow_velocity", 0.27432, "Initial wave or steady water outflow velocity"),
     ("wind_velocity", (0.,0.), "Initial wind velocity"),
     # Turbulence
-    ("useRANS", 0, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
+    ("useRANS", 1, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
     ("ns_closure", 4, "1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega"),
     ("c_mu", 0.09, "mu coefficient for the turbulence model"),
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
@@ -65,7 +65,7 @@ opts = Context.Options([
     ("refinement", 1, "Refinement level"),
     ("he", 0.05, "Set characteristic element size"),
     ("he_caisson", 0.05, "Set maximum characteristic element size on caisson boundary"),
-    ("cfl", 0.5, "Target cfl"),
+    ("cfl", 0.85, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
@@ -309,24 +309,24 @@ def Update_Model():
                 bc.setFreeSlip()
 
     # --- Body properties setup
-        #bridge2D = bd.RigidBody(shape=caisson)
-        #free_x = opts.free_x # Translational DOFs
-        #free_r = opts.free_r  # Rotational DOFs
-        #bridge2D.setMass(mass)
-        #bridge2D.It= I/bridge2D.mass/caisson_width
-        #bridge2D.setConstraints(free_x=free_x, free_r=free_r)
-        #bridge2D.setNumericalScheme(scheme=opts.scheme)
-        #bridge2D.setRecordValues(filename='bridge2D', all_values=True)
+        bridge2D = bd.RigidBody(shape=caisson)
+        free_x = opts.free_x # Translational DOFs
+        free_r = opts.free_r  # Rotational DOFs
+        bridge2D.setMass(mass)
+        bridge2D.It= I/bridge2D.mass/caisson_width
+        bridge2D.setConstraints(free_x=free_x, free_r=free_r)
+        bridge2D.setNumericalScheme(scheme=opts.scheme)
+        bridge2D.setRecordValues(filename='bridge2D', all_values=True)
 
     #----- Spring setup
-        #if opts.springs:
-        #    Kx = opts.Kx
-        #    Ky = opts.Ky
-        #    Krot = opts.Krot
-        #    Cx = opts.Cx
-        #    Cy = opts.Cy
-        #    Crot = opts.Crot
-        #    bridge2D.setSprings(opts.springs, Kx, Ky, Krot, Cx, Cy, Crot)
+        if opts.springs:
+            Kx = opts.Kx
+            Ky = opts.Ky
+            Krot = opts.Krot
+            Cx = opts.Cx
+            Cy = opts.Cy
+            Crot = opts.Crot
+            bridge2D.setSprings(opts.springs, Kx, Ky, Krot, Cx, Cy, Crot)
 ###########################################################################################################################################################################
 # ----- Turbulence ----- #
 ###########################################################################################################################################################################

@@ -8,6 +8,7 @@ def Create_Images(name):
     
     filename=name+'_p.h5'
     archive = openFile(filename,'r')
+
     with open('TimeList.txt') as file:
         tnList = file.readlines()
     tnList = [float(x.strip()) for x in tnList]

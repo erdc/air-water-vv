@@ -45,7 +45,7 @@ class ConstantIC:
     def __init__(self):
         pass
     def uOfXT(self,x,t):
-        if ct.signedDistance(x,waterLine_z) < 0:
+        if ct.signedDistance(x,ct.waterLine_z) < 0:
             return ct.kInflow
         else:
             return ct.kInflowAir

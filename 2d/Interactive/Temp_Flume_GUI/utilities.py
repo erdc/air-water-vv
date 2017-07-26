@@ -14,13 +14,14 @@ def plot_current_results():
     import numpy as np
     import matplotlib.tri as mtri
     import math
-    global nn, x, y, vof, triangles, t, phi, u, v, cfl, p, elemdiam
+    global nn, x, y, vof, triangles, t, phi, u, v, cfl, p, dt
     load_simulation_globals()
     Vmax=np.amax(np.sqrt(u[:]**2 + v[:]**2))
-    print "u_max={0:.3f}, v_max={1:.3f}, Vmax={2:.3f}, cfl={3:.3f}".format(np.amax(u[:]),
+    print "u_max={0:.3f}, v_max={1:.3f}, Vmax={2:.3f}, cfl={3:.3f}, dt={4:.5f}".format(np.amax(u[:]),
                                                            np.amax(v[:]),
                                                            Vmax,
-                                                           np.asarray(cfl).max()
+                                                           np.asarray(cfl).max(),
+                                                           dt
                                                            )
     if math.isnan(np.amax(u[:])):
         return plt0
@@ -85,7 +86,7 @@ def load_simulation_globals():
 
     These can then be retrieved by clients for inspection, visualization, etc.
     """
-    global nn, x, y, vof, triangles, t, phi, u, v, cfl, p, elemdiam
+    global nn, x, y, vof, triangles, t, phi, u, v, cfl, p, dt
     model_vof = ns.modelList[1].levelModelList[-1]
     model_ls = ns.modelList[2].levelModelList[-1]
     # save solution and grid data for plotting purposes
