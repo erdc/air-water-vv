@@ -26,7 +26,7 @@ affected by the downstream level in the following two manners:
   head measurements are required.
 
 The computational domain is a 2D rectangular box with height equal to
-2.1m the length might vary from case to case.The weir has a height of
+3.75m the length might vary from case to case.The weir has a height of
 P=0.5 m and a width of b=3.5 m.  A uniform
 velocity distribution from bottom to free water level is imposed in
 the left wall boundary condition.  The top of the domain is left
