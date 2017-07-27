@@ -20,6 +20,9 @@ data*txt
 *.log.*
 *.egg-info
 *.idea
+*.png
+*.txt
+*.mp4
 install_*
 config_*
 build/
