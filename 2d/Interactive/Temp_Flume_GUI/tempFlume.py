@@ -187,7 +187,7 @@ def Update_Model():
     dt_fixed = opts.dt_fixed
     dt_init = min(0.1 * dt_fixed, opts.dt_init)
     runCFL = opts.cfl
-    nDTout = int(round(T / 10*dt_fixed))
+    nDTout = int(round(T / dt_fixed))
 
     ##########################################
     #              Mesh & Domain             #
