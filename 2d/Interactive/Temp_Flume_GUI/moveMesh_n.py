@@ -6,9 +6,8 @@ from proteus import (FemTools,
                      NonlinearSolvers,
                      LinearSolvers)
 import moveMesh_p as physics
-
-from tempFlume_test import *
-from proteus import Context
+#from proteus import Context
+import Context
 
 ct = Context.get()
 domain = ct.domain
@@ -73,4 +72,3 @@ l_atol_res = 0.001*ct.mesh_nl_atol_res
 nl_atol_res = ct.mesh_nl_atol_res
 maxNonlinearIts = 4#should be linear
 maxLineSearches = 0
-

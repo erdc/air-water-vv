@@ -2,10 +2,8 @@ from proteus.default_p import *
 from proteus.mprans import MoveMesh
 #import MoveMesh
 import numpy as np
-
-from tempFlume_test import *
-from proteus import Context
-
+#from proteus import Context
+import Context
 
 ct = Context.get()
 domain = ct.domain
@@ -53,4 +51,4 @@ if nd == 3:
     dirichletConditions[2] = lambda x, flag: domain.bc[flag].hz_dirichlet.init_cython()
     fluxBoundaryConditions[2] = 'noFlow'
     diffusiveFluxBoundaryConditions[2] = {}
-    stressFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].w_stress.init_cython()
+stressFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].w_stress.init_cython()

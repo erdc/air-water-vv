@@ -1,7 +1,9 @@
 from proteus.default_p import *
 from proteus.mprans import RANS2P
-from proteus import Context
-#import Context
+# from proteus import Context
+from tempFlume_test import *
+import Context
+
 ct = Context.get()
 domain = ct.domain
 nd = domain.nd
@@ -84,34 +86,37 @@ diffusiveFluxBoundaryConditions = {
     2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}
 }
 
+
 class PerturbedSurface_p:
     def __init__(self, waterLevel):
         self.waterLevel = waterLevel
 
     def uOfXT(self, x, t):
-        if ct.signedDistance(x,ct.waterLine_z) < 0:
+        if ct.signedDistance(x, ct.waterLine_z) < 0:
             return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1] \
-                   - (self.waterLevel -x[1]) * ct.rho_0 * ct.g[1]
+                   - (self.waterLevel - x[1]) * ct.rho_0 * ct.g[1]
         else:
             return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1]
-        
+
 
 class AtRest:
     def __init__(self):
         pass
-    def uOfXT(self,x,t):
+
+    def uOfXT(self, x, t):
         return 0.0
-    
+
 
 class initialVelocity_u:
     def __init__(self, waterLevel):
         self.waterLevel = waterLevel
-    def uOfXT(self,x,t):
-        if x[nd-1]<self.waterLevel:
+
+    def uOfXT(self, x, t):
+        if x[nd - 1] < self.waterLevel:
             return ct.opts.inflow_velocity
-        elif x[0] < ct.tank_dim[0]+ct.tank_sponge[1]:
+        elif x[0] < ct.tank_dim[0] + ct.tank_sponge[1]:
             return ct.twpflowVelocity_u_D(x, 0)
-        else: 
+        else:
             return 0.0
 
 
