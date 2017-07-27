@@ -1,8 +1,7 @@
 from proteus.default_p import *
 from proteus.mprans import RANS2P
-# from proteus import Context
-from tempFlume_test import *
-import Context
+from proteus import Context
+
 
 ct = Context.get()
 domain = ct.domain

@@ -7,7 +7,6 @@ from proteus import (Context,
                      TimeIntegration
                      )
 from proteus.mprans import RANS2P
-from tempFlume_test import *
 import twp_navier_stokes_p as physics
 #import Context
 

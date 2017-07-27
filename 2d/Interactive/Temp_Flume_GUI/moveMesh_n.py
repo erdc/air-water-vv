@@ -6,8 +6,9 @@ from proteus import (FemTools,
                      NonlinearSolvers,
                      LinearSolvers)
 import moveMesh_p as physics
-#from proteus import Context
-import Context
+from tempFlume_test import *
+from proteus import Context
+
 
 ct = Context.get()
 domain = ct.domain

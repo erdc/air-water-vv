@@ -2,19 +2,18 @@
 A Broad Crested Weir
 """
 import numpy as np
-from math import sqrt
-import proteus.MeshTools
+
 from proteus import (Domain, Context,
                      FemTools as ft,
                      MeshTools as mt,
                      WaveTools as wt)
 from proteus.mprans import SpatialTools as st
-from proteus.Profiling import logEvent
+
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.mprans import BodyDynamics as bd
 from math import *
 import pandas as pd
-#import Context
+
 
 opts = Context.Options([
     # test options
@@ -49,7 +48,7 @@ opts = Context.Options([
     ("outflow_velocity", 0.27432, "Initial wave or steady water outflow velocity"),
     ("wind_velocity", (0.,0.), "Initial wind velocity"),
     # Turbulence
-    ("useRANS", 1, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
+    ("useRANS", 0, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
     ("ns_closure", 4, "1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega"),
     ("c_mu", 0.09, "mu coefficient for the turbulence model"),
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
@@ -308,7 +307,8 @@ def Update_Model():
             if opts.caisson_BC == 'freeslip':
                 bc.setFreeSlip()
 
-    # --- Body properties setup
+    ## --- Body properties setup
+    if opts.movingDomain:
         bridge2D = bd.RigidBody(shape=caisson)
         free_x = opts.free_x # Translational DOFs
         free_r = opts.free_r  # Rotational DOFs
