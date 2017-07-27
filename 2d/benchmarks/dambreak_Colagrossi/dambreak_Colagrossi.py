@@ -35,6 +35,7 @@ opts=Context.Options([
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("structured", False, "Use a structured triangular mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
+    ("parallel", False,"Run in parallel"),
     ])
 
 
@@ -60,7 +61,10 @@ movingDomain = False
 checkMass = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = False
+if opts.parallel:
+    useSuperlu = False
+else:
+    useSuperlu = True
 timeDiscretization = 'be'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
 useHex = opts.useHex
@@ -189,7 +193,7 @@ hmax = 10.0*he
 adaptMesh = opts.adaptMesh
 adaptMesh_nSteps = 5
 adaptMesh_numIter = 2
-MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropic",maType="isotropic")
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropicProteus",maType="isotropic")
 useModel=False
 
 if opts.adaptMesh:

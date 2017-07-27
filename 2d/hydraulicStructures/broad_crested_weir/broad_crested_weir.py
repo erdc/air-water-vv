@@ -12,15 +12,15 @@ from proteus.Profiling import logEvent
 from proteus.ctransportCoefficients import smoothedHeaviside
 
 opts = Context.Options([
+    ("adaptMesh", False, "Enable dynamic mesh adaption"),
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
     ("air_vent", True, "Include an air vent in the obstacle."),
     # air vent position
-    ("airvent_y1",0.25,"Vertical distance from bottom to the lower 
-                        vertex of the air ventilation boundary in m"),
+    ("airvent_y1",0.25,"Vertical distance from bottom to the lower vertex of the air ventilation boundary in m"),
     ("airvent_dim",0.1,"Dimension of the air boundary patch in m"),
     # water
-    ("water_level", 0.54, "Mean levelat inflow  from y=0 in m")
+    ("water_level", 0.54, "Mean levelat inflow  from y=0 in m"),
     ("water_width_over_obst",1.02, "Domain length upstream of the obstacle in m"),
     ("outflow_level", 0.04, "Estimated mean water level at the outlet in m "),
     ("inflow_velocity", 0.139, "Water inflow velocity in m/s"),
@@ -45,9 +45,10 @@ opts = Context.Options([
     # run time
     ("T", 4.0, "Simulation time in s "),
     ("dt_fixed", 0.025, "Fixed time step in s"),
-    ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10) in s"),
+    ("dt_init", 0.0001, "Minimum initial time step (otherwise dt_fixed/10) in s"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
+    ("parallel", False,"Run in parallel"),
     ])
 
 # ----- CONTEXT ------ #
@@ -119,7 +120,10 @@ nLayersOfOverlapForParallel = 0
 # ---- SpaceOrder & Tool Usage ----- #
 spaceOrder = 1
 useOldPETSc = False
-useSuperlu = False
+if opts.parallel:
+    useSuperlu = False
+else:
+    useSuperlu = True
 useRBLES = 0.0
 useMetrics = 1.0
 useVF = 1.0
@@ -284,7 +288,7 @@ if opts.variable_refine_borders or opts.variable_refine_levels:
 
 # ----- GAUGES ----- #
 
-if opts.gauge_output:
+if opts.gauge_output and not opts.adaptMesh:
 
     tank.attachLineGauges(
         'twp',
@@ -335,7 +339,24 @@ if air_vent:
 # ----- MESH CONSTRUCTION ----- #
 
 he = he
-domain.MeshOptions.he = he
+from proteus.MeshAdaptPUMI  import MeshAdaptPUMI 
+hmin =he/2.0
+hmax =5.0*he
+adaptMesh = opts.adaptMesh
+adaptMesh_nSteps = 5
+adaptMesh_numIter = 2
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropic",maType="isotropic")
+useModel=False
+
+if opts.adaptMesh:
+    domain.MeshOptions.he = hmax
+    domain.MeshOptions.parallelPartitioningType = mt.MeshParallelPartitioningTypes.element
+    domain.MeshOptions.nLayersOfOverlapForParallel = 0
+else:
+    domain.MeshOptions.he = he
+    domain.MeshOptions.parallelPartitioningType = mt.MeshParallelPartitioningTypes.node
+    domain.MeshOptions.nLayersOfOverlapForParallel = 0
+
 st.assembleDomain(domain)
 
 ##########################################
@@ -349,24 +370,24 @@ ns_forceStrongDirichlet = False #True
 # ----- NUMERICAL PARAMETERS ----- #
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.75
+    ns_shockCapturingFactor = 0.25
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor = 0.75
+    ls_shockCapturingFactor = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
     ls_sc_beta = 1.50
-    vof_shockCapturingFactor = 0.75
+    vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.50
-    rd_shockCapturingFactor = 0.75
+    rd_shockCapturingFactor = 0.25
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH = epsFact_consrv_dirac \
-                    = 3.0
+                    = 1.5
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
+    epsFact_consrv_diffusion = 10.0
     redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True  #False

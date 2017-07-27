@@ -103,7 +103,7 @@ maxLineSearches = 0
 if ct.useHex:
     conservativeFlux = None
 else:
-    if ct.adaptMesh:
+    if ct.adaptMesh and ct.opts.parallel:
         conservativeFlux = None
     else:
         conservativeFlux = {0: 'pwl-bdm-opt'}
