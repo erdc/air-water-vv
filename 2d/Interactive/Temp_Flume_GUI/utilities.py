@@ -29,8 +29,8 @@ def plot_current_results():
     triang = mtri.Triangulation(x, y, triangles)
 
     dim=[x.max(),y.max()]
-    xg = np.linspace(0, dim[0], 20)
-    yg = np.linspace(0, dim[1], 20)
+    xg = np.linspace(x.min(), dim[0], 20)
+    yg = np.linspace(y.min(), dim[1], 20)
     xi, yi = np.meshgrid(xg,yg)
     
     wvof = np.ones(vof.shape,'d')
@@ -55,8 +55,6 @@ def plot_current_results():
     #                     color=colors[domain.segmentFlags[si]-1],
     #                     linewidth=2,
     #                     marker='o')
-
-
 
     if showTriangles==True:
         plt.triplot(triang, linewidth=0.5)

@@ -23,6 +23,8 @@ opts = Context.Options([
     ("water_level", 0.36576, "Height of (mean) free surface above bottom"),
      # caisson
     ("caisson", True, "caisson"),
+    ("sphere", False, "Enable Test Sphere"),
+    ("sphereRadius", 0.1, "sphere radius"),
     ("caisson_scale", 21, "Caisson scale ratio 1:scale"),
     ("caisson_mass", 1000, "Caisson original mass"),
     ("caisson_coords",None, "Coord of the caisson"),
@@ -98,7 +100,7 @@ def Update_Model():
     waterLine_z = opts.water_level
 
 
-    # sanity checks
+    # sanity check
     if waterLine_z > tank_dim[1]:
         raise ValueError("ERROR: Water (level: %s) overflows height of tank (%s)"
                          % (waterLine_z, tank_dim[1]))
@@ -185,7 +187,7 @@ def Update_Model():
     dt_fixed = opts.dt_fixed
     dt_init = min(0.1 * dt_fixed, opts.dt_init)
     runCFL = opts.cfl
-    nDTout = int(round(T / dt_fixed))
+    nDTout = int(round(T / 10*dt_fixed))
 
     ##########################################
     #              Mesh & Domain             #
@@ -285,10 +287,20 @@ def Update_Model():
             segmentFlags += [1]*len(s)+[1]
         segments[-1][1] = 0  # last segment links to vertex 0
         boundaryTags = {'caisson': 1}
-        caisson = st.CustomShape(domain, barycenter=barycenter,
+        if not opts.sphere:
+            caisson = st.CustomShape(domain, barycenter=barycenter,
                                 vertices=vertices, vertexFlags=vertexFlags,
                                 segments=segments, segmentFlags=segmentFlags,
                                 boundaryTags=boundaryTags)
+        else:
+            radius=opts.sphereRadius
+            nPoints=int(2*np.pi*radius/he_caisson)
+            caisson = st.Circle(domain,
+                                radius = radius,
+                                barycenter=barycenter,
+                                coords= (0., 0.),
+                                nPoints = nPoints)
+
         facet = []
         for i, vert in enumerate(caisson.vertices):
             facet += [i]
@@ -297,7 +309,7 @@ def Update_Model():
         caisson.regionFlags = np.array([1])
 
         ang = rotation_angle
-        caisson.setHoles([[0., dim[1]/2]])
+        caisson.setHoles([[0., dim[1]/4]])
         caisson.holes_ind = np.array([0])
         caisson.translate([caisson_coords[0], caisson_coords[1]])
         caisson.rotate(ang, pivot=caisson.barycenter)
@@ -453,8 +465,8 @@ def Update_Model():
     # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
     # Open Top
-    #tank.BC['y+'].setAtmosphere()
-    tank.BC['y+'].setFreeSlip()
+    tank.BC['y+'].setAtmosphere()
+    #tank.BC['y+'].setFreeSlip()
 
     # Free Slip Tank
     tank.BC['y-'].setFreeSlip()
