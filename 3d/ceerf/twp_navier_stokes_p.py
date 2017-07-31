@@ -57,7 +57,7 @@ def getDBC_u(x,flag):
     elif flag == boundaryTags['obstacle']:
         return lambda x,t: 0.0#no slip
     elif flag == boundaryTags['right']:
-        return lambda x,t: twpflowVelocity_u#0.0#no slip
+        return twpflowVelocity_u#0.0#no slip
 
 def getDBC_v(x,flag):
     if flag == boundaryTags['left']:
