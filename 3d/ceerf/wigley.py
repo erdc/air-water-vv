@@ -34,14 +34,14 @@ hull_length = 1.0
 hull_beam   = hull_length/10.0
 hull_draft  = hull_length/16.0
 
-L=(4.0*hull_length,
-   2.05*hull_length,
-   0.75*hull_length)
+L=(12.192,
+   2.4384,
+   1.5)
 x_ll = (-1.5*hull_length,
          -L[1]/2.0,
          0.0)
 
-waterLevel   = 0.5*hull_length
+waterLevel   = 1.2192
 
 hull_center = (0.0,
                0.0,
@@ -88,8 +88,17 @@ RBR_angCons  = [1,0,1]
 nLevels = 1
 
 he = hull_draft/0.75 #32
-#he *= 0.5 #
-#he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
 min_he_poly = he
 #he *= 0.5 # tetgen fails
 #he *=0.5 #4 way on diamond, 8 way on garnet 256-1024 mpi tasks
@@ -97,9 +106,10 @@ min_he_poly = he
 #he *=0.5 #2048 - mesh3206851
 #vessel = 'wigley-gmsh'
 #genMesh=False
-vessel = 'wigley'
+#vessel = 'wigley'
 genMesh=True#False
-#vessel = 'cube'
+vessel = 'cube'
+vessel = 'cylinder'
 #vessel = None
 #genMesh=True
 boundaryTags = { 'bottom': 1, 'front':2, 'right':3, 'back': 4, 'left':5, 'top':6, 'obstacle':7}
@@ -261,6 +271,59 @@ else:
         facets.append([[nStart+4,nStart+5,nStart+6,nStart+7]])#6
         facetFlags.append(boundaryTags['obstacle'])
         holes.append(hull_center)
+    if vessel is 'cylinder':
+        hull_length = 0.5
+        hull_beam = 0.5
+        #hull_length = 0.1
+        #hull_beam = 0.1
+        hull_draft = L[2]*0.95
+        hull_center= (hull_center[0], hull_center[1],  L[2]*0.5)
+        nStart = len(vertices)
+        vertices.append([hull_center[0] - 0.5*hull_length,
+                         hull_center[1] - 0.5*hull_beam,
+                         hull_center[2] - 0.5*hull_draft])
+        vertexFlags.append(boundaryTags['obstacle'])
+        vertices.append([hull_center[0] - 0.5*hull_length,
+                         hull_center[1] + 0.5*hull_beam,
+                         hull_center[2] - 0.5*hull_draft])
+        vertexFlags.append(boundaryTags['obstacle'])
+        vertices.append([hull_center[0] + 0.5*hull_length,
+                         hull_center[1] + 0.5*hull_beam,
+                         hull_center[2] - 0.5*hull_draft])
+        vertexFlags.append(boundaryTags['obstacle'])
+        vertices.append([hull_center[0] + 0.5*hull_length,
+                         hull_center[1] - 0.5*hull_beam,
+                         hull_center[2] - 0.5*hull_draft])
+        vertexFlags.append(boundaryTags['obstacle'])
+        vertices.append([hull_center[0] - 0.5*hull_length,
+                         hull_center[1] - 0.5*hull_beam,
+                         hull_center[2] + 0.5*hull_draft])
+        vertexFlags.append(boundaryTags['obstacle'])
+        vertices.append([hull_center[0] - 0.5*hull_length,
+                         hull_center[1] + 0.5*hull_beam,
+                         hull_center[2] + 0.5*hull_draft])
+        vertexFlags.append(boundaryTags['obstacle'])
+        vertices.append([hull_center[0] + 0.5*hull_length,
+                         hull_center[1] + 0.5*hull_beam,
+                         hull_center[2] + 0.5*hull_draft])
+        vertexFlags.append(boundaryTags['obstacle'])
+        vertices.append([hull_center[0] + 0.5*hull_length,
+                         hull_center[1] - 0.5*hull_beam,
+                         hull_center[2] + 0.5*hull_draft])
+        vertexFlags.append(boundaryTags['obstacle'])
+        facets.append([[nStart,nStart+1,nStart+2,nStart+3]])#1
+        facetFlags.append(boundaryTags['obstacle'])
+        facets.append([[nStart,nStart+1,nStart+5,nStart+4]])#2
+        facetFlags.append(boundaryTags['obstacle'])
+        facets.append([[nStart+1,nStart+2,nStart+6,nStart+5]])#3
+        facetFlags.append(boundaryTags['obstacle'])
+        facets.append([[nStart+2,nStart+3,nStart+7,nStart+6]])#4
+        facetFlags.append(boundaryTags['obstacle'])
+        facets.append([[nStart+3,nStart,nStart+4,nStart+7]])#5
+        facetFlags.append(boundaryTags['obstacle'])
+        facets.append([[nStart+4,nStart+5,nStart+6,nStart+7]])#6
+        facetFlags.append(boundaryTags['obstacle'])
+        holes.append(hull_center)
     domain = Domain.PiecewiseLinearComplexDomain(vertices=vertices,
                                                  vertexFlags=vertexFlags,
                                                  facets=facets,
@@ -274,7 +337,7 @@ else:
         domain.writePoly("mesh_"+vessel)
     else:
         domain.writePoly("meshNoVessel")
-    triangleOptions="VApq1.35q12feena%21.16e" % ((he**3)/6.0,)
+    triangleOptions="VApq1.35q12feena%21.16e" % ((he*3)/6.0,)
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 restrictFineSolutionToAllMeshes=False
 parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
@@ -299,10 +362,8 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-Fr = 0.25
-#Fr = 0.51
-#Fr = 0.0
-Um = Fr*sqrt(fabs(g[2])*hull_length)
+Um = 0.2 #m/s
+#Um = 0.001 #m/s
 Re = hull_length*Um/nu_0
 weak_bc_penalty_constant = 100.0#Re
 
@@ -311,8 +372,8 @@ if Um > 0.0:
 else:
     residence_time = 1.0
 dt_init=0.001
-T = 10*residence_time
-nDTout=100
+T = 120.0#10*residence_time
+nDTout=1200
 #debut
 #T = 0.01#
 #nDTout=3
@@ -353,7 +414,6 @@ vof_wave = lambda x,t: 1.0 if ls_wave(x,t) > 0.0 else 0.0
 #================================================
 logEvent("""
 Reynolds number    = %16.21e
-Froude number      = %16.21e
 Hull Speed[M/S]    = %16.21e
 Hull flow time[S]  = %16.21e
 
@@ -365,7 +425,6 @@ Wave velocity[M/S] = %16.21e
 T                  = %16.21e
 nDTout             = %i
 """ % (Re,
-       Fr,
        Um,
        residence_time,
        wave_length,
@@ -428,7 +487,7 @@ elif spaceOrder == 2:
 
 
 # Numerical parameters
-ns_forceStrongDirichlet = True
+ns_forceStrongDirichlet = False#True
 
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
@@ -448,7 +507,7 @@ if useMetrics:
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = True
+    redist_Newton = False
     kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True
     kappa_sc_uref = 1.0
@@ -485,17 +544,17 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-12,0.01*he**2)
-vof_nl_atol_res = max(1.0e-12,0.01*he**2)
-ls_nl_atol_res = max(1.0e-12,0.01*he**2)
-mcorr_nl_atol_res = max(1.0e-12,0.01*he**2)
-rd_nl_atol_res = max(1.0e-12,0.01*he)
-kappa_nl_atol_res = max(1.0e-12,0.01*he**2)
-dissipation_nl_atol_res = max(1.0e-12,0.01*he**2)
-mesh_nl_atol_res = max(1.0e-12,0.01*he**2)
+ns_nl_atol_res = max(1.0e-8,0.05*he**2)
+vof_nl_atol_res = max(1.0e-8,0.05*he**2)
+ls_nl_atol_res = max(1.0e-8,0.05*he**2)
+mcorr_nl_atol_res = max(1.0e-8,0.05*he**2)
+rd_nl_atol_res = max(1.0e-8,0.05*he)
+kappa_nl_atol_res = max(1.0e-8,0.05*he**2)
+dissipation_nl_atol_res = max(1.0e-8,0.05*he**2)
+mesh_nl_atol_res = max(1.0e-8,0.05*he**2)
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 
 if useRANS == 1:
     ns_closure = 3
@@ -503,7 +562,7 @@ elif useRANS >= 2:
     ns_closure == 4
 
 #wave/current properties
-windspeed_u = Um
+windspeed_u = 0.0
 windspeed_v = 0.0
 windspeed_w = 0.0
 
@@ -541,7 +600,10 @@ def twpflowVelocity_u(x,t):
 #    waterspeed = waveVelocity_u(x,t)
 #    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
 #    return H*windspeed_u + (1.0-H)*waterspeed
-    return Um
+    if t < 5.0:
+        return Um*(1.0+math.cos((t-5.0)*math.pi/5.0))/2.0
+    else:
+        return Um
 
 def twpflowVelocity_v(x,t):
 #    waterspeed = waveVelocity_v(x,t)
