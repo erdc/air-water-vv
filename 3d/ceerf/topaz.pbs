@@ -1,8 +1,8 @@
 #!/bin/csh
 #PBS -A ERDCV00898ENQ
-#PBS -l walltime=048:00:00
-#PBS -l select=32:ncpus=32:mpiprocs=32
-#PBS -q standard
+#PBS -l walltime=001:00:00
+#PBS -l select=32:ncpus=36:mpiprocs=36
+#PBS -q debug
 #PBS -N ceerf
 #PBS -j oe
 #PBS -l application=proteus
