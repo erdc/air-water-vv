@@ -56,8 +56,8 @@ def getDBC_u(x,flag):
         return twpflowVelocity_u#no slip
     elif flag == boundaryTags['obstacle']:
         return lambda x,t: 0.0#no slip
-    elif flag == boundaryTags['right']:
-        return twpflowVelocity_u#0.0#no slip
+#    elif flag == boundaryTags['right']:
+#        return twpflowVelocity_u#0.0#no slip
 
 def getDBC_v(x,flag):
     if flag == boundaryTags['left']:
@@ -66,8 +66,8 @@ def getDBC_v(x,flag):
         return twpflowVelocity_v#no slip
     elif flag == boundaryTags['obstacle']:
         return lambda x,t: 0.0#no slip
-    elif flag == boundaryTags['right']:
-        return lambda x,t: 0.0#no slip
+#    elif flag == boundaryTags['right']:
+#        return lambda x,t: 0.0#no slip
 
 def getDBC_w(x,flag):
     if flag == boundaryTags['left']:
@@ -76,8 +76,8 @@ def getDBC_w(x,flag):
         return twpflowVelocity_w#no slip
     elif flag == boundaryTags['obstacle']:
         return lambda x,t: 0.0#no slip
-    elif flag == boundaryTags['right']:
-        return lambda x,t: 0.0#no slip
+ #   elif flag == boundaryTags['right']:
+ #       return lambda x,t: 0.0#no slip
 
 dirichletConditions = {0:getDBC_p,
                        1:getDBC_u,
@@ -187,7 +187,7 @@ def getDFBC_v(x,flag):
     if flag == boundaryTags['left']:
         return None#weak Dirichlet
     elif flag == boundaryTags['right']:
-        return None#lambda x,t: 0.0#outflow
+        return lambda x,t: 0.0#outflow
     elif flag == boundaryTags['top']:
         return lambda x,t: 0.0#outflow
     elif flag == boundaryTags['front'] or flag == boundaryTags['front']:
@@ -203,7 +203,7 @@ def getDFBC_w(x,flag):
     if flag == boundaryTags['left']:
         return None#weak Dirichlet
     elif flag == boundaryTags['right']:
-        return None#lambda x,t: 0.0#outflow
+        return lambda x,t: 0.0#outflow
     elif flag == boundaryTags['top']:
         return lambda x,t: 0.0#outflow
     elif flag == boundaryTags['front'] or flag == boundaryTags['front']:
