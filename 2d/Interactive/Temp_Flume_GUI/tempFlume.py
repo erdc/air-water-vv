@@ -1,5 +1,5 @@
 """
-A Broad Crested Weir
+Temperature Flume Setup
 """
 import numpy as np
 
@@ -20,10 +20,10 @@ opts = Context.Options([
     ("waves", False, "Generate waves - uses sponge layers."),
     ("waveHeight", 0.018 , "Height of waves over water level"),
     # water
-    ("water_level", 0.36576, "Height of (mean) free surface above bottom"),
+    ("water_level", 0.5, "Height of (mean) free surface above bottom"),
      # caisson
     ("caisson", True, "caisson"),
-    ("sphere", False, "Enable Test Sphere"),
+    ("sphere", True, "Enable Test Sphere"),
     ("sphereRadius", 0.1, "sphere radius"),
     ("caisson_scale", 21, "Caisson scale ratio 1:scale"),
     ("caisson_mass", 1000, "Caisson original mass"),
@@ -57,16 +57,16 @@ opts = Context.Options([
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Y", 0.01, "Y used for y+ calculation"),
     # tank
-    ("tank_dim", (1.5,0.5), "Dimensions (x,y) of the tank"),
+    ("tank_dim", (1.5,1.0), "Dimensions (x,y) of the tank"),
     ("absorption", True, "Use generation/absorption zones"),
-    ("tank_sponge", (0.25,0.25), "Length of (generation, absorption) zones, if any"),
+    ("tank_sponge", (1.5,1.5), "Length of (generation, absorption) zones, if any"),
     # gauges
     ("gauge_output", True, "Produce gauge data"),
     # refinement
     ("refinement", 1, "Refinement level"),
-    ("he", 0.05, "Set characteristic element size"),
-    ("he_caisson", 0.05, "Set maximum characteristic element size on caisson boundary"),
-    ("cfl", 0.85, "Target cfl"),
+    ("he", 0.03, "Set characteristic element size"),
+    ("he_caisson", 0.03, "Set maximum characteristic element size on caisson boundary"),
+    ("cfl", 0.5, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
                                     "tank_dim[0] if you add sponge layers "
@@ -75,9 +75,10 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 1, "Simulation time"),
-    ("dt_fixed", 0.001, "Fixed time step"),
-    ("dt_init", 0.0001, "Minimum initial time step (otherwise dt_fixed/10)"),
+    ("T", 4, "Simulation time"),
+    ("dt_fixed", 0.01, "Fixed time step"),
+    ("dtOut",    0.01, "Fixed time step for data output"),
+    ("dt_init", 1e-6, "Minimum initial time step (otherwise dt_fixed/10)"),
     # run details
     ('movingDomain', False, "Moving domain and mesh option"),
     ("gen_mesh", True, "Generate new mesh"),
@@ -187,7 +188,7 @@ def Update_Model():
     dt_fixed = opts.dt_fixed
     dt_init = min(0.1 * dt_fixed, opts.dt_init)
     runCFL = opts.cfl
-    nDTout = int(round(T / dt_fixed))
+    nDTout = int(round(T / opts.dtOut))
 
     ##########################################
     #              Mesh & Domain             #
@@ -470,14 +471,16 @@ def Update_Model():
 
     # Free Slip Tank
     tank.BC['y-'].setFreeSlip()
+    #tank.BC['x+'].setFreeSlip()
 
     # Outflow
+
     tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=waterLine_z,
-                                                        rhoUp=rho_1,
-                                                        rhoDown=rho_0,
-                                                        g=g,
+                                                       rhoUp=rho_1,
+                                                       rhoDown=rho_0,
+                                                       g=g,
                                                         refLevel=tank_dim[1],
-                                                        smoothing=1.0*he,
+                                                        smoothing=3.0*he,
                                                         U=[inflow_velocity,0.,0.],
                                                         Uwind=Uwind )
 

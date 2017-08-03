@@ -44,12 +44,19 @@ if ct.useRANS > 0:
                    "dissipation_n"))
 name = name + "_p" 
 
-if ct.timeDiscretization == 'flcbdf':
-    #systemStepControllerType = Sequential_MinFLCBDFModelStep
+#if ct.timeDiscretization == 'flcbdf':
+#    #systemStepControllerType = Sequential_MinFLCBDFModelStep
+#    systemStepControllerType = Sequential_MinAdaptiveModelStep
+#else:
+#    systemStepControllerType = Sequential_MinAdaptiveModelStep
+if ct.dt_fixed:
+#    systemStepControllerType = Sequential_FixedStep
     systemStepControllerType = Sequential_MinAdaptiveModelStep
-else:
+    dt_system_fixed = ct.dt_fixed
+    stepExactSystem=False
+else:  # use CFL
     systemStepControllerType = Sequential_MinAdaptiveModelStep
-
+    stepExactSystem=False
 
 needEBQ_GLOBAL = False
 needEBQ = False
@@ -57,8 +64,8 @@ needEBQ = False
 tnList = [0.0,ct.dt_init]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
 
 #Disabled to allow GUI to create images without restarting simulation
-#info = open("TimeList.txt","w")
+info = open("TimeList.txt","w")
 
-#for time in tnList:
-#    info.write(str(time)+"\n")
-#info.close()
+for time in tnList:
+    info.write(str(time)+"\n")
+info.close()

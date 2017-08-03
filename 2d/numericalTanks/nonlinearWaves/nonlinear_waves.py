@@ -46,7 +46,7 @@ opts=Context.Options([
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", False, "True/False"),
-    ("T", 0.1, "Simulation time in s"),
+    ("T", 3, "Simulation time in s"),
     ("dt_init", 0.001, "Initial time step in s"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),

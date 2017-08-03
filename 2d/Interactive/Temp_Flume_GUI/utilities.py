@@ -17,7 +17,7 @@ def plot_current_results():
     global nn, x, y, vof, triangles, t, phi, u, v, cfl, p, dt
     load_simulation_globals()
     Vmax=np.amax(np.sqrt(u[:]**2 + v[:]**2))
-    print "u_max={0:.3f}, v_max={1:.3f}, Vmax={2:.3f}, cfl={3:.3f}, dt={4:.5f}".format(np.amax(u[:]),
+    print "u_max={0:.3f}, v_max={1:.3f}, Vmax={2:.3f}, cfl={3:.3f}, dt={4:.10f}".format(np.amax(u[:]),
                                                            np.amax(v[:]),
                                                            Vmax,
                                                            np.asarray(cfl).max(),
@@ -139,7 +139,8 @@ def monitor_simulation(refresh=5.0):
             plt=plot_current_results()
             error= False
             tmon = dt.datetime.now() - t0
-            print 'Monitored for: %s. at t=%12.5e' % (tmon,ns.systemStepController.t_system)
+            t_sim=ns.systemStepController.t_system
+            print 'Monitored for: %s. at t=%12.5e' % (tmon,t_sim)
             time.sleep(refresh) # so we don't hammer the server too fast
     except (KeyboardInterrupt):#, error.TimeoutError):
         msg = 'Monitoring interrupted, simulation is ongoing!'
