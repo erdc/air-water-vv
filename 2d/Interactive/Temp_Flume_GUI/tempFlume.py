@@ -47,7 +47,7 @@ opts = Context.Options([
     ("rotation_angle", 0 ,"Initial rotation angle (in degrees)"),
     #Initial Velocities
     ("inflow_velocity", 0.27432, "Wave or steady water inflow velocity"),
-    ("outflow_velocity", 0.27432, "Initial wave or steady water outflow velocity"),
+    ("outflow_velocity", 0, "Initial wave or steady water outflow velocity"),
     ("wind_velocity", (0.,0.), "Initial wind velocity"),
     # Turbulence
     ("useRANS", 0, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
@@ -475,13 +475,13 @@ def Update_Model():
 
     # Outflow
 
-    tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=waterLine_z,
+    tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=0.0,
                                                        rhoUp=rho_1,
                                                        rhoDown=rho_0,
                                                        g=g,
                                                         refLevel=tank_dim[1],
                                                         smoothing=3.0*he,
-                                                        U=[inflow_velocity,0.,0.],
+                                                        U=[0.0,0.,0.],
                                                         Uwind=Uwind )
 
     if opts.absorption:

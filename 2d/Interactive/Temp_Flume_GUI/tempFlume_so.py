@@ -64,8 +64,9 @@ needEBQ = False
 tnList = [0.0,ct.dt_init]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
 
 #Disabled to allow GUI to create images without restarting simulation
-info = open("TimeList.txt","w")
 
-for time in tnList:
-    info.write(str(time)+"\n")
-info.close()
+#info = open("TimeList.txt","w")
+
+#for time in tnList:
+#    info.write(str(time)+"\n")
+#info.close()
