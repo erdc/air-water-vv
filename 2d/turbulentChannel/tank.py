@@ -26,7 +26,7 @@ opts=Context.Options([
     ('Ycoeff', [ 0. ], 'Ycoeff only if Fenton is activated'),
     ('Bcoeff', [ 0. ], 'Bcoeff only if Fenton is activated'),
     ('Nf', 1 ,'Number of frequency components for fenton waves'),
-    ('meanVelocity', [ 0.10, 0., 0.],'Velocity used for currents'),
+    ('meanVelocity', [ 0.5, 0., 0.],'Velocity used for currents'),
     ('phi0', 0.0 ,'Initial phase for waves'),
     ('Uwind', [0.0, 0.0, 0.0], 'Set air velocity'),
     # Turbulence
@@ -35,10 +35,11 @@ opts=Context.Options([
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Y", 0.03, "Y used for y+ calculation"),
+    ("d", 0.03, "Scale of the turbulence. Used for calculating initial approximation of turbulent variables."),    
     # numerical options
-    ("GenZone", True, 'Turn on generation zone at left side'),
-    ("AbsZone", True, 'Turn on absorption zone at right side'),
-    ('duration', 20., 'Simulation duration'),
+    ("GenZone", not True, 'Turn on generation zone at left side'),
+    ("AbsZone", not True, 'Turn on absorption zone at right side'),
+    ('duration', 10., 'Simulation duration'),
     ("refinement_level", 0.0,"he=walength/refinement_level"),
     ("he", 0.03,"Mesh size"),
     ("cfl", 0.90 ,"Target cfl"),
@@ -199,7 +200,7 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
 # ----- Turbulence ----- #
 ###########################################################################################################################################################################
 
-d = tank_dim[1] / 2.
+d = opts.d #tank_dim[1] / 2.
 L = tank_dim[0]
 U0 = opts.meanVelocity[0] # freestream velocity
 c_mu = opts.c_mu
@@ -249,7 +250,7 @@ wallTop = bc.WallFunctions(turbModel=model, vel='local', b_or=boundaryOrientatio
 wallBottom = bc.WallFunctions(turbModel=model, vel='local', b_or=boundaryOrientations['y-'],
                               Y=Y_, U0=U0, d=d, L=0., skinf='turbulent',
                               nu=nu_0, Cmu=0.09, K=0.41, B=5.57)
-
+walls = [wallTop, wallBottom]
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
@@ -268,19 +269,15 @@ else:
     tank.BC['x+'].setHydrostaticPressureOutletWithDepth( seaLevel=opts.water_level, rhoUp=rho_1,
                                                          rhoDown=rho_0, g=g,
                                                          refLevel=opts.th, smoothing=he*3.0,
-                                                         U=opts.meanVelocity, Uwind=opts.meanVelocity)
+                                                         )#U=opts.meanVelocity, Uwind=opts.meanVelocity)
     # extra turbulent conditions
     tank.BC['x-'].setTurbulentZeroGradient()
     tank.BC['x+'].setTurbulentZeroGradient()
 
 
-tank.setTurbulentWall(wallTop)
-tank.BC['y+'].setWallFunction(wallTop)
-tank.BC['y+'].u_diffusive.resetBC()
-tank.setTurbulentWall(wallBottom)
-tank.BC['y-'].setWallFunction(wallBottom)
-tank.BC['y-'].u_diffusive.resetBC()
-
+tank.setTurbulentWall(walls)
+tank.BC['y+'].setWallFunction(walls[0])
+tank.BC['y-'].setWallFunction(walls[1])
 tank.BC['sponge'].setNonMaterial()
 
 
@@ -288,21 +285,25 @@ tank.BC['sponge'].setNonMaterial()
 # -----  GENERATION ZONE & ABSORPTION ZONE  ----- #
 ########################################################################################################################################################################################################################################################################################################################################################
 
+steadyCurrent = wt.SteadyCurrent(U=U0, mwl=opts.water_level)
+
 if opts.GenZone == True and opts.wave == True:
     tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
                         orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
-                        waves=waveinput,
+                        waves=waveinput, dragAlpha=5.*0.1/nu_0,
                         )
 elif opts.GenZone == True:
-    tank.setAbsorptionZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
-                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+    tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
+                            orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+                            waves=steadyCurrent, dragAlpha=5.*0.1/nu_0,
                         )
 
 if opts.AbsZone == True:
     tank.setAbsorptionZones(flags=3, epsFact_solid=float(L_rightSpo/2.),
-                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+                            orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+                            dragAlpha=5.*0.1/nu_0,
                         )
-
+    
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
 ############################################################################################################################################################################
