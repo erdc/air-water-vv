@@ -39,7 +39,7 @@ opts=Context.Options([
     # numerical options
     ("GenZone", not True, 'Turn on generation zone at left side'),
     ("AbsZone", not True, 'Turn on absorption zone at right side'),
-    ('duration', 10., 'Simulation duration'),
+    ('duration', 1., 'Simulation duration'),
     ("refinement_level", 0.0,"he=walength/refinement_level"),
     ("he", 0.03,"Mesh size"),
     ("cfl", 0.90 ,"Target cfl"),
@@ -216,6 +216,7 @@ cf = 0.045*(Re0**(-1./4.))
 Ut = U0*sqrt(cf/2.)
 kappaP = (Ut**2)/sqrt(c_mu)
 Y_ = opts.Y
+Yplus = Y_*Ut/nu_0
 dissipationP = (Ut**3)/(0.41*Y_)
 
 # ke or kw
@@ -235,8 +236,8 @@ U0 = opts.meanVelocity
 
 
 # inlet values 
-kInflow = kappaP * 0.0001 # None
-dissipationInflow = dissipationP * 0.0001 # None
+kInflow = kappaP # * 0.0001 # None
+dissipationInflow = dissipationP # * 0.0001 # None
 
 #####################################################
 # Wall class definition
@@ -244,12 +245,10 @@ dissipationInflow = dissipationP * 0.0001 # None
 
 from proteus.mprans import BoundaryConditions as bc 
 
-wallTop = bc.WallFunctions(turbModel=model, vel='local', b_or=boundaryOrientations['y+'],
-                           Y=Y_, U0=U0, d=d, L=0., skinf='turbulent',
-                           nu=nu_0, Cmu=0.09, K=0.41, B=5.57)
-wallBottom = bc.WallFunctions(turbModel=model, vel='local', b_or=boundaryOrientations['y-'],
-                              Y=Y_, U0=U0, d=d, L=0., skinf='turbulent',
-                              nu=nu_0, Cmu=0.09, K=0.41, B=5.57)
+wallTop = bc.WallFunctions(turbModel=model, b_or=boundaryOrientations['y+'],
+                           Y=Y_, Yplus=Yplus, U0=U0, nu=nu_0, Cmu=0.09, K=0.41, B=5.57)
+wallBottom = bc.WallFunctions(turbModel=model, b_or=boundaryOrientations['y-'],
+                              Y=Y_, Yplus=Yplus, U0=U0, nu=nu_0, Cmu=0.09, K=0.41, B=5.57)
 walls = [wallTop, wallBottom]
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
@@ -271,8 +270,12 @@ else:
                                                          refLevel=opts.th, smoothing=he*3.0,
                                                          )#U=opts.meanVelocity, Uwind=opts.meanVelocity)
     # extra turbulent conditions
-    tank.BC['x-'].setTurbulentZeroGradient()
-    tank.BC['x+'].setTurbulentZeroGradient()
+    # tank.BC['x-'].setTurbulentZeroGradient()
+    # tank.BC['x-'].k_dirichlet.resetBC()
+    # tank.BC['x-'].dissipation_dirichlet.resetBC()
+    # tank.BC['x+'].setTurbulentZeroGradient()
+    # tank.BC['x+'].k_dirichlet.resetBC()
+    # tank.BC['x+'].dissipation_dirichlet.resetBC()
 
 
 tank.setTurbulentWall(walls)
