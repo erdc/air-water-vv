@@ -10,16 +10,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 scale = 1.0 / 21.0
-caisson_width = 6 * scale  # mts
-he= 0.05
+
+caisson_width = 10.5625*25*0.0254  # 1:25 (in) -> 1:1 (in) -> 1:1 (mts)
+
 
 
 domain3D = Domain.PiecewiseLinearComplexDomain()
 # myTank=st.Tank3D(domain3D,dim=(0.9144,3.0,1.0,))
-he_min = 0.05
+he_min = 0.02
 
 
-caisson_coord=[0.9144/2, 1.5, .5]
+#caisson_coord=[0.9144/2, 1.5, .5]
+caisson_coord=[0.5,0.5,0.5]
 
 
 xl = pd.ExcelFile("Ribbon Bridge Section Line Segment.xlsx")
@@ -37,6 +39,7 @@ z = z * prescale
 # Scale to experimental model
 yp = y * scale
 zp = z * scale
+caisson_width *= scale
 
 dim = [caisson_width, max(yp) - min(yp), max(zp) - min(zp)]
 
