@@ -292,7 +292,9 @@ def Update_Model():
             caisson = st.CustomShape(domain, barycenter=barycenter,
                                 vertices=vertices, vertexFlags=vertexFlags,
                                 segments=segments, segmentFlags=segmentFlags,
-                                boundaryTags=boundaryTags)
+                                boundaryTags=boundaryTags,
+
+                                )
         else:
             radius=opts.sphereRadius
             nPoints=int(2*np.pi*radius/he_caisson)
