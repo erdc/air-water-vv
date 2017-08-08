@@ -3,7 +3,7 @@ import numpy as np
 
 plt.close('all')
 scale=21
-test=34
+test=44
 testName = 'S'+str(scale)+'T'+str(test)
 with open('Results/' + testName + '/forceHistory_p.txt') as file:
     pData = file.readlines()

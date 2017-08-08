@@ -102,9 +102,9 @@ def Update_Model():
 
 
     # sanity check
-    if waterLine_z > tank_dim[1]:
+    if waterLine_z > tank_dim[-1]:
         raise ValueError("ERROR: Water (level: %s) overflows height of tank (%s)"
-                         % (waterLine_z, tank_dim[1]))
+                         % (waterLine_z, tank_dim[-1]))
 
     ##########################################
     #     Discretization Input Options       #

@@ -26,7 +26,7 @@ opts = Context.Options([
     ("sphere", True, "Enable Test Sphere"),
     ("sphereRadius", 0.1, "sphere radius"),
     ("caisson_scale", 21, "Caisson scale ratio 1:scale"),
-    ("caisson_mass", 1000, "Caisson original mass"),
+    ("caisson_mass", 6500, "Caisson original mass"),
     ("caisson_coords",None, "Coord of the caisson"),
     ("caisson_Yoffset",-0.005524, "Vertical offset from the original possition of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
@@ -232,16 +232,13 @@ def Update_Model():
         x-=0.5*(max(x)+min(x))
         y-=min(y)
 
-        #Real dimensions compensation (Need to correct real values on excel)
-        prescale=0.6459851273
+        #Real dimension
+        prescale=25*0.0254  #Scale of 25 * inches to meters
         x=x*prescale
         y=y*prescale
         # Scale to experimental model
         xp=x*scale
         yp=y*scale
-
-
-
 
         dim=[max(xp)-min(xp),max(yp)-min(yp)]
 
