@@ -24,8 +24,8 @@ opts=Context.Options([
     ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
-    ("wave_period", 6., "Period of the waves"),
-    ("wave_height", 0.05, "Height of the waves"),
+    ("wave_period", 2., "Period of the waves"),
+    ("wave_height", 0.15, "Height of the waves"),
     ("wave_dir", (1.,0.,0.), "Direction of the waves (from left boundary)"),
     ("wave_wavelength",12.78, "Direction of the waves (from left boundary)"),
     ("wave_type", 'Fenton', "type of wave"),
@@ -57,20 +57,67 @@ opts=Context.Options([
 
 # waves
 omega = 1.
+class MonochromaticWavesPulse(wt.MonochromaticWaves):
+    def __init__(self,
+                 period,
+                 waveHeight,
+                 mwl,
+                 depth,
+                 g,
+                 waveDir,
+                 wavelength=None,
+                 waveType="Linear",
+                 Ycoeff = np.zeros(1000,),
+                 Bcoeff =np.zeros(1000,), 
+                 Nf = 1000,
+                 meanVelocity = np.array([0.,0,0.]),
+                 phi0 = 0.,
+                 fast = True,rampInfo=()):
+        wt.MonochromaticWaves.__init__(self,
+                                       period,
+                                       waveHeight,
+                                       mwl,
+                                       depth,
+                                       g,
+                                       waveDir,
+                                       wavelength=wavelength,
+                                       waveType=waveType,
+                                       Ycoeff = Ycoeff,
+                                       Bcoeff = Bcoeff,
+                                       Nf = Nf,
+                                       meanVelocity = meanVelocity,
+                                       phi0 = phi0,
+                                       fast = fast)
+        self.rampInfo=rampInfo
+    def ramp(self,t):
+        if t < self.rampInfo[0]:
+            return (1.0+math.cos((t-self.rampInfo[1])*math.pi/self.rampInfo[1]))/2.0
+        elif t < self.rampInfo[2]:
+            return 1.0
+        elif t < self.rampInfo[2] + self.rampInfo[1]:
+            return (1.0-math.cos((t-self.rampInfo[2])*math.pi/self.rampInfo[1]))/2.0
+        else:
+            return 0.0
+    def eta(self, x, t):
+        return super(MonochromaticWavesPulse, self).eta(x, t)*self.ramp(t)
+    def u(self, x, t): 
+        return super(MonochromaticWavesPulse,self).u(x, t)*self.ramp(t)
+
 if opts.waves is True:
     period = opts.wave_period
     omega = 2*np.pi/opts.wave_period
     height = opts.wave_height
     mwl = depth = opts.water_level
     direction = opts.wave_dir
-    wave = wt.MonochromaticWaves(period=period, waveHeight=height, mwl=mwl, depth=depth,
+    wave = MonochromaticWavesPulse(period=period, waveHeight=height, mwl=mwl, depth=depth,
                                  g=np.array([0., -9.81, 0.]), waveDir=direction,
-                                 wavelength=opts.wave_wavelength,
-                                 waveType=opts.wave_type,
-                                 Ycoeff=np.array(opts.Ycoeff),
-                                 Bcoeff=np.array(opts.Bcoeff),
-                                 Nf=len(opts.Bcoeff),
-                                 fast=opts.fast)
+                                 wavelength=None,#opts.wave_wavelength,
+                                   waveType='Linear',#opts.wave_type,
+                                 #Ycoeff=np.array(opts.Ycoeff),
+                                 #Bcoeff=np.array(opts.Bcoeff),
+                                 #Nf=len(opts.Bcoeff),
+                                   #fast=opts.fast,
+                                   rampInfo=(3.0,3.0,20.0))
     wavelength = wave.wavelength
 
 # tank options
