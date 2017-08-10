@@ -37,8 +37,9 @@ name = "floating_IRB"
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
 systemStepControllerType = Sequential_MinAdaptiveModelStep
 #systemStepControllerType = Sequential_FixedStep_Simple # uses time steps in so.tnList
+stepExactSystem=False
 
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_out for i in range(1,ct.nDTout+1)]
+tnList = [0.0,ct.dt_init]+[i*ct.dt_out for i in range(1,ct.nDTout+1)]

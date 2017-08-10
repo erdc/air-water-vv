@@ -19,15 +19,15 @@ opts=Context.Options([
     ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
     ("speed",0.0,"Speed of current if non-zero"),
-    ("bar_height",0.5,"Initial height of bar center above bottom"),
+    ("bar_height",0.575,"Initial height of bar center above bottom"),
     ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
     ("gen_mesh",True,"Generate new mesh"),
     ("he",0.1,"Mesh size"),
-    ("T",10.0,"Simulation time"),
-    ("dt_init",0.001,"Initial time step"),
+    ("T",1.0,"Simulation time"),
+    ("dt_init",1e-6,"Initial time step"),
     ("cfl",0.33,"Target cfl"),
-    ("nsave",100,"Number of time steps to  save"),
+    ("nsave",1000,"Number of time steps to  save"),
     ("parallel",True,"Run in parallel"),
     ("free_x",(0.0,0.0,1.0),"Free translations"),
     ("free_r",(1.0,1.0,0.0),"Free rotations")])
@@ -110,7 +110,7 @@ holes=[]
 
 
 # BAR Properties
-he_min = 0.05
+he_min = 0.01
 scale = 1.0 / opts.scale
 caisson_width = 10.5625*25*0.0254  # 1:25 (in) -> 1:1 (in) -> 1:1 (mts)
 
@@ -118,15 +118,15 @@ caisson_width = 10.5625*25*0.0254  # 1:25 (in) -> 1:1 (in) -> 1:1 (mts)
 bar_center = (0.5*L[0],0.5*L[1],opts.bar_height)
 #Calculate Density
 bar_mass = 6350     #Kg taken from datasheet
-bar_dim=(6.9,8.5,0.86)
+bar_dim=(6.9,8.5,0.86)    #Dimensions based on SolidWorks model, only used for density calculation
 bar_volume = bar_dim[0]*bar_dim[1]*bar_dim[2] #m^3 scaled
 bar_density=bar_mass/bar_volume
 
 #Scaled Dimensions for ODE simulation
-bar_dim=(6.9*scale,8.5*scale,0.86*scale)
+bar_dim=(round(6.9*scale,3),round(8.5*scale,3),round(0.86*scale,4))
 
 
-#print 0.5*(rho_0+rho_1), bar_density
+#print opts.bar_dim, bar_dim
 
 speed = opts.speed
 
@@ -163,6 +163,8 @@ z = z * prescale
 yp = y * scale      # 1:1 -> 1:scale
 zp = z * scale
 caisson_width *= scale
+
+
 
 #dim = [caisson_width, max(yp) - min(yp), max(zp) - min(zp)]
 
@@ -620,4 +622,5 @@ position_last = {7}""".format(Fstar,F,self.last_F,dt,velocity,velocity_last,posi
                                                                                                             self.h[1],
                                                                                                             self.h[2]))
 
-bar = RigidBar(density=bar_density,bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters,he=he,cfl_target=0.9*opts.cfl,dt_init=opts.dt_init)
+
+bar = RigidBar(density=100,bar_center=bar_center,bar_dim=opts.bar_dim,barycenters=barycenters,he=he,cfl_target=0.9*opts.cfl,dt_init=opts.dt_init)
