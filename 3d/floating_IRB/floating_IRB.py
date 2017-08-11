@@ -19,15 +19,15 @@ opts=Context.Options([
     ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("water_surface_height",0.5,"Height of free surface above bottom"),
     ("speed",0.0,"Speed of current if non-zero"),
-    ("bar_height",0.575,"Initial height of bar center above bottom"),
-    ("bar_rotation",(0,0,0),"Initial rotation about x,y,z axes"),
+    ("bar_height",0.5,"Initial height of bar center above bottom"),
+    ("bar_rotation",(0.01,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
     ("gen_mesh",True,"Generate new mesh"),
     ("he",0.1,"Mesh size"),
-    ("T",1.0,"Simulation time"),
+    ("T",10.0,"Simulation time"),
     ("dt_init",1e-6,"Initial time step"),
     ("cfl",0.33,"Target cfl"),
-    ("nsave",1000,"Number of time steps to  save"),
+    ("nsave",100,"Number of time steps to  save"),
     ("parallel",True,"Run in parallel"),
     ("free_x",(0.0,0.0,1.0),"Free translations"),
     ("free_r",(1.0,1.0,0.0),"Free rotations")])
@@ -112,7 +112,7 @@ holes=[]
 # BAR Properties
 he_min = 0.01
 scale = 1.0 / opts.scale
-caisson_width = 10.5625*25*0.0254  # 1:25 (in) -> 1:1 (in) -> 1:1 (mts)
+caisson_width = 0.7*10.5625*25*0.0254  # 1:25 (in) -> 1:1 (in) -> 1:1 (mts)
 
 #bar_center=[0.5*L[0],0.5*L[1],waterLevel]
 bar_center = (0.5*L[0],0.5*L[1],opts.bar_height)
@@ -146,7 +146,7 @@ RBR_angCons  = [1,0,1]
 
 import pandas as pd
 
-xl = pd.ExcelFile("Ribbon Bridge Section Line Segment.xlsx")
+xl = pd.ExcelFile("Ribbon Bridge Section Line Segment_short.xlsx")
 df = xl.parse(0)
 y = np.asarray(df['x'].tolist())
 z = np.asarray(df['y'].tolist())
@@ -588,9 +588,10 @@ position_last = {7}""".format(Fstar,F,self.last_F,dt,velocity,velocity_last,posi
                     self.body.setForce((Fstar[0]*opts.free_x[0],
                                         Fstar[1]*opts.free_x[1],
                                         Fstar[2]*opts.free_x[2]))
-                    self.body.setTorque((Mstar[0]*opts.free_r[0],
-                                         Mstar[1]*opts.free_r[1],
-                                         Mstar[2]*opts.free_r[2]))
+
+                    self.body.setTorque((Mstar[0] * opts.free_r[0],
+                                         Mstar[1] * opts.free_r[1],
+                                         Mstar[2] * opts.free_r[2]))
                     #self.space.collide((self.world,self.contactgroup), near_callback)
                     self.world.step(dt/float(nSteps))
         #self.contactgroup.empty()

@@ -109,8 +109,10 @@ domain = Domain.PiecewiseLinearComplexDomain()
 
 # ----- SHAPES ----- #
 
-front = back = tank_sponge[0]
-right = left = tank_sponge[1]
+front = tank_sponge[0]
+back = tank_sponge[0]
+right = tank_sponge[1]
+left = tank_sponge[1]
 fbt = rlt = False
 if front and back:
     fbt = True
@@ -118,8 +120,20 @@ if right and left:
     rlt = True
 
 tank = st.Tank3D(domain, tank_dim)
-tank.setSponge(front=front, back=back, right=right, left=left)
-tank.setAbsorptionZones(front=fbt, back=fbt, right=rlt, left=rlt)
+
+print fbt,rlt
+
+tank.setSponge(x_p=front, x_n=back, y_p=right, y_n=left)
+
+
+omega =1
+nu_0 = 1.004e-6
+dragAlpha = 5.*omega/nu_0
+
+tank.setAbsorptionZones(x_p=fbt, dragAlpha=dragAlpha)
+tank.setAbsorptionZones(x_n=fbt, dragAlpha=dragAlpha)
+tank.setAbsorptionZones(y_p=rlt, dragAlpha=dragAlpha)
+tank.setAbsorptionZones(y_n=rlt, dragAlpha=dragAlpha)
 
 caisson3D = st.Cuboid(domain, dim=dim, coords=coords)
 caisson3D.setRigidBody()
