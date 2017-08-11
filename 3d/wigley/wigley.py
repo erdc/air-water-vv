@@ -285,7 +285,7 @@ quad_order = 3
 #----------------------------------------------------
 # Boundary conditions and other flags
 #----------------------------------------------------
-openTop = False
+openTop = True
 openSides = False
 openEnd = True
 smoothBottom = False
@@ -317,7 +317,7 @@ nDTout=100
 #T = 0.01#
 #nDTout=3
 dt_out =  (T-dt_init)/nDTout
-runCFL = 0.33
+runCFL = 0.9
 
 #RANS bc info
 kInflow = 0.003*Um*Um
@@ -428,7 +428,7 @@ elif spaceOrder == 2:
 
 
 # Numerical parameters
-ns_forceStrongDirichlet = True
+ns_forceStrongDirichlet = False
 
 if useMetrics:
     ns_shockCapturingFactor  = 0.5
@@ -495,7 +495,7 @@ dissipation_nl_atol_res = max(1.0e-12,0.01*he**2)
 mesh_nl_atol_res = max(1.0e-12,0.01*he**2)
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 
 if useRANS == 1:
     ns_closure = 3

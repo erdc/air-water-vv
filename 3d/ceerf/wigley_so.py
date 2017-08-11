@@ -7,7 +7,7 @@ import wigley
 if wigley.useOnlyVF:
     pnList = [("twp_navier_stokes_p", #0
                "twp_navier_stokes_n"),
-              ("vof_p", #1              
+              ("vof_p", #1
                "vof_n")]
 else:
     pnList = [("twp_navier_stokes_p" , #0
@@ -16,9 +16,9 @@ else:
                "vof_n"),
               ("ls_p" , #2
                "ls_n"),
-              ("redist_p" ,#3 
+              ("redist_p" ,#3
                "redist_n"),
-              ("ls_consrv_p" ,#4 
+              ("ls_consrv_p" ,#4
                "ls_consrv_n")]
 
 if wigley.movingDomain:
@@ -32,8 +32,9 @@ if wigley.useRANS > 0:
 name = "wigley"
 
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
-systemStepControllerType = Sequential_MinAdaptiveModelStep
-
+#systemStepControllerType = Sequential_MinAdaptiveModelStep
+systemStepControllerType = Sequential_FixedStep
+dt_system_fixed=0.005
 needEBQ_GLOBAL = False
 needEBQ = False
 

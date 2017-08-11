@@ -1,7 +1,9 @@
 #!/bin/csh
 #PBS -A ERDCV00898R40
-#PBS -l walltime=048:00:00
-#PBS -l select=32:ncpus=32:mpiprocs=32
+##PBS -l walltime=072:00:00
+##PBS -l select=128:ncpus=32:mpiprocs=32
+#PBS -l walltime=012:00:00
+#PBS -l select=16:ncpus=32:mpiprocs=32
 #PBS -q standard
 #PBS -N ceerf
 #PBS -j oe

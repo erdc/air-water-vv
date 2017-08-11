@@ -37,11 +37,12 @@ hull_draft  = hull_length/16.0
 L=(12.192,
    2.4384,
    1.5)
-x_ll = (-1.5*hull_length,
+x_ll = (-L[0]*0.25,
          -L[1]/2.0,
          0.0)
 
-waterLevel   = 1.2192
+#waterLevel   = 1.2192#4ft
+waterLevel   = 0.9114#3ft
 
 hull_center = (0.0,
                0.0,
@@ -88,8 +89,10 @@ RBR_angCons  = [1,0,1]
 nLevels = 1
 
 he = hull_draft/0.75 #32
-he *= 0.5 #
-he *= 0.5 #
+#he *= 0.5 #
+#he *= 0.5 #
+#he *= 0.5 #
+#he *= 0.5 #
 he *= 0.5 #
 he *= 0.5 #
 he *= 0.5 #
@@ -348,10 +351,10 @@ quad_order = 3
 #----------------------------------------------------
 # Boundary conditions and other flags
 #----------------------------------------------------
-openTop = False
+openTop = True
 openSides = False
 openEnd = True
-smoothBottom = False
+smoothBottom = True
 smoothObstacle = False
 movingDomain=False#True
 checkMass=False
@@ -501,13 +504,13 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.5
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True
     kappa_sc_uref = 1.0
@@ -545,10 +548,10 @@ else:
     dissipation_sc_beta  = 1.0
 
 ns_nl_atol_res = max(1.0e-8,0.05*he**2)
-vof_nl_atol_res = max(1.0e-8,0.05*he**2)
-ls_nl_atol_res = max(1.0e-8,0.05*he**2)
-mcorr_nl_atol_res = max(1.0e-8,0.05*he**2)
-rd_nl_atol_res = max(1.0e-8,0.05*he)
+vof_nl_atol_res = max(1.0e-10,0.01*he**2)
+ls_nl_atol_res = max(1.0e-10,0.01*he**2)
+mcorr_nl_atol_res = max(1.0e-10,0.005*he**2)
+rd_nl_atol_res = max(1.0e-10,0.01*he)
 kappa_nl_atol_res = max(1.0e-8,0.05*he**2)
 dissipation_nl_atol_res = max(1.0e-8,0.05*he**2)
 mesh_nl_atol_res = max(1.0e-8,0.05*he**2)
@@ -562,7 +565,7 @@ elif useRANS >= 2:
     ns_closure == 4
 
 #wave/current properties
-windspeed_u = 0.0
+windspeed_u = Um
 windspeed_v = 0.0
 windspeed_w = 0.0
 
@@ -576,7 +579,10 @@ def waveHeight(x,t):
     return waterLevel
 
 def waveVelocity_u(x,t):
-    return Um
+    if t < 10.0:
+        return Um*(1.0+math.cos((t-10.0)*math.pi/10.0))/2.0
+    else:
+        return Um
 
 def waveVelocity_v(x,t):
     return 0.0
@@ -597,13 +603,13 @@ def waveVF_init(x,t):
     return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi_init(x,t))
 
 def twpflowVelocity_u(x,t):
-#    waterspeed = waveVelocity_u(x,t)
-#    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
-#    return H*windspeed_u + (1.0-H)*waterspeed
-    if t < 5.0:
-        return Um*(1.0+math.cos((t-5.0)*math.pi/5.0))/2.0
-    else:
-        return Um
+    waterspeed = waveVelocity_u(x,t)
+    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
+    return H*windspeed_u + (1.0-H)*waterspeed
+#    if t < 5.0:
+#        return Um*(1.0+math.cos((t-5.0)*math.pi/5.0))/2.0
+#    else:
+#        return Um
 
 def twpflowVelocity_v(x,t):
 #    waterspeed = waveVelocity_v(x,t)
