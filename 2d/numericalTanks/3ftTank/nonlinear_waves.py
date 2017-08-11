@@ -19,7 +19,7 @@ opts=Context.Options([
                         "(otherwise, no slip conditions will be applied)."),
     # gauges
     #("gauge_output", True, "Places Gauges in tank (5 per wavelength)"),
-    ("point_gauge_output", True, "Produce point gauge output"),
+    ("point_gauge_output", False, "Produce point gauge output"),
     ("column_gauge_output", True, "Produce column gauge output"),
     ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges"),
     # waves
@@ -138,7 +138,7 @@ tank = st.Tank2D(domain, tank_dim)
 
 # ----- GENERATION / ABSORPTION LAYERS ----- #
 
-tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+tank.setSponge(x_n=tank_sponge[0])#, x_p=tank_sponge[1])
 dragAlpha = 5.*omega/1e-6
  
 if opts.generation:
@@ -177,8 +177,8 @@ point_gauge_locations = []
 if opts.point_gauge_output or opts.column_gauge_output:
     gauge_y = waterLevel - 0.5 * depth
     #number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
-    gauge_array=[12.8,14.08]
-    gauge_array.extend(np.arange(15.64,45.72,1.56))
+    gauge_array=[4.0,34.0]
+    #gauge_array.extend(np.arange(15.64,45.72,1.56))
     for gauge_x in gauge_array:
         point_gauge_locations.append((gauge_x, gauge_y, 0), )
         column_gauge_locations.append(((gauge_x, 0., 0.),
