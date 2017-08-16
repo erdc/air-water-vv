@@ -14,29 +14,28 @@ from proteus.mprans.SpatialTools import Tank2D
 # predefined options
 opts=Context.Options([
     # water
-    ("water_depth_fraction", 0.5, "Depth of the water relative to the tank height"),
-    ("amplitude", 0.005, "Amplitude of the sloshing relative to tank height"),
-    ("eps", 0.016, "wave depth"),
+    ("water_depth_fraction", 0.5, "Nondimensional water level normalised to the tank height"),
+    ("amplitude", 0.005, "Nondimensional amplitude normalised to tank height"),
+    ("nu",0.,"Kinematic viscosity m/sec^2. Set to 0 when comparing to analytical results for inviscid flow"),
     # tank
-    ("tank_dim", (0.1 , 0.1), "Dimensions of the tank"),
+    ("tank_dim", (0.1 , 0.1), "Dimensions of the tank (length, height) in m"),
     #gravity
     ("g",(0,-9.81,0), "Gravity vector"),
     # gauges
-    ("gauge_output", True, "Produce gauge data."),
+    ("gauge_output", True, "Produce gauge data. A free-surface gauge is located at the far left boundary"),
     # mesh refinement and boundary condition
-    ("he", 0.001,"Characteristic element size"),
+    ("he", 0.001,"Characteristic element size in m"),
     ("cfl", 0.5 ,"Target cfl"),
-    ("opentop", True,"BC"),
+    ("opentop", True,"Enabling atmosphere boundary at the top"),
     # run time options
-    ("T", 3.0 ,"Simulation time"),
+    ("T", 0.1 ,"Simulation time in s"),
     ("nsave", 0., "number of saves per second"),
-    ("dt_init", 0.001 ,"Maximum initial time step"),
-    ("dt_fixed", None, "fixed time step for proteus (scale with period)"),
+    ("dt_init", 0.001 ,"Maximum initial time step in s"),
+    ("dt_fixed", None, "fixed time step for proteus (scale with period) in s"),
     ("structured", False, "Use a (triangular) structured mesh"),
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
-    ("use_gmsh", True ,"Generate new mesh"),
-    ("parallel", True ,"Run in parallel")])
+    ])
 
 # ----- CONTEXT ------ #
 
@@ -50,7 +49,7 @@ water_depth = h = tank_dim[1]*opts.water_depth_fraction
 
 wavelength = tank_dim[0]*2.
 k = 2*np.pi/wavelength
-h = 0.05
+h = opts.water_depth_fraction*opts.tank_dim[1]
 eps = k*water_amplitude
 
 ##########################################
@@ -123,7 +122,7 @@ nLevels = 1
 
 # Water
 rho_0 = 998.2
-nu_0 = 0.#1.004e-6
+nu_0 = opts.nu#0.#1.004e-6
 
 # Air
 rho_1 = 1.205

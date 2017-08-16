@@ -2,7 +2,7 @@
 Linear Wave Theory
 """
 import numpy as np
-from math import ceil
+import math
 from proteus import (Domain, Context,
                      FemTools as ft,
                      MeshTools as mt,
@@ -45,7 +45,7 @@ opts = Context.Options([
     ("useHex", False, "Use (hexahedral) structured mesh"),
     ("structured", False, "Use (triangular/tetrahedral) structured mesh"),
     ("nperiod", 10., "Number of time steps to save per period"),
-    ("parallel", True, "Run in parallel")])
+    ])
 
 # ----- CONTEXT ------ #
 
@@ -170,9 +170,9 @@ backgroundDiffusionFactor = 0.01
 
 #[temp] an attempt to match the intentions of refLevel instead of refinement
 #[temp] (wavelength based instead of dimension based)
-refinement_x = int(ceil(refinement_level * (tank_dim[0] + sum(tank_sponge))
+refinement_x = int(math.ceil(refinement_level * (tank_dim[0] + sum(tank_sponge))
                         / opts.wavelength))
-refinement_y = int(ceil(refinement_level * (tank_dim[1])
+refinement_y = int(math.ceil(refinement_level * (tank_dim[1])
                         / opts.wavelength))
 if useHex:
     nnx = refinement_x + 1
@@ -190,15 +190,19 @@ else:
 # ----- TANK ------ #
 
 tank = st.Tank2D(domain, tank_dim)
+omega = 2.*math.pi/period
+dragAlpha = 10.*omega/nu_0
+he = opts.wavelength / refinement_level
+smoothing = 3.*he
 
 # ----- GENERATION / ABSORPTION LAYERS ----- #
 
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 
 if opts.generation:
-    tank.setGenerationZones(x_n=True, waves=wave)
+    tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing=smoothing)
 if opts.absorption:
-    tank.setAbsorptionZones(x_p=True)
+    tank.setAbsorptionZones(x_p=True, dragAlpha=dragAlpha)
 
 # ----- BOUNDARY CONDITIONS ----- #
 
@@ -244,7 +248,6 @@ if opts.column_gauge_output:
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = opts.wavelength / refinement_level
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 

@@ -56,8 +56,7 @@ opts=Context.Options([
     ("nsave",  5, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ("useVF", 0., "Smoothing function at the water/air interface"),
-    ("conservativeFlux", False, "Switches ON/OFF postprocessing on velocity field"),
-    ("parallel", True ,"Run in parallel")])
+    ("conservativeFlux", False, "Switches ON/OFF postprocessing on velocity field")])
 
 # ----- Physical constants ----- #
 

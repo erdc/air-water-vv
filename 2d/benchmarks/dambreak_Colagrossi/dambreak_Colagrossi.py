@@ -12,31 +12,31 @@ from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
 from proteus.mprans.SpatialTools import Tank2D
 
-
 # predefined options
 opts=Context.Options([
+    ("adaptMesh", False, "Enable dynamic mesh adaption"),
     # water column 
-    ("water_level", 0.6, "Height of water column"),
-    ("water_width", 1.2, "Width of  water column"),
+    ("water_level", 0.6, "Height of water column in m"),
+    ("water_width", 1.2, "Width of  water column in m"),
     # tank
-    ("tank_dim", (3.22, 1.8), "Dimensions of the tank"),
+    ("tank_dim", (3.22, 1.8), "Dimensions of the tank  in m"),
     #gravity 
-    ("g",(0,-9.81,0), "Gravity vector"),
+    ("g",(0,-9.81,0), "Gravity vector in m/s^2"),
     # gauges
-    ("gauge_output", True, "Produce gauge data."),
-    ("gauge_location_p", (3.22, 0.12, 0), "Pressure gauge location"),
+    ("gauge_output", True, "Produce gauge data"),
+    ("gauge_location_p", (3.22, 0.12, 0), "Pressure gauge location in m"),
     # mesh refinement and timestep
     ("refinement", 32 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
     ("cfl", 0.33 ,"Target cfl"),
     # run time options
-    ("T", 3.0 ,"Simulation time"),
-    ("dt_fixed", 0.01, "Fixed time step"),
-    ("dt_init", 0.001 ,"Maximum initial time step"),
+    ("T", 0.09 ,"Simulation time in s"),
+    ("dt_fixed", 0.01, "Fixed time step in s"),
+    ("dt_init", 0.001 ,"Maximum initial time step in s"),
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("structured", False, "Use a structured triangular mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
-    ("nperiod", 10.,"Number of time steps to save per period"),
-    ("parallel", True ,"Run in parallel")])
+    ("parallel", False,"Run in parallel"),
+    ])
 
 
 # ----- CONTEXT ------ #
@@ -61,7 +61,10 @@ movingDomain = False
 checkMass = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = False
+if opts.parallel:
+    useSuperlu = False
+else:
+    useSuperlu = True
 timeDiscretization = 'be'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
 useHex = opts.useHex
@@ -162,7 +165,7 @@ tank = Tank2D(domain, tank_dim)
 
 # ----- GAUGES ----- #
 
-if opts.gauge_output:
+if opts.gauge_output and not opts.adaptMesh:
     tank.attachPointGauges(
         'twp',
         gauges = ((('p',), (opts.gauge_location_p,)),),
@@ -181,9 +184,29 @@ tank.BC['x-'].setFreeSlip()
 
 # ----- MESH CONSTRUCTION ----- #
 
+
+
 he = tank_dim[0] / float(4 * refinement - 1)
-domain.MeshOptions.he = he
+from proteus.MeshAdaptPUMI  import MeshAdaptPUMI 
+hmin = he
+hmax = 10.0*he
+adaptMesh = opts.adaptMesh
+adaptMesh_nSteps = 5
+adaptMesh_numIter = 2
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropicProteus",maType="isotropic")
+useModel=False
+
+if opts.adaptMesh:
+    domain.MeshOptions.he = hmax
+    domain.MeshOptions.parallelPartitioningType = mt.MeshParallelPartitioningTypes.element
+    domain.MeshOptions.nLayersOfOverlapForParallel = 0
+else:
+    domain.MeshOptions.he = he
+    domain.MeshOptions.parallelPartitioningType = mt.MeshParallelPartitioningTypes.node
+    domain.MeshOptions.nLayersOfOverlapForParallel = 0
+
 st.assembleDomain(domain)
+
 
 # ----- STRONG DIRICHLET ----- #
 
@@ -198,28 +221,28 @@ if useMetrics:
     ls_shockCapturingFactor = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
+    vof_sc_beta = 1.5
     rd_shockCapturingFactor = 0.25
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH \
                     = epsFact_consrv_dirac = epsFact_density \
-                    = 3.0
+                    = 1.5
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 0.1
+    epsFact_consrv_diffusion = 10.0
     redist_Newton = True
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
+    kappa_sc_beta = 1.5
     dissipation_shockCapturingFactor = 0.25
     dissipation_lag_shockCapturing = True  #False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = 1.5
 else:
     ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True

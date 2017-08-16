@@ -79,7 +79,10 @@ for folder in folders:
     fp = 1./period[ifo]
     minf = 0.75*fp
     maxf = 1.1*band[ifo]*fp
+    time_int = np.linspace(time[0],time[-1],len(time))
+    eta_num = np.interp(time_int,time,eta_num)
     eta_num = signalFilter(time,eta_num,minf, maxf, maxf, minf)
+    eta_num = np.interp(time,time_int,eta_num)
 
     # Theoretical eta
     x = np.array(data_vof[1][2*i_mid])

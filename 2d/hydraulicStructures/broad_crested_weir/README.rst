@@ -1,6 +1,9 @@
 Broad crested weir
 ==================
 
+Description
+-----------
+
 A broad-crested weir is a standard hydraulic structure used as
 discharge measuring device and flow control device in open
 channel. This type of weir can be described as a simple solid
@@ -10,14 +13,14 @@ weir, flow separation occurs at this location.
 
 As the flow propagates mainly in 2 directions, a 2D computational
 domain was used for the simulation.  The height of the domain is equal
-to :math:`1.0\mbox{m}` and the length to :math: `3.5\mbox{m}`.
-The weir has a height of :math:`P=0.401\mbox{m}` and a width of
-:math:`b=0.5\mbox{m}`.  A uniform velocity distribution from bottom to
+to :math:`1.0 m` and the length to :math:`3.5 m`.
+The weir has a height of :math:`P=0.401 m` and a width of
+:math:`b=0.5 m`.  A uniform velocity distribution from bottom to
 free water level is imposed in the left wall boundary condition. The
 top of the domain is left open and the right wall of the domain allows
 the flow to leave the domain. A free-slip condition is set at the 
 bottom of the domain. There is an air ventilation on the right side of 
-the weir. In the following figure, a simple sketch of the structure is 
+the weir to maintain atmospheric pressure below the nappe. In the following figure, a simple sketch of the structure is 
 presented showing the main parameters.
 
 .. figure:: ./BroadWeir.bmp

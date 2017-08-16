@@ -74,7 +74,7 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
         ns.calculateSolution('quiescent_water_test_gauges')
         assert(True)
 
-        
+       
     def test_validate(self):
         # Reading probes into the file
         file_pressurePoint = 'pressure_PointGauge.csv'

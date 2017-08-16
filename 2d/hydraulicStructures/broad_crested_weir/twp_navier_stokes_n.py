@@ -89,6 +89,17 @@ l_atol_res = 0.01 * ct.ns_nl_atol_res
 useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
-conservativeFlux = {0: 'pwl-bdm-opt'}
+if ct.useHex:
+    conservativeFlux = None
+else:
+    if ct.adaptMesh and ct.opts.parallel:
+        conservativeFlux = None
+    else:
+        conservativeFlux = {0: 'pwl-bdm-opt'}
+adaptMesh = ct.adaptMesh
+adaptMesh_nSteps = ct.adaptMesh_nSteps
+adaptMesh_numIter = ct.adaptMesh_numIter
+MeshAdaptMesh=ct.MeshAdaptMesh
+useModel=ct.useModel
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['twp']

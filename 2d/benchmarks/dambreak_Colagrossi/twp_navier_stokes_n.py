@@ -12,7 +12,11 @@ ct = Context.get()
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
-
+adaptMesh = ct.adaptMesh
+adaptMesh_nSteps = ct.adaptMesh_nSteps
+adaptMesh_numIter = ct.adaptMesh_numIter
+MeshAdaptMesh=ct.MeshAdaptMesh
+useModel=ct.useModel
 if ct.useHex or ct.structured:
     nnx = ct.nnx
     nny = ct.nny
@@ -99,6 +103,9 @@ maxLineSearches = 0
 if ct.useHex:
     conservativeFlux = None
 else:
-    conservativeFlux = {0: 'pwl-bdm-opt'}
+    if ct.adaptMesh and ct.opts.parallel:
+        conservativeFlux = None
+    else:
+        conservativeFlux = {0: 'pwl-bdm-opt'}
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['twp']
