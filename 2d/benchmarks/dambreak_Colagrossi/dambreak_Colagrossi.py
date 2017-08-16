@@ -193,7 +193,7 @@ hmax = 10.0*he
 adaptMesh = opts.adaptMesh
 adaptMesh_nSteps = 5
 adaptMesh_numIter = 2
-MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropicProteus",maType="isotropic")
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropic",maType="isotropic")
 useModel=False
 
 if opts.adaptMesh:
