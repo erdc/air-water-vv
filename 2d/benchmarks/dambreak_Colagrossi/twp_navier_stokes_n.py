@@ -83,6 +83,31 @@ if ct.useOldPETSc:
 else:
     multilevelLinearSolver = LinearSolvers.KSP_petsc4py
     levelLinearSolver      = LinearSolvers.KSP_petsc4py
+    linear_solver_options_prefix = 'rans2p_'
+    schur_solver = ct.opts.schur_solver
+    if schur_solver == 'Qp':
+        linearSmoother=NavierStokes3D_Qp
+    elif schur_solver == 'petsc_ASM':
+        linearSmoother = petsc_ASM
+    elif schur_solver == 'two_phase_Qp':
+        linearSmoother=NavierStokes_TwoPhaseQp
+    elif schur_solver == 'two_phase_LSC':
+        linearSmoother=NavierStokes_TwoPhaseLSC
+    elif schur_solver == 'two_phase_PCD':
+        linearSmoother=NavierStokes_TwoPhasePCD
+    elif schur_solver == 'LSC':
+        linearSmoother=NavierStokes3D_LSC
+    elif schur_solver == 'pcd':
+        linearSmoother=NavierStokes3D_PCD
+    elif schur_solver == 'selfp_proteus':
+        linearSmoother = Schur_Sp
+    elif schur_solver == 'selfp_petsc':
+        linearSmoother = SimpleNavierStokes2D
+    elif schur_solver == 'petsc_LU':
+        linearSmoother=petsc_LU
+    else:
+        raise Exception, 'invalid solver type'
+    linearSolverConvergenceTest = 'r-true'
 
 if ct.useSuperlu:
     multilevelLinearSolver = LinearSolvers.LU

@@ -56,6 +56,14 @@ opts=Context.Options([
     ])
 
 # ----- CONTEXT ------ #
+from proteus.MeshAdaptPUMI  import MeshAdaptPUMI 
+hmin = opts.he
+hmax = 10.0*opts.he
+adaptMesh = True
+adaptMesh_nSteps = 5
+adaptMesh_numIter = 2
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropic",maType="isotropic")
+useModel=False
 
 # waves
 omega = 1.
@@ -129,29 +137,29 @@ for bc in tank.BC_list:
 column_gauge_locations = []
 point_gauge_locations = []
 
-if opts.point_gauge_output or opts.column_gauge_output:
-    gauge_y = waterLevel - 0.5 * depth
-    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
-    for gauge_x in np.linspace(0, tank_dim[0], int(number_of_gauges)):
-        point_gauge_locations.append((gauge_x, gauge_y, 0), )
-        column_gauge_locations.append(((gauge_x, 0., 0.),
-                                       (gauge_x, tank_dim[1], 0.)))
+# if opts.point_gauge_output or opts.column_gauge_output:
+#     gauge_y = waterLevel - 0.5 * depth
+#     number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
+#     for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
+#         point_gauge_locations.append((gauge_x, gauge_y, 0), )
+#         column_gauge_locations.append(((gauge_x, 0., 0.),
+#                                        (gauge_x, tank_dim[1], 0.)))
 
-if opts.point_gauge_output:
-    tank.attachPointGauges('twp',
-                           gauges=((('p',), point_gauge_locations),),
-                           fileName='pressure_gaugeArray.csv')
+# if opts.point_gauge_output:
+#     tank.attachPointGauges('twp',
+#                            gauges=((('p',), point_gauge_locations),),
+#                            fileName='pressure_gaugeArray.csv')
 
-if opts.column_gauge_output:
-    tank.attachLineIntegralGauges('vof',
-                                  gauges=((('vof',), column_gauge_locations),),
-                                  fileName='column_gauges.csv')
+# if opts.column_gauge_output:
+#     tank.attachLineIntegralGauges('vof',
+#                                   gauges=((('vof',), column_gauge_locations),),
+#                                   fileName='column_gauges.csv')
 
 # ----- ASSEMBLE DOMAIN ----- #
 
 domain.MeshOptions.use_gmsh = opts.use_gmsh
 domain.MeshOptions.genMesh = opts.gen_mesh
-domain.MeshOptions.he = opts.he
+domain.MeshOptions.he = hmax
 domain.use_gmsh = opts.use_gmsh
 st.assembleDomain(domain)
 
@@ -162,7 +170,7 @@ import MeshRefinement as mr
 tank.MeshOptions = mr.MeshOptions(tank)
 if opts.refinement:
     grading = opts.refinement_grading
-    he2 = opts.he
+    he2 = opts.hmax
     def mesh_grading(start, he, grading):
         return '{0}*{2}^(1+log((-1/{2}*(abs({1})-{0})+abs({1}))/{0})/log({2}))'.format(he, start, grading)
     he_max = opts.he_max
@@ -183,7 +191,7 @@ if opts.refinement:
         domain.MeshOptions.LcMax = he2 #coarse grid
     tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
 else:
-    domain.MeshOptions.LcMax = opts.he
+    domain.MeshOptions.LcMax = hmax
 mr._assembleRefinementOptions(domain)
 from proteus import Comm
 comm = Comm.get()

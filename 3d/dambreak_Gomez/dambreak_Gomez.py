@@ -75,9 +75,16 @@ weak_bc_penalty_constant = 100.0
 quasi2D=False
 if quasi2D:#make tank one element wide
     L = (L[0],he,L[2])
-
-#parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
-parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
+from proteus.MeshAdaptPUMI  import MeshAdaptPUMI 
+hmin = he
+hmax = 10.0*he
+adaptMesh = True
+adaptMesh_nSteps = 5
+adaptMesh_numIter = 2
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropic",maType="isotropic")
+useModel=False
+parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.element
+#parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 
 structured=False  

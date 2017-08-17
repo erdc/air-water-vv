@@ -7,6 +7,11 @@ ct = Context.get()
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
+adaptMesh = ct.adaptMesh
+adaptMesh_nSteps = ct.adaptMesh_nSteps
+adaptMesh_numIter = ct.adaptMesh_numIter
+MeshAdaptMesh=ct.MeshAdaptMesh
+useModel=ct.useModel
 
 #time stepping
 runCFL = ct.runCFL

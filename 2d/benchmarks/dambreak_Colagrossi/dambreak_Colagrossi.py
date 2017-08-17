@@ -15,6 +15,8 @@ from proteus.mprans.SpatialTools import Tank2D
 # predefined options
 opts=Context.Options([
     ("adaptMesh", False, "Enable dynamic mesh adaption"),
+    ("adaptType", 'isotropic', "Method of adaption [isotropic, isotropicProteus]"),
+    ("schur_solver", 'two_phase_PCD', "preconditioner type"),
     # water column 
     ("water_level", 0.6, "Height of water column in m"),
     ("water_width", 1.2, "Width of  water column in m"),
@@ -26,16 +28,16 @@ opts=Context.Options([
     ("gauge_output", True, "Produce gauge data"),
     ("gauge_location_p", (3.22, 0.12, 0), "Pressure gauge location in m"),
     # mesh refinement and timestep
-    ("refinement", 32 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
-    ("cfl", 0.33 ,"Target cfl"),
+    ("refinement", 17 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
+    ("cfl", 1.0 ,"Target cfl"),
     # run time options
     ("T", 0.09 ,"Simulation time in s"),
-    ("dt_fixed", 0.01, "Fixed time step in s"),
+    ("dt_fixed", 0.1, "Fixed time step in s"),
     ("dt_init", 0.001 ,"Maximum initial time step in s"),
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("structured", False, "Use a structured triangular mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
-    ("parallel", False,"Run in parallel"),
+    ("parallel", True,"Run in parallel"),
     ])
 
 
@@ -187,13 +189,14 @@ tank.BC['x-'].setFreeSlip()
 
 
 he = tank_dim[0] / float(4 * refinement - 1)
+
 from proteus.MeshAdaptPUMI  import MeshAdaptPUMI 
 hmin = he
 hmax = 10.0*he
 adaptMesh = opts.adaptMesh
 adaptMesh_nSteps = 5
 adaptMesh_numIter = 2
-MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropic",maType="isotropic")
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig=opts.adaptType,maType="isotropic")
 useModel=False
 
 if opts.adaptMesh:
@@ -215,9 +218,9 @@ ns_forceStrongDirichlet = False
 # ----- NUMERICAL PARAMETERS ----- #
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.25
+    ns_shockCapturingFactor = 0.75
     ns_lag_shockCapturing = True
-    ns_lag_subgridError = True
+    ns_lag_subgridError = False
     ls_shockCapturingFactor = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0

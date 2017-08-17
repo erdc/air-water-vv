@@ -2,6 +2,12 @@ from proteus import *
 from twp_navier_stokes_p import *
 from dambreak_Gomez import *
 
+#adaptMesh = ct.adaptMesh
+#adaptMesh_nSteps = ct.adaptMesh_nSteps
+#adaptMesh_numIter = ct.adaptMesh_numIter
+#MeshAdaptMesh=ct.MeshAdaptMesh
+#useModel=ct.useModel
+
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
     timeOrder=2
