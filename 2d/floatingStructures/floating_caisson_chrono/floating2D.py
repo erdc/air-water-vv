@@ -6,12 +6,11 @@ from proteus.mbd import ChRigidBody as crb
 from math import *
 import numpy as np
 
-
 opts=Context.Options([
     # predefined test cases
     ("water_level", 0.9, "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (1., 1.2,), "Dimensions of the tank"),
+    ("tank_dim", (1., 1.8,), "Dimensions of the tank"),
     ("tank_sponge", (2., 2.), "Length of relaxation zones (front/back, left/right)"),
     ("tank_BC", 'FreeSlip', "Tank boundary conditions: NoSlip or FreeSlip"),
     ("gauge_output", False, "Places Gauges in tank"),
@@ -41,7 +40,7 @@ opts=Context.Options([
     ("rotation_angle", 15., "Initial rotation angle (in degrees)"),
     ("chrono_dt", 0.00001, "time step of chrono"),
     # mesh refinement
-    ("refinement", True, "Gradual refinement"),
+    ("refinement", False, "Gradual refinement"),
     ("he", 0.04, "Set characteristic element size"),
     ("he_max", 10, "Set maximum characteristic element size"),
     ("he_caisson", 0.04, "Set maximum characteristic element size on caisson boundary"),
@@ -51,7 +50,7 @@ opts=Context.Options([
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
-    ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
+    ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", True, "True/False"),
     ("T", 10.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
@@ -233,11 +232,11 @@ if opts.caisson is True:
         caisson.regionFlags = np.array([1])
     else:
         caisson = st.Rectangle(domain, dim=opts.caisson_dim)
-    caisson.translate([caisson_coords[0], caisson_coords[1]])
 
     ang = rotation_angle
     caisson.setHoles([[0., 0.]])
     caisson.holes_ind = np.array([0])
+    caisson.translate([caisson_coords[0], caisson_coords[1]])
     # system = crb.System(np.array([0., -9.81, 0.]))
     # rotation = np.array([1, 0., 0., 0.])
     rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
