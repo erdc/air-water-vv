@@ -28,7 +28,7 @@ opts=Context.Options([
     # waves
     ("waves", True, "Generate waves (True/False)"),
     ("wave_period", 1., "Period of the waves"),
-    ("wave_height", 0.04, "Height of the waves"),
+    ("wave_height", 0.08, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     # mesh refinement
     ("he", 0.2, "Set characteristic element size"),
@@ -106,10 +106,10 @@ else:
     tank_sponge = [0.,0., 0., 0.]
 
 
-#Palm = True
-#if Palm is True:
-#    tank_dim = (6., 5., water_level*2.)
-#    tank_sponge = (1*wavelength, 2*wavelength, 0., 0.)
+Palm = True
+if Palm is True:
+    tank_dim = (6., 5., water_level*2.)
+    tank_sponge = (1*wavelength, 2*wavelength, 2*wavelength, 2*wavelength)
     
 
 
@@ -133,7 +133,22 @@ if opts.cylinder is True:
     cylinder.setHoles([cylinder_coords])
     cylinder.holes_ind = np.array([0])
     cylinder.setBarycenter(barycenter)
-    tank.setChildShape(cylinder, 0)
+
+    outer_sphere = True
+    if outer_sphere is True:
+        sphere = st.Sphere(domain=domain, radius=cylinder_radius*1.5, nSectors=3)
+        sphere.setChildShape(cylinder, 0)
+        sphere.translate(cylinder_coords)
+        tank.setChildShape(sphere, 0)
+        sphere.BC['sphere'].setNonMaterial()
+        sphere.BC['sphere'].hx_dirichlet = cylinder.BC['cylinder'].hx_dirichlet
+        sphere.BC['sphere'].hy_dirichlet = cylinder.BC['cylinder'].hy_dirichlet
+        sphere.BC['sphere'].hz_dirichlet = cylinder.BC['cylinder'].hz_dirichlet
+        sphere.BC['sphere'].u_stress = cylinder.BC['cylinder'].u_stress
+        sphere.BC['sphere'].v_stress = cylinder.BC['cylinder'].v_stress
+        sphere.BC['sphere'].w_stress = cylinder.BC['cylinder'].w_stress
+    else:
+        tank.setChildShape(cylinder, 0)
 
 
 
@@ -219,6 +234,7 @@ if opts.moorings is True:
 
     body2 = crb.ProtChBody(system) # for anchor
     body2.ChBody.SetBodyFixed(True)
+    body2.barycenter0 = np.zeros(3)
 
     for m in moorings:
         m.setDragCoefficients(tangential=0.5, normal=2.5, segment_nb=0)
@@ -242,7 +258,10 @@ if opts.moorings is True:
 
     Efloor = 2e4
     material = pych.ChMaterialSurfaceSMC()
-    material.SetYoungModulus(Efloor)
+    #material.SetYoungModulus(Efloor)
+    material.SetKn(300e6)  # normal stiffness
+    material.SetGn(1.)  # normal damping coefficient
+
     material.SetFriction(0.3)
     material.SetRestitution(0.2)
     material.SetAdhesion(0)
@@ -274,6 +293,7 @@ tank.BC['x-'].setFreeSlip()
 tank.BC['x+'].setFreeSlip()
 tank.BC['y-'].setFreeSlip()
 tank.BC['y+'].setFreeSlip()
+tank.BC['wall'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 for key, bc in tank.BC.items():
     # fix the nodes on the wall of tank
@@ -311,6 +331,43 @@ if opts.cylinder is True:
 # moving mesh BC were created automatically when
 # making a chrono rigid body for the cylinder
 
+
+
+lines_dict = {}
+segments = []
+for facet in sphere.facets:
+    f = facet[0]
+    for i, v in enumerate(f):
+        v2 = f[i-1]
+        v_list = lines_dict.get(v)
+        if v_list is not None:
+            if v2 not in v_list:
+                segments += [[v, v2]]
+                if v_list is None:
+                    lines_dict[v] = []
+                lines_dict[v] += [v2]
+                v2_list = lines_dict.get(v2)
+                if v2_list is None:
+                    lines_dict[v2] = []
+                lines_dict[v2] += [v]
+        else:
+            segments += [[v, v2]]
+            if v_list is None:
+                lines_dict[v] = []
+            lines_dict[v] += [v2]
+            v2_list = lines_dict.get(v2)
+            if v2_list is None:
+                lines_dict[v2] = []
+            lines_dict[v2] += [v]
+sphere.segments = np.array(segments)
+sphere.segmentFlags = np.array([1 for i in sphere.segments])
+
+
+
+
+
+
+
 domain.MeshOptions.he = opts.he
 domain.MeshOptions.setTriangleOptions()
 st.assembleDomain(domain)  # must be called after defining shapes
@@ -325,13 +382,12 @@ domain.writePoly('mesh')
 
 
 
-tank_sponge = [0,0]
 
 
 
 
 grading = np.cbrt(opts.refinement_grading*12/np.sqrt(2))/np.cbrt(1.*12/np.sqrt(2))  # convert change of volume to change of element size
-geofile = 'mesh'+str(int(tank_dim[0]*1000))+str(int(tank_sponge[0]*1000))+str(int(he*1000))
+geofile = 'mesh'+str(int(tank_dim[0]*1000))+str(int(tank_sponge[0]*1000))+str(int(he*1000))#+str(int(opts.refinement_grading*10))
 if opts.refinement is True:
     import py2gmsh
     from MeshRefinement import geometry_to_gmsh
@@ -352,23 +408,80 @@ if opts.refinement is True:
     box1.VIn = he
     box1.VOut = he_max
     box1.XMin = -tank_sponge[0]
-    box1.XMax = tank_dim[0]+tank_sponge[1]
+    box1.XMax = tank_dim[0]
     box1.YMin = 0
     box1.YMax = tank_dim[1]
     box1.ZMin = water_level-box
     box1.ZMax = water_level+box
     field_list += [box1]
 
+    p0t = py2gmsh.Entity.Point([-tank_sponge[0], 0, water_level+box], mesh=mesh)
+    p1t = py2gmsh.Entity.Point([-tank_sponge[0], tank_dim[1], water_level+box], mesh=mesh)
+    p2t = py2gmsh.Entity.Point([tank_dim[0], tank_dim[1], water_level+box], mesh=mesh)
+    p3t = py2gmsh.Entity.Point([tank_dim[0], 0, water_level+box], mesh=mesh)
+    p0b = py2gmsh.Entity.Point([-tank_sponge[0], 0, water_level-box], mesh=mesh)
+    p1b = py2gmsh.Entity.Point([-tank_sponge[0], tank_dim[1], water_level-box], mesh=mesh)
+    p2b = py2gmsh.Entity.Point([tank_dim[0], tank_dim[1], water_level-box], mesh=mesh)
+    p3b = py2gmsh.Entity.Point([tank_dim[0], 0, water_level-box], mesh=mesh)
+    # top lines
+    box_lines = []
+    l0t = py2gmsh.Entity.Line([p0t, p1t], mesh=mesh)
+    box_lines += [l0t]
+    l1t = py2gmsh.Entity.Line([p1t, p2t], mesh=mesh)
+    box_lines += [l1t]
+    l2t = py2gmsh.Entity.Line([p2t, p3t], mesh=mesh)
+    box_lines += [l2t]
+    l3t = py2gmsh.Entity.Line([p3t, p0t], mesh=mesh)
+    box_lines += [l3t]
+    # bottom lines
+    l0b = py2gmsh.Entity.Line([p0b, p1b], mesh=mesh)
+    box_lines += [l0b]
+    l1b = py2gmsh.Entity.Line([p1b, p2b], mesh=mesh)
+    box_lines += [l1b]
+    l2b = py2gmsh.Entity.Line([p2b, p3b], mesh=mesh)
+    box_lines += [l2b]
+    l3b = py2gmsh.Entity.Line([p3b, p0b], mesh=mesh)
+    box_lines += [l3b]
+    # side lines
+    l0s = py2gmsh.Entity.Line([p0t, p0b], mesh=mesh)
+    box_lines += [l0s]
+    l1s = py2gmsh.Entity.Line([p1t, p1b], mesh=mesh)
+    box_lines += [l1s]
+    l2s = py2gmsh.Entity.Line([p2t, p2b], mesh=mesh)
+    box_lines += [l2s]
+    l3s = py2gmsh.Entity.Line([p3t, p3b], mesh=mesh)
+    box_lines += [l3s]
+    # lineloops
+    ll0t = py2gmsh.Entity.LineLoop([l0t, l1t, l2t, l3t], mesh=mesh)
+    ll0b = py2gmsh.Entity.LineLoop([l0b, l1b, l2b, l3b], mesh=mesh)
+    ll0s = py2gmsh.Entity.LineLoop([l0s, l0b, l1s, l0t], mesh=mesh)
+    ll1s = py2gmsh.Entity.LineLoop([l1s, l1b, l2s, l1t], mesh=mesh)
+    ll2s = py2gmsh.Entity.LineLoop([l2s, l2b, l3s, l2t], mesh=mesh)
+    ll3s = py2gmsh.Entity.LineLoop([l3s, l3b, l0s, l3t], mesh=mesh)
+
+    blbox = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+    blbox.EdgesList = box_lines
+    blbox.ratio = grading
+    blbox.hwall_n = he
+    field_list += [blbox]
+
     def mesh_grading(start, he, grading):
         return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
 
-    math1 = py2gmsh.Fields.MathEval(mesh=mesh)
-    math1.F = mesh_grading(start='sqrt((z-{zmax})^2)'.format(zmax=water_level+box), he=he, grading=grading)
-    field_list += [math1]
+    bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
 
-    math2 = py2gmsh.Fields.MathEval(mesh=mesh)
-    math2.F = mesh_grading(start='sqrt((z-{zmin})^2)'.format(zmin=water_level+box), he=he, grading=grading)
-    field_list += [math2]
+    bl2.EdgesList = mesh.getLinesFromIndex([i+sphere.start_segment+1 for i in range(len(sphere.segments))])
+    bl2.ratio = grading
+    bl2.hwall_n = opts.he
+    field_list += [bl2]
+
+    me1 = py2gmsh.Fields.MathEval(mesh=mesh)
+    me1.F = str(he)
+
+    re1 = py2gmsh.Fields.Restrict(mesh=mesh)
+    re1.RegionsList = mesh.getVolumesFromIndex([sphere.start_volume+1])
+    re1.IField = [me1.nb]
+    field_list += [re1]
 
     # background field
     fmin = py2gmsh.Fields.Min(mesh=mesh)
@@ -555,14 +668,14 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
-vof_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
-ls_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
-mcorr_nl_atol_res = 1e-6 #max(1.0e-12,0.1*tolfac*he**2)
-rd_nl_atol_res = 1e-4 #max(1.0e-12,tolfac*he)
-kappa_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
-dissipation_nl_atol_res = 1e-6 #max(1.0e-12,tolfac*he**2)
-mesh_nl_atol_res = 1e-6 #max(1.0e-12,opts.mesh_tol*he**2)
+ns_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
+vof_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
+ls_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
+mcorr_nl_atol_res = 1e-6 #max(1.0e-6,0.1*tolfac*he**2)
+rd_nl_atol_res = 1e-4 #max(1.0e-6,tolfac*he)
+kappa_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
+dissipation_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
+mesh_nl_atol_res = 1e-6 #max(1.0e-6,opts.mesh_tol*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -581,7 +694,8 @@ def twpflowPressure_init(x, t):
 
 #isosurface = None
 from proteus.Isosurface import Isosurface
-isosurface = Isosurface(isosurfaces=(('phi', (0.,)),), domain=domain, format='h5', sampleRate=sampleRate)
+#isosurface = Isosurface(isosurfaces=(('phi', (0.,)),), domain=domain, format='h5', sampleRate=sampleRate)
+isosurface = None
 
 
 def load_simulation_globals():
