@@ -27,8 +27,8 @@ opts=Context.Options([
     # caisson
     ("caisson", True, "caisson"),
     ("caisson_dim", (0.5, 0.32), "Dimensions of the caisson"),
-    ("caisson_ycoord", 1.406, "Dimensions of the caisson"),
-    ("caisson_xcoord", 3.137, "Dimensions of the caisson"),
+    ("caisson_ycoord", None, "Dimensions of the caisson"),
+    ("caisson_xcoord", None, "Dimensions of the caisson"),
     ("caisson_width", 1., "Width of the caisson"),
     ("caisson_corner_r", 0.064, "radius of the corners of the caisson"),
     ("caisson_corner_side", 'bottom', "corners placement"),
@@ -40,6 +40,8 @@ opts=Context.Options([
     ("caisson_inertia", 4.05, "Inertia of the caisson"),
     ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
     ("chrono_dt", 0.00001, "time step of chrono"),
+    ("coupling_scheme", "CSS", "coupling scheme"),
+    ("timestepper", "Euler", "Chrono timestepper"),
     # mooring
     ("mooring", True, "add moorings"),
     ("mooring_type", 'prismatic', "type of moorings"),
@@ -49,14 +51,14 @@ opts=Context.Options([
     ("mooring_R", 19.8, "mooring (spring) damping"),
     ("mooring_restlength", 0., "mooring (spring) rest length"),
     # mesh refinement
-    ("refinement", False, "Gradual refinement"),
-    ("he", 0.01, "Set characteristic element size"),
+    ("refinement", True, "Gradual refinement"),
+    ("he", 0.02, "Set characteristic element size"),
     ("he_max", 10, "Set maximum characteristic element size"),
     ("he_caisson", 0.01, "Set maximum characteristic element size on caisson boundary"),
     ("he_max_water", 10, "Set maximum characteristic in water"),
     ("refinement_freesurface", 0.25,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_caisson", 0.75,"Set area of constant refinement (Box) around caisson (+/- value)"),
-    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
+    ("refinement_grading", 1.1, "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
@@ -82,6 +84,8 @@ wavelength=1.
 waterLevel = opts.water_level
 rotation_angle = np.radians(opts.rotation_angle)
 
+st_circle = True
+
 # waves
 if opts.waves is True:
     height = opts.wave_height
@@ -89,9 +93,9 @@ if opts.waves is True:
     direction = opts.wave_dir
     if opts.wave_type == 'Linear':
         period = opts.wave_period
-        BCoeffs = opts.Bcoeff
-        YCoeffs = opts.Ycoeff
-    if opts.wave_type == 'Fenton':
+        BCoeffs = np.zeros(3)
+        YCoeffs = np.zeros(3)
+    elif opts.wave_type == 'Fenton':
         import Fenton
         if opts.w:
             period = 2*np.pi/opts.w
@@ -116,15 +120,16 @@ if opts.waves is True:
                     logEvent("PERIOD: "+str(period))
                     logEvent("WAVELENGTH: "+str(wavelength))
         #getFFT.copyFiles()
-        wave = wt.MonochromaticWaves(period=period, waveHeight=height, mwl=mwl, depth=depth,
-                                    g=np.array([0., -9.81, 0.]), waveDir=direction,
-                                    wavelength=wavelength,
-                                    waveType=opts.wave_type,
-                                    Ycoeff=YCoeffs,
-                                    Bcoeff=BCoeffs,
-                                    Nf=len(BCoeffs),
-                                    fast=False)
-        wavelength = wave.wavelength
+    wave = wt.MonochromaticWaves(period=period, waveHeight=height, mwl=mwl, depth=depth,
+                                 g=np.array([0., -9.81, 0.]), waveDir=direction,
+                                 wavelength=wavelength,
+                                 waveType=opts.wave_type,
+                                 Ycoeff=YCoeffs,
+                                 Bcoeff=BCoeffs,
+                                 Nf=len(BCoeffs),
+                                 fast=False)
+    wavelength = wave.wavelength
+    print(wave.eta(np.zeros(3), 0.), wave.eta(np.zeros(3), period/2.))
 
 
 # tank options
@@ -134,6 +139,7 @@ if opts.waves is True:
 else:
     tank_dim = opts.tank_dim
     tank_sponge = opts.tank_sponge
+
 logEvent("TANK SPONGE: "+str(tank_sponge))
 logEvent("TANK DIM: "+str(tank_dim))
 
@@ -186,8 +192,9 @@ if opts.caisson is True:
             return vertices, segments
 
 
-        nb = int((np.pi*2*radius/4.)/(2*he_caisson))
         #nb = int(np.pi/2/(np.arcsin(he_caisson/2./radius)*2))
+        #nb = int((np.pi*2*radius/4.)/(he_caisson))
+        nb = 6
         vertices = []
         vertexFlags = []
         segments = []
@@ -241,18 +248,22 @@ if opts.caisson is True:
         caisson.facetFlags = np.array([1])
         caisson.regionFlags = np.array([1])
     else:
-        caisson = st.Rectangle(domain, dim=opts.caisson_dim)
-    caisson.translate([caisson_coords[0], caisson_coords[1]])
+        caisson = st.Rectangle(domain, dim=opts.caisson_dim, barycenter=barycenter)
 
     ang = rotation_angle
     caisson.setHoles([[0., 0.]])
     caisson.holes_ind = np.array([0])
+    caisson.translate([caisson_coords[0], caisson_coords[1]])
+    print(caisson.vertices)
+    print(caisson.barycenter)
     # system = crb.System(np.array([0., -9.81, 0.]))
     # rotation = np.array([1, 0., 0., 0.])
     rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
     caisson.rotate(ang, pivot=caisson.barycenter)
     system = crb.ProtChSystem(np.array([0., -9.81, 0.]))
     system.setTimeStep(opts.chrono_dt)
+    system.setTimestepperType(opts.timestepper)
+    system.setCouplingScheme(opts.coupling_scheme, prediction="backwardEuler")
     body = crb.ProtChBody(shape=caisson,
                         system=system)
     from proteus.mbd import pyChronoCore as pych
@@ -296,15 +307,24 @@ if opts.caisson is True:
         return new_x
 
     #body.setPrescribedMotion(prescribed_motion)
+    if st_circle:
+        radius=caisson_dim[0]/2.*1.5
+        circle_inner1 = st.Circle(domain, radius=radius, coords=caisson_coords, barycenter=barycenter, nPoints=20)
+        circle_inner1.setChildShape(caisson, 0)
+
+        radius=caisson_dim[0]*2.5
+        circle_inner2 = st.Circle(domain, radius=radius, coords=caisson_coords, barycenter=barycenter, nPoints=20)
+        circle_inner2.setChildShape(circle_inner1, 0)
+
 
 # ----- SHAPES ----- #
 tank = st.Tank2D(domain, tank_dim)
 
 # Generation / Absorption zones
 if opts.waves is True:
-    dragAlpha = 5*(2*np.pi/period)
+    dragAlpha = 5*(2*np.pi/period)/1.004e-6
 else:
-    dragAlpha = 0.5/1.004e-6
+    dragAlpha = 5.*2*np.pi/1.004e-6
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 left = right = False
 if tank_sponge[0]: left = True
@@ -322,8 +342,11 @@ else:
 if right:
     tank.setAbsorptionZones(x_p=right, dragAlpha=dragAlpha)
 if opts.caisson:
+    if st_circle:
     # let gmsh know that the caisson is IN the tank
-    tank.setChildShape(caisson, 0)
+        tank.setChildShape(circle_inner2, 0)
+    else:
+        tank.setChildShape(caisson, 0)
 
 
 # ----- BOUNDARY CONDITIONS ----- #
@@ -340,8 +363,34 @@ tank.BC['x-'].setFixedNodes()
 tank.BC['x+'].setFixedNodes()
 tank.BC['sponge'].setFixedNodes()
 tank.BC['y+'].setTank()  # sliding mesh nodes
-tank.BC['y-'].setTank()  #sliding mesh nodes
+tank.BC['y-'].setTank()  # sliding mesh nodes
 
+if opts.caisson and st_circle:
+    circle_inner1.BC['circle'].setNonMaterial()
+    circle_inner2.BC['circle'].setNonMaterial()
+    #circle.BC['circle'].setFixedNodes()
+    circle_inner1.BC['circle'].hx_dirichlet = caisson.BC_list[0].hx_dirichlet
+    circle_inner1.BC['circle'].hy_dirichlet = caisson.BC_list[0].hy_dirichlet
+    circle_inner1.BC['circle'].hz_dirichlet = caisson.BC_list[0].hz_dirichlet
+    circle_inner1.BC['circle'].u_stress = caisson.BC_list[0].u_stress
+    circle_inner1.BC['circle'].v_stress = caisson.BC_list[0].v_stress
+    circle_inner1.BC['circle'].w_stress = caisson.BC_list[0].w_stress
+
+    circle_inner2.BC['circle'].hx_dirichlet.uOfXT = lambda x, t: 0.
+    circle_inner2.BC['circle'].hy_dirichlet.uOfXT = lambda x, t: 0.
+    circle_inner2.BC['circle'].hz_dirichlet.uOfXT = lambda x, t: 0.
+    circle_inner2.BC['circle'].u_stress.uOfXT = None
+    circle_inner2.BC['circle'].v_stress.uOfXT = None
+    circle_inner2.BC['circle'].w_stress.uOfXT = None
+
+#circle.BC['circle'].setFixedNodes()
+#circle.BC['circle'].setFixedNodes()
+#circle.BC['circle'].hx_dirichlet.uOfXT = body.hx #caisson.BC['caisson'].hx_dirichlet.uOfXT
+#circle.BC['circle'].hy_dirichlet.uOfXT = body.hy #body.caisson.BC['caisson'].hy_dirichlet.uOfXT
+#circle.BC['circle'].hz_dirichlet.uOfXT = body.hz #caisson.BC['caisson'].hz_dirichlet.uOfXT
+#circle.BC['circle'].u_stress = caisson.BC['caisson'].u_stress
+#circle.BC['circle'].v_stress = caisson.BC['caisson'].v_stress
+#circle.BC['circle'].w_stress = caisson.BC['caisson'].w_stress
 
 # ----- GAUGES ----- #
 
@@ -405,7 +454,7 @@ domain.MeshOptions.he = opts.he
 domain.use_gmsh = opts.use_gmsh
 domain.MeshOptions.use_gmsh = opts.use_gmsh
 domain.MeshOptions.genMesh = opts.genMesh
-mesh_fileprefix ='meshgeo_'+str(wavelength)
+mesh_fileprefix = 'meshgeo_'+str(wavelength)+'_'+str(opts.he)+str(opts.he_caisson)+'_'+str(opts.refinement_grading)+str(st_circle)+str('2circles')
 mesh_fileprefix = mesh_fileprefix.replace(' ', '')
 mesh_fileprefix = mesh_fileprefix.replace('(', '')
 mesh_fileprefix = mesh_fileprefix.replace(')', '')
@@ -425,39 +474,37 @@ if opts.refinement is True:
     import py2gmsh
     from MeshRefinement import geometry_to_gmsh
     mesh = geometry_to_gmsh(domain)
-    grading = opts.refinement_grading
+    grading = np.sqrt(opts.refinement_grading*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3))
     he = opts.he
     he_max = opts.he_max
     he_max_water = opts.he_max_water
     ecH = 3.
+    field_list = []
     if opts.refinement_freesurface > 0:
         box = opts.refinement_freesurface
-    else:
-        box = ecH*he
-    field_list = []
 
-    # refinement free surface
-    box1 = py2gmsh.Fields.Box(mesh=mesh)
-    box1.VIn = he
-    box1.VOut = he_max
-    box1.XMin = -tank_sponge[0]
-    box1.XMax = tank_dim[0]+tank_sponge[1]
-    box1.YMin = waterLevel-box
-    box1.YMax = waterLevel+box
-    field_list += [box1]
+        # refinement free surface
+        box1 = py2gmsh.Fields.Box(mesh=mesh)
+        box1.VIn = he
+        box1.VOut = he_max
+        box1.XMin = -tank_sponge[0]
+        box1.XMax = tank_dim[0]+tank_sponge[1]
+        box1.YMin = waterLevel-box
+        box1.YMax = waterLevel+box
+        field_list += [box1]
 
-    p0 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel+box, 0.], mesh=mesh)
-    p1 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel+box, 0.], mesh=mesh)
-    p2 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel-box, 0.], mesh=mesh)
-    p3 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel-box, 0.], mesh=mesh)
-    l1 = py2gmsh.Entity.Line([p0, p1], mesh=mesh)
-    l2 = py2gmsh.Entity.Line([p2, p3], mesh=mesh)
+        p0 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel+box, 0.], mesh=mesh)
+        p1 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel+box, 0.], mesh=mesh)
+        p2 = py2gmsh.Entity.Point([-tank_sponge[0], waterLevel-box, 0.], mesh=mesh)
+        p3 = py2gmsh.Entity.Point([tank_dim[0]+tank_sponge[1], waterLevel-box, 0.], mesh=mesh)
+        l1 = py2gmsh.Entity.Line([p0, p1], mesh=mesh)
+        l2 = py2gmsh.Entity.Line([p2, p3], mesh=mesh)
 
-    bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
-    bl2.hwall_n = he
-    bl2.ratio = grading
-    bl2.EdgesList = [l1, l2]
-    field_list += [bl2]
+        bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+        bl2.hwall_n = he
+        bl2.ratio = grading
+        bl2.EdgesList = [l1, l2]
+        field_list += [bl2]
 
     # max element size in water phase
     box2 = py2gmsh.Fields.Box(mesh=mesh)
@@ -478,32 +525,42 @@ if opts.refinement is True:
         mesh.addField(bl1)
         field_list += [bl1]
 
-    if opts.refinement_caisson:
-        # create circle (non-physical) around caisson
-        refinement_caisson = opts.refinement_caisson
-        p0 = py2gmsh.Entity.Point([caisson_coords[0], caisson_coords[1], 0.], mesh=mesh)
-        p1 = py2gmsh.Entity.Point([caisson_coords[0]-refinement_caisson, caisson_coords[1], 0.], mesh=mesh)
-        p2 = py2gmsh.Entity.Point([caisson_coords[0]+refinement_caisson, caisson_coords[1], 0.], mesh=mesh)
-        p3 = py2gmsh.Entity.Point([caisson_coords[0]-refinement_caisson+0.00001, caisson_coords[1], 0.], mesh=mesh)
-        c1 = py2gmsh.Entity.Circle(p1, p0, p2, nb=100, mesh=mesh)
-        c2 = py2gmsh.Entity.Circle(p2, p0, p3, nb=101, mesh=mesh)
+        if not st_circle:
+            # boundary layer on circle around caisson
+            bl3 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+            bl3.hwall_n = he
+            bl3.ratio = grading
+            bl3.EdgesList = mesh.getLinesFromIndex([i+1 for i in range(len(caisson.segments)+caisson.start_segment)])
+            field_list += [bl3]
+        else:
+            bl1 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+            bl1.hwall_n = he
+            bl1.ratio = grading
+            bl1.EdgesList = mesh.getLinesFromIndex([i+1 for i in range(len(circle_inner2.segments)+circle_inner2.start_segment)])
+            field_list += [bl1]
 
-        # refined circle around caisson
-        b1 = py2gmsh.Fields.Ball(mesh=mesh)
-        b1.VIn = he
-        b1.VOut = he_max
-        b1.Radius = refinement_caisson
-        b1.XCenter = caisson_coords[0]
-        b1.YCenter = caisson_coords[1]
-        b1.ZCenter = 0.
-        field_list += [b1]
+            bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+            bl2.hwall_n = he_caisson
+            bl2.ratio = grading
+            bl2.EdgesList = mesh.getLinesFromIndex([i+1 for i in range(len(circle_inner1.segments)+circle_inner1.start_segment)])
+            field_list += [bl2]
 
-        # boundary layer on circle around caisson
-        bl3 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
-        bl3.hwall_n = he
-        bl3.ratio = grading
-        bl3.EdgesList = [c1, c2]
-        field_list += [bl3]
+            me1 = py2gmsh.Fields.MathEval(mesh=mesh)
+            me1.F = str(he_caisson)
+
+            me2 = py2gmsh.Fields.MathEval(mesh=mesh)
+            me2.F = str(he)
+
+            re1 = py2gmsh.Fields.Restrict(mesh=mesh)
+            re1.FacesList = mesh.getSurfacesFromIndex([circle_inner1.start_facet+1])
+            re1.IField = [me1.nb]
+            field_list += [re1]
+            
+            re2 = py2gmsh.Fields.Restrict(mesh=mesh)
+            re2.FacesList = mesh.getSurfacesFromIndex([circle_inner2.start_facet+1])
+            re1.IField = [me2.nb]
+            field_list += [re2]
+
 
     # background field
     fmin = py2gmsh.Fields.Min(mesh=mesh)

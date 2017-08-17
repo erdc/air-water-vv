@@ -9,8 +9,8 @@ def geometry_to_gmsh(domain):
     mesh = Mesh()
 
     if self.boundaryTags:
-        for i, tag in enumerate(self.boundaryTags):
-            phys = PhysicalGroup(nb=i, name=tag)
+        for tag, flag in self.boundaryTags.items():
+            phys = PhysicalGroup(nb=flag, name=tag)
             mesh.addGroup(phys)
 
     for i, v in enumerate(self.vertices):
@@ -61,15 +61,14 @@ def geometry_to_gmsh(domain):
 
     for i, V in enumerate(self.volumes):
         surface_loops = []
-        if i not in self.holes_ind:
-            for j, sV in enumerate(V):
-                sl = SurfaceLoop((np.array(sV)+1).tolist())
-                mesh.addEntity(sl)
-                surface_loops += [sl.nb]
-            vol = Volume(surface_loops)
-            mesh.addEntity(vol)
-            g = mesh.groups.get(self.regionFlags[i])
-            if g:
-                g.addEntity(vol)
+        for j, sV in enumerate(V):
+            sl = SurfaceLoop((np.array(sV)+1).tolist())
+            mesh.addEntity(sl)
+            surface_loops += [sl.nb]
+        vol = Volume(surface_loops)
+        mesh.addEntity(vol)
+        g = mesh.groups.get(self.regionFlags[i])
+        if g:
+            g.addEntity(vol)
 
     return mesh

@@ -54,7 +54,7 @@ else:  # use CFL
 needEBQ_GLOBAL = False
 needEBQ = False
 
-modelSpinUpList = [0]  # for initial conditions of movemesh
+#modelSpinUpList = [0]  # for initial conditions of movemesh
 
 if ct.opts.nsave == 0:
     if ct.dt_fixed > 0:
