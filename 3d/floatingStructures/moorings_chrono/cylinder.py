@@ -249,7 +249,7 @@ if opts.moorings is True:
 
         if opts.cylinder is True:
             m.attachBackNodeToBody(body)
-            m.attachFrontNodeToBody(body)
+            m.attachFrontNodeToBody(body2)
 
     # FLOOR
     pos1 = m1.getNodesPosition()
