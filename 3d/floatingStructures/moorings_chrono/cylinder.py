@@ -367,28 +367,20 @@ sphere.segmentFlags = np.array([1 for i in sphere.segments])
 
 
 
+he = opts.he
 
-domain.MeshOptions.he = opts.he
+mesh_fileprefix = 'mesh'+str(int(tank_dim[0]*1000))+str(int(tank_sponge[0]*1000))+str(int(he*1000))#+str(int(opts.refinement_grading*10))
+domain.MeshOptions.he = he
 domain.MeshOptions.setTriangleOptions()
+domain.use_gmsh = opts.use_gmsh
+domain.MeshOptions.genMesh = opts.genMesh
+domain.MeshOptions.use_gmsh = opts.use_gmsh
+domain.MeshOptions.setOutputFiles(name=mesh_fileprefix)
+
 st.assembleDomain(domain)  # must be called after defining shapes
 
-he = opts.he
-domain.writePoly('mesh')
-
-
-
-
-
-
-
-
-
-
-
-
-grading = np.cbrt(opts.refinement_grading*12/np.sqrt(2))/np.cbrt(1.*12/np.sqrt(2))  # convert change of volume to change of element size
-geofile = 'mesh'+str(int(tank_dim[0]*1000))+str(int(tank_sponge[0]*1000))+str(int(he*1000))#+str(int(opts.refinement_grading*10))
-if opts.refinement is True:
+if opts.use_gmsh and opts.refinement is True:
+    grading = np.cbrt(opts.refinement_grading*12/np.sqrt(2))/np.cbrt(1.*12/np.sqrt(2))  # convert change of volume to change of element size
     import py2gmsh
     from MeshRefinement import geometry_to_gmsh
     mesh = geometry_to_gmsh(domain)
@@ -491,12 +483,8 @@ if opts.refinement is True:
     # max element size
     mesh.Options.Mesh.CharacteristicLengthMax = he_max
 
-    mesh.writeGeo(geofile+'.geo')
+    mesh.writeGeo(mesh_fileprefix+'.geo')
 
-domain.use_gmsh = opts.use_gmsh
-domain.MeshOptions.genMesh = opts.genMesh
-domain.geofile = geofile
-domain.MeshOptions.use_gmsh = opts.use_gmsh
 
 
 
