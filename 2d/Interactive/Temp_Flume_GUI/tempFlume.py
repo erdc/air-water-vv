@@ -23,7 +23,7 @@ opts = Context.Options([
     ("water_level", 0.5, "Height of (mean) free surface above bottom"),
      # caisson
     ("caisson", True, "caisson"),
-    ("sphere", True, "Enable Test Sphere"),
+    ("sphere", False, "Enable Test Sphere"),
     ("sphereRadius", 0.1, "sphere radius"),
     ("caisson_scale", 21, "Caisson scale ratio 1:scale"),
     ("caisson_mass", 6500, "Caisson original mass"),

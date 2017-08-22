@@ -1,7 +1,7 @@
 from proteus.default_p import *
 from proteus.mprans import Dissipation
-#from proteus import Context
-import Context
+from proteus import Context
+
 ct = Context.get()
 domain = ct.domain
 nd = domain.nd

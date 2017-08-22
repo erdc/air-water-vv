@@ -1,7 +1,7 @@
 from proteus.default_p import *
-#from proteus import Context
+from proteus import Context
 from proteus.mprans import MCorr
-import Context
+
 ct = Context.get()
 domain = ct.domain
 nd = domain.nd

@@ -39,11 +39,11 @@ nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	    basis=C0_AffineLinearOnCubeWithNodalBasis
+        basis=C0_AffineLinearOnCubeWithNodalBasis
         elementQuadrature = CubeGaussQuadrature(nd,2)
         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,2)
     else:
-    	basis=C0_AffineLinearOnSimplexWithNodalBasis
+        basis=C0_AffineLinearOnSimplexWithNodalBasis
         elementQuadrature = SimplexGaussQuadrature(nd,3)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
 elif spaceOrder == 2:

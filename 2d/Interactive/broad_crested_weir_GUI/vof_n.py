@@ -1,6 +1,6 @@
 from proteus.default_n import *
 from proteus import (LinearAlgebraTools,
-                     #Context
+                     Context,
                      LinearSolvers,
                      NonlinearSolvers,
                      StepControl,
@@ -8,7 +8,7 @@ from proteus import (LinearAlgebraTools,
                      )
 from proteus.mprans import VOF
 import vof_p as physics
-import Context
+
 #from vof_p import *
 
 ct = Context.get()

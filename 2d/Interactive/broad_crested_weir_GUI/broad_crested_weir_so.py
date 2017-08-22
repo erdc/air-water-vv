@@ -3,8 +3,8 @@ Split operator module for two-phase flow
 """
 import os
 from proteus.default_so import *
-#from proteus import Context
-import Context
+from proteus import Context
+
 
 # Create context from main module
 name_so = os.path.basename(__file__)
@@ -39,20 +39,23 @@ if ct.useRANS > 0:
                    "dissipation_n"))
 name = "broad_crested_weir_p" 
 
-if ct.timeDiscretization == 'flcbdf':
-    systemStepControllerType = Sequential_MinFLCBDFModelStep
+if ct.dt_fixed:
+#    systemStepControllerType = Sequential_FixedStep
     systemStepControllerType = Sequential_MinAdaptiveModelStep
-else:
+    dt_system_fixed = ct.dt_fixed
+    stepExactSystem=False
+else:  # use CFL
     systemStepControllerType = Sequential_MinAdaptiveModelStep
+    stepExactSystem=False
 
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0,ct.dt_init]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
+tnList = [0.0]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
 
 #Disabled to allow GUI to create images without restarting simulation
-#info = open("TimeList.txt","w")
+info = open("TimeList.txt","w")
 
-#for time in tnList:
-#    info.write(str(time)+"\n")
-#info.close()
+for time in tnList:
+   info.write(str(time)+"\n")
+info.close()

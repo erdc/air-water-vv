@@ -4,11 +4,11 @@ from proteus import (StepControl,
                      NonlinearSolvers,
                      LinearSolvers,
                      LinearAlgebraTools,
-                     #Context
+                     Context
                     )
 import kappa_p as physics
 from proteus.mprans import Kappa
-import Context
+
 ct = Context.get()
 
 runCFL = ct.runCFL

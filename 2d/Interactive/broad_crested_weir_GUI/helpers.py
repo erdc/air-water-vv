@@ -3,7 +3,7 @@ def plot_domain():
     import matplotlib.tri as mtri
     from matplotlib import pyplot as  plt
     import numpy as np
-    import Context 
+    from proteus import Context
     f.clear()
     ct=Context.get()
     domain=ct.domain

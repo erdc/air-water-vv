@@ -1,5 +1,5 @@
 from proteus.default_n import *
-from proteus import (#Context,
+from proteus import (Context,
                      LinearAlgebraTools,
                      LinearSolvers,
                      NonlinearSolvers,
@@ -8,7 +8,7 @@ from proteus import (#Context,
                      )
 import dissipation_p as physics
 from proteus.mprans import Dissipation
-import Context
+
 ct = Context.get()
 
 runCFL = ct.runCFL

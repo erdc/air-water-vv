@@ -4,19 +4,20 @@ A Broad Crested Weir
 import numpy as np
 from math import sqrt
 import proteus.MeshTools
-from proteus import (Domain,
+from proteus import (Context,
+                     Domain,
                      FemTools as ft,
                      MeshTools as mt,
                      WaveTools as wt)
 from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
 from proteus.ctransportCoefficients import smoothedHeaviside
-import Context
+
 
 opts = Context.Options([
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
-    ("air_vent", True, "Include an air vent in the obstacle."),
+    ("air_vent", False, "Include an air vent in the obstacle."),
     # air vent position
     ("airvent_y1",0.25,"Vertical distance from bottom to the air ventilation boundary patch"),
     ("airvent_dim",0.05,"Dimension of the air boundary patch"),
@@ -30,7 +31,7 @@ opts = Context.Options([
     ("outflow_velocity", 0.0, "Initial wave or steady water outflow velocity"),
     # tank
     ("tank_dim", (2.5, 1.0), "Dimensions (x,y) of the tank"),
-    ("absorption", False, "Use generation/absorption zones"),
+    ("absorption", True, "Use generation/absorption zones"),
     ("tank_sponge", (0.5,0.5), "Length of (generation, absorption) zones, if any"),
     ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle."),
     ("obstacle_x_start", 1.0, "x coordinate of the start of the obstacle"),
@@ -48,7 +49,7 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 2, "Simulation time"),
+    ("T", 5, "Simulation time"),
     ("dt_fixed", 0.025, "Fixed time step"),
     ("dt_init", 0.0001, "Minimum initial time step (otherwise dt_fixed/10)"),
     # run details
@@ -255,8 +256,9 @@ def Update_Model():
 
     if opts.absorption:
         dragAlpha = 5.*omega/nu_0
+        #tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+        #tank.setAbsorptionZones(x_n=True, dragAlpha = dragAlpha)
         tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-        tank.setAbsorptionZones(x_n=True, dragAlpha = dragAlpha)
         tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
     
     # ------ he -------------#
@@ -318,13 +320,15 @@ def Update_Model():
     tank.BC['y-'].setFreeSlip()
 
     # Outflow
-    tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
-                                                        rhoUp=rho_1,
-                                                        rhoDown=rho_0,
-                                                        g=g,
-                                                        refLevel=tank_dim[1],
-                                                        smoothing=1.5*he,
-                                                        )
+    tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel = 0.0,
+                                                        rhoUp = rho_1,
+                                                        rhoDown = rho_0,
+                                                        g = g,
+                                                        refLevel = tank_dim[1],
+                                                        smoothing = 1.5 * he,
+                                                        U = [0.0, 0., 0.],
+                                                        Uwind = [0.0, 0.0] )
+
 
 
     if opts.absorption:
