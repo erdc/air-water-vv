@@ -10,8 +10,8 @@ from proteus import SpatialTools as st
 import numpy as np
 
 def plot_domain(domain, elev=0, azim=0, flags=None):
-    bc = domain.shape_list[0].BC_class
-    st._assembleGeometry(domain, bc)
+    # bc = domain.shape_list[0].BC_class
+    # st._assembleGeometry(domain, bc)
     if domain.nd == 2:
         lines = []
         cmap = pylab.get_cmap("hsv")
