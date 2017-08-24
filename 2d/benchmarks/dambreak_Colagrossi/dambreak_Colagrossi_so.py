@@ -47,9 +47,12 @@ if ct.timeDiscretization == 'flcbdf':
     systemStepControllerType = Sequential_MinFLCBDFModelStep
     systemStepControllerType = Sequential_MinAdaptiveModelStep
 else:
+#    systemStepControllerType = Sequential_FixedStep
+#    dt_system_fixed = ct.opts.dt_fixed
     systemStepControllerType = Sequential_MinAdaptiveModelStep
+
 
 needEBQ_GLOBAL = False
 needEBQ = False
 #archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
-tnList=[0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
+tnList=[0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_out for i in range(1,ct.nDTout+1)]

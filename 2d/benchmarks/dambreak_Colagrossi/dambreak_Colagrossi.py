@@ -28,11 +28,12 @@ opts=Context.Options([
     ("gauge_output", True, "Produce gauge data"),
     ("gauge_location_p", (3.22, 0.12, 0), "Pressure gauge location in m"),
     # mesh refinement and timestep
-    ("refinement", 17 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
-    ("cfl", 1.0 ,"Target cfl"),
+    ("refinement", 10 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
+    ("cfl", 0.33 ,"Target cfl"),
     # run time options
     ("T", 0.09 ,"Simulation time in s"),
-    ("dt_fixed", 0.1, "Fixed time step in s"),
+    ("dt_fixed", 0.01, "Fixed time step in s"),
+    ("dt_out", 0.05, "Fixed time step in s"),
     ("dt_init", 0.001 ,"Maximum initial time step in s"),
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("structured", False, "Use a structured triangular mesh"),
@@ -74,7 +75,7 @@ structured = opts.structured
 useRBLES = 0.0
 useMetrics = 1.0
 applyCorrection = True
-useVF = 1.0
+useVF = 0.0
 useOnlyVF = False
 useRANS = 0  # 0 -- None
              # 1 -- K-Epsilon
@@ -139,10 +140,10 @@ g = opts.g
 # ----- TIME STEPPING & VELOCITY----- #
 
 T = opts.T
-dt_fixed = opts.dt_fixed
-dt_init = min(0.1 * dt_fixed, opts.dt_init)
+dt_out = opts.dt_out
+dt_init = min(0.1 * dt_out, opts.dt_init)
 runCFL = opts.cfl
-nDTout = int(round(T / dt_fixed))
+nDTout = int(round(T / dt_out))
 
 # ----- DOMAIN ----- #
 
@@ -179,7 +180,8 @@ if opts.gauge_output and not opts.adaptMesh:
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
-tank.BC['y+'].setAtmosphere()
+#tank.BC['y+'].setAtmosphere()
+tank.BC['y+'].setFreeSlip()
 tank.BC['y-'].setFreeSlip()
 tank.BC['x+'].setFreeSlip()
 tank.BC['x-'].setFreeSlip()
@@ -218,9 +220,9 @@ ns_forceStrongDirichlet = False
 # ----- NUMERICAL PARAMETERS ----- #
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.75
+    ns_shockCapturingFactor = 0.5
     ns_lag_shockCapturing = True
-    ns_lag_subgridError = False
+    ns_lag_subgridError = True
     ls_shockCapturingFactor = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
@@ -229,12 +231,12 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
-    rd_shockCapturingFactor = 0.25
+    rd_shockCapturingFactor = 0.5
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH \
                     = epsFact_consrv_dirac = epsFact_density \
-                    = 1.5
+                    = 3.0
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
     redist_Newton = True
@@ -253,11 +255,11 @@ else:
     ls_shockCapturingFactor = 0.9
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.9
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
+    vof_sc_beta = 1.5
     rd_shockCapturingFactor = 0.9
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
@@ -266,7 +268,7 @@ else:
         = 1.5
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 1.0
-    redist_Newton = False
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.9
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
