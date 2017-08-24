@@ -19,9 +19,9 @@ opts=Context.Options([
     # ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("topTank", (1.0,1.0), "Top Rectangle of the tank"),
     ("heightTank", 1.0, "Height of the tank"),
-    ("baseTank", (1.0,1.0), "Bottom Rectangle of the tank"),
-    ("culvertDim",(0.2,0.25,0.5),"Dimensions of the culvert"),
-    ("water_surface_height",0.5,"Height of free surface above bottom"),
+    ("baseTank", (0.5,0.5), "Bottom Rectangle of the tank"),
+    ("culvertDim",(0.2,0.25,0.3),"Dimensions of the culvert"),
+    ("water_surface_height",0.3,"Height of free surface above bottom"),
     ("speed",0.0,"Speed of current if non-zero"),
     ("bar_height",0.5,"Initial height of bar center above bottom"),
     ("bar_rotation",(0.01,0,0),"Initial rotation about x,y,z axes"),
@@ -79,20 +79,50 @@ hTank=opts.heightTank
 
 L=(1.0,1.0,1.0)   # Temporal Fix, needs to be eliminated and all dependents changed.
 
-origin = (0.5,0.5,0.0)
+oD = (0.5,0.5,0.0)          #Origin of the Domain
 
+cDim = opts.culvertDim
+ct_inter=0.5*(cDim[2]/hTank)*(tTdim[1]-bTdim[1])
 
 #tank
 vertices=[#Bottom
-        [origin[0]-bTdim[0]/2,origin[1]-bTdim[1]/2,origin[2]],          #0, (0,0,0)
-        [origin[0]+bTdim[0]/2,origin[1]-bTdim[1]/2,origin[2]],          #1, (1,0,0)
-        [origin[0]+bTdim[0]/2,origin[1]+bTdim[1]/2,origin[2]],          #2, (1,1,0)
-        [origin[0]-bTdim[0]/2,origin[1]+bTdim[1]/2,origin[2]],          #3, (0,1,0)
-        #Top
-        [origin[0]-tTdim[0]/2,origin[1]-tTdim[1]/2,origin[2]+hTank],    #4, (0,0,1)
-        [origin[0]+tTdim[0]/2,origin[1]-tTdim[1]/2,origin[2]+hTank],    #5, (1,0,1)
-        [origin[0]+tTdim[0]/2,origin[1]+tTdim[1]/2,origin[2]+hTank],    #6, (1,1,1)
-        [origin[0]-tTdim[0]/2,origin[1]+tTdim[1]/2,origin[2]+hTank]]    #7, (0,1,1)
+            [oD[0]-bTdim[0]/2,oD[1]-bTdim[1]/2,oD[2]],              #0,(0,0,0)
+            [oD[0]+bTdim[0]/2,oD[1]-bTdim[1]/2,oD[2]],              #1,(1,0,0)
+            [oD[0]+bTdim[0]/2,oD[1]+bTdim[1]/2,oD[2]],              #2,(1,1,0)
+            [oD[0]-bTdim[0]/2,oD[1]+bTdim[1]/2,oD[2]],              #3,(0,1,0)
+            #Top
+            [oD[0]-tTdim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank],        #4,(0,0,1)
+            [oD[0]+tTdim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank],        #5,(1,0,1)
+            [oD[0]+tTdim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank],        #6,(1,1,1)
+            [oD[0]-tTdim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank],        #7,(0,1,1)
+            #Culvert Source (-Y, Back) Top
+            [oD[0]-cDim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank],         #8,(0,0,1)
+            [oD[0]+cDim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank],         #9,(1,0,1)
+            [oD[0]+cDim[0]/2,oD[1]-tTdim[1]/2+cDim[1],oD[2]+hTank], #10,(1,1,1)
+            [oD[0]-cDim[0]/2,oD[1]-tTdim[1]/2+cDim[1],oD[2]+hTank], #11,(0,1,1)
+            # Culvert Sink (+Y, Front) Top
+            [oD[0]-cDim[0]/2,oD[1]+tTdim[1]/2-cDim[1],oD[2]+hTank], #12,(0,0,1)
+            [oD[0]+cDim[0]/2,oD[1]+tTdim[1]/2-cDim[1],oD[2]+hTank], #13,(1,0,1)
+            [oD[0]+cDim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank],         #14,(1,1,1)
+            [oD[0]-cDim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank],         #15,(0,1,1),
+            # Culvert Source (-Y, BAck) Bottom
+            [oD[0]-cDim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank-cDim[2]],      #16, (0,0,0)
+            [oD[0]+cDim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank-cDim[2]],      #17, (1,0,0)
+            [oD[0]+cDim[0]/2,oD[1]-tTdim[1]/2+cDim[1],oD[2]+hTank-cDim[2]],  #18, (1,1,0)
+            [oD[0]-cDim[0]/2,oD[1]-tTdim[1]/2+cDim[1],oD[2]+hTank-cDim[2]],  #19, (0,1,0)
+            # Culvert Sink (+Y, Front) Bottom
+            [oD[0]-cDim[0]/2,oD[1]+tTdim[1]/2-cDim[1],oD[2]+hTank-cDim[2]],          #20, (0,0,0)
+            [oD[0]+cDim[0]/2,oD[1]+tTdim[1]/2-cDim[1],oD[2]+hTank-cDim[2]],          #21, (1,0,0)
+            [oD[0]+cDim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank-cDim[2]],                 #22, (1,1,0)
+            [oD[0]-cDim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank-cDim[2]],                 #23, (0,1,0)
+            # Intersection Points (-Y, back)
+            [oD[0]-cDim[0]/2, oD[1]-tTdim[1]/2+ct_inter, oD[2]+hTank-cDim[2]],  # 24, (1,0.5,0)
+            [oD[0]+cDim[0]/2, oD[1]-tTdim[1]/2+ct_inter, oD[2]+hTank-cDim[2]],  # 25, (0,0.5,0)
+            # Intersection Points (+Y, Front)
+            [oD[0]+cDim[0]/2, oD[1]+tTdim[1]/2-ct_inter, oD[2]+hTank-cDim[2]],  # 26, (1,0.5,0)
+            [oD[0]-cDim[0]/2, oD[1]+tTdim[1]/2-ct_inter, oD[2]+hTank-cDim[2]],  # 27, (0,0.5,0)
+    
+]
 
 
 vertexFlags=[boundaryTags['left'],
@@ -104,118 +134,70 @@ vertexFlags=[boundaryTags['left'],
              boundaryTags['right'],
              boundaryTags['left']]
 
-facets=[[[0,1,2,3]],
-        [[0,1,5,4]],
-        [[1,2,6,5]],
-        [[2,3,7,6]],
-        [[3,0,4,7]],
-        [[4,5,6,7]]]
+nVert=len(vertices)
+# add sponge tag to the rest of the vertices.
+for i in range(nVert-len(vertexFlags)):
+    vertexFlags.append(boundaryTags['sponge'])
+
+facets=[[[0,1,2,3]],                        #0   Bottom
+        [[4,8,11,10,9,5,6,14,13,12,15,7]],  #1   Top H-shape
+        [[0,3,7,4]],                        #2   Left
+        [[1,2,6,5]],                        #3   Right
+        [[4,24,8]],                         #4   Back top-left triangle
+        [[4,0,24]],                         #5   Back top-bottom triangle
+        [[0,1,25,24]],                      #6   Back center square
+        [[1,5,25]],                         #7   Back bottom-right triangle
+        [[5,9,25]],                         #8   Back top-right     triangle
+        [[6,26,14]],                        #9   Front top-left triangle
+        [[6,2,26]],                         #10  Front top-bottom triangle
+        [[2,3,27,26]],                      #11  Front center square
+        [[3,7,27]],                         #12  Front bottom-right triangle
+        [[7,15,27]],                        #13  Front top-right     triangle
+        [[8,9,10,11]],                      #14  Source Culvert Top
+        [[16,17,9,8]],                      #15  Source Culvert Out Wall
+        [[19,18,10,11]],                    #16  Source Culvert In Wall
+        [[16,24,8]],                        #17  Source Culvert Left-Out
+        [[24,19,9,8]],                      #18  Source Culvert Left-In
+        [[17,25,9]],                        #19  Source Culvert Right-Out
+        [[25,18,10,9]],                     #20  Source Culvert Right-In
+        [[16,17,25,24]],                    #21  Source Culvert Bottom-Out
+        [[25,18,19,24]],                    #22  Source Culvert Bottom-In
+        [[12,13,14,15]],                    #23  Sink Culvert Top
+        [[20,21,13,12]],                    #24  Sink Culvert In Wall
+        [[23,22,14,15]],                    #25  Sink Culvert Out Wall
+        [[20,27,15,12]],                    #26  Sink Culvert Left-In
+        [[27,23,15]],                       #27  Sink Culvert Left-Out
+        [[21,26,14,13]],                    #28  Sink Culvert Right-In
+        [[26,22,14]],                       #29  Sink Culvert Right-Out
+        [[20,27,26,21]],                    #30  Sink Culvert Bottom-In
+        [[27,23,22,26]]                     #31  Sink Culvert Bottom-Out
+        ]
+
 facetFlags=[boundaryTags['bottom'],
-            boundaryTags['front'],
-            boundaryTags['right'],
-            boundaryTags['back'],
+            boundaryTags['top'],
             boundaryTags['left'],
-            boundaryTags['top']]
+            boundaryTags['right'],
+            ]
+for i in range(5):
+    facetFlags.append(boundaryTags['back'])
 
+for i in range(5):
+    facetFlags.append(boundaryTags['front'])
 
-regions=[[origin[0],origin[1],origin[2]+0.5*hTank]]
-regionFlags=[2.0]
+for i in range(9):
+    facetFlags.append(boundaryTags['sponge'])       #Sorce Sponge
+
+for i in range(9):
+    facetFlags.append(boundaryTags['sponge'])       #Sink Sponge
+
+regions=[[oD[0],oD[1]-tTdim[1]/2+cDim[1]/2,oD[2]+hTank-cDim[2]/2]]
+regions.append([oD[0],oD[1],oD[2]+0.5*hTank])
+regions.append([oD[0],oD[1]+tTdim[1]/2-cDim[1]/2,oD[2]+hTank-cDim[2]/2])
+regionFlags=[1.0,2.0,3.0]
 holes=[]
 
 
-
-
-#####################################################
-######          Culverts Definition     #############
-#####################################################
-
-#Culvert is centered at x=0 and the flow is in the y axis direction.
-cDim = opts.culvertDim
-
-############ Source Culvert Definition ############
-
-culvertVertices = [#Bottom
-        [origin[0]-cDim[0]/2,origin[1]-tTdim[1]/2,origin[2]+hTank-cDim[2]],          #8, (0,0,0)
-        [origin[0]+cDim[0]/2,origin[1]-tTdim[1]/2,origin[2]+hTank-cDim[2]],          #9, (1,0,0)
-        [origin[0]+cDim[0]/2,origin[1]-tTdim[1]/2+cDim[1],origin[2]+hTank-cDim[2]],  #10, (1,1,0)
-        [origin[0]-cDim[0]/2,origin[1]-tTdim[1]/2+cDim[1],origin[2]+hTank-cDim[2]],  #11, (0,1,0)
-        #Top
-        [origin[0]-cDim[0]/2,origin[1]-tTdim[1]/2,origin[2]+hTank],                #12, (0,0,1)
-        [origin[0]+cDim[0]/2,origin[1]-tTdim[1]/2,origin[2]+hTank],                #13, (1,0,1)
-        [origin[0]+cDim[0]/2,origin[1]-tTdim[1]/2+cDim[1],origin[2]+hTank],        #14, (1,1,1)
-        [origin[0]-cDim[0]/2,origin[1]-tTdim[1]/2+cDim[1],origin[2]+hTank]]        #15, (0,1,1)
-
-
-nStart = len(vertices)
-# print ("\n".join(["{0},{1}".format(vi,vert) for vi,vert in enumerate(culvertVertices,nStart)]))
-
-for i in range(len(culvertVertices)):
-    vertices.append(culvertVertices[i])
-    vertexFlags.append(boundaryTags['sponge'])
-
-
-
-facets.append([[8,9,10,11]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[8,9,13,12]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[9,10,14,13]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[10,11,15,14]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[11,8,12,15]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[12,13,14,15]])
-facetFlags.append(boundaryTags['sponge'])
-
-
-regions.append([origin[0],-bTdim[1]/2+cDim[1]/2,hTank-cDim[2]/2])
-regionFlags.append(1.0)
-
-
-############ Sink Culvert Definition ############
-
-culvertVertices = [#Bottom
-        [origin[0]-cDim[0]/2,origin[1]+tTdim[1]/2,origin[2]+hTank-cDim[2]],          #8, (0,0,0)
-        [origin[0]+cDim[0]/2,origin[1]+tTdim[1]/2,origin[2]+hTank-cDim[2]],          #9, (1,0,0)
-        [origin[0]+cDim[0]/2,origin[1]+tTdim[1]/2-cDim[1],origin[2]+hTank-cDim[2]],  #10, (1,1,0)
-        [origin[0]-cDim[0]/2,origin[1]+tTdim[1]/2-cDim[1],origin[2]+hTank-cDim[2]],  #11, (0,1,0)
-        #Top
-        [origin[0]-cDim[0]/2,origin[1]+tTdim[1]/2,origin[2]+hTank],                #12, (0,0,1)
-        [origin[0]+cDim[0]/2,origin[1]+tTdim[1]/2,origin[2]+hTank],                #13, (1,0,1)
-        [origin[0]+cDim[0]/2,origin[1]+tTdim[1]/2-cDim[1],origin[2]+hTank],        #14, (1,1,1)
-        [origin[0]-cDim[0]/2,origin[1]+tTdim[1]/2-cDim[1],origin[2]+hTank]]        #15, (0,1,1)
-
-
-nStart = len(vertices)
-# print ("\n".join(["{0},{1}".format(vi,vert) for vi,vert in enumerate(culvertVertices,nStart)]))
-
-for i in range(len(culvertVertices)):
-    vertices.append(culvertVertices[i])
-    vertexFlags.append(boundaryTags['sponge'])
-
-
-
-facets.append([[16,17,18,19]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[16,17,21,20]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[17,18,22,21]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[18,19,23,22]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[19,16,20,23]])
-facetFlags.append(boundaryTags['sponge'])
-facets.append([[20,21,22,23]])
-facetFlags.append(boundaryTags['sponge'])
-
-
-regions.append([origin[0],bTdim[1]/2-cDim[1]/2,hTank-cDim[2]/2])
-regionFlags.append(3.0)
-
-
-
-####################################################
+#################################################
 ######              Caisson            #############
 ####################################################
 
@@ -226,7 +208,7 @@ scale = 1.0 / opts.scale
 caisson_width = 0.7*18.5625*25*0.0254  # 1:25 (in) -> 1:1 (in) -> 1:1 (mts)
 
 #bar_center=[0.5*L[0],0.5*L[1],waterLevel]
-bar_center = (origin[0],origin[1],origin[2]+0.5*opts.bar_height)
+bar_center = (oD[0],oD[1],oD[2]+0.5*opts.bar_height)
 #Calculate Density
 bar_mass = 6350     #Kg taken from datasheet
 bar_dim=(6.9,8.5,0.86)    #Dimensions based on SolidWorks model, only used for density calculation
@@ -400,7 +382,7 @@ dt_out =  (T-dt_init)/nDTout
 runCFL = opts.cfl
 
 #----------------------------------------------------
-water_depth  = waterLevel-origin[2]
+water_depth  = waterLevel-oD[2]
 
 #  Discretization -- input options
 useOldPETSc=False
@@ -606,9 +588,9 @@ class RigidBar(AuxiliaryVariables.AV_base):
         flagMax = max(m.mesh.elementBoundaryMaterialTypes)
         flagMin = min(m.mesh.elementBoundaryMaterialTypes)
         assert(flagMin >= 0)
-        assert(flagMax <= 7)
+        assert(flagMax <= 8)
         self.nForces=flagMax+1
-        assert(self.nForces <= 8)
+        assert(self.nForces <= 9)
         return self
     def get_u(self):
         return self.last_velocity[0]
