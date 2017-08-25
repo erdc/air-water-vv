@@ -14,16 +14,16 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 from proteus import Context
 opts=Context.Options([
-    ("bar_dim", (0.33, 0.33, 0.2), "Dimensions of the bar"),
+    ("bar_dim", (0.33, 0.33, 0.2), "Dimensions of the bar"),   #Temporal use for Inertia and equations of motion, must me eliminated
     ("scale" , 21, "Scaling Factor"),
     # ("tank_dim", (1.0,1.0,1.0), "Dimensions of the tank"),
     ("topTank", (1.0,1.0), "Top Rectangle of the tank"),
-    ("heightTank", 1.0, "Height of the tank"),
-    ("baseTank", (0.5,0.5), "Bottom Rectangle of the tank"),
-    ("culvertDim",(0.2,0.25,0.3),"Dimensions of the culvert"),
-    ("water_surface_height",0.3,"Height of free surface above bottom"),
+    ("heightTank", 0.8, "Height of the tank"),
+    ("baseTank", (0.8,0.8), "Bottom Rectangle of the tank"),
+    ("culvertDim",(0.2,0.2,0.5),"Dimensions of the culvert"),
+    ("water_surface_height",0.6,"Height of free surface above bottom"),
     ("speed",0.0,"Speed of current if non-zero"),
-    ("bar_height",0.5,"Initial height of bar center above bottom"),
+    ("bar_height",0.6,"Initial height of bar center above bottom"),
     ("bar_rotation",(0.01,0,0),"Initial rotation about x,y,z axes"),
     ("refinement_level",0,"Set maximum element diameter to he/2**refinement_level"),
     ("gen_mesh",True,"Generate new mesh"),
@@ -71,7 +71,7 @@ he = opts.he
 he *=(0.5)**opts.refinement_level
 genMesh=opts.gen_mesh
 
-boundaryTags = { 'bottom': 1, 'front':2, 'right':3, 'back': 4, 'left':5, 'top':6, 'obstacle':7, 'sponge':8}
+boundaryTags = {'internal':0, 'bottom': 1, 'front':2, 'right':3, 'back': 4, 'left':5, 'top':6, 'obstacle':7, 'inflow':8, 'outflow':9}
 
 bTdim=opts.baseTank
 tTdim=opts.topTank
@@ -95,7 +95,7 @@ vertices=[#Bottom
             [oD[0]+tTdim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank],        #5,(1,0,1)
             [oD[0]+tTdim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank],        #6,(1,1,1)
             [oD[0]-tTdim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank],        #7,(0,1,1)
-            #Culvert Source (-Y, Back) Top
+            #Culvert Inflow (-Y, Back) Top
             [oD[0]-cDim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank],         #8,(0,0,1)
             [oD[0]+cDim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank],         #9,(1,0,1)
             [oD[0]+cDim[0]/2,oD[1]-tTdim[1]/2+cDim[1],oD[2]+hTank], #10,(1,1,1)
@@ -105,7 +105,7 @@ vertices=[#Bottom
             [oD[0]+cDim[0]/2,oD[1]+tTdim[1]/2-cDim[1],oD[2]+hTank], #13,(1,0,1)
             [oD[0]+cDim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank],         #14,(1,1,1)
             [oD[0]-cDim[0]/2,oD[1]+tTdim[1]/2,oD[2]+hTank],         #15,(0,1,1),
-            # Culvert Source (-Y, BAck) Bottom
+            # Culvert Inflow (-Y, BAck) Bottom
             [oD[0]-cDim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank-cDim[2]],      #16, (0,0,0)
             [oD[0]+cDim[0]/2,oD[1]-tTdim[1]/2,oD[2]+hTank-cDim[2]],      #17, (1,0,0)
             [oD[0]+cDim[0]/2,oD[1]-tTdim[1]/2+cDim[1],oD[2]+hTank-cDim[2]],  #18, (1,1,0)
@@ -125,19 +125,36 @@ vertices=[#Bottom
 ]
 
 
-vertexFlags=[boundaryTags['left'],
-             boundaryTags['right'],
-             boundaryTags['right'],
-             boundaryTags['left'],
-             boundaryTags['left'],
-             boundaryTags['right'],
-             boundaryTags['right'],
-             boundaryTags['left']]
-
-nVert=len(vertices)
-# add sponge tag to the rest of the vertices.
-for i in range(nVert-len(vertexFlags)):
-    vertexFlags.append(boundaryTags['sponge'])
+vertexFlags=[
+             boundaryTags['left'],  #0
+             boundaryTags['right'],  #1
+             boundaryTags['right'],  #2
+             boundaryTags['left'],  #3
+             boundaryTags['left'],  #4
+             boundaryTags['right'],  #5
+             boundaryTags['right'],  #6
+             boundaryTags['left'],  #7
+             boundaryTags['inflow'],  #8
+             boundaryTags['inflow'],  # 9
+             boundaryTags['top'],  # 10
+             boundaryTags['top'],  # 11
+             boundaryTags['top'],  # 12
+             boundaryTags['top'],  # 13
+             boundaryTags['outflow'],  # 14
+             boundaryTags['outflow'],  # 15
+             boundaryTags['inflow'],  # 16
+             boundaryTags['inflow'],  # 17
+             boundaryTags['internal'],  # 18
+             boundaryTags['internal'],  # 19
+             boundaryTags['internal'],  # 20
+             boundaryTags['internal'],  # 21
+             boundaryTags['outflow'],  # 22
+             boundaryTags['outflow'],  # 23
+             boundaryTags['back'],  # 24
+             boundaryTags['back'],  # 25
+             boundaryTags['front'],  # 26
+             boundaryTags['front']  # 27
+             ]
 
 facets=[[[0,1,2,3]],                        #0   Bottom
         [[4,8,11,10,9,5,6,14,13,12,15,7]],  #1   Top H-shape
@@ -153,15 +170,15 @@ facets=[[[0,1,2,3]],                        #0   Bottom
         [[2,3,27,26]],                      #11  Front center square
         [[3,7,27]],                         #12  Front bottom-right triangle
         [[7,15,27]],                        #13  Front top-right     triangle
-        [[8,9,10,11]],                      #14  Source Culvert Top
-        [[16,17,9,8]],                      #15  Source Culvert Out Wall
-        [[19,18,10,11]],                    #16  Source Culvert In Wall
-        [[16,24,8]],                        #17  Source Culvert Left-Out
-        [[24,19,9,8]],                      #18  Source Culvert Left-In
-        [[17,25,9]],                        #19  Source Culvert Right-Out
-        [[25,18,10,9]],                     #20  Source Culvert Right-In
-        [[16,17,25,24]],                    #21  Source Culvert Bottom-Out
-        [[25,18,19,24]],                    #22  Source Culvert Bottom-In
+        [[8,9,10,11]],                      #14  Inflow Culvert Top
+        [[16,17,9,8]],                      #15  Inflow Culvert Out Wall
+        [[19,18,10,11]],                    #16  Inflow Culvert In Wall
+        [[16,24,8]],                        #17  Inflow Culvert Left-Out
+        [[24,19,9,8]],                      #18  Inflow Culvert Left-In
+        [[17,25,9]],                        #19  Inflow Culvert Right-Out
+        [[25,18,10,9]],                     #20  Inflow Culvert Right-In
+        [[16,17,25,24]],                    #21  Inflow Culvert Bottom-Out
+        [[25,18,19,24]],                    #22  Inflow Culvert Bottom-In
         [[12,13,14,15]],                    #23  Sink Culvert Top
         [[20,21,13,12]],                    #24  Sink Culvert In Wall
         [[23,22,14,15]],                    #25  Sink Culvert Out Wall
@@ -173,22 +190,45 @@ facets=[[[0,1,2,3]],                        #0   Bottom
         [[27,23,22,26]]                     #31  Sink Culvert Bottom-Out
         ]
 
-facetFlags=[boundaryTags['bottom'],
-            boundaryTags['top'],
-            boundaryTags['left'],
-            boundaryTags['right'],
+facetFlags=[
+            #Sides, top, bottom
+            boundaryTags['bottom'],  #0
+            boundaryTags['top'],  #1
+            boundaryTags['left'],  #2
+            boundaryTags['right'],  #3
+            #Back
+            boundaryTags['back'],  #4
+            boundaryTags['back'],  # 5
+            boundaryTags['back'],  # 6
+            boundaryTags['back'],  # 7
+            boundaryTags['back'],  # 8
+    #       Front
+            boundaryTags['front'],  # 9
+            boundaryTags['front'],  # 10
+            boundaryTags['front'],  # 11
+            boundaryTags['front'],  # 12
+            boundaryTags['front'],  # 13
+    #       Inflow Culvert
+            boundaryTags['top'],  # 14
+            boundaryTags['inflow'],  # 15
+            boundaryTags['internal'],  # 16
+            boundaryTags['left'],  # 17
+            boundaryTags['internal'],  # 18
+            boundaryTags['right'],  # 19
+            boundaryTags['internal'],  # 20
+            boundaryTags['bottom'],  # 21
+            boundaryTags['internal'],  # 22
+    #       Outflow Culvert
+            boundaryTags['top'],  # 23
+            boundaryTags['internal'],  # 24
+            boundaryTags['outflow'],  # 25
+            boundaryTags['internal'],  # 26
+            boundaryTags['left'],  # 27
+            boundaryTags['internal'],  # 28
+            boundaryTags['right'],  # 29
+            boundaryTags['internal'],  # 30
+            boundaryTags['bottom']  # 31
             ]
-for i in range(5):
-    facetFlags.append(boundaryTags['back'])
-
-for i in range(5):
-    facetFlags.append(boundaryTags['front'])
-
-for i in range(9):
-    facetFlags.append(boundaryTags['sponge'])       #Sorce Sponge
-
-for i in range(9):
-    facetFlags.append(boundaryTags['sponge'])       #Sink Sponge
 
 regions=[[oD[0],oD[1]-tTdim[1]/2+cDim[1]/2,oD[2]+hTank-cDim[2]/2]]
 regions.append([oD[0],oD[1],oD[2]+0.5*hTank])
@@ -196,7 +236,7 @@ regions.append([oD[0],oD[1]+tTdim[1]/2-cDim[1]/2,oD[2]+hTank-cDim[2]/2])
 regionFlags=[1.0,2.0,3.0]
 holes=[]
 
-
+print(len(vertices),len(vertexFlags),len(facets),len(facetFlags))
 #################################################
 ######              Caisson            #############
 ####################################################
