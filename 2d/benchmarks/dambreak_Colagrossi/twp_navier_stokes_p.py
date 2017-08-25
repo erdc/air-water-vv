@@ -61,7 +61,7 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    COMPRESSIBLE_FORM=1.0,
                                    MOMENTUM_SGE=1.0,
                                    PRESSURE_SGE=1.0,
-                                   VELOCITY_SGE=0.0)
+                                   VELOCITY_SGE=1.0)
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
                        1: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),

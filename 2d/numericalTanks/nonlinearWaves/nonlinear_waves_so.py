@@ -14,11 +14,14 @@ elif '_so.pyc' in name_so[-7:]:
     name = name_so[:-7]
 else:
     raise NameError, 'Split operator module must end with "_so.py"'
-
+import nonlinear_waves
+print name
 case = __import__(name)
+print case
+assert(case.adaptMesh==True)
 Context.setFromModule(case)
 ct = Context.get()
-
+assert(ct.adaptMesh==True)
 # List of p/n files
 pnList = []
 

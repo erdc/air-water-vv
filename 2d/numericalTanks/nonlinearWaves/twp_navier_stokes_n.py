@@ -7,6 +7,7 @@ ct = Context.get()
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
+assert(ct.adaptMesh == True)
 adaptMesh = ct.adaptMesh
 adaptMesh_nSteps = ct.adaptMesh_nSteps
 adaptMesh_numIter = ct.adaptMesh_numIter

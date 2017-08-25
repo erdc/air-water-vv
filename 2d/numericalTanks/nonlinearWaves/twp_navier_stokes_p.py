@@ -41,7 +41,11 @@ else:
     dragAlphaTypes = None
     dragBetaTypes = None
     epsFact_solid = None
-
+rho_0=ct.rho_0
+nu_0=ct.nu_0
+rho_1=ct.rho_1
+nu_1=ct.nu_1
+g=ct.g
 coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
                                    rho_0=ct.rho_0,

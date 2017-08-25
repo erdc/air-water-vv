@@ -28,10 +28,11 @@ opts=Context.Options([
     ("gauge_output", True, "Produce gauge data"),
     ("gauge_location_p", (3.22, 0.12, 0), "Pressure gauge location in m"),
     # mesh refinement and timestep
-    ("refinement", 10 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
-    ("cfl", 0.33 ,"Target cfl"),
+    ("he", 0.1 ,"max element diameter"),
+    ("cfl", 1.0 ,"Target cfl"),
     # run time options
     ("T", 0.09 ,"Simulation time in s"),
+    ("fixed_step",False,"Used fixed time stepping"),
     ("dt_fixed", 0.01, "Fixed time step in s"),
     ("dt_out", 0.05, "Fixed time step in s"),
     ("dt_init", 0.001 ,"Maximum initial time step in s"),
@@ -58,7 +59,6 @@ tank_dim = opts.tank_dim
 #[temp] temporary location
 backgroundDiffusionFactor = 0.01
 
-refinement = opts.refinement
 genMesh = opts.gen_mesh
 movingDomain = False
 checkMass = False
@@ -150,13 +150,13 @@ nDTout = int(round(T / dt_out))
 # domain = Domain.PlanarStraightLineGraphDomain()
 # domain replacement
 if useHex:
-    nnx = 4 * refinement + 1
-    nny = 2 * refinement + 1
+    nnx = floor(L[0]/he) + 1
+    nny = floor(L[1]/he) + 1
     hex = True
     domain = Domain.RectangularDomain(tank_dim)
 elif structured:
-    nnx = 4 * refinement
-    nny = 2 * refinement
+    nnx = floor(L[0]/he) + 1
+    nny = floor(L[1]/he) + 1
     domain = Domain.RectangularDomain(tank_dim)
     boundaryTags = domain.boundaryTags
 else:
@@ -190,7 +190,7 @@ tank.BC['x-'].setFreeSlip()
 
 
 
-he = tank_dim[0] / float(4 * refinement - 1)
+he = opts.he
 
 from proteus.MeshAdaptPUMI  import MeshAdaptPUMI 
 hmin = he
@@ -220,7 +220,7 @@ ns_forceStrongDirichlet = False
 # ----- NUMERICAL PARAMETERS ----- #
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.5
+    ns_shockCapturingFactor = 0.0
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
     ls_shockCapturingFactor = 0.25

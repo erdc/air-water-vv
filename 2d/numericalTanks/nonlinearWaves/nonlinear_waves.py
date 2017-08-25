@@ -59,11 +59,6 @@ opts=Context.Options([
 from proteus.MeshAdaptPUMI  import MeshAdaptPUMI 
 hmin = opts.he
 hmax = 10.0*opts.he
-adaptMesh = True
-adaptMesh_nSteps = 5
-adaptMesh_numIter = 2
-MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropic",maType="isotropic")
-useModel=False
 
 # waves
 omega = 1.
@@ -386,3 +381,8 @@ def twpflowPressure_init(x, t):
     phi = x[nd-1] - waterLevel
     return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi)))
+adaptMesh = True
+adaptMesh_nSteps = 5
+adaptMesh_numIter = 2
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropic",maType="isotropic")
+useModel=False
