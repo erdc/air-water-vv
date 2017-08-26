@@ -101,8 +101,8 @@ if spaceOrder == 1:
         elementBoundaryQuadrature = ft.CubeGaussQuadrature(nd - 1, 2)
     else:
         basis = ft.C0_AffineLinearOnSimplexWithNodalBasis
-        elementQuadrature = ft.SimplexGaussQuadrature(nd, 3)
-        elementBoundaryQuadrature = ft.SimplexGaussQuadrature(nd - 1, 3)
+        elementQuadrature = ft.SimplexGaussQuadrature(nd, 4)
+        elementBoundaryQuadrature = ft.SimplexGaussQuadrature(nd - 1, 4)
 elif spaceOrder == 2:
     hFactor = 0.5
     if useHex:
@@ -215,12 +215,12 @@ st.assembleDomain(domain)
 
 # ----- STRONG DIRICHLET ----- #
 
-ns_forceStrongDirichlet = False
+ns_forceStrongDirichlet = True
 
 # ----- NUMERICAL PARAMETERS ----- #
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.0
+    ns_shockCapturingFactor = 0.75
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
     ls_shockCapturingFactor = 0.25
@@ -236,7 +236,7 @@ if useMetrics:
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH \
                     = epsFact_consrv_dirac = epsFact_density \
-                    = 3.0
+                    = 1.5
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
     redist_Newton = True
