@@ -13,6 +13,8 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 
 opts = Context.Options([
     ("adaptMesh", False, "Enable dynamic mesh adaption"),
+    ("schur_solver", 'two_phase_PCD', "preconditioner type"),
+    ("he", 0.1 ,"max element diameter"),
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
     ("air_vent", True, "Include an air vent in the obstacle."),
@@ -28,6 +30,7 @@ opts = Context.Options([
     # tank
     ("tank_dim", (2.5, 1.0), "Dimensions (x,y) of the tank in m"),
     ("tank_sponge", (0.5,0.5), "Length of (generation, absorption) zones in m, if any"),
+    ("absorption",False,"Use sponge layers"),
     ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle. in m"),
     ("obstacle_x_start", 1.0, "x coordinate of the start of the obstacle in m"),
     # gauges
@@ -44,11 +47,13 @@ opts = Context.Options([
                                    "variable_refine_borders as a result)."),
     # run time
     ("T", 4.0, "Simulation time in s "),
-    ("dt_fixed", 0.025, "Fixed time step in s"),
+    ("fixed_step", True, "Used fixed time step"),
+    ("nsave", 1, "number of steps to save per second"),
+    ("dt_fixed", 0.002, "Fixed time step in s"),
     ("dt_init", 0.0001, "Minimum initial time step (otherwise dt_fixed/10) in s"),
     # run details
     ("gen_mesh", True, "Generate new mesh"),
-    ("parallel", False,"Run in parallel"),
+    ("parallel", True,"Run in parallel"),
     ])
 
 # ----- CONTEXT ------ #
@@ -106,7 +111,6 @@ if opts.air_vent:
 ##########################################
 
 # ----- From Context.Options ----- #
-refinement = opts.refinement
 genMesh = opts.gen_mesh
 
 # ----- Structured Meshes ----- #
@@ -206,7 +210,8 @@ T = opts.T
 dt_fixed = opts.dt_fixed
 dt_init = min(0.1 * dt_fixed, opts.dt_init)
 runCFL = opts.cfl
-nDTout = int(round(T / dt_fixed))
+nDTout = int(round(T*max(1,opts.nsave)))
+dt_out = T/float(nDTout)
 
 ##########################################
 #              Mesh & Domain             #
@@ -215,7 +220,7 @@ nDTout = int(round(T / dt_fixed))
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
-he = tank_dim[0] / float(4 * refinement - 1)
+he = opts.he
 
 # ----- TANK ----- #
 
@@ -305,10 +310,12 @@ if opts.gauge_output and not opts.adaptMesh:
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 # Open Top
-tank.BC['y+'].setAtmosphere()
+#tank.BC['y+'].setAtmosphere()
+tank.BC['y+'].setFreeSlip()
 
 # Free Slip Tank
 tank.BC['y-'].setFreeSlip()
+tank.BC['obstacle1'].setFreeSlip()
 
 # Outflow
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
@@ -326,15 +333,20 @@ if opts.absorption:
 # Inflow / Sponge
 if not opts.waves:
     tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
+                                           Uwind=[inflow_velocity,0.,0.],
                                            waterLevel=waterLine_z,
                                            smoothing=3.0*he)
 if air_vent:
-    tank.BC['airvent'].setHydrostaticPressureOutletWithDepth(seaLevel=0.0,
+    tank.BC['airvent'].setHydrostaticPressureOutletWithDepth(seaLevel=-10.0,
                                                              rhoUp=rho_1,
                                                              rhoDown=rho_0,
                                                              g=g,
                                                              refLevel=tank_dim[1],
-                                                             smoothing=1.5*he)
+                                                             smoothing=1.5*he,
+                                                             pRef=0.0,
+                                                             vert_axis=1,
+                                                             U=[0.0,0.0,0.0],
+                                                             Uwind=[0.0,0.0,0.0])
     
 # ----- MESH CONSTRUCTION ----- #
 
@@ -377,11 +389,11 @@ if useMetrics:
     ls_shockCapturingFactor = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.50
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.50
+    vof_sc_beta = 1.5
     rd_shockCapturingFactor = 0.25
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \

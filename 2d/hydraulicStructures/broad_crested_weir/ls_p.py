@@ -23,7 +23,15 @@ coefficients = NCLS.Coefficients(V_model=0,
                                  sc_beta=ct.ls_sc_beta,
                                  movingDomain=ct.movingDomain)
 
-dirichletConditions = {0: lambda x, flag: None}
+def getDBC(x,flag):
+    if flag == 'x-':
+        return lambda x,t: x[1] - waterLine_z
+    elif flag == 'x+':
+        return lambda x,t: x[1] - outflow_level
+    elif flag == 'airvent':
+        return lambda x,t: x[1] - outflow_level
+    
+dirichletConditions = {0: getDBC}
 advectiveFluxBoundaryConditions =  {0: lambda x, flag: None}
 diffusiveFluxBoundaryConditions = {0: {}}
 

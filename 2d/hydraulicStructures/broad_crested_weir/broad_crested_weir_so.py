@@ -38,16 +38,21 @@ if ct.useRANS > 0:
                    "dissipation_n"))
 name = "broad_crested_weir_p" 
 
-if ct.timeDiscretization == 'flcbdf':
-    systemStepControllerType = Sequential_MinFLCBDFModelStep
-    systemStepControllerType = Sequential_MinAdaptiveModelStep
+if ct.opts.fixed_step:
+    systemStepControllerType = Sequential_FixedStep
+    dt_system_fixed=ct.opts.dt_fixed
+    systemStepExact=True
 else:
-    systemStepControllerType = Sequential_MinAdaptiveModelStep
+    if ct.timeDiscretization == 'flcbdf':
+        systemStepControllerType = Sequential_MinFLCBDFModelStep
+        systemStepControllerType = Sequential_MinAdaptiveModelStep
+    else:
+        systemStepControllerType = Sequential_MinAdaptiveModelStep
 
 needEBQ_GLOBAL = False
 needEBQ = False
 
-tnList = [0.0,ct.dt_init]+[i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
+tnList = [0.0,ct.dt_init]+[i*ct.dt_out for i in range(1,ct.nDTout+1)]
 
 info = open("TimeList.txt","w")
 
