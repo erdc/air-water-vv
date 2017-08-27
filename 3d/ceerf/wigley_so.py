@@ -32,9 +32,9 @@ if wigley.useRANS > 0:
 name = "wigley"
 
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
-#systemStepControllerType = Sequential_MinAdaptiveModelStep
-systemStepControllerType = Sequential_FixedStep
-dt_system_fixed=0.005
+systemStepControllerType = Sequential_MinAdaptiveModelStep
+#systemStepControllerType = Sequential_FixedStep
+#dt_system_fixed=0.005
 needEBQ_GLOBAL = False
 needEBQ = False
 

@@ -89,10 +89,10 @@ RBR_angCons  = [1,0,1]
 nLevels = 1
 
 he = hull_draft/0.75 #32
-#he *= 0.5 #
-#he *= 0.5 #
-#he *= 0.5 #
-#he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
+he *= 0.5 #
 he *= 0.5 #
 he *= 0.5 #
 he *= 0.5 #
@@ -381,7 +381,7 @@ nDTout=1200
 #T = 0.01#
 #nDTout=3
 dt_out =  (T-dt_init)/nDTout
-runCFL = 0.99
+runCFL = 0.33
 
 #RANS bc info
 kInflow = 0.003*Um*Um
@@ -474,8 +474,8 @@ if spaceOrder == 1:
          elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
     else:
     	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
+         elementQuadrature = SimplexGaussQuadrature(nd,4)
+         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
          #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
 elif spaceOrder == 2:
     hFactor=0.5
@@ -506,9 +506,9 @@ if useMetrics:
     vof_sc_beta = 1.5
     rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
+    epsFact_density    = 3.0
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
+    epsFact_redistance = 1.5
     epsFact_consrv_diffusion = 10.0
     redist_Newton = True
     kappa_shockCapturingFactor = 0.5
@@ -547,14 +547,23 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-8,0.05*he**2)
-vof_nl_atol_res = max(1.0e-10,0.01*he**2)
-ls_nl_atol_res = max(1.0e-10,0.01*he**2)
-mcorr_nl_atol_res = max(1.0e-10,0.005*he**2)
-rd_nl_atol_res = max(1.0e-10,0.01*he)
-kappa_nl_atol_res = max(1.0e-8,0.05*he**2)
-dissipation_nl_atol_res = max(1.0e-8,0.05*he**2)
-mesh_nl_atol_res = max(1.0e-8,0.05*he**2)
+ns_nl_atol_res = max(1.0e-12,0.01*he**2)
+vof_nl_atol_res = max(1.0e-12,0.01*he**2)
+ls_nl_atol_res = max(1.0e-12,0.01*he**2)
+mcorr_nl_atol_res = max(1.0e-12,0.01*he**2)
+rd_nl_atol_res = max(1.0e-12,0.01*he)
+kappa_nl_atol_res = max(1.0e-12,0.01*he**2)
+dissipation_nl_atol_res = max(1.0e-12,0.01*he**2)
+mesh_nl_atol_res = max(1.0e-12,0.01*he**2)
+
+#ns_nl_atol_res = max(1.0e-8,0.05*he**2)
+#vof_nl_atol_res = max(1.0e-10,0.01*he**2)
+#ls_nl_atol_res = max(1.0e-10,0.01*he**2)
+#mcorr_nl_atol_res = max(1.0e-10,0.005*he**2)
+#rd_nl_atol_res = max(1.0e-10,0.01*he)
+#kappa_nl_atol_res = max(1.0e-8,0.05*he**2)
+#dissipation_nl_atol_res = max(1.0e-8,0.05*he**2)
+#mesh_nl_atol_res = max(1.0e-8,0.05*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -604,8 +613,7 @@ def waveVF_init(x,t):
 
 def twpflowVelocity_u(x,t):
     waterspeed = waveVelocity_u(x,t)
-    H = smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t)-epsFact_consrv_heaviside*he)
-    return H*windspeed_u + (1.0-H)*waterspeed
+    return waterspeed
 #    if t < 5.0:
 #        return Um*(1.0+math.cos((t-5.0)*math.pi/5.0))/2.0
 #    else:
