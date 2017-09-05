@@ -28,7 +28,7 @@ opts=Context.Options([
     ("he", 0.2, "Set characteristic element size"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
-    ("use_gmsh", True, "use_gmsh"),
+    ("use_gmsh", False, "use_gmsh"),
     ("refinement", True, "ref"),
     ("refinement_freesurface", 0.1, "ref"),
     ("refinement_grading", 1.2, "ref"),
@@ -80,7 +80,7 @@ tank_dim = [opts.tank_x, opts.tank_y, opts.tank_z]
 if opts.auto_sponge is True:
     tank_sponge = [1*wavelength, 2*wavelength, 0., 0.]
 else:
-    tank_sponge = [opts.tank_sponge_xn, opts.tank_sponge_xp, opts.tank_sponge_yn, opts.tank_sponge_yp]
+    tank_sponge = [opts.sponge_xn, opts.sponge_xp, opts.sponge_yn, opts.sponge_yp]
 # ----- DOMAIN ----- #
 
 domain = Domain.PiecewiseLinearComplexDomain()
