@@ -17,9 +17,9 @@ else:
     LS_model = 2
     ME_model = 6
     kappa_model = 5
-#
+
 dissipation_model_flag = 1
-if ct.useRANS == 2:
+if ct.useRANS >= 2:
     dissipation_model_flag=2
 coefficients = Dissipation.Coefficients(V_model=0+int(ct.movingDomain),
                                         ME_model=ME_model+int(ct.movingDomain),
@@ -31,7 +31,7 @@ coefficients = Dissipation.Coefficients(V_model=0+int(ct.movingDomain),
                                   rho_0=rho_0,nu_0=nu_0,
                                   rho_1=rho_1,nu_1=nu_1,
                                   g=g,
-                                  c_mu=ct.opts.c_mu,sigma_e=ct.opts.sigma_e,
+                                  c_mu=ct.opts.Cmu,sigma_e=ct.opts.sigma_e,
                                   sc_uref=dissipation_sc_uref,
                                   sc_beta=dissipation_sc_beta)
 

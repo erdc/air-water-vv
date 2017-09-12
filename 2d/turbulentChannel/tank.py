@@ -11,12 +11,12 @@ opts=Context.Options([
     # predefined test cases
     ("water_level", 0.2, "Height of free surface above bottom"),
     # Geometry
-    ('Lgen', 1.0, 'Genaration zone in terms of wave lengths'),
-    ('Labs', 1.0, 'Absorption zone in terms of wave lengths'),
-    ('Ls', 1.0, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
-    ('Lend', 1.0, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
+    ('Lgen', 0.25, 'Genaration zone in terms of wave lengths'),
+    ('Labs', 0.25, 'Absorption zone in terms of wave lengths'),
+    ('Ls', 0.25, 'Length of domain from genZone to the front toe of rubble mound in terms of wave lengths'),
+    ('Lend', 0.25, 'Length of domain from absZone to the back toe of rubble mound in terms of wave lengths'),
     ('th', 0.4, 'Total height of numerical tank'),
-    ('wl', 1.0, 'Used instead of wavelength from wavetools. Spatial parameter to build-up the doamin only if wave is False'),    
+    ('wl', 4.0, 'Used instead of wavelength from wavetools. Spatial parameter to build-up the doamin only if wave is False'),    
     # waves
     ('wave', not True, 'Turn on wave generation'),
     ('waveType', 'Fenton', 'Wavetype for regular waves, Linear or Fenton'),
@@ -26,23 +26,24 @@ opts=Context.Options([
     ('Ycoeff', [ 0. ], 'Ycoeff only if Fenton is activated'),
     ('Bcoeff', [ 0. ], 'Bcoeff only if Fenton is activated'),
     ('Nf', 1 ,'Number of frequency components for fenton waves'),
-    ('meanVelocity', [ 0.5, 0., 0.],'Velocity used for currents'),
+    ('meanVelocity', [ 0.1, 0., 0.],'Velocity used for currents'),
     ('phi0', 0.0 ,'Initial phase for waves'),
     ('Uwind', [0.0, 0.0, 0.0], 'Set air velocity'),
     # Turbulence
-    ("useRANS", 2, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
-    ("c_mu", 0.09, "mu coefficient for the turbulence model"), 
+    ("useRANS", 1, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
-    ("Y", 0.03, "Y used for y+ calculation"),
-    ("d", 0.03, "Scale of the turbulence. Used for calculating initial approximation of turbulent variables."),    
+    ("K", 0.41, "von Karman coefficient for the turbulence model"),
+    ("B", 5.57, "Wall coefficient for the turbulence model"),
+    ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
+    ("shearStress", not True, "Switch for imposing dirichlet or diffusive BC with wall functions"),
     # numerical options
     ("GenZone", not True, 'Turn on generation zone at left side'),
     ("AbsZone", not True, 'Turn on absorption zone at right side'),
-    ('duration', 1., 'Simulation duration'),
+    ('duration', 10., 'Simulation duration'),
     ("refinement_level", 0.0,"he=walength/refinement_level"),
     ("he", 0.03,"Mesh size"),
-    ("cfl", 0.90 ,"Target cfl"),
+    ("cfl", 0.9 ,"Target cfl"),
     ("freezeLevelSet", True, "No motion to the levelset"),
     ("useVF", 1.0, "For density and viscosity smoothing"),
     ('movingDomain', not True, "Moving domain and mesh option"),
@@ -200,22 +201,21 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
 # ----- Turbulence ----- #
 ###########################################################################################################################################################################
 
-d = opts.d #tank_dim[1] / 2.
+d = he # tank_dim[1] / 2.
 L = tank_dim[0]
 U0 = opts.meanVelocity[0] # freestream velocity
-c_mu = opts.c_mu
+Cmu = opts.Cmu
 Re0 = U0*d/nu_0
-ReL=U0*L/nu_0
-Uwind=opts.meanVelocity #opts.Uwind
+Uwind = opts.meanVelocity # opts.Uwind
 dwind = d
+shearStress = opts.shearStress
 
-# pipeline conditions
-# Schlichting
+# Pipeline initial conditions, Schlichting
+# Skin friction and friction velocity for defining initial shear stress at the wall
 cf = 0.045*(Re0**(-1./4.))
-#cf = 0.074*(ReL**(-1./5.))
 Ut = U0*sqrt(cf/2.)
-kappaP = (Ut**2)/sqrt(c_mu)
-Y_ = opts.Y
+kappaP = (Ut**2)/sqrt(Cmu)
+Y_ = he 
 Yplus = Y_*Ut/nu_0
 dissipationP = (Ut**3)/(0.41*Y_)
 
@@ -229,15 +229,14 @@ if useRANS == 1:
 elif useRANS >= 2:
     # in kw model w = e/k
     model = 'kw'
-    dissipationP = dissipationP/kappaP
+    dissipationP = np.sqrt(kappaP)/(opts.K*Y_*(opts.Cmu**0.25)) # dissipationP/kappaP
 
 # for the boundary condition itself
 U0 = opts.meanVelocity
 
-
 # inlet values 
-kInflow = kappaP # * 0.0001 # None
-dissipationInflow = dissipationP # * 0.0001 # None
+kInflow = kappaP 
+dissipationInflow = dissipationP 
 
 #####################################################
 # Wall class definition
@@ -245,16 +244,18 @@ dissipationInflow = dissipationP # * 0.0001 # None
 
 from proteus.mprans import BoundaryConditions as bc 
 
-wallTop = bc.WallFunctions(turbModel=model, b_or=boundaryOrientations['y+'],
-                           Y=Y_, Yplus=Yplus, U0=U0, nu=nu_0, Cmu=0.09, K=0.41, B=5.57)
-wallBottom = bc.WallFunctions(turbModel=model, b_or=boundaryOrientations['y-'],
-                              Y=Y_, Yplus=Yplus, U0=U0, nu=nu_0, Cmu=0.09, K=0.41, B=5.57)
+# Attached to 'kappa' in auxiliary variables
+kWallTop = bc.kWall(Y=Y_, Yplus=Yplus, b_or=boundaryOrientations['y+'], nu=nu_0)
+kWallBottom = bc.kWall(Y=Y_, Yplus=Yplus, b_or=boundaryOrientations['y-'], nu=nu_0)
+kWalls = [kWallTop, kWallBottom]
+# Attached to 'twp' in auxiliary variables
+wallTop = bc.WallFunctions(turbModel=model, kWall=kWallTop, b_or=boundaryOrientations['y+'], Y=Y_, Yplus=Yplus, U0=U0, nu=nu_0, Cmu=opts.Cmu, K=opts.K, B=opts.B)
+wallBottom = bc.WallFunctions(turbModel=model, kWall=kWallBottom, b_or=boundaryOrientations['y-'], Y=Y_, Yplus=Yplus, U0=U0, nu=nu_0, Cmu=opts.Cmu, K=opts.K, B=opts.B)
 walls = [wallTop, wallBottom]
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #############################################################################################################################################################################################################################################################################################################################################################################################
-
 
 if opts.wave==True:
     tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=waveinput, vert_axis=1)
@@ -268,21 +269,13 @@ else:
     tank.BC['x+'].setHydrostaticPressureOutletWithDepth( seaLevel=opts.water_level, rhoUp=rho_1,
                                                          rhoDown=rho_0, g=g,
                                                          refLevel=opts.th, smoothing=he*3.0,
-                                                         )#U=opts.meanVelocity, Uwind=opts.meanVelocity)
-    # extra turbulent conditions
-    # tank.BC['x-'].setTurbulentZeroGradient()
-    # tank.BC['x-'].k_dirichlet.resetBC()
-    # tank.BC['x-'].dissipation_dirichlet.resetBC()
-    # tank.BC['x+'].setTurbulentZeroGradient()
-    # tank.BC['x+'].k_dirichlet.resetBC()
-    # tank.BC['x+'].dissipation_dirichlet.resetBC()
-
+                                                         )
 
 tank.setTurbulentWall(walls)
-tank.BC['y+'].setWallFunction(walls[0])
-tank.BC['y-'].setWallFunction(walls[1])
+tank.setTurbulentKWall(kWalls)
+tank.BC['y+'].setWallFunction(walls[0], shearStress)
+tank.BC['y-'].setWallFunction(walls[1], shearStress)
 tank.BC['sponge'].setNonMaterial()
-
 
 ########################################################################################################################################################################################################################################################################################################################################################
 # -----  GENERATION ZONE & ABSORPTION ZONE  ----- #
@@ -323,6 +316,13 @@ tank.attachLineGauges(
         activeTime = (0., T),
         sampleRate=0.,
         fileName='lineVelocity_gauges.csv')
+
+tank.attachLineGauges(
+        'kappa',
+        gauges=((('kappa',),PG),),
+        activeTime = (0., T),
+        sampleRate=0.,
+        fileName='lineKappa_gauges.csv')
 
 ######################################################################################################################################################################################################################
 # Numerical Options and other parameters #
