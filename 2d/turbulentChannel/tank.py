@@ -36,7 +36,6 @@ opts=Context.Options([
     ("K", 0.41, "von Karman coefficient for the turbulence model"),
     ("B", 5.57, "Wall coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
-    ("shearStress", not True, "Switch for imposing dirichlet or diffusive BC with wall functions"),
     # numerical options
     ("GenZone", not True, 'Turn on generation zone at left side'),
     ("AbsZone", not True, 'Turn on absorption zone at right side'),
@@ -208,7 +207,6 @@ Cmu = opts.Cmu
 Re0 = U0*d/nu_0
 Uwind = opts.meanVelocity # opts.Uwind
 dwind = d
-shearStress = opts.shearStress
 
 # Pipeline initial conditions, Schlichting
 # Skin friction and friction velocity for defining initial shear stress at the wall
@@ -273,8 +271,8 @@ else:
 
 tank.setTurbulentWall(walls)
 tank.setTurbulentKWall(kWalls)
-tank.BC['y+'].setWallFunction(walls[0], shearStress)
-tank.BC['y-'].setWallFunction(walls[1], shearStress)
+tank.BC['y+'].setWallFunction(walls[0])
+tank.BC['y-'].setWallFunction(walls[1])
 tank.BC['sponge'].setNonMaterial()
 
 ########################################################################################################################################################################################################################################################################################################################################################
