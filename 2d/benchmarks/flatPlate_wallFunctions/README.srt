@@ -6,7 +6,7 @@ Description
 The problem comprises a 0.40m x 4.00m (height x length)tank with flat plate either at the bottom and the top.
 The water flows through the duct and interacts with the solid surfaces generating turbulence in the near-wall region. 
 
-.. figure:: ./ flatPlateBenchmark.bmp
+.. figure:: ./flatPlateBenchmark.bmp
    :width: 100%
    :align: center
 
