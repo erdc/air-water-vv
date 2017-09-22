@@ -96,21 +96,12 @@ if opts.waves is True:
                                  fast=False)
     wavelength = wave.wavelength
 
-print("WAVELENGTH: ", wavelength)
-
 # tank options
 if opts.waves is True:
     tank_dim = (2*wavelength, opts.tank_y, water_level*2)
     tank_sponge = (1*wavelength, 2*wavelength, 0., 0.)
 else:
-    tank_sponge = [0.,0., 0., 0.]
-
-
-Palm = True
-if Palm is True:
-    tank_dim = (6., 5., water_level*2.)
-    tank_sponge = (1*wavelength, 2*wavelength, 2*wavelength, 2*wavelength)
-    
+    tank_sponge=(0.,0.,0.,0.)
 
 
 # ----- DOMAIN ----- #
@@ -134,9 +125,9 @@ if opts.cylinder is True:
     cylinder.holes_ind = np.array([0])
     cylinder.setBarycenter(barycenter)
 
-    outer_sphere = True
+    outer_sphere = False
     if outer_sphere is True:
-        sphere = st.Sphere(domain=domain, radius=cylinder_radius*1.5, nSectors=3)
+        sphere = st.Sphere(domain=domain, radius=cylinder_radius*2., nSectors=3)
         sphere.setChildShape(cylinder, 0)
         sphere.translate(cylinder_coords)
         tank.setChildShape(sphere, 0)
@@ -147,6 +138,34 @@ if opts.cylinder is True:
         sphere.BC['sphere'].u_stress = cylinder.BC['cylinder'].u_stress
         sphere.BC['sphere'].v_stress = cylinder.BC['cylinder'].v_stress
         sphere.BC['sphere'].w_stress = cylinder.BC['cylinder'].w_stress
+        lines_dict = {}
+        segments = []
+        for facet in sphere.facets:
+            f = facet[0]
+            for i, v in enumerate(f):
+                v2 = f[i-1]
+                v_list = lines_dict.get(v)
+                if v_list is not None:
+                    if v2 not in v_list:
+                        segments += [[v, v2]]
+                        if v_list is None:
+                            lines_dict[v] = []
+                        lines_dict[v] += [v2]
+                        v2_list = lines_dict.get(v2)
+                        if v2_list is None:
+                            lines_dict[v2] = []
+                        lines_dict[v2] += [v]
+                else:
+                    segments += [[v, v2]]
+                    if v_list is None:
+                        lines_dict[v] = []
+                    lines_dict[v] += [v2]
+                    v2_list = lines_dict.get(v2)
+                    if v2_list is None:
+                        lines_dict[v2] = []
+                    lines_dict[v2] += [v]
+        sphere.segments = np.array(segments)
+        sphere.segmentFlags = np.array([1 for i in sphere.segments])
     else:
         tank.setChildShape(cylinder, 0)
 
@@ -203,9 +222,8 @@ if opts.moorings is True:
     EA = 1e20
     d = 4.786e-3
     A0 = (np.pi*d**2/4)
-    nb_elems = 100
-    dens = 0.1447/A0
-    E = 1e9
+    nb_elems =  50
+    dens = 0.1447/A0+rho_0
     E = 1.6e6/A0
     l1 = MooringLine(L=L, w=w, EA=EA, anchor=anchor1, fairlead=fairlead1, tol=1e-8)
     l2 = MooringLine(L=L, w=w, EA=EA, anchor=anchor2, fairlead=fairlead2, tol=1e-8)
@@ -246,6 +264,7 @@ if opts.moorings is True:
         m.setNodesPosition()
         m.buildNodes()
         m.setFluidDensityAtNodes(np.array([rho_0 for i in range(m.nodes_nb)]))
+        m.setIyy(1e-20, 0)
 
         if opts.cylinder is True:
             m.attachBackNodeToBody(body)
@@ -330,41 +349,6 @@ if opts.cylinder is True:
         bc.setNoSlip()
 # moving mesh BC were created automatically when
 # making a chrono rigid body for the cylinder
-
-
-
-lines_dict = {}
-segments = []
-for facet in sphere.facets:
-    f = facet[0]
-    for i, v in enumerate(f):
-        v2 = f[i-1]
-        v_list = lines_dict.get(v)
-        if v_list is not None:
-            if v2 not in v_list:
-                segments += [[v, v2]]
-                if v_list is None:
-                    lines_dict[v] = []
-                lines_dict[v] += [v2]
-                v2_list = lines_dict.get(v2)
-                if v2_list is None:
-                    lines_dict[v2] = []
-                lines_dict[v2] += [v]
-        else:
-            segments += [[v, v2]]
-            if v_list is None:
-                lines_dict[v] = []
-            lines_dict[v] += [v2]
-            v2_list = lines_dict.get(v2)
-            if v2_list is None:
-                lines_dict[v2] = []
-            lines_dict[v2] += [v]
-sphere.segments = np.array(segments)
-sphere.segmentFlags = np.array([1 for i in sphere.segments])
-
-
-
-
 
 
 he = opts.he
@@ -460,20 +444,30 @@ if opts.use_gmsh and opts.refinement is True:
     def mesh_grading(start, he, grading):
         return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
 
-    bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+    if opts.cylinder is True:
+        if outer_sphere is True:
+            bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
 
-    bl2.EdgesList = mesh.getLinesFromIndex([i+sphere.start_segment+1 for i in range(len(sphere.segments))])
-    bl2.ratio = grading
-    bl2.hwall_n = opts.he
-    field_list += [bl2]
+            bl2.EdgesList = mesh.getLinesFromIndex([i+sphere.start_segment+1 for i in range(len(sphere.segments))])
+            bl2.ratio = grading
+            bl2.hwall_n = opts.he
+            field_list += [bl2]
 
-    me1 = py2gmsh.Fields.MathEval(mesh=mesh)
-    me1.F = str(he)
+            me1 = py2gmsh.Fields.MathEval(mesh=mesh)
+            me1.F = str(he)
 
-    re1 = py2gmsh.Fields.Restrict(mesh=mesh)
-    re1.RegionsList = mesh.getVolumesFromIndex([sphere.start_volume+1])
-    re1.IField = [me1.nb]
-    field_list += [re1]
+            re1 = py2gmsh.Fields.Restrict(mesh=mesh)
+            re1.RegionsList = mesh.getVolumesFromIndex([sphere.start_volume+1])
+            re1.IField = [me1.nb]
+            field_list += [re1]
+        else:
+            bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+
+            bl2.EdgesList = mesh.getLinesFromIndex([i+cylinder.start_segment+1 for i in range(len(cylinder.segments))])
+            bl2.ratio = grading
+            bl2.hwall_n = opts.he
+            field_list += [bl2]
+
 
     # background field
     fmin = py2gmsh.Fields.Min(mesh=mesh)
