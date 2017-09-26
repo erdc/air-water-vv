@@ -11,9 +11,12 @@ comm=Comm.init()
 opts=Context.Options([
     ("water_level", 0.9, "Height of free surface above bottom"),
     # tank
+    ("tank_wavelength_scale", True, "if True: tank_x=value*wavelength, tank_y=value*wavelength"),
     ("tank_x", 2., "Length of tank"),
     ("tank_y", 2., "Width of tank"),
-    ("tank_z", 2., "Height of tank"),
+    ("tank_z", 1.8, "Height of tank"),
+    # chrono options
+    ("sampleRate", 0., "sampling rate for chrono. 0 for every timestep"),
     # cylinder
     ("cylinder", True, "cylinder"),
     ("cylinder_radius", 0.515/2., "radius of cylinder"),
@@ -21,20 +24,22 @@ opts=Context.Options([
     ("cylinder_draft", 0.172, "radius of cylinder"),
     ("cylinder_coords", (1., 1., 0.929), "coordinates of cylinder"),
     ("cylinder_mass", 35.85, "mass of cylinder"),
+    ("Iyy", 0.9, "moment of inertia. Ixx=Iyy"),
     ("free_x", (1., 1., 1.), "Translational DOFs"),
     ("free_r", (1., 1., 1.), "Rotational DOFs"),
     ("VCG", 0.0758, "VCG"),
+    # moorings
     ("moorings", True, "moorings"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
-    ("wave_period", 1., "Period of the waves"),
+    ("wave_period", 1.4, "Period of the waves"),
     ("wave_height", 0.08, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     # mesh refinement
     ("he", 0.01, "Set characteristic element size"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
-    ("use_gmsh", True, "use_gmsh"),
+    ("use_gmsh", False, "use_gmsh"),
     ("refinement", True, "ref"),
     ("refinement_freesurface", 0.1, "ref"),
     ("refinement_grading", 1.2, "ref"),
@@ -47,10 +52,8 @@ opts=Context.Options([
     ("cfl", 0.4, "Target cfl"),
     ("nsave", 5, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
-    ("sc", 0.25, "shockCapturing factor"),
     ])
 
-sampleRate = 0.05
 
 rho_0=998.2
 nu_0 =1.004e-6
@@ -98,7 +101,8 @@ if opts.waves is True:
 
 # tank options
 if opts.waves is True:
-    tank_dim = (2*wavelength, opts.tank_y, water_level*2)
+    if opts.tank_wavelength_scale:
+        tank_dim = (opts.tank_x*wavelength, opts.tank_y*wavelength, water_level*2)
     tank_sponge = (1*wavelength, 2*wavelength, 0., 0.)
 else:
     tank_sponge=(0.,0.,0.,0.)
@@ -174,7 +178,7 @@ if opts.cylinder is True:
 # ----- CHRONO ----- #
 
 g = np.array([0., 0., -9.81])
-system = crb.ProtChSystem(g, sampleRate=sampleRate)
+system = crb.ProtChSystem(gravity=g, sampleRate=opts.sampleRate)
 #system.chrono_processor = 0
 #system.parallel_mode = False
 system.setTimeStep(chrono_dt)
@@ -189,7 +193,7 @@ if opts.cylinder is True:
     body.ChBody.SetMass(opts.cylinder_mass)
     body.setRecordValues(all_values=True)
     body.ChBody.SetBodyFixed(False)
-    Ixx = Iyy = 0.9
+    Ixx = Iyy = opts.Iyy
     Izz = cylinder_radius**2/2.*opts.cylinder_mass
     from proteus.mbd import pyChronoCore as pcc
     inert = pcc.ChVector(Ixx, Iyy, Izz)
@@ -214,7 +218,7 @@ if opts.moorings is True:
     anchor1 = fairlead1-[0.,0.,fairlead1[2]] + np.array([mooring_X*np.cos(np.radians(120)), mooring_X*np.sin(np.radians(120)), 0.])
     anchor2 = fairlead2-[0.,0.,fairlead2[2]] + np.array([mooring_X, 0., 0.])
     anchor3 = fairlead3-[0.,0.,fairlead3[2]] + np.array([mooring_X*np.cos(np.radians(-120)), mooring_X*np.sin(np.radians(-120)), 0.])
-        
+
     from catenary import MooringLine
 
     L = 6.950
@@ -340,6 +344,10 @@ if opts.waves is True:
         tank.BC['x-'].setNoSlip()
     if right:
         tank.setAbsorptionZones(x_p=right, dragAlpha=dragAlpha)
+    if tank_sponge[2]:
+        tank.setAbsorptionZones(y_n=True, dragAlpha=dragAlpha)
+    if tank_sponge[3]:
+        tank.setAbsorptionZones(y_p=True, dragAlpha=dragAlpha)
 
 
 
@@ -379,17 +387,7 @@ if opts.use_gmsh and opts.refinement is True:
         box = ecH*he
     field_list = []
 
-    ## refinement free surface
-    #box1 = py2gmsh.Fields.Box(mesh=mesh)
-    #box1.VIn = he
-    #box1.VOut = he_max
-    #box1.XMin = -tank_sponge[0]
-    #box1.XMax = tank_dim[0]
-    #box1.YMin = 0
-    #box1.YMax = tank_dim[1]
-    #box1.ZMin = water_level-box
-    #box1.ZMax = water_level+box
-    #field_list += [box1]
+    # refinement free surface
 
     #p0t = py2gmsh.Entity.Point([-tank_sponge[0], 0, water_level+box], mesh=mesh)
     #p1t = py2gmsh.Entity.Point([-tank_sponge[0], tank_dim[1], water_level+box], mesh=mesh)
@@ -441,6 +439,16 @@ if opts.use_gmsh and opts.refinement is True:
     #blbox.hwall_n = he
     #field_list += [blbox]
 
+    box1 = py2gmsh.Fields.Box(mesh=mesh)
+    box1.VIn = he
+    box1.VOut = he_max
+    box1.XMin = -tank_sponge[0]
+    box1.XMax = tank_dim[0]
+    box1.YMin = 0
+    box1.YMax = tank_dim[1]
+    box1.ZMin = water_level-box
+    box1.ZMax = water_level+box
+    field_list += [box1]
 
     me1 = py2gmsh.Fields.MathEval(mesh=mesh)
     me1.F = '{he}*{grading}^(Sqrt(({zcoord}-z)*({zcoord}-z))/{he})'.format(zcoord=water_level+box, he=he, grading=grading)
@@ -689,7 +697,7 @@ def twpflowPressure_init(x, t):
 
 #isosurface = None
 from proteus.Isosurface import Isosurface
-#isosurface = Isosurface(isosurfaces=(('phi', (0.,)),), domain=domain, format='h5', sampleRate=sampleRate)
+#isosurface = Isosurface(isosurfaces=(('phi', (0.,)),), domain=domain, format='h5', sampleRate=opts.sampleRate)
 isosurface = None
 
 
