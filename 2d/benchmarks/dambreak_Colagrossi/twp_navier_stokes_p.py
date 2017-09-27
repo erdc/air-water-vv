@@ -58,7 +58,7 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ct.ns_closure,
                                    movingDomain=ct.movingDomain,
-                                   COMPRESSIBLE_FORM=1.0,
+                                   NONCONSERVATIVE_FORM=1.0,
                                    MOMENTUM_SGE=1.0,
                                    PRESSURE_SGE=1.0,
                                    VELOCITY_SGE=1.0)

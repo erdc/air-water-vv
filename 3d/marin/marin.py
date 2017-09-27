@@ -83,7 +83,8 @@ else:
     box_xy = [2.3955,0.2985]
     #he = L[0]/float(6.5*Refinement)
     he = L[0]/64.0
-    he*=0.5#256
+    he *= 2.0
+    #he*=0.5#256
     boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     bt = boundaryTags
@@ -157,9 +158,9 @@ else:
     triangleOptions="VApq1.25q12ena%e" % ((he**3)/6.0,)
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=6.00
+T=0.8
 dt_init  =0.001
-dt_fixed = 0.1/Refinement
+dt_fixed = 0.01
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters

@@ -57,4 +57,4 @@ else:
 needEBQ_GLOBAL = False
 needEBQ = False
 #archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
-tnList=[0.0,ct.dt_init]+[ct.dt_init+ i*ct.dt_out for i in range(1,ct.nDTout+1)]
+tnList=[0.0,ct.dt_init]+[i*ct.dt_out for i in range(1,ct.nDTout+1)]
