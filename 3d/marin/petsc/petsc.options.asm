@@ -1,0 +1,21 @@
+-rans2p_ksp_type gmres
+-rans2p_pc_type asm
+-rans2p_pc_asm_type basic
+-rans2p_ksp_max_it 2000
+-rans2p_ksp_atol 1e-20
+-rans2p_ksp_rtol 1e-6
+-rans2p_ksp_gmres_modifiedgramschmidt
+-rans2p_ksp_gmres_restart 300
+-rans2p_sub_ksp_type preonly
+-rans2p_sub_pc_factor_mat_solver_package superlu
+-rans2p_ksp_knoll
+-rans2p_sub_pc_type lu
+
+-ncls_ksp_type   preonly -ncls_pc_type   lu -ncls_pc_factor_mat_solver_package   superlu_dist
+-vof_ksp_type    preonly -vof_pc_type    lu -vof_pc_factor_mat_solver_package    superlu_dist
+-rdls_ksp_type   preonly -rdls_pc_type   lu -rdls_pc_factor_mat_solver_package   superlu_dist
+-mcorr_ksp_type  preonly -mcorr_pc_type  lu -mcorr_pc_factor_mat_solver_package  superlu_dist
+-kappa_ksp_type preonly -kappa_pc_type lu -kappa_pc_factor_mat_solver_package superlu_dist
+-dissipation_ksp_type preonly -dissipation_pc_type lu -dissipation_pc_factor_mat_solver_package superlu_dist
+-mesh_ksp_type preonly -mesh_pc_type lu -mesh_pc_factor_mat_solver_package superlu_dist
+
