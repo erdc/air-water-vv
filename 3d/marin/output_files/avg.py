@@ -8,11 +8,13 @@ with open(sys.argv[1],'r') as f:
         elif "_mpi" in line:
             if newton_its > 0.0:
                 avg/=newton_its
-                print "average ksp its ",avg," over ", newton_its," newton iterations\n"
+                print "average ksp its ",avg," over ", newton_its," newton iterations"
+                print "max ksp its ",max_its," over ", newton_its," newton iterations\n"               
                 print line[:-1]
             else:
                 print line[:-1]
             avg=0.0
+            max_its = 0
             newton_its=0.0
         elif "reason = 4" in line:
             continue
@@ -22,8 +24,9 @@ with open(sys.argv[1],'r') as f:
                 if w == "ksp.its=":
                     avg+=float(words[i+1])  
                     newton_its+=1.0
+                    if int(words[i+1]) > max_its:
+                        max_its = int(words[i+1])
     if newton_its > 0.0:
         avg/=newton_its
-        print "average ksp its ",avg," over ", newton_its," newton iterations\n"
-
-
+        print "average ksp its ",avg," over ", newton_its," newton iterations"
+        print "max ksp its ",max_its," over ", newton_its," newton iterations\n"               
