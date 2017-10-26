@@ -1,0 +1,46 @@
+Traceback (most recent call last):
+  File "/p/home/abentle/proteus/topaz/bin/parun", line 6, in <module>
+    exec(compile(open(__file__).read(), __file__, 'exec'))
+  File "/p/home/abentle/proteus/scripts/parun", line 484, in <module>
+    runName + '_run_prof')
+  File "/p/home/abentle/proteus/proteus/Profiling.py", line 190, in __call__
+    return func(*func_args, **func_kwargs)
+  File "/p/home/abentle/proteus/proteus/NumericalSolution.py", line 1386, in calculateSolution
+    par_rList=model.par_rList)
+  File "/p/home/abentle/proteus/proteus/NonlinearSolvers.py", line 2631, in solveMultilevel
+    par_r = par_r)
+  File "/p/home/abentle/proteus/proteus/NonlinearSolvers.py", line 1613, in solve
+    self.linearSolver.solve(u=self.du,b=r,par_u=self.par_du,par_b=par_r)
+  File "/p/home/abentle/proteus/proteus/LinearSolvers.py", line 506, in solve
+    self.ksp.solve(par_b,par_u)
+  File "PETSc/KSP.pyx", line 384, in petsc4py.PETSc.KSP.solve (src/petsc4py.PETSc.c:153555)
+petsc4py.PETSc.Error: error code 76
+[ 12] KSPSolve() line 656 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/src/ksp/ksp/interface/itfunc.c
+[ 12] KSPSolve_GMRES() line 239 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/src/ksp/ksp/impls/gmres/gmres.c
+[ 12] KSPInitialResidual() line 69 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/src/ksp/ksp/interface/itres.c
+[ 12] KSP_PCApply() line 244 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/include/petsc/private/kspimpl.h
+[ 12] PCApply() line 482 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/src/ksp/pc/interface/precon.c
+[ 12] PCApply_FieldSplit_Schur() line 915 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/src/ksp/pc/impls/fieldsplit/fieldsplit.c
+[ 12] KSPSolve() line 656 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/src/ksp/ksp/interface/itfunc.c
+[ 12] KSPSolve_PREONLY() line 26 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/src/ksp/ksp/impls/preonly/preonly.c
+[ 12] KSP_PCApply() line 244 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/include/petsc/private/kspimpl.h
+[ 12] PCApply() line 482 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/src/ksp/pc/interface/precon.c
+[ 12] PCApply_HYPRE() line 259 in /p/home/abentle/.hashdist/tmp/petsc-xmz4jxwud6xp/src/ksp/pc/impls/hypre/hypre.c
+[ 12] Error in external library
+[ 12] Error in HYPRE solver, error code 1
+Start Epilogue v2.5.3 Wed Oct 25 17:34:44 CDT 2017 
+Memory usage reported in GB
+               % of     user     user     user    total    total
+Node          limit      max    limit  current  current     phys
+r12i1n1       26.89    31.46   117.00     0.43    16.27   125.81
+r12i1n2       27.78    32.50   117.00     0.39    13.21   125.81
+Memory summary:
+		min   31.46 GB
+		max   32.50 GB
+		ave   31.98 GB
+
+CPU Load Average Summary:
+Node          Average
+r12i1n1         67.66
+r12i1n2       68.4707
+End Epilogue v2.5.3 Wed Oct 25 17:36:07 CDT 2017 
