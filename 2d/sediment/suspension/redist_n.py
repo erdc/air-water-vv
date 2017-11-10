@@ -1,16 +1,68 @@
-from proteus import *
-from redist_p import *
-from tank import *
+from proteus import StepControl
+from proteus.default_n import *
+from proteus import (StepControl,
+                     TimeIntegration,
+                     NonlinearSolvers,
+                     LinearSolvers,
+                     LinearAlgebraTools,
+                     NumericalFlux)
+from proteus.mprans import RDLS3P
+import redist_p as physics
+from proteus import Context
 
-tolFac = 0.0
-nl_atol_res = rd_nl_atol_res
+ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+mesh = domain.MeshOptions
 
-linTolFac = 0.01
-l_atol_res = 0.01*rd_nl_atol_res
+# time stepping
+runCFL = ct.runCFL
 
-if redist_Newton:
+# mesh options
+nLevels = ct.nLevels
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
+triangleOptions = mesh.triangleOptions
+
+
+
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
+femSpaces = {0: ct.basis}
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
+massLumping       = False
+numericalFluxType = NumericalFlux.DoNothing
+conservativeFlux  = None
+subgridError      = RDLS3P.SubgridError(physics.coefficients,nd)
+shockCapturing    = RDLS3P.ShockCapturing(physics.coefficients,nd,shockCapturingFactor=ct.rd_shockCapturingFactor,lag=ct.rd_lag_shockCapturing)
+
+fullNewtonFlag = True
+multilevelNonlinearSolver  = NonlinearSolvers.Newton
+levelNonlinearSolver       = NonlinearSolvers.Newton
+
+nonlinearSmoother = NonlinearSolvers.NLGaussSeidel
+linearSmoother    = None
+
+matrix = LinearAlgebraTools.SparseMatrix
+
+if ct.useOldPETSc:
+    multilevelLinearSolver = LinearSolvers.PETSc
+    levelLinearSolver      = LinearSolvers.PETSc
+else:
+    multilevelLinearSolver = LinearSolvers.KSP_petsc4py
+    levelLinearSolver      = LinearSolvers.KSP_petsc4py
+
+if ct.useSuperlu:
+    multilevelLinearSolver = LinearSolvers.LU
+    levelLinearSolver      = LinearSolvers.LU
+
+if ct.redist_Newton:
     timeIntegration = NoIntegration
-    stepController = Newton_controller
+    stepController = ct.Newton_controller
     maxNonlinearIts = 50
     maxLineSearches = 0
     nonlinearSolverConvergenceTest = 'rits'
@@ -34,32 +86,10 @@ else:
     levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'r-true'
 
-femSpaces = {0:basis}
-
-massLumping       = False
-numericalFluxType = DoNothing
-conservativeFlux  = None
-subgridError      = RDLS3P.SubgridError(coefficients,nd)
-shockCapturing    = RDLS3P.ShockCapturing(coefficients,nd,shockCapturingFactor=rd_shockCapturingFactor,lag=rd_lag_shockCapturing)
-
-fullNewtonFlag = True
-multilevelNonlinearSolver  = Newton
-levelNonlinearSolver       = Newton
-
-nonlinearSmoother = NLGaussSeidel
-linearSmoother    = None
-
-matrix = SparseMatrix
-
-if useOldPETSc:
-    multilevelLinearSolver = PETSc
-    levelLinearSolver      = PETSc
-else:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
-
-if useSuperlu:
-    multilevelLinearSolver = LU
-    levelLinearSolver      = LU
-
 linear_solver_options_prefix = 'rdls_'
+
+tolFac = 0.0
+nl_atol_res = ct.rd_nl_atol_res
+linTolFac = 0.01
+l_atol_res = 0.01*ct.rd_nl_atol_res
+useEisenstatWalker = False#True

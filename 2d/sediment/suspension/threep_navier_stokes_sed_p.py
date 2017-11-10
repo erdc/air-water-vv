@@ -2,8 +2,35 @@ from proteus import *
 from proteus.default_p import *
 from tank import *
 from proteus.mprans import RANS3PSed
+from proteus import Context
+
+ct = Context.get()
 
 LevelModelType = RANS3PSed.LevelModel
+
+if ct.sedimentDynamics:
+    VOS_model=0
+    VOF_model=1
+    LS_model=2
+    RD_model=3
+    MCORR_model=4
+    SED_model=5
+    V_model=6
+    PINC_model=7
+    PRESSURE_model=8
+    PINIT_model=9
+else:
+    VOS_model=None
+    SED_model=None
+    VOF_model=0
+    LS_model=1
+    RD_model=2
+    MCORR_model=3
+    V_model=4
+    PINC_model=5
+    PRESSURE_model=6
+    PINIT_model=7
+
 if useOnlyVF:
     LS_model = None
 else:
@@ -21,9 +48,9 @@ else:
 coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                       sigma=0.0,
                                       rho_0 = rho_s,
-                                      nu_0 = nu_s,
+                                      nu_0 = nu_s,#1e-10,#nu_0,# 
                                       rho_1 = rho_s,
-                                      nu_1 = nu_s,
+                                      nu_1 = nu_s,#1e-10,#nu_0,#
                                       g=g,
                                       nd=nd,
                                       ME_model=SED_model,
@@ -44,43 +71,38 @@ coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                       forceStrongDirichlet=ns_forceStrongDirichlet,
                                       turbulenceClosureModel=ns_closure,
                                       movingDomain=movingDomain,
-                                      dragAlpha=dragAlpha)
+                                      dragAlpha=dragAlpha,
+                                      PSTAB=ct.opts.PSTAB,
+                                    aDarcy = sedClosure.aDarcy,
+                                    betaForch = sedClosure.betaForch,
+                                    grain = sedClosure.grain,
+                                    packFraction = sedClosure.packFraction,
+                                    maxFraction = sedClosure.maxFraction,
+                                    frFraction = sedClosure.frFraction,
+                                    sigmaC = sedClosure.sigmaC,
+                                    C3e = sedClosure.C3e,
+                                    C4e = sedClosure.C4e,
+                                    eR = sedClosure.eR,
+                                    fContact = sedClosure.fContact,
+                                    mContact = sedClosure.mContact,
+                                    nContact = sedClosure.nContact,
+                                    angFriction = sedClosure.angFriction,
+                                    vos_function = ct.vos_function,
+                                    )
 
-def getDBC_u(x,flag):
-    return None
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].us_dirichlet.init_cython(),
+                       1: lambda x, flag: domain.bc[flag].vs_dirichlet.init_cython()}
 
-def getDBC_v(x,flag):
-    return None
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].us_advective.init_cython(),
+                                   1: lambda x, flag: domain.bc[flag].vs_advective.init_cython()}
 
-dirichletConditions = {0:getDBC_u,
-                       1:getDBC_v}
+diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].us_diffusive.init_cython()},
+                                   1: {1: lambda x, flag: domain.bc[flag].vs_diffusive.init_cython()}}
 
-def getAFBC_u(x,flag):
-    return lambda x,t: 0.0
-
-def getAFBC_v(x,flag):
-    return lambda x,t: 0.0
-
-def getDFBC_u(x,flag):
-    return lambda x,t: 0.0
-
-def getDFBC_v(x,flag):
-    return lambda x,t: 0.0
-
-advectiveFluxBoundaryConditions =  {0:getAFBC_u,
-                                    1:getAFBC_v}
-
-diffusiveFluxBoundaryConditions = {0:{0:getDFBC_u},
-                                   1:{1:getDFBC_v}}
-
-class PerturbedSurface_vosStar:
-    def __init__(self):
-        pass
-    def uOfXT(self,x,t):
-        if x[1] < 0.25 :
-            return 0.3
-        else:
-            return 0.01
+if nd == 3:
+    dirichletConditions[2] = lambda x, flag: domain.bc[flag].ws_dirichlet.init_cython()
+    advectiveFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].ws_advective.init_cython()
+    diffusiveFluxBoundaryConditions[2] = {2: lambda x, flag: domain.bc[flag].ws_diffusive.init_cython()}
 
 class AtRest:
     def __init__(self):

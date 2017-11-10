@@ -7,6 +7,29 @@ from proteus import Context
 ct = Context.get()
 
 LevelModelType = RANS3PF.LevelModel
+
+if ct.sedimentDynamics:
+    VOS_model=0
+    VOF_model=1
+    LS_model=2
+    RD_model=3
+    MCORR_model=4
+    SED_model=5
+    V_model=6
+    PINC_model=7
+    PRESSURE_model=8
+    PINIT_model=9
+else:
+    VOS_model=None
+    SED_model=None
+    VOF_model=0
+    LS_model=1
+    RD_model=2
+    MCORR_model=3
+    V_model=4
+    PINC_model=5
+    PRESSURE_model=6
+    PINIT_model=7
 if useOnlyVF:
     LS_model = None
 else:
@@ -48,41 +71,38 @@ coefficients = RANS3PF.Coefficients(epsFact=epsFact_viscosity,
                                     turbulenceClosureModel=ns_closure,
                                     movingDomain=movingDomain,
                                     dragAlpha=dragAlpha,
-                                    PSTAB=ct.opts.PSTAB)
+                                    PSTAB=ct.opts.PSTAB,
+                                    CORRECT_VELOCITY=ct.CORRECT_VELOCITY,
+                                    aDarcy = sedClosure.aDarcy,
+                                    betaForch = sedClosure.betaForch,
+                                    grain = sedClosure.grain,
+                                    packFraction = sedClosure.packFraction,
+                                    maxFraction = sedClosure.maxFraction,
+                                    frFraction = sedClosure.frFraction,
+                                    sigmaC = sedClosure.sigmaC,
+                                    C3e = sedClosure.C3e,
+                                    C4e = sedClosure.C4e,
+                                    eR = sedClosure.eR,
+                                    fContact = sedClosure.fContact,
+                                    mContact = sedClosure.mContact,
+                                    nContact = sedClosure.nContact,
+                                    angFriction = sedClosure.angFriction,
+                                    vos_function = ct.vos_function,
+                                    )
 
-def getDBC_u(x,flag):
-    if flag == boundaryTags['top'] and openTop:
-        return lambda x,t: 0.0
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
+                       1: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()}
 
-def getDBC_v(x,flag):
-    return None
-    #if flag == boundaryTags['top'] and openTop:
-        #return None #lambda x,t: 0.0
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].u_advective.init_cython(),
+                                   1: lambda x, flag: domain.bc[flag].v_advective.init_cython()}
 
-dirichletConditions = {0:getDBC_u,
-                       1:getDBC_v}
+diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
+                                   1: {1: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}}
 
-def getAFBC_u(x,flag):
-    if flag != boundaryTags['top'] or not openTop:
-        return lambda x,t: 0.0
-
-def getAFBC_v(x,flag):
-    if flag != boundaryTags['top'] or not openTop:
-        return lambda x,t: 0.0
-
-def getDFBC_u(x,flag):
-    #return lambda x,t: 0.0
-    if flag != boundaryTags['top'] or not openTop:
-        return lambda x,t: 0.0
-
-def getDFBC_v(x,flag):
-    return lambda x,t: 0.0
-
-advectiveFluxBoundaryConditions =  {0:getAFBC_u,
-                                    1:getAFBC_v}
-
-diffusiveFluxBoundaryConditions = {0:{0:getDFBC_u},
-                                   1:{1:getDFBC_v}}
+if nd == 3:
+    dirichletConditions[2] = lambda x, flag: domain.bc[flag].w_dirichlet.init_cython()
+    advectiveFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].w_advective.init_cython()
+    diffusiveFluxBoundaryConditions[2] = {2: lambda x, flag: domain.bc[flag].w_diffusive.init_cython()}
 
 class AtRest:
     def __init__(self):

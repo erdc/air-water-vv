@@ -1,10 +1,31 @@
-from proteus import *
 from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
-from tank import *
 from proteus.mprans import VOF3P
+from proteus import Context
 
+ct = Context.get()
+domain = ct.domain
+nd = domain.nd
+mesh = domain.MeshOptions
+
+
+genMesh = mesh.genMesh
+movingDomain = ct.movingDomain
+T = ct.T
 LevelModelType = VOF3P.LevelModel
+
+if ct.sedimentDynamics:
+    LS_model=2
+    V_model=6
+    RD_model=3
+    VOF_model=1
+    VOS_model=0
+else:
+    VOS_model=None
+    VOF_model=0
+    LS_model=1
+    RD_model=2
+    V_model=4
 
 coefficients = VOF3P.Coefficients(LS_model=LS_model,
                                   V_model=V_model,
@@ -12,27 +33,20 @@ coefficients = VOF3P.Coefficients(LS_model=LS_model,
                                   ME_model=VOF_model,
                                   VOS_model=VOS_model,
                                   checkMass=True,
-                                  useMetrics=useMetrics,
-                                  epsFact=epsFact_vof,
-                                  sc_uref=vof_sc_uref,
-                                  sc_beta=vof_sc_beta,
-                                  movingDomain=movingDomain)
+                                  useMetrics=ct.useMetrics,
+                                  epsFact=ct.epsFact_vof,
+                                  sc_uref=ct.vof_sc_uref,
+                                  sc_beta=ct.vof_sc_beta,
+                                  movingDomain=ct.movingDomain)
 
-def getDBC_vof(x,flag):
-    if flag == boundaryTags['top'] and openTop:
-        return lambda x,t: 1.0
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].vof_dirichlet.init_cython()}
 
-dirichletConditions = {0:getDBC_vof}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].vof_advective.init_cython()}
 
-def getAFBC_vof(x,flag):
-    if flag != boundaryTags['top'] or not openTop:
-        return lambda x,t: 0.0
+diffusiveFluxBoundaryConditions = {0: {}}
 
-advectiveFluxBoundaryConditions = {0:getAFBC_vof}
-diffusiveFluxBoundaryConditions = {0:{}}
+class VF_IC:
+    def uOfXT(self, x, t):
+        return smoothedHeaviside(ct.epsFact_consrv_heaviside*mesh.he,x[nd-1]-ct.waterLevel)
 
-class VOF_IC:
-    def uOfXT(self,x,t):
-        return smoothedHeaviside(epsFact_consrv_heaviside*he,signedDistance(x))
-
-initialConditions  = {0:VOF_IC()}
+initialConditions = {0: VF_IC()}

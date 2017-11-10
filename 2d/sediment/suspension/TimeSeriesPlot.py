@@ -1,3 +1,4 @@
+from proteus import StepControl
 #from scipy import *
 from pylab import *
 from numpy import *

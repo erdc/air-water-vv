@@ -1,38 +1,73 @@
+from proteus import StepControl
 from math import *
 import proteus.MeshTools
 from proteus import Domain, Context
 from proteus.default_n import *
 from proteus.Profiling import logEvent
+from proteus.mprans import SpatialTools as st
+from proteus import Gauges as ga
+from proteus import WaveTools as wt
+from proteus.mprans.SedClosure import  HsuSedStress
+
 
 opts=Context.Options([
     # predefined test cases
-    ("waterLine_x", 1.00, "Width of free surface from left to right"),
-    ("waterLine_z", 0.5, "Heigth of free surface above bottom"),
+    ("waterLine_x", 10.00, "Width of free surface from left to right"),
+    ("waterLine_z", 0.25, "Heigth of free surface above bottom"),
     ("Lx", 1.00, "Length of the numerical domain"),
-    ("Ly", 1.00, "Heigth of the numerical domain"),
+    ("Ly", 0.50, "Heigth of the numerical domain"),
+    # sediment parameters
+    ('cSed', 0.1,'Sediment concentration'),
     # numerical options
-    ("Refinement", 16,"L[0]/float(4*Refinement-1)"),
+    ("refinement", 30.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop", True, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.9 ,"Target cfl"),
-    ("T", 2.0 ,"Duration of the simulation"),
-    ("useRANS", 0, "Enable turbulence model"),
-    ("PSTAB", 0.25, "Affects subgrid error"),
+    ("duration", 0.5 ,"Duration of the simulation"),
+    ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
+    ("useRANS", 0, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
+    ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
+    ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
+    ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
     ])
 
-####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-# ----- Phisical constants ----- #####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
+# ----- Sediment stress ----- #
+
+sedClosure = HsuSedStress(aDarcy =  0.0,
+                          betaForch =  0.0,
+                          grain =  0.04,
+                          packFraction =  0.2,
+                          packMargin =  0.01,
+                          maxFraction =  0.635,
+                          frFraction =  0.57,
+                          sigmaC =  1.1,
+                          C3e =  1.2,
+                          C4e =  1.0,
+                          eR =  0.8,
+                          fContact =  0.02,
+                          mContact =  2.0,
+                          nContact =  5.0,
+                          angFriction =  pi/6.,
+                          )
+
+# ----- DOMAIN ----- #
+
+domain = Domain.PlanarStraightLineGraphDomain()
+
+
+# ----- Phisical constants ----- #
+  
 # Water
 rho_0 = 998.2
 nu_0 = 1.004e-6
 
 # Air
-rho_1 = rho_0  # 1.205
-nu_1 = nu_0    # 1.500e-5
+rho_1 = 1.205 #
+nu_1 = 1.500e-5 # 
 
 # Sediment
 
@@ -44,19 +79,124 @@ dragAlpha = 0.0
 sigma_01 = 0.0
 
 # Gravity
-g = [0.0, -9.8]
+g = np.array([0.0, -9.8, 0.0])
+gamma_0 = abs(g[1])*rho_0
 
 # Initial condition
 waterLine_x = opts.waterLine_x
 waterLine_z = opts.waterLine_z
+waterLevel = waterLine_z
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-#  Discretization -- input options
+# Domain and mesh
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-Refinement = opts.Refinement
+L = (opts.Lx, opts.Ly)
+he = L[0]/opts.refinement
+dim = dimx, dimy = L
+coords = [ dimx/2., dimy/2. ]
+
+boundaryOrientations = {'y-': np.array([0., -1.,0.]),
+                        'x+': np.array([+1, 0.,0.]),
+                        'y+': np.array([0., +1.,0.]),
+                        'x-': np.array([-1., 0.,0.]),
+                        'sponge': None,
+                           }
+boundaryTags = {'y-': 1,
+                    'x+': 2,
+                    'y+': 3,
+                    'x-': 4,
+                    'sponge': 5,
+                       }
+
+tank = st.Rectangle(domain, dim=dim, coords=coords)
+
+
+#############################################################################################################################################################################################################################################################################################################################################################################################
+# ----- BOUNDARY CONDITIONS ----- #
+#############################################################################################################################################################################################################################################################################################################################################################################################
+
+
+# loop for imposing the same BC at all the boundaries
+for ii in tank.BC_list:
+    ii.setNoSlip()
+    # sediment velocity
+    ii.us_advective.setConstantBC(0.0)
+    ii.vs_advective.setConstantBC(0.0)
+    ii.us_diffusive.setConstantBC(0.0)
+    ii.vs_diffusive.setConstantBC(0.0)
+
+# vos
+#tank.BC['x-'].vos_dirichlet.setConstantBC(1e-10)
+#tank.BC['x+'].vos_dirichlet.setConstantBC(1e-10)
+#tank.BC['y-'].vos_dirichlet.setConstantBC(1e-10)
+#tank.BC['y+'].vos_dirichlet.setConstantBC(1e-10)
+tank.BC['x-'].vos_advective.setConstantBC(0.0)
+tank.BC['x+'].vos_advective.setConstantBC(0.0)
+tank.BC['y-'].vos_advective.setConstantBC(0.0)
+tank.BC['y+'].vos_advective.setConstantBC(0.0)
+
+
+# ----- If open boundary at the top
+if opts.openTop:
+    tank.BC['y+'].reset()
+    tank.BC['y+'].setAtmosphere()
+    tank.BC['y+'].us_dirichlet.setConstantBC(0.0)
+    tank.BC['y+'].vs_dirichlet.setConstantBC(0.0)
+    tank.BC['y+'].vos_advective.setConstantBC(0.0)
+    #tank.BC['y+'].vos_dirichlet.setConstantBC(1e-10)
+
+
+
+####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+# Turbulence
+####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+
+
+if opts.useRANS:
+    kInflow = 1e-6
+    dissipationInflow = 1e-6
+    tank.BC['x-'].setTurbulentZeroGradient()
+    tank.BC['x+'].setTurbulentZeroGradient()
+    tank.BC['y-'].setTurbulentZeroGradient()
+    tank.BC['y+'].setTurbulentZeroGradient()
+
+
+######################################################################################################################################################################################################################
+# Numerical Options and other parameters #
+######################################################################################################################################################################################################################
+ 
+domain.MeshOptions.he = he
+
+from math import *
+from proteus import MeshTools, AuxiliaryVariables
+import numpy
+import proteus.MeshTools
+from proteus import Domain
+from proteus.Profiling import logEvent
+from proteus.default_n import *
+from proteus.ctransportCoefficients import smoothedHeaviside
+from proteus.ctransportCoefficients import smoothedHeaviside_integral
+
+st.assembleDomain(domain)
+
+#----------------------------------------------------
+# Time stepping and velocity
+#----------------------------------------------------
+
+T=opts.duration
+weak_bc_penalty_constant = 10.0/nu_0 #100
+dt_fixed = 0.01 
+dt_init = min(0.1*dt_fixed,0.001)
+nDTout= int(round(T/dt_fixed))
+runCFL = opts.cfl
+
 sedimentDynamics=opts.sedimentDynamics
 openTop=opts.openTop
+
+#----------------------------------------------------
+#  Discretization -- input options
+#----------------------------------------------------
 
 genMesh = True
 movingDomain = False
@@ -75,6 +215,11 @@ useOnlyVF = False
 useRANS = opts.useRANS  # 0 -- None
                         # 1 -- K-Epsilon
                         # 2 -- K-Omega
+KILL_PRESSURE_TERM = False
+fixNullSpace_PresInc = True
+INTEGRATE_BY_PARTS_DIV_U_PresInc = True
+CORRECT_VELOCITY = True
+STABILIZATION_TYPE = 1 #0: SUPG, 1: EV via weak residual, 2: EV via strong residual
 
 
 
@@ -92,7 +237,7 @@ if useMetrics not in [0.0, 1.0]:
     sys.exit()
 
 #  Discretization
-nd = 2
+nd = tank.nd
 
 if spaceOrder == 1:
     hFactor = 1.0
@@ -126,76 +271,6 @@ elif pspaceOrder == 2:
     else:
         pbasis = C0_AffineQuadraticOnSimplexWithNodalBasis
 
-####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-# Domain and mesh
-####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-
-L = (opts.Lx, opts.Ly)
-he = L[0]/float(4*Refinement-1)
-
-
-weak_bc_penalty_constant = 10.0/nu_0  #100
-nLevels = 1
-parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
-nLayersOfOverlapForParallel = 0
-structured = False
-
-
-if useHex:
-    nnx = 4 * Refinement + 1
-    nny = 2 * Refinement + 1
-    hex = True
-    domain = Domain.RectangularDomain(L)
-else:
-    boundaries = ['left', 'right', 'bottom', 'top', 'front', 'back']
-    boundaryTags = dict([(key, i + 1) for (i, key) in enumerate(boundaries)])
-    if structured:
-        nnx = 4 * Refinement
-        nny = 2 * Refinement
-    else:
-        vertices = [[0.0, 0.0],  #0
-                    [L[0], 0.0],  #1
-                    [L[0], L[1]],  #2
-                    [0.0, L[1]]]  #3
-        vertexFlags = [boundaryTags['bottom'],
-                       boundaryTags['bottom'],
-                       boundaryTags['top'],
-                       boundaryTags['top']]
-        segments = [[0, 1],
-                    [1, 2],
-                    [2, 3],
-                    [3, 0]]
-        segmentFlags = [boundaryTags['bottom'],
-                        boundaryTags['right'],
-                        boundaryTags['top'],
-                        boundaryTags['left']]
-        regions = [[1.2, 0.6]]
-        regionFlags = [1]
-
-        domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
-                                                      vertexFlags=vertexFlags,
-                                                      segments=segments,
-                                                      segmentFlags=segmentFlags,
-                                                      regions=regions,
-                                                      regionFlags=regionFlags)
-        #go ahead and add a boundary tags member
-        domain.boundaryTags = boundaryTags
-        domain.writePoly("mesh")
-        domain.writePLY("mesh")
-        domain.writeAsymptote("mesh")
-        triangleOptions = "VApq30Dena%8.8f" % ((he ** 2) / 2.0,)
-
-logEvent("""Mesh generated using: tetgen -%s %s""" % (triangleOptions, domain.polyfile + ".poly"))
-
-####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-# Time stepping
-####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-
-T=opts.T
-dt_fixed = 0.01#0.03
-dt_init = min(0.1*dt_fixed,0.001)
-runCFL=opts.cfl
-nDTout = int(round(T/dt_fixed))
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # Numerical parameters
@@ -203,6 +278,7 @@ nDTout = int(round(T/dt_fixed))
 
 ns_forceStrongDirichlet = False
 ns_sed_forceStrongDirichlet = False
+backgroundDiffusionFactor=0.01
 
 if useMetrics:
     ns_shockCapturingFactor = 0.5
@@ -285,7 +361,11 @@ dissipation_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
 phi_nl_atol_res = max(opts.res, 0.001 * he ** 2)
 pressure_nl_atol_res = max(opts.res, 0.001 * he ** 2)
 
-#turbulence
+
+####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+# Turbulence
+####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+
 ns_closure = 0  #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 ns_sed_closure = 0  #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
@@ -293,16 +373,40 @@ if useRANS == 1:
 elif useRANS == 2:
     ns_closure == 4
 
+
+####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+# Functions for model variables - Initial conditions
+####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+
 def signedDistance(x):
-    phi_x = x[0] - waterLine_x
     phi_z = x[1] - waterLine_z
-    if phi_x < 0.0:
-        if phi_z < 0.0:
-            return max(phi_x, phi_z)
+    return phi_z
+
+class Suspension_class:
+    def __init__(self):
+        pass
+    def uOfXT(self, x, t=0):
+        phi = signedDistance(x)
+        smoothing = (epsFact_consrv_heaviside)*he/2.
+        Heav = smoothedHeaviside(smoothing, phi)
+        if phi <= -smoothing :
+            return opts.cSed
+        elif -smoothing < phi < smoothing :
+            return opts.cSed * (1.-Heav) 
         else:
-            return phi_z
+            return 1e-10
+
+def vos_function(x, t=0):
+    phi = signedDistance(x)
+    smoothing = (epsFact_consrv_heaviside)*he/2.
+    Heav = smoothedHeaviside(smoothing, phi)
+    if phi <= -smoothing :
+        return opts.cSed
+    elif -smoothing < phi < smoothing :
+        return opts.cSed * (1.-Heav) 
     else:
-        if phi_z < 0.0:
-            return phi_x
-        else:
-            return sqrt(phi_x ** 2 + phi_z ** 2)
+        return 1e-10
+    
+
+Suspension = Suspension_class()
+

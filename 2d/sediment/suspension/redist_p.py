@@ -1,19 +1,40 @@
+from proteus import StepControl
 from proteus import *
 from proteus.default_p import *
 from math import *
-from tank import *
 from proteus.mprans import RDLS3P
+from proteus import Context
+
 """
 The redistancing equation in the sloshbox test problem.
 """
 
+ct = Context.get()
+domain = ct.domain
+nd = domain.nd
+mesh = domain.MeshOptions
+
+
+genMesh = mesh.genMesh
+movingDomain = ct.movingDomain
+T = ct.T
+
 LevelModelType = RDLS3P.LevelModel
 
-coefficients = RDLS3P.Coefficients(applyRedistancing=applyRedistancing,
-                                   epsFact=epsFact_redistance,
+if ct.sedimentDynamics:
+    LS_model=2
+    RD_model=3
+else:
+    LS_model=1
+    RD_model=2
+
+
+coefficients = RDLS3P.Coefficients(applyRedistancing=ct.applyRedistancing,
+                                   epsFact=ct.epsFact_redistance,
                                    nModelId=LS_model,
                                    rdModelId=RD_model,
-                                   useMetrics=useMetrics)
+                                   useMetrics=ct.useMetrics,
+                                   backgroundDiffusionFactor=ct.backgroundDiffusionFactor)
 
 def getDBC_rd(x,flag):
     pass
@@ -25,7 +46,7 @@ advectiveFluxBoundaryConditions =  {}
 diffusiveFluxBoundaryConditions = {0:{}}
 
 class PHI_IC:
-    def uOfXT(self,x,t):
-        return signedDistance(x)
+    def uOfXT(self, x, t):
+        return x[nd-1] - ct.waterLevel
 
-initialConditions  = {0:PHI_IC()}
+initialConditions  = {0: PHI_IC()}

@@ -1,39 +1,47 @@
-from proteus import *
+from proteus import StepControl
 from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
-from tank import *
 from proteus.mprans import VOS3P
+from proteus import Context
+from proteus import *
+
+ct = Context.get()
+domain = ct.domain
+nd = ct.domain.nd
+mesh = domain.MeshOptions
 
 LevelModelType = VOS3P.LevelModel
 
+
+if ct.sedimentDynamics:
+    V_model=6
+    VOF_model=1
+    SED_model=5
+else:
+    V_model=4
+    VOF_model=0
+    SED_model=None
+
 coefficients = VOS3P.Coefficients(LS_model=None,
-                                  V_model=V_model,
+                                  V_model=SED_model,
+                                  SED_model=SED_model,
                                   RD_model=None,
                                   ME_model=0,
+                                  VOF_model=VOF_model,
                                   checkMass=False,
-                                  useMetrics=useMetrics,
-                                  epsFact=epsFact_vos,
-                                  sc_uref=vos_sc_uref,
-                                  sc_beta=vos_sc_beta,
-                                  movingDomain=movingDomain)
+                                  useMetrics=ct.useMetrics,
+                                  epsFact=ct.epsFact_vos,
+                                  sc_uref=ct.vos_sc_uref,
+                                  sc_beta=ct.vos_sc_beta,
+                                  movingDomain=ct.movingDomain,
+                                  vos_function = ct.vos_function,
+                                  )
 
-def getDBC_fos(x,flag):
-   pass
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].vos_dirichlet.init_cython()}
 
-dirichletConditions = {0:getDBC_fos}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].vos_advective.init_cython()}
 
-def getAFBC_fos(x,flag):
-    return lambda x,t: 0.0
+diffusiveFluxBoundaryConditions = {0: {}}
 
-advectiveFluxBoundaryConditions = {0:getAFBC_fos}
-diffusiveFluxBoundaryConditions = {0:{}}
 
-class Bed:
-    def uOfXT(self,x,t):
-        return 0.001 + 0.35*smoothedHeaviside(epsFact_consrv_heaviside*he*3,0.25 - x[1])
-
-class Sunspension:
-    def uOfXT(self,x,t):
-        return 0.1
-
-initialConditions  = {0:Sunspension()} # Bed()}
+initialConditions  = {0:ct.Suspension}

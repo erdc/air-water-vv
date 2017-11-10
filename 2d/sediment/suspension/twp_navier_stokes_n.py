@@ -1,4 +1,9 @@
 from proteus import *
+from proteus import (StepControl,
+                     TimeIntegration,
+                     NonlinearSolvers,
+                     LinearSolvers,
+                     LinearAlgebraTools)
 from twp_navier_stokes_p import *
 from tank import *
 
@@ -31,25 +36,25 @@ subgridError = RANS3PF.SubgridError(coefficients,nd,lag=ns_lag_subgridError,hFac
 shockCapturing = RANS3PF.ShockCapturing(coefficients,nd,ns_shockCapturingFactor,lag=ns_lag_shockCapturing)
 
 fullNewtonFlag = True
-multilevelNonlinearSolver = Newton
-levelNonlinearSolver      = Newton
+multilevelNonlinearSolver = NonlinearSolvers.Newton
+levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
 
-linearSmoother    = SimpleNavierStokes2D
+linearSmoother    = None #SimpleNavierStokes2D
 
 matrix = SparseMatrix
 
 if useOldPETSc:
-    multilevelLinearSolver = PETSc
-    levelLinearSolver      = PETSc
+    multilevelLinearSolver = LinearSolvers.PETSc
+    levelLinearSolver      = LinearSolvers.PETSc
 else:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
+    multilevelLinearSolver = LinearSolvers.KSP_petsc4py
+    levelLinearSolver      = LinearSolvers.KSP_petsc4py
 
 if useSuperlu:
-    multilevelLinearSolver = LU
-    levelLinearSolver      = LU
+    multilevelLinearSolver = LinearSolvers.LU
+    levelLinearSolver      = LinearSolvers.LU
 
 linear_solver_options_prefix = 'rans2p_'
 nonlinearSolverConvergenceTest = 'rits'
