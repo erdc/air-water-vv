@@ -87,7 +87,7 @@ coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                     mContact = sedClosure.mContact,
                                     nContact = sedClosure.nContact,
                                     angFriction = sedClosure.angFriction,
-                                    vos_function = ct.vos_function,
+                                    #vos_function = ct.vos_function,
                                     )
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].us_dirichlet.init_cython(),
