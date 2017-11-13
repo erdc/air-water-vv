@@ -22,10 +22,8 @@ else:
     timeIntegration = BackwardEuler_cfl
     stepController  = Min_dt_cfl_controller
 
-femSpaces = {0:basis,
-	     1:basis}
-#femSpaces = {0:C0_AffineQuadraticOnSimplexWithNodalBasis,
-#             1:C0_AffineQuadraticOnSimplexWithNodalBasis}
+femSpaces = {0:ct.basis,
+	     1:ct.basis}
 
 massLumping       = False
 numericalFluxType = None

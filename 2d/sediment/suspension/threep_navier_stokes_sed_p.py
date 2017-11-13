@@ -3,38 +3,12 @@ from proteus.default_p import *
 from tank import *
 from proteus.mprans import RANS3PSed
 from proteus import Context
+import tank_so
 
 ct = Context.get()
 
 LevelModelType = RANS3PSed.LevelModel
 
-if ct.sedimentDynamics:
-    VOS_model=0
-    VOF_model=1
-    LS_model=2
-    RD_model=3
-    MCORR_model=4
-    SED_model=5
-    V_model=6
-    PINC_model=7
-    PRESSURE_model=8
-    PINIT_model=9
-else:
-    VOS_model=None
-    SED_model=None
-    VOF_model=0
-    LS_model=1
-    RD_model=2
-    MCORR_model=3
-    V_model=4
-    PINC_model=5
-    PRESSURE_model=6
-    PINIT_model=7
-
-if useOnlyVF:
-    LS_model = None
-else:
-    LS_model = 2
 if useRANS >= 1:
     Closure_0_model = 5; Closure_1_model=6
     if useOnlyVF:
@@ -48,17 +22,17 @@ else:
 coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                       sigma=0.0,
                                       rho_0 = rho_s,
-                                      nu_0 = nu_s,#1e-10,#nu_0,# 
+                                      nu_0 = nu_s,
                                       rho_1 = rho_s,
-                                      nu_1 = nu_s,#1e-10,#nu_0,#
+                                      nu_1 = nu_s,
                                       g=g,
                                       nd=nd,
-                                      ME_model=SED_model,
-                                      PRESSURE_model=PRESSURE_model,
-                                      FLUID_model=V_model,
-                                      VOS_model=VOS_model,
-                                      VOF_model=VOF_model,
-                                      LS_model=LS_model,
+                                      ME_model=tank_so.SED_model,
+                                      PRESSURE_model=tank_so.P_model,
+                                      FLUID_model=tank_so.FLOW_model,
+                                      VOS_model=tank_so.VOS_model,
+                                      VOF_model=tank_so.VOF_model,
+                                      LS_model=tank_so.NCLS_model,
                                       Closure_0_model=Closure_0_model,
                                       Closure_1_model=Closure_1_model,
                                       epsFact_density=epsFact_density,
@@ -73,22 +47,20 @@ coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                       movingDomain=movingDomain,
                                       dragAlpha=dragAlpha,
                                       PSTAB=ct.opts.PSTAB,
-                                    aDarcy = sedClosure.aDarcy,
-                                    betaForch = sedClosure.betaForch,
-                                    grain = sedClosure.grain,
-                                    packFraction = sedClosure.packFraction,
-                                    maxFraction = sedClosure.maxFraction,
-                                    frFraction = sedClosure.frFraction,
-                                    sigmaC = sedClosure.sigmaC,
-                                    C3e = sedClosure.C3e,
-                                    C4e = sedClosure.C4e,
-                                    eR = sedClosure.eR,
-                                    fContact = sedClosure.fContact,
-                                    mContact = sedClosure.mContact,
-                                    nContact = sedClosure.nContact,
-                                    angFriction = sedClosure.angFriction,
-                                    #vos_function = ct.vos_function,
-                                    )
+                                      aDarcy = sedClosure.aDarcy,
+                                      betaForch = sedClosure.betaForch,
+                                      grain = sedClosure.grain,
+                                      packFraction = sedClosure.packFraction,
+                                      maxFraction = sedClosure.maxFraction,
+                                      frFraction = sedClosure.frFraction,
+                                      sigmaC = sedClosure.sigmaC,
+                                      C3e = sedClosure.C3e,
+                                      C4e = sedClosure.C4e,
+                                      eR = sedClosure.eR,
+                                      fContact = sedClosure.fContact,
+                                      mContact = sedClosure.mContact,
+                                      nContact = sedClosure.nContact,
+                                      angFriction = sedClosure.angFriction)
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].us_dirichlet.init_cython(),
                        1: lambda x, flag: domain.bc[flag].vs_dirichlet.init_cython()}

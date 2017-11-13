@@ -4,24 +4,14 @@ from proteus.default_p import *
 from proteus.mprans import Pres
 from tank import *
 from proteus import Context
+import tank_so
 
 ct = Context.get()
 name = "pressure"
 
-if ct.sedimentDynamics:
-    V_model=6
-    PINC_model=7
-    PRESSURE_model=8
-
-else:
-    V_model=4
-    PINC_model=5
-    PRESSURE_model=6
-
-
-coefficients=Pres.Coefficients(modelIndex=PRESSURE_model,
-                               fluidModelIndex=V_model,
-                               pressureIncrementModelIndex=PINC_model,
+coefficients=Pres.Coefficients(modelIndex=tank_so.P_model,
+                               fluidModelIndex=tank_so.FLOW_model,
+                               pressureIncrementModelIndex=tank_so.PINC_model,
                                useRotationalForm=False)
 LevelModelType = Pres.LevelModel
 
@@ -30,7 +20,7 @@ def getDBC_p(x,flag):
         return lambda x,t: 0.0
 
 def getFlux(x,flag):
-    if not(flag == boundaryTags['y+'] and openTop):
+    if not openTop or flag != boundaryTags['y+']:
         return lambda x,t: 0.0
 
 class getIBC_p:

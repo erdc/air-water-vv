@@ -3,6 +3,7 @@ from proteus import *
 from proteus.default_p import *
 from proteus.mprans import NCLS3P
 from proteus import Context
+import tank_so
 
 ct = Context.get()
 domain = ct.domain
@@ -16,18 +17,9 @@ T = ct.T
 
 LevelModelType = NCLS3P.LevelModel
 
-if ct.sedimentDynamics:
-    LS_model=2
-    RD_model=3
-    V_model=6
-else:
-    LS_model=1
-    RD_model=2
-    V_model=4
-
-coefficients = NCLS3P.Coefficients(V_model=V_model,
-                                   RD_model=RD_model,
-                                   ME_model=LS_model,
+coefficients = NCLS3P.Coefficients(V_model=tank_so.FLOW_model,
+                                   RD_model=tank_so.RDLS_model,
+                                   ME_model=tank_so.NCLS_model,
                                    checkMass=False,
                                    useMetrics=ct.useMetrics,
                                    epsFact=ct.epsFact_consrv_heaviside,

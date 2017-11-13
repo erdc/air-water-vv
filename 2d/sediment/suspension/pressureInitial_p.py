@@ -4,7 +4,7 @@ from proteus.default_p import *
 from proteus.mprans import PresInit
 from tank import *
 from proteus import Context
-
+import tank_so
 
 ct = Context.get()
 
@@ -12,20 +12,10 @@ ct = Context.get()
 #nd = ctx.nd
 name = "pressureInitial"
 
-if ct.sedimentDynamics:
-    V_model=6
-    PRESSURE_model=8
-    PINIT_model=9
-else:
-    V_model=4
-    PRESSURE_model=6
-    PINIT_model=7
-
-
 coefficients=PresInit.Coefficients(nd=nd,
-                                   modelIndex=PINIT_model,
-                                   fluidModelIndex=V_model,
-                                   pressureModelIndex=PRESSURE_model)
+                                   modelIndex=tank_so.PINIT_model,
+                                   fluidModelIndex=tank_so.FLOW_model,
+                                   pressureModelIndex=tank_so.P_model)
 
 #pressure increment should be zero on any pressure dirichlet boundaries
 def getDBC_pInit(x,flag):
