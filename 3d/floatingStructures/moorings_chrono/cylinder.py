@@ -12,10 +12,9 @@ comm=Comm.init()
 opts=Context.Options([
     ("water_level", 0.9, "Height of free surface above bottom"),
     # tank
-    # tank
     ('tank_wavelength_scale', True, 'if True: tank_x=value*wavelength, tank_y=value*wavelength'),
     ('tank_x', 2., 'Length of tank'),
-    ('tank_y', 2., 'Width of tank'),
+    ('tank_y', 1., 'Width of tank'),
     ('tank_z', 1.8, 'Height of tank'),
     ('tank_sponge_lambda_scale', True, 'True: sponge length relative to wavelength'),
     ('tank_sponge_xn', 1., 'length of sponge layer x-'),
@@ -59,7 +58,7 @@ opts=Context.Options([
     ("chrono_dt", 1e-4, "time step in chrono"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
     ("cfl", 0.4, "Target cfl"),
-    ("nsave", 5, "Number of time steps to save per second"),
+    ("nsave", 20, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ])
 
@@ -77,7 +76,7 @@ g = np.array([0., 0., -9.81])
 water_level = opts.water_level
 
 # tank options
-tank_dim = [opts.tank_x, opts.tank_y, opts.tank_z]
+tank_dim = np.array([opts.tank_x, opts.tank_y, opts.tank_z])
 cylinder_radius = opts.cylinder_radius
 cylinder_height = opts.cylinder_height
 free_x = np.array(opts.free_x)
@@ -117,6 +116,8 @@ domain = Domain.PiecewiseLinearComplexDomain()
 # ----- SHAPES ----- #
 
 # TANK
+if opts.tank_wavelength_scale and opts.waves:
+    tank_dim[0:2] *= wavelength
 tank = st.Tank3D(domain, tank_dim)
 sponges = {'x-': opts.tank_sponge_xn,
            'x+': opts.tank_sponge_xp,
@@ -263,7 +264,7 @@ if opts.moorings is True:
         vec = pych.ChVector(coords[0], coords[1], coords[2])
         body.ChBody.SetPos(vec)
         time_init = 10.
-        time_init_dt = opts.chrono_dt
+        time_init_dt = 1e-3
         prescribed_t = np.arange(0., time_init, 1e-1)
         prescribed_z = np.linspace(0., water_level-fairlead_height, len(prescribed_t))
         body.setPrescribedMotionCustom(t=prescribed_t, z=prescribed_z, t_max=time_init)
@@ -294,9 +295,9 @@ if opts.moorings is True:
     m2_s = l2.s
     m3_s = l3.s
     if prescribed_init:
-        m1_s = lambda s: (l1.fairlead+l1.anchor)*s/L
-        m2_s = lambda s: (l2.fairlead+l2.anchor)*s/L
-        m3_s = lambda s: (l3.fairlead+l3.anchor)*s/L
+        m1_s = lambda s: l1.anchor+(l1.fairlead-l1.anchor)*s/L
+        m2_s = lambda s: l2.anchor+(l2.fairlead-l2.anchor)*s/L
+        m3_s = lambda s: l3.anchor+(l3.fairlead-l3.anchor)*s/L
 
     # make chrono cables
     mesh = crb.Mesh(system)
@@ -323,6 +324,7 @@ if opts.moorings is True:
     body2.ChBody.SetBodyFixed(True)
     body2.barycenter0 = np.zeros(3)
     # build nodes
+    etas = np.array([-0.5, 0., 0.5, 1.])  # etas to record strain
     moorings = [m1, m2, m3]
     for m in moorings:
         m.setDragCoefficients(tangential=0.5, normal=2.5, segment_nb=0)
@@ -340,6 +342,7 @@ if opts.moorings is True:
         if opts.cylinder is True:
             m.attachBackNodeToBody(body)
         m.attachFrontNodeToBody(body2)
+        m.recordStrainEta(etas)
 
     # seabed contact
     pos1 = m1.getNodesPosition()
@@ -381,10 +384,13 @@ domain.MeshOptions.setOutputFiles(name=mesh_fileprefix)
 st.assembleDomain(domain)  # must be called after defining shapes
 
 if prescribed_init:
-    logEvent('Calculating chrono prescribed motion before starting simulation with '+str(system.chrono_dt)+' for '+str(time_init)+' seconds (this migth take some time)')
+    logEvent('Calculating chrono prescribed motion before starting simulation with dt='+str(time_init_dt)+' for '+str(time_init)+' seconds (this migth take some time)')
     system.calculate_init()
     system.setTimeStep(time_init_dt)
     system.calculate(time_init)  # run chrono before fluid sim for intended time to executed prescribed motion
+    # for i in range(int(time_init/1e-3)):
+    #     system.calculate(1e-3)  # run chrono before fluid sim for intended time to executed prescribed motion
+    logEvent('finished prescribed motion with body at position '+str(body.ChBody.GetPos()))
     system.setTimeStep(opts.chrono_dt)
 
 
