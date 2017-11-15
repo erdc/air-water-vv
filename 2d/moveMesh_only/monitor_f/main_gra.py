@@ -103,7 +103,7 @@ def fix_point(x, t):
         print("hello")
         return 0.
 
-rect.BC['x-'].setFixedNodes()
+#rect.BC['x-'].setFixedNodes()
 
 
 #for flag in rect.BC:
