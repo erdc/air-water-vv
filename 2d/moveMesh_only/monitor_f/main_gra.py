@@ -96,22 +96,23 @@ domain = Domain.PlanarStraightLineGraphDomain()
 
 # ----- SHAPES ----- #
 
-rect = st.Rectangle(domain, dim=[1., 1.], coords=[0.5, 0.5])
+boundaryTags = bt = {'notfixed': 1,
+'fixed': 2}
+vertices = [[0.,0.], [1.,0.], [1., 1.], [0., 1.]]
+vertexFlags = [bt['fixed'], bt['notfixed'], bt['notfixed'], bt['notfixed']]
+segments = [[0, 1], [1, 2], [2, 3], [3, 0]]
+segmentFlags = [bt['notfixed'], bt['notfixed'], bt['notfixed'], bt['notfixed']]
+regions = [[0.5, 0.5]]
+regionFlags = [1]
 
-def fix_point(x, t):
-    if x[0] < 1e-5:
-        print("hello")
-        return 0.
+rect = st.CustomShape(domain,
+vertices=vertices, vertexFlags=vertexFlags,
+segments=segments, segmentFlags=segmentFlags,
+regions=regions, regionFlags=regionFlags,
+boundaryTags=boundaryTags)
 
-#rect.BC['x-'].setFixedNodes()
+rect.BC['fixed'].setFixedNodes()
 
-
-#for flag in rect.BC:
-#    rect.BC[flag].hx_dirichlet.uOfXT = fix_point
-# rect.BC['y-'].hx_dirichlet.uOfXT = fix_point
-# rect.BC['x+'].setFixedNodes()
-# rect.BC['y-'].setFixedNodes()
-# rect.BC['y+'].setFixedNodes()
 
 
 # ----- GENERATION / ABSORPTION LAYERS ----- #
