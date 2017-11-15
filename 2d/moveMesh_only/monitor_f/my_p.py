@@ -70,6 +70,7 @@ def get_center_area(e_nodes):
     area = 0.5 * np.abs(detJ)
     return area, center
 
+from proteus import TransportCoefficients
 class MyCoeff(TransportCoefficients.PoissonEquationCoefficients):
     def __init__(self):
         # super(MyCoeff, self).__init__(aOfXT, fOfX, nc, nd)
@@ -83,12 +84,9 @@ class MyCoeff(TransportCoefficients.PoissonEquationCoefficients):
             integral_1_over_f += area/myfuncclass.my_func(center)
         myfuncclass.C = integral_1_over_f
 
-        print "numnber of nodes: ", self.mesh.nodeArray.shape
-        print self.mesh.nodeArray
         for node in self.mesh.nodeArray:
             if node[0] < 1e-5 and node[1] < 1e-6:
                 print(node)
-        print "number of dofs", self.model.u[0].dof.shape
         
 
     def attachModels(self,modelList):
@@ -113,7 +111,7 @@ fluxBoundaryConditions = {0: 'noFlow',
 advectiveFluxBoundaryConditions = {}
 
 def getDiffFluxBC5(x,flag):
-    if flag != 4:
+    if flag != ct.rect.boundaryTags['x-']:
         n = numpy.zeros((nd,),'d'); n[0]=1.0
         return lambda x,t: 0.
 

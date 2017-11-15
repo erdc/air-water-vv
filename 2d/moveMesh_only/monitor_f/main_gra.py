@@ -1,8 +1,8 @@
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
-from proteus.mbd import ChRigidBody as crb
-from proteus.mbd import pyChronoCore as pych
+#from proteus.mbd import ChRigidBody as crb
+#from proteus.mbd import pyChronoCore as pych
 import numpy as np
 
 from proteus import Comm
@@ -99,16 +99,15 @@ domain = Domain.PlanarStraightLineGraphDomain()
 rect = st.Rectangle(domain, dim=[1., 1.], coords=[0.5, 0.5])
 
 def fix_point(x, t):
-    print("I'm here", x)
-    # if x[0] < 1e-5:
-    #     print("hello")
-    #     return 0.
+    if x[0] < 1e-5:
+        print("hello")
+        return 0.
+
+rect.BC['x-'].setFixedNodes()
 
 
-
-for flag in rect.BC:
-    rect.BC[flag].hx_dirichlet.uOfXT = fix_point
-# rect.BC['x-'].setFixedNodes()
+#for flag in rect.BC:
+#    rect.BC[flag].hx_dirichlet.uOfXT = fix_point
 # rect.BC['y-'].hx_dirichlet.uOfXT = fix_point
 # rect.BC['x+'].setFixedNodes()
 # rect.BC['y-'].setFixedNodes()
