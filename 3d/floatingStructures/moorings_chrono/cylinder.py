@@ -383,15 +383,15 @@ domain.MeshOptions.setOutputFiles(name=mesh_fileprefix)
 
 st.assembleDomain(domain)  # must be called after defining shapes
 
-if prescribed_init:
-    logEvent('Calculating chrono prescribed motion before starting simulation with dt='+str(time_init_dt)+' for '+str(time_init)+' seconds (this migth take some time)')
-    system.calculate_init()
-    system.setTimeStep(time_init_dt)
-    system.calculate(time_init)  # run chrono before fluid sim for intended time to executed prescribed motion
-    # for i in range(int(time_init/1e-3)):
-    #     system.calculate(1e-3)  # run chrono before fluid sim for intended time to executed prescribed motion
-    logEvent('finished prescribed motion with body at position '+str(body.ChBody.GetPos()))
-    system.setTimeStep(opts.chrono_dt)
+#if prescribed_init:
+#    logEvent('Calculating chrono prescribed motion before starting simulation with dt='+str(time_init_dt)+' for '+str(time_init)+' seconds (this migth take some time)')
+#    system.calculate_init()
+#    system.setTimeStep(time_init_dt)
+#    system.calculate(time_init)  # run chrono before fluid sim for intended time to executed prescribed motion
+#    # for i in range(int(time_init/1e-3)):
+#    #     system.calculate(1e-3)  # run chrono before fluid sim for intended time to executed prescribed motion
+#    logEvent('finished prescribed motion with body at position '+str(body.ChBody.GetPos()))
+#    system.setTimeStep(opts.chrono_dt)
 
 
 
