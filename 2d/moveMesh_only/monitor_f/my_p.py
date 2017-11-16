@@ -102,40 +102,51 @@ class MyCoeff(TransportCoefficients.PoissonEquationCoefficients):
 #coefficients = TransportCoefficients.PoissonEquationCoefficients(aOfX,fOfX,nc,nd)
 coefficients = MyCoeff()
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].hx_dirichlet.init_cython()}
+class FixArbitraryNode():
+    def __init__(self):
+        self.DBC_set = False
+	self.DFBC_set = False
+    def getDBC(self, x, flag):
+        #if x[0] == 0:
+        if self.DBC_set == False:
+            print("SETTING DBC", x)
+            self.DBC_set = True
+            return lambda x, t: 0.
+    def getDFBC(self, x, flag):
+        #if x[0] == 0:
+        if self.DFBC_set == False:
+            print("SETTING DFBC", x)
+            self.DFBC_set = True
+            return
+        else:
+            return lambda x, t: 0.
+
+FA = FixArbitraryNode()
+dirichletConditions = {0: FA.getDBC}
 
 fluxBoundaryConditions = {0: 'noFlow',
                           1: 'noFlow'}
 
 advectiveFluxBoundaryConditions = {}
 
-def getDiffFluxBC5(x,flag):
-    if flag != 0: 
-        n = numpy.zeros((nd,),'d'); n[0]=1.0
-        return lambda x,t: 0.
 
-diffusiveFluxBoundaryConditions = {0: {0: getDiffFluxBC5}}
-
-if nd == 3:
-    dirichletConditions[2] = lambda x, flag: domain.bc[flag].hz_dirichlet.init_cython()
-    fluxBoundaryConditions[2] = 'noFlow'
-    diffusiveFluxBoundaryConditions[2] = {}
-    stressFluxBoundaryConditions[3] = lambda x, flag: domain.bc[flag].w_stress.init_cython()
-
-#########################
-class My_OneLevelTransport(OneLevelTransport):
-    def getJacobian(self,jacobian,skipMassTerms=False):
-	print "I am here to assemble Jacobian"
-	OneLevelTransport.getJacobian(self,jacobian,skipMassTerms)
-	rowptr, colind, nzval = jacobian.getCSRrepresentation()
-	for j in range(rowptr[0],rowptr[1]):
-		if 0 == colind[j]:
-			nzval[j] = 10e20
-		else:
-			nzval[j] = 0.0	
-
-	
+diffusiveFluxBoundaryConditions = {0: {0: FA.getDFBC}}
 
 
-LeveoModelType = My_OneLevelTransport
-
+##########################
+#class My_OneLevelTransport(OneLevelTransport):
+#    def getJacobian(self,jacobian,skipMassTerms=False):
+#	print "I am here to assemble Jacobian"
+#	OneLevelTransport.getJacobian(self,jacobian,skipMassTerms)
+#	rowptr, colind, nzval = jacobian.getCSRrepresentation()
+#	for j in range(rowptr[0],rowptr[1]):
+#		if 0 == colind[j]:
+#			nzval[j] = 10e20
+#		else:
+#			nzval[j] = 0.0	
+#
+#	
+#
+#
+#LeveoModelType = My_OneLevelTransport
+#
