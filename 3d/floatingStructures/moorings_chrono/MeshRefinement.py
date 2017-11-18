@@ -25,7 +25,7 @@ def geometry_to_gmsh(domain):
     nb_points = i+1
     for i in range(nb_points):
         lines_dict[i] = {}
-        
+
     for i, s in enumerate(self.segments):
         lines_dict[s[0]][s[1]] = i
         l = Line([mesh.points[s[0]+1], mesh.points[s[1]+1]])
@@ -50,6 +50,7 @@ def geometry_to_gmsh(domain):
                         l = Line([mesh.points[subf[k-1]+1], mesh.points[ver+1]])
                         mesh.addEntity(l)
                         lineloop += [l.nb]
+                        lines_dict[ver][subf[k-1]] = l.nb-1
                 ll = LineLoop(mesh.getLinesFromIndex(lineloop))
                 mesh.addEntity(ll)
                 lineloops += [ll.nb]
