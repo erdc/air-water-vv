@@ -74,7 +74,7 @@ fullNewtonFlag = True
 multilevelNonlinearSolver  = NonlinearSolvers.Newton
 levelNonlinearSolver       = NonlinearSolvers.Newton
 
-nonlinearSmoother = NonlinearSolvers.GaussSeidel
+nonlinearSmoother = NonlinearSolvers.NLGaussSeidel
 linearSmoother    = None
 
 matrix = LinearAlgebraTools.SparseMatrix

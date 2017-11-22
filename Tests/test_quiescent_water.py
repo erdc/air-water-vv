@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-os.chdir('2d/benchmarks/quiescent_water_probe_benchmark')
+os.chdir('air-water-vv/2d/benchmarks/quiescent_water_probe_benchmark')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
