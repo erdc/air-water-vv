@@ -5,14 +5,6 @@ language: python
 
 env:
 - TEST_PROFILE="Tests/test_quiescent_water.py"
-- TEST_PROFILE="Tests/test_dambreak_Colagrossi.py"
-- TEST_PROFILE="Tests/test_dambreak_Ubbink.py"
-- TEST_PROFILE="Tests/test_wavesloshing.py"
-- TEST_PROFILE="Tests/test_linearWaves.py"
-- TEST_PROFILE="Tests/test_nonlinearWaves.py"
-- TEST_PROFILE="Tests/test_standingWaves.py"
-- TEST_PROFILE="Tests/test_randomWaves.py"
-
 
 python:
 - 2.7
