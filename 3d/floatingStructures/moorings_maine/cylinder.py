@@ -249,17 +249,18 @@ if opts.moorings is True:
     l1 = MooringLine(L=L, w=w, EA=EA, anchor=anchor1, fairlead=fairlead1, tol=1e-8)
     l2 = MooringLine(L=L, w=w, EA=EA, anchor=anchor2, fairlead=fairlead2, tol=1e-8)
     l3 = MooringLine(L=L, w=w, EA=EA, anchor=anchor3, fairlead=fairlead3, tol=1e-8)
-    l1.setVariables()
-    l2.setVariables()
-    l3.setVariables()
-    # functions to use for laying out the cables
-    m1_s = l1.s
-    m2_s = l2.s
-    m3_s = l3.s
-    m1_ds = l1.ds
-    m2_ds = l2.ds
-    m3_ds = l3.ds
-    if prescribed_init:
+    if prescribed_init is False:
+        l1.setVariables()
+        l2.setVariables()
+        l3.setVariables()
+        # functions to use for laying out the cables
+        m1_s = l1.s
+        m2_s = l2.s
+        m3_s = l3.s
+        m1_ds = l1.ds
+        m2_ds = l2.ds
+        m3_ds = l3.ds
+    else:
         m1_s = lambda s: l1.anchor+(l1.fairlead-l1.anchor)*s/L
         m2_s = lambda s: l2.anchor+(l2.fairlead-l2.anchor)*s/L
         m3_s = lambda s: l3.anchor+(l3.fairlead-l3.anchor)*s/L
