@@ -301,9 +301,9 @@ if opts.moorings is True:
         m1_s = lambda s: l1.anchor+(l1.fairlead-l1.anchor)*s/L
         m2_s = lambda s: l2.anchor+(l2.fairlead-l2.anchor)*s/L
         m3_s = lambda s: l3.anchor+(l3.fairlead-l3.anchor)*s/L
-        m1_s = lambda s: l1.fairlead-l1.anchor
-        m2_s = lambda s: l2.fairlead-l2.anchor
-        m3_s = lambda s: l3.fairlead-l3.anchor
+        m1_ds = lambda s: l1.fairlead-l1.anchor
+        m2_ds = lambda s: l2.fairlead-l2.anchor
+        m3_ds = lambda s: l3.fairlead-l3.anchor
 
     # make chrono cables
     mesh = crb.Mesh(system)
