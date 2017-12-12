@@ -1,0 +1,21 @@
+#!/bin/csh
+#PBS -A ERDCV00898R40
+#PBS -l walltime=001:00:00
+#PBS -l select=1:ncpus=32:mpiprocs=32
+#PBS -q debug
+#PBS -N moorings
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+setenv LD_LIBRARY_PATH /p/home/cekees/proteus/excalibur.gnu/lib:$LD_LIBRARY_PATH
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/moorings.$PBS_JOBID
+cp *.py $WORKDIR/moorings.$PBS_JOBID
+cp *.geo $WORKDIR/moorings.$PBS_JOBID
+cp *.igs $WORKDIR/moorings.$PBS_JOBID
+cp excalibur.pbs $WORKDIR/moorings.$PBS_JOBID
+cp $HOME/air-water-vv/inputTemplates/petsc.options.asm $WORKDIR/moorings.$PBS_JOBID
+cd  $WORKDIR/moorings.$PBS_JOBID
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun cylinder_so.py -p -l 5 -F -C "he=0.01" -O petsc.options.asm
