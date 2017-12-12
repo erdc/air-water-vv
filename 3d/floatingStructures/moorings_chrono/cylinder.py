@@ -294,10 +294,16 @@ if opts.moorings is True:
     m1_s = l1.s
     m2_s = l2.s
     m3_s = l3.s
+    m1_ds = l1.ds
+    m2_ds = l2.ds
+    m3_ds = l3.ds
     if prescribed_init:
         m1_s = lambda s: l1.anchor+(l1.fairlead-l1.anchor)*s/L
         m2_s = lambda s: l2.anchor+(l2.fairlead-l2.anchor)*s/L
         m3_s = lambda s: l3.anchor+(l3.fairlead-l3.anchor)*s/L
+        m1_s = lambda s: l1.fairlead-l1.anchor
+        m2_s = lambda s: l2.fairlead-l2.anchor
+        m3_s = lambda s: l3.fairlead-l3.anchor
 
     # make chrono cables
     mesh = crb.Mesh(system)
@@ -316,9 +322,9 @@ if opts.moorings is True:
     m2.setName('mooring2')
     m3.setName('mooring3')
     # set functions to lay out nodes
-    m1.setNodesPositionFunction(m1_s)
-    m2.setNodesPositionFunction(m2_s)
-    m3.setNodesPositionFunction(m3_s)
+    m1.setNodesPositionFunction(m1_s, m1_ds)
+    m2.setNodesPositionFunction(m2_s, m2_ds)
+    m3.setNodesPositionFunction(m3_s, m3_ds)
     # for anchor
     body2 = crb.ProtChBody(system)
     body2.ChBody.SetBodyFixed(True)

@@ -495,7 +495,7 @@ class MooringLine:
                 #vec = vec/np.linalg.norm(vec)
                 anchor2D = np.array([0., 0.])
                 self.setDirectionDistance()
-                fairlead2D = np.array([self.distance, self.fairlead[2]])
+                fairlead2D = np.array([self.distance, self.fairlead[2]-self.anchor[2]])
             if fairlead2D[0] < anchor2D[0]:
                 # fairlead must be on the right of anchor
                 fairlead2D[0], anchor2D[0] = anchor2D[0], fairlead2D[0]
@@ -524,10 +524,9 @@ class MooringLine:
         Ls_tot = np.sum(self.L+self.e)
         angleP2 = 0
         if state == 'part':
-            x0 = a*np.arccosh(1+h/a)
             y_coords = lambda x: 0 if x < d-x0 else a*(np.cosh((x-(d-x0))/a)-1)
             dydx = lambda x: np.sinh((x)/a)
-            s_coords = lambda s: [s if s < d-x0 else a*np.arcsinh(s/a), 0 if s < d-x0 else a*(np.cosh((a*np.arcsinh(s/a)-(d-x0))/a)-1)]
+            # s_coords = lambda s: [s if s < d-x0 else a*np.arcsinh(s/a), 0 if s < d-x0 else a*(np.cosh((a*np.arcsinh(s/a)-(d-x0))/a)-1)]
             def s_coords(s):
                 if s < d-x0:
                     return [s,0.]
@@ -564,6 +563,7 @@ class MooringLine:
             self.Ta = Ta*vec2D
             self.y = y_coords
             self.s = s_coords
+            self.ds = lambda s: self.s(s+0.001)-self.s(s-0.001)
         if self.nd == 3:
             Tf3D = np.zeros(3)                
             Ta3D = np.zeros(3)
@@ -572,6 +572,7 @@ class MooringLine:
             Tf3D[:2] = Tf[0]*self.direction
             self.y = lambda x: y_coords(x)*self.direction
             self.s = lambda s: self.anchor+[s_coords(s)[0]*self.direction[0], s_coords(s)[0]*self.direction[1], s_coords(s)[1]]
+            self.ds = lambda s: self.s(s+0.001)-self.s(s-0.001)
             #Tf3D[:2] = Tf[0]*vec
             #Ta3D[:2] = Ta[0]*vec
             #self.y = lambda x, y: y_coords(np.sqrt(x**2+y**2))*vec
