@@ -21,8 +21,8 @@ subgridError = RANS2P.SubgridError(coefficients,nd,lag=ns_lag_subgridError,hFact
 shockCapturing = RANS2P.ShockCapturing(coefficients,nd,ns_shockCapturingFactor,lag=ns_lag_shockCapturing)
 
 fullNewtonFlag = True
-multilevelNonlinearSolver = NewtonNS
-levelNonlinearSolver      = NewtonNS
+multilevelNonlinearSolver = Newton
+levelNonlinearSolver      = Newton
 
 nonlinearSmoother = None
 linearSmoother    = SimpleNavierStokes3D

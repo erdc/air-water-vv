@@ -1,0 +1,21 @@
+#!/bin/csh
+#PBS -A ERDCV00898R40
+#PBS -l select=64:ncpus=44:mpiprocs=44
+#PBS -l place=scatter:excl
+#PBS -l walltime=023:00:00
+#PBS -q standard
+##PBS -l walltime=001:00:00
+##PBS -q debug
+#PBS -N marin
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
+cp *.py $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
+cp onyx.pbs $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
+cp $HOME/air-water-vv/inputTemplates/petsc.options.asm $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
+cd  $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -p -l 5 -F -O petsc.options.asm
