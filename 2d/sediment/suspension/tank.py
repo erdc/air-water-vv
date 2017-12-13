@@ -21,7 +21,7 @@ opts=Context.Options([
     # numerical options
     ("refinement", 60.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("openTop", True, "Enable open atmosphere for air phase on the top"),
+    ("openTop", False, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.1 ,"Target cfl"),
     ("duration", 0.5 ,"Duration of the simulation"),
     ("PSTAB", 0.0, "Affects subgrid error"),

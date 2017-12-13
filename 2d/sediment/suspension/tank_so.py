@@ -90,4 +90,4 @@ needEBQ = False
 tnList = [0.0,ct.dt_init]+[ct.dt_init+i*ct.dt_fixed for i in range(1,ct.nDTout+1)]
 
 info = open("TimeList.txt","w")
-archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
+#archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
