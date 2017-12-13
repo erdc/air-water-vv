@@ -386,6 +386,7 @@ domain.use_gmsh = opts.use_gmsh
 domain.MeshOptions.genMesh = opts.genMesh
 domain.MeshOptions.use_gmsh = opts.use_gmsh
 domain.MeshOptions.setOutputFiles(name=mesh_fileprefix)
+domain.geofile = mesh_fileprefix
 
 st.assembleDomain(domain)  # must be called after defining shapes
 

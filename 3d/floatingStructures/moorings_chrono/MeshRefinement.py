@@ -1,8 +1,9 @@
+from py2gmsh.Mesh import *
+from py2gmsh.Entity import *
+from py2gmsh.Fields import *
+
 def geometry_to_gmsh(domain):
     import py2gmsh
-    from py2gmsh.Mesh import *
-    from py2gmsh.Entity import *
-    from py2gmsh.Fields import *
     self = domain
     lines_dict = {}
 

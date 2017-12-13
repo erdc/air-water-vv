@@ -1,7 +1,7 @@
 #!/bin/csh
 #PBS -A ERDCV00898R40
 #PBS -l walltime=001:00:00
-#PBS -l select=1:ncpus=32:mpiprocs=32
+#PBS -l select=4:ncpus=32:mpiprocs=32
 #PBS -q debug
 #PBS -N moorings
 #PBS -j oe
@@ -18,4 +18,4 @@ cp *.igs $WORKDIR/moorings.$PBS_JOBID
 cp excalibur.pbs $WORKDIR/moorings.$PBS_JOBID
 cp $HOME/air-water-vv/inputTemplates/petsc.options.asm $WORKDIR/moorings.$PBS_JOBID
 cd  $WORKDIR/moorings.$PBS_JOBID
-aprun -n ${BC_MPI_TASKS_ALLOC}  parun cylinder_so.py -p -l 5 -F -C "he=0.01" -O petsc.options.asm
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun cylinder_so.py -p -l 5 -F -C "he=0.02" -O petsc.options.asm
