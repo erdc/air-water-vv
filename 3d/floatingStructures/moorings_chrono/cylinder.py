@@ -38,13 +38,14 @@ opts=Context.Options([
     ("VCG", 0.0758, "VCG"),
     # moorings
     ("moorings", True, "moorings"),
+    ("moorings_stretched", True, "True: moorings start fully stretched"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
     ("wave_period", 1.4, "Period of the waves"),
     ("wave_height", 0.08, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     # mesh refinement
-    ("he", 0.01, "Set characteristic element size"),
+    ("he", 0.02, "Set characteristic element size"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "use_gmsh"),
@@ -243,7 +244,7 @@ if opts.cylinder is True:
     inert = pcc.ChVector(Ixx, Iyy, Izz)
     body.ChBody.SetInertiaXX(inert)
 
-prescribed_init = True
+prescribed_init = False
 if opts.moorings is True:
     # variables
     L = 6.950
@@ -427,177 +428,20 @@ if opts.use_gmsh and opts.refinement is True:
         return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
     # refinement free surface
 
-    #p0t = py2gmsh.Entity.Point([-sponges['x-'], 0, water_level+box], mesh=mesh)
-    #p1t = py2gmsh.Entity.Point([-sponges['x-'], tank_dim[1], water_level+box], mesh=mesh)
-    #p2t = py2gmsh.Entity.Point([tank_dim[0], tank_dim[1], water_level+box], mesh=mesh)
-    #p3t = py2gmsh.Entity.Point([tank_dim[0], 0, water_level+box], mesh=mesh)
-    #p0b = py2gmsh.Entity.Point([-sponges['x-'], 0, water_level-box], mesh=mesh)
-    #p1b = py2gmsh.Entity.Point([-sponges['x-'], tank_dim[1], water_level-box], mesh=mesh)
-    #p2b = py2gmsh.Entity.Point([tank_dim[0], tank_dim[1], water_level-box], mesh=mesh)
-    #p3b = py2gmsh.Entity.Point([tank_dim[0], 0, water_level-box], mesh=mesh)
-    #box_points = [p0t, p1t, p2t, p3t, p0b, p1b, p2b, p3b]
-    ## top lines
-    #box_lines = []
-    #l0t = py2gmsh.Entity.Line([p0t, p1t], mesh=mesh)
-    #box_lines += [l0t]
-    #l1t = py2gmsh.Entity.Line([p1t, p2t], mesh=mesh)
-    #box_lines += [l1t]
-    #l2t = py2gmsh.Entity.Line([p2t, p3t], mesh=mesh)
-    #box_lines += [l2t]
-    #l3t = py2gmsh.Entity.Line([p3t, p0t], mesh=mesh)
-    #box_lines += [l3t]
-    ## bottom lines
-    #l0b = py2gmsh.Entity.Line([p0b, p1b], mesh=mesh)
-    #box_lines += [l0b]
-    #l1b = py2gmsh.Entity.Line([p1b, p2b], mesh=mesh)
-    #box_lines += [l1b]
-    #l2b = py2gmsh.Entity.Line([p2b, p3b], mesh=mesh)
-    #box_lines += [l2b]
-    #l3b = py2gmsh.Entity.Line([p3b, p0b], mesh=mesh)
-    #box_lines += [l3b]
-    ## side lines
-    #l0s = py2gmsh.Entity.Line([p0t, p0b], mesh=mesh)
-    #box_lines += [l0s]
-    #l1s = py2gmsh.Entity.Line([p1t, p1b], mesh=mesh)
-    #box_lines += [l1s]
-    #l2s = py2gmsh.Entity.Line([p2t, p2b], mesh=mesh)
-    #box_lines += [l2s]
-    #l3s = py2gmsh.Entity.Line([p3t, p3b], mesh=mesh)
-    #box_lines += [l3s]
-    ## lineloops
-    #ll0t = py2gmsh.Entity.LineLoop([l0t, l1t, l2t, l3t], mesh=mesh)
-    #ll0b = py2gmsh.Entity.LineLoop([l0b, l1b, l2b, l3b], mesh=mesh)
-    #ll0s = py2gmsh.Entity.LineLoop([l0s, l0b, l1s, l0t], mesh=mesh)
-    #ll1s = py2gmsh.Entity.LineLoop([l1s, l1b, l2s, l1t], mesh=mesh)
-    #ll2s = py2gmsh.Entity.LineLoop([l2s, l2b, l3s, l2t], mesh=mesh)
-    #ll3s = py2gmsh.Entity.LineLoop([l3s, l3b, l0s, l3t], mesh=mesh)
 
-    #blbox = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
-    #blbox.EdgesList = box_lines
-    #blbox.NodesList = box_points
-    #blbox.ratio = grading
-    #blbox.hwall_n = he
-    #field_list += [blbox]
+    def dist_plane(xn, xp, plane='x'):
+        x_range = abs(xp-xn)
+        dist = '0.5*(abs({plane}-({xn}))+abs({plane}-({xp}))-{x_range})'.format(xn=xn, xp=xp, x_range=x_range, plane=plane)
+        return dist
 
-    #box1 = py2gmsh.Fields.Box(mesh=mesh)
-    #box1.VIn = he
-    #box1.VOut = he_max
-    #box1.XMin = -sponges['x-']
-    #box1.XMax = tank_dim[0]
-    #box1.YMin = 0
-    #box1.YMax = tank_dim[1]
-    #box1.ZMin = water_level-box
-    #box1.ZMax = water_level+box
-    #field_list += [box1]
-
-    #box1 = py2gmsh.Fields.Box(mesh=mesh)
-    #box1.VIn = he
-    #box1.VOut = he_max
-    #box1.XMin = -sponges['x-']
-    #box1.XMax = tank_dim[0]+sponges['x+']
-    #box1.YMin = 0-sponges['y-']
-    #box1.YMax = tank_dim[1]+sponges['y+']
-    #box1.ZMin = water_level-box
-    #box1.ZMax = water_level+box
-    #field_list += [box1]
-    box1 = py2gmsh.Fields.Box(mesh=mesh)
-    box1.VIn = he
-    box1.VOut = he_max
-    box1.XMin = -sponges['x-']
-    box1.XMax = tank_dim[0]
-    box1.YMin = 0
-    box1.YMax = tank_dim[1]
-    box1.ZMin = water_level-box
-    box1.ZMax = water_level+box
-    field_list += [box1]
-
-    me01 = py2gmsh.Fields.MathEval(mesh=mesh)
-    #me01.F = '{he}*{grading}^(Sqrt(({zcoord}-z)*({zcoord}-z))/{he})'.format(zcoord=water_level+box, he=he, grading=grading)
-    dist = '(Sqrt(({zcoord}-z)^2))'.format(zcoord=water_level+box)
-    me01.F = mesh_grading(he=he, start=dist, grading=grading)
-    #field_list += [me01]
-    me02 = py2gmsh.Fields.MathEval(mesh=mesh)
-    #me02.F = '{he}*{grading}^(Sqrt(({zcoord}-z)^2))/{he})'.format(zcoord=water_level-box, he=he, grading=grading)
-    dist = '(Sqrt(({zcoord}-z)^2))'.format(zcoord=water_level-box)
-    me02.F = mesh_grading(he=he, start=dist, grading=grading)
-    #field_list += [me02]
-
-    fmin0 = py2gmsh.Fields.Min(mesh=mesh)
-    fmin0.FieldsList = [me01, me02]
-
-    re0 = py2gmsh.Fields.Restrict(mesh=mesh)
-    re0.RegionsList = mesh.getVolumesFromIndex([tank.start_volume+1+tank.regionIndice['tank'], tank.start_volume+1+tank.regionIndice['x-']])
-    re0.FacesList = mesh.getSurfacesFromIndex([fnb+tank.start_facet+1 for fnb in tank.volumes[tank.regionIndice['tank']][0]]+[fnb+tank.start_facet+1 for fnb in tank.volumes[tank.regionIndice['x-']][0]])
-    re0.EdgesList = []
-    for faces in re0.FacesList:
-        for ll in faces.lineloops:
-            re0.EdgesList += mesh.getLinesFromIndex([l.nb for l in ll.lines])
-    re0.IField = fmin0.nb
-    field_list += [re0]
-
-    me2 = py2gmsh.Fields.MathEval(mesh=mesh)
-    #me2.F = '{he}*{grading}^((Sqrt(({zcoord}-z)^2)+Sqrt(({xcoord}-x)^2))/{he})'.format(zcoord=water_level-box, he=he, grading=grading, xcoord=tank_dim[0])
-    dist = '(Sqrt(({zcoord}-z)^2)+Sqrt(({xcoord}-x)^2))'.format(zcoord=water_level-box, xcoord=tank_dim[0])
-    me2.F = mesh_grading(he=he, start=dist, grading=grading)
-    me3 = py2gmsh.Fields.MathEval(mesh=mesh)
-    #me3.F = '{he}*{grading}^((Sqrt(({zcoord}-z)^2)+Sqrt(({xcoord}-x)^2))/{he})'.format(zcoord=water_level+box, he=he, grading=grading, xcoord=tank_dim[0])
-    dist = '(Sqrt(({zcoord}-z)^2)+Sqrt(({xcoord}-x)^2))'.format(zcoord=water_level+box, xcoord=tank_dim[0])
-    me3.F = mesh_grading(he=he, start=dist, grading=grading)
-    #field_list += [me3]
-    fmin0 = py2gmsh.Fields.Min(mesh=mesh)
-    fmin0.FieldsList = [me2, me3]
-
-    re3 = py2gmsh.Fields.Restrict(mesh=mesh)
-    re3.RegionsList = mesh.getVolumesFromIndex([tank.start_volume+1+tank.regionIndice['x+']])
-    re3.FacesList = mesh.getSurfacesFromIndex([fnb+tank.start_facet+1 for fnb in tank.volumes[tank.regionIndice['x+']][0]])
-    re3.EdgesList = []
-    for faces in re3.FacesList:
-        for ll in faces.lineloops:
-            re3.EdgesList += mesh.getLinesFromIndex([l.nb for l in ll.lines])
-    re3.IField = fmin0.nb
-    field_list += [re3]
-
-    me2 = py2gmsh.Fields.MathEval(mesh=mesh)
-    #me2.F = '{he}*{grading}^((Sqrt(({zcoord}-z)^2)+Sqrt(({ycoord}-y)^2))/{he})'.format(zcoord=water_level-box, he=he, grading=grading, ycoord=tank_dim[1])
-    dist = '(Sqrt(({zcoord}-z)^2)+Sqrt(({ycoord}-y)^2))'.format(zcoord=water_level+box, ycoord=tank_dim[1])
-    me2.F = mesh_grading(he=he, start=dist, grading=grading)
-    me3 = py2gmsh.Fields.MathEval(mesh=mesh)
-    #me3.F = '{he}*{grading}^((Sqrt(({zcoord}-z)^2)+Sqrt(({ycoord}-y)^2))/{he})'.format(zcoord=water_level+box, he=he, grading=grading, ycoord=tank_dim[1])
-    dist = '(Sqrt(({zcoord}-z)^2)+Sqrt(({ycoord}-y)^2))'.format(zcoord=water_level-box, ycoord=tank_dim[1])
-    me3.F = mesh_grading(he=he, start=dist, grading=grading)
-    fmin0 = py2gmsh.Fields.Min(mesh=mesh)
-    fmin0.FieldsList = [me2, me3]
-
-    re3 = py2gmsh.Fields.Restrict(mesh=mesh)
-    re3.RegionsList = mesh.getVolumesFromIndex([tank.start_volume+1+tank.regionIndice['y+']])
-    re3.FacesList = mesh.getSurfacesFromIndex([fnb+tank.start_facet+1 for fnb in tank.volumes[tank.regionIndice['y+']][0]])
-    re3.EdgesList = []
-    for faces in re3.FacesList:
-        for ll in faces.lineloops:
-            re3.EdgesList += mesh.getLinesFromIndex([l.nb for l in ll.lines])
-    re3.IField = fmin0.nb
-    field_list += [re3]
-
-    me2 = py2gmsh.Fields.MathEval(mesh=mesh)
-    #me2.F = '{he}*{grading}^((Sqrt(({zcoord}-z)^2)+Sqrt(({ycoord}-y)^2))/{he})'.format(zcoord=water_level-box, he=he, grading=grading, ycoord=0.)
-    dist = '(Sqrt(({zcoord}-z)^2)+Sqrt(({ycoord}-y)^2))'.format(zcoord=water_level-box, ycoord=0.)
-    me2.F = mesh_grading(he=he, start=dist, grading=grading)
-    me3 = py2gmsh.Fields.MathEval(mesh=mesh)
-    #me3.F = '{he}*{grading}^((Sqrt(({zcoord}-z)^2)+Sqrt(({ycoord}-y)^2))/{he})'.format(zcoord=water_level+box, he=he, grading=grading, ycoord=0.)
-    dist = '(Sqrt(({zcoord}-z)^2)+Sqrt(({ycoord}-y)^2))'.format(zcoord=water_level+box, ycoord=0.)
-    me3.F = mesh_grading(he=he, start=dist, grading=grading)
-    fmin0 = py2gmsh.Fields.Min(mesh=mesh)
-    fmin0.FieldsList = [me2, me3]
-
-    re3 = py2gmsh.Fields.Restrict(mesh=mesh)
-    re3.RegionsList = mesh.getVolumesFromIndex([tank.start_volume+1+tank.regionIndice['y-']])
-    re3.FacesList = mesh.getSurfacesFromIndex([fnb+tank.start_facet+1 for fnb in tank.volumes[tank.regionIndice['y-']][0]])
-    re3.EdgesList = []
-    for faces in re3.FacesList:
-        for ll in faces.lineloops:
-            re3.EdgesList += mesh.getLinesFromIndex([l.nb for l in ll.lines])
-    re3.IField = fmin0.nb
-    field_list += [re3]
+    me1 = py2gmsh.Fields.MathEval(mesh=mesh)
+    dist_z = dist_plane(xn=water_level-box, xp=water_level+box, plane='z')
+    dist_x = dist_plane(xn=-sponges['x-'], xp=tank_dim[0], plane='x')
+    dist_y = dist_plane(xn=0., xp=tank_dim[1], plane='y')
+    dist = 'sqrt(({dist_x})^2+({dist_y})^2+({dist_z})^2)'.format(dist_x=dist_x, dist_y=dist_y, dist_z=dist_z)
+    me1.F = '{he}*{grading}^({dist}/{he})'.format(dist=dist, he=he, grading=grading)
+    me1.F = mesh_grading(start=dist, he=he, grading=grading)
+    field_list += [me1]
 
     if opts.cylinder is True:
         if outer_sphere is True:
@@ -620,7 +464,7 @@ if opts.use_gmsh and opts.refinement is True:
             dist_z = '(abs(abs({z_p}-z)+abs(z-{z_n})-({z_p}-{z_n}))/2.)'.format(z_p=cylinder.coords[2]+cylinder.height/2., z_n=cylinder.coords[2]-cylinder.height/2.)
             dist_x = '(abs(Sqrt(({x_center}-x)^2+({y_center}-y)^2)-{radius}))'.format(x_center=cylinder.coords[0], radius=cylinder.radius, y_center=cylinder.coords[1])
             #dist_x = 0.
-            dist = '({dist_x}+{dist_z})'.format(dist_x=dist_x, dist_z=dist_z)
+            dist = 'sqrt({dist_x}^2+{dist_z}^2)'.format(dist_x=dist_x, dist_z=dist_z)
             me3.F = mesh_grading(he=he, start=dist, grading=grading)
             field_list += [me3]
 
