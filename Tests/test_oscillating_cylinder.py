@@ -1,6 +1,6 @@
 import pytest
 import os
-os.chdir('/air-water-vv/2d/oscillating_cylinder_new')
+os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/oscillating_cylinder_new')
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()

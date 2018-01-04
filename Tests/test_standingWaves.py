@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-os.chdir('/air-water-vv/2d/numericalTanks/standingWaves')
+os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/numericalTanks/standingWaves')
 import pytest
 from proteus.iproteus import *
 import standing_waves_so
