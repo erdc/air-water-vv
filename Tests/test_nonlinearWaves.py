@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-os.chdir('2d/numericalTanks/nonlinearWaves')
+os.chdir('/air-water-vv/2d/numericalTanks/nonlinearWaves')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm

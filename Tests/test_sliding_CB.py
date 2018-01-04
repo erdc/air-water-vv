@@ -1,9 +1,10 @@
 import pytest
+import os 
+os.chdir('/air-water-vv/2d/caissonBreakwater/sliding')
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 import tank_so
-import os
 import numpy as np
 import collections as cll
 import csv
