@@ -4,7 +4,6 @@ from proteus.default_p import *
 from math import *
 from proteus.mprans import RDLS3P
 from proteus import Context
-import tank_so
 
 """
 The redistancing equation in the sloshbox test problem.
@@ -22,10 +21,18 @@ T = ct.T
 
 LevelModelType = RDLS3P.LevelModel
 
+if ct.sedimentDynamics:
+    LS_model=2
+    RD_model=3
+else:
+    LS_model=1
+    RD_model=2
+
+
 coefficients = RDLS3P.Coefficients(applyRedistancing=ct.applyRedistancing,
                                    epsFact=ct.epsFact_redistance,
-                                   nModelId=tank_so.NCLS_model,
-                                   rdModelId=tank_so.RDLS_model,
+                                   nModelId=LS_model,
+                                   rdModelId=RD_model,
                                    useMetrics=ct.useMetrics,
                                    backgroundDiffusionFactor=ct.backgroundDiffusionFactor)
 

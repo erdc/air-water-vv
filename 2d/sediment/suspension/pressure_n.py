@@ -20,11 +20,6 @@ stepController=FixedStep
 numericalFluxType = NumericalFlux.ConstantAdvection_exterior
 matrix = LinearAlgebraTools.SparseMatrix
 
-#numericalFluxType = Pres.NumericalFlux
-#subgridError = Pres.SubgridError(coefficients,nd,lag=ct.ns_sed_lag_subgridError,hFactor=hFactor)
-#shockCapturing = Pres.ShockCapturing(coefficients,nd,ct.ns_sed_shockCapturingFactor,lag=ct.ns_sed_lag_shockCapturing)
-
-
 linear_solver_options_prefix = 'pressure_'
 
 if ct.useSuperlu:

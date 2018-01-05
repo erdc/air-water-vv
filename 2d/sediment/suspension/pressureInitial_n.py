@@ -22,11 +22,6 @@ matrix = LinearAlgebraTools.SparseMatrix
 #levelLinearSolver      = LinearSolvers.LU
 numericalFluxType = NumericalFlux.ConstantAdvection_exterior
 
-#numericalFluxType = PresInit.NumericalFlux
-#subgridError = PresInit.SubgridError(coefficients,nd,lag=ct.ns_sed_lag_subgridError,hFactor=hFactor)
-#shockCapturing = PresInit.ShockCapturing(coefficients,nd,ct.ns_sed_shockCapturingFactor,lag=ct.ns_sed_lag_shockCapturing)
-
-
 linear_solver_options_prefix = 'pinit_'
 
 if ct.useSuperlu:

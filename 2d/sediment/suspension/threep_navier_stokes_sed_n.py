@@ -22,8 +22,8 @@ else:
     timeIntegration = BackwardEuler_cfl
     stepController  = Min_dt_cfl_controller
 
-femSpaces = {0:ct.basis,
-	     1:ct.basis}
+femSpaces = {0:basis,
+	     1:basis}
 
 massLumping       = False
 numericalFluxType = None
@@ -66,5 +66,6 @@ nl_atol_res = ns_sed_nl_atol_res
 useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
+conservativeFlux = {0:'point-eval'}
 #conservativeFlux = {0:'pwl-bdm-opt'}
 #auxiliaryVariables=[pointGauges,lineGauges]

@@ -6,35 +6,27 @@ mesh = domain.MeshOptions
 triangleOptions = triangleOptions
 nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 
-femSpaces = {0:ct.pbasis}
+femSpaces = {0:pbasis}
 
 stepController=FixedStep
 
 numericalFluxType = PresInc.NumericalFlux
 matrix = LinearAlgebraTools.SparseMatrix
 
-#numericalFluxType = PresInc.NumericalFlux
-#subgridError = PresInc.SubgridError(coefficients,nd,lag=ct.ns_sed_lag_subgridError,hFactor=hFactor)
-#shockCapturing = PresInc.ShockCapturing(coefficients,nd,ct.ns_sed_shockCapturingFactor,lag=ct.ns_sed_lag_shockCapturing)
-
-
 #if openTop:
 #    linearSmoother    = None
 #    multilevelLinearSolver = LinearSolvers.LU
 #    levelLinearSolver      = LinearSolvers.LU
 #else:
-#    
+#    linearSmoother         = LinearSolvers.NavierStokesPressureCorrection # pure neumann laplacian solver
+#    multilevelLinearSolver = LinearSolvers.KSP_petsc4py
+#    levelLinearSolver      = LinearSolvers.KSP_petsc4py
 
 linear_solver_options_prefix = 'phi_'
 
 if ct.useSuperlu:
-    if ct.openTop is False:
-        linearSmoother         = LinearSolvers.NavierStokesPressureCorrection # pure neumann laplacian solver
-        multilevelLinearSolver = LinearSolvers.KSP_petsc4py
-        levelLinearSolver      = LinearSolvers.KSP_petsc4py
-    else:
-        multilevelLinearSolver = LinearSolvers.LU
-        levelLinearSolver      = LinearSolvers.LU
+    multilevelLinearSolver = LinearSolvers.LU
+    levelLinearSolver      = LinearSolvers.LU
 else:
     multilevelLinearSolver = KSP_petsc4py
     levelLinearSolver      = KSP_petsc4py
@@ -42,8 +34,6 @@ else:
     nLayersOfOverlapForParallel = nLayersOfOverlapForParallel
     nonlinearSmoother = None
     linearSmoother    = None
-    if ct.openTop is False:
-        linearSmoother         = LinearSolvers.NavierStokesPressureCorrection # pure neumann laplacian solver
 
 
 multilevelNonlinearSolver = NonlinearSolvers.Newton
@@ -61,5 +51,5 @@ linearSolverConvergenceTest             = 'r-true'
 maxLineSearches=0
 periodicDirichletConditions=None
 
-#conservativeFlux = {0:'pwl-bdm-opt'} #'point-eval','pwl-bdm-opt'
+#conservativeFlux = {0:'point-eval'} #'point-eval','pwl-bdm-opt'
 conservativeFlux=None

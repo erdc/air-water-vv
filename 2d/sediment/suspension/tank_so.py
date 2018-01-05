@@ -29,15 +29,6 @@ for BC in ct.domain.bc:
 
 from proteus.SplitOperator import Sequential_FixedStep_Simple, defaultSystem
 if ct.sedimentDynamics:
-    VOS_model=0
-    VOF_model=1
-    NCLS_model=2
-    RDLS_model=3
-    MCORR_model=4
-    SED_model=5
-    FLOW_model=6
-    PINC_model=7
-    P_model=8
     PINIT_model=9
     pnList = [("vos_p",               "vos_n"),#0
               ("vof_p",               "vof_n"),#1
@@ -50,13 +41,6 @@ if ct.sedimentDynamics:
               ("pressure_p", "pressure_n"),#8
               ("pressureInitial_p", "pressureInitial_n")]#9
 else:
-    VOF_model=0
-    NCLS_model=1
-    RDLS_model=2
-    MCORR_model=3
-    FLOW_model=4
-    PINC_model=5
-    P_model=6
     PINIT_model=7
     pnList = [("vof_p",               "vof_n"),#0
               ("ls_p",                "ls_n"),#1
@@ -74,6 +58,7 @@ if ct.useRANS > 0:
                    "dissipation_n"))
 name = "tank"
 
+#modelSpinUpList = [ct.VOF_model, ct.LS_model, ct.V_model, ct.PINIT_model]
 modelSpinUpList = [PINIT_model]
 
 class Sequential_MinAdaptiveModelStepPS(Sequential_MinAdaptiveModelStep):
