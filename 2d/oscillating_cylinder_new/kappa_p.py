@@ -19,7 +19,7 @@ else:
     dissipation_model = 6
 #
 dissipation_model_flag = 1
-if ct.useRANS == 2:
+if ct.useRANS >= 2:
     dissipation_model_flag=2
 
 coefficients = Kappa.Coefficients(V_model=0+int(ct.movingDomain),
