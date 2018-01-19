@@ -170,8 +170,8 @@ if opts.caisson2D:
     tank_dim = [x7, 1.0]
  
     boundaryOrientations = {'y-': np.array([0., -1.,0.]),
-                            'x+': np.array([0., -1.,0.]),
-                            'y+': np.array([0., -1.,0.]),
+                            'x+': np.array([+1., 0.,0.]),
+                            'y+': np.array([0., +1.,0.]),
                             'x-': np.array([-1., 0.,0.]),
                             'sponge': None,
                             'porousLayer': None,
@@ -198,8 +198,8 @@ else:
     tank_dim = [x3, 1.0]
     
     boundaryOrientations = {'y-': np.array([0., -1.,0.]),
-                            'x+': np.array([0., -1.,0.]),
-                            'y+': np.array([0., -1.,0.]),
+                            'x+': np.array([+1., 0.,0.]),
+                            'y+': np.array([0., +1.,0.]),
                             'x-': np.array([-1., 0.,0.]),
                             'sponge': None,
                            }
