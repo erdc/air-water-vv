@@ -21,6 +21,7 @@ matrix = LinearAlgebraTools.SparseMatrix
 #multilevelLinearSolver = LinearSolvers.LU
 #levelLinearSolver      = LinearSolvers.LU
 numericalFluxType = NumericalFlux.ConstantAdvection_exterior
+#numericalFluxType = NumericalFlux
 
 linear_solver_options_prefix = 'pinit_'
 

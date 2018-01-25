@@ -18,6 +18,7 @@ stepController=FixedStep
 
 #matrix type
 numericalFluxType = NumericalFlux.ConstantAdvection_exterior
+#numericalFluxType = NumericalFlux
 matrix = LinearAlgebraTools.SparseMatrix
 
 linear_solver_options_prefix = 'pressure_'
