@@ -1,20 +1,24 @@
 from proteus import *
 from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
-from marin import *
-from proteus.mprans import VOF
+from proteus import Context
+from proteus.mprans import VOF3P
+ct = Context.get()
+name="vof"
+nd = ct.nd
+domain = ct.domain
+genMesh = ct.genMesh
+LevelModelType = VOF3P.LevelModel
+coefficients = VOF3P.Coefficients(LS_model=ct.LS_model,
+                                  V_model=ct.V_model,
+                                  RD_model=ct.RD_model,
+                                  ME_model=ct.VOF_model,
+                                  checkMass=True,
+                                  useMetrics=ct.useMetrics,
+                                  epsFact=ct.epsFact_vof,
+                                  sc_uref=ct.vof_sc_uref,
+                                  sc_beta=ct.vof_sc_beta)
 
-LevelModelType = VOF.LevelModel
-if useOnlyVF:
-    RD_model = None
-    LS_model = None
-else:
-    RD_model = 3
-    LS_model = 2
-coefficients = VOF.Coefficients(LS_model=LS_model,V_model=0,RD_model=RD_model,ME_model=1,
-                                checkMass=False,useMetrics=useMetrics,
-                                epsFact=epsFact_vof,sc_uref=vof_sc_uref,sc_beta=vof_sc_beta)
- 
 def getDBC_vof(x,flag):
     return None
 
@@ -28,6 +32,7 @@ diffusiveFluxBoundaryConditions = {0:{}}
 
 class PerturbedSurface_H:
     def uOfXT(self,x,t):
-        return smoothedHeaviside(epsFact_consrv_heaviside*he,signedDistance(x))
+        return smoothedHeaviside(ct.epsFact_consrv_heaviside*ct.he,
+                                 ct.signedDistance(x))
 	    
 initialConditions  = {0:PerturbedSurface_H()}

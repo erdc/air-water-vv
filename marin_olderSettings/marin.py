@@ -4,22 +4,31 @@ from proteus import Domain
 from proteus.default_n import *   
 from proteus.Profiling import logEvent
 from proteus.MeshAdaptPUMI import MeshAdaptPUMI
+name = "marin"
 
+VOF_model=0
+LS_model=1
+RD_model=2
+MCORR_model=3
+V_model=4
+PINC_model=5
+PRESSURE_model=6
+PINIT_model=7
+
+openTop = False
 #  Discretization -- input options    
-#Refinement=8#4-32 cores
-#Refinement=12
-Refinement=24
 genMesh=True
 useOldPETSc=False
 useSuperlu=False
-spaceOrder = 1
+timeDiscretization = 'vbdf'
+spaceOrder = 2
+pspaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
 applyCorrection=True
-useVF = 1.0
+useVF = 0.0
 useOnlyVF = False
-redist_Newton = False#True
 useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
             # 2 -- K-Omega
@@ -41,30 +50,33 @@ nd = 3
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,2)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,2)     	 
+        pbasis=C0_AffineLinearOnCubeWithNodalBasis    
+	basis=C0_AffineLinearOnCubeWithNodalBasis
+        elementQuadrature = CubeGaussQuadrature(nd,2)
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,2)     	 
     else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3) 	    
+    	pbasis=C0_AffineLinearOnSimplexWithNodalBasis
+    	basis=C0_AffineLinearOnSimplexWithNodalBasis
+        elementQuadrature = SimplexGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3) 	    
 elif spaceOrder == 2:
     hFactor=0.5
     if useHex:    
+        pbasis=C0_AffineLinearOnCubeWithNodalBasis    
 	basis=C0_AffineLagrangeOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)    
+        elementQuadrature = CubeGaussQuadrature(nd,6)
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,6)    
     else:    
+    	pbasis=C0_AffineLinearOnSimplexWithNodalBasis
 	basis=C0_AffineQuadraticOnSimplexWithNodalBasis	
-        elementQuadrature = SimplexGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
+        elementQuadrature = SimplexGaussQuadrature(nd,6)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,6)
 
 
 # Domain and mesh
 nLevels = 1
 parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
-use_petsc4py=True#False
 usePUMI=0
 
 if useHex: 
@@ -105,9 +117,7 @@ else:
     L      = [3.22,1.0,1.0]
     box_L  = [0.161,0.403,0.161]
     box_xy = [2.3955,0.2985]
-    #he = L[0]/float(6.5*Refinement)
-    he = 0.01#L[0]/16.0
-    #he*=0.5#256
+    he = 0.1
     boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     bt = boundaryTags
@@ -184,16 +194,16 @@ else:
     domain.writePoly("mesh")
     domain.writePLY("mesh")
     domain.writeAsymptote("mesh")
-    triangleOptions="VVApq1.25q12feena%e" % ((he**3)/6.0,)
+    triangleOptions="VApq1.25q12feena%e" % ((he**3)/6.0,)
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
 T=6.00
 dt_init  =0.001
-dt_fixed = 0.1/Refinement
+dt_fixed = 0.1
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = False#True
+ns_forceStrongDirichlet = False
 if useMetrics:
     ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
@@ -212,7 +222,7 @@ if useMetrics:
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
+    redist_Newton = True
 else:
     ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
@@ -231,7 +241,7 @@ else:
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.9
     kappa_lag_shockCapturing = True#False
     kappa_sc_uref  = 1.0
@@ -241,16 +251,19 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-8,0.1*he**2/2.0)
-vof_nl_atol_res = max(1.0e-8,0.1*he**2/2.0)
-ls_nl_atol_res = max(1.0e-8,0.1*he**2/2.0)
-rd_nl_atol_res = max(1.0e-8,0.1*he)
+pressureincrement_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
+pressure_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
+phi_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
+ns_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
+vof_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
+ls_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
+rd_nl_atol_res = max(1.0e-8,0.01*he)
 mcorr_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 kappa_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 dissipation_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 
 #turbulence
-ns_closure=2 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
@@ -270,7 +283,7 @@ sigma_01 = 0.0
 g = [0.0,0.0,-9.8]
 
 # Initial condition
-waterLine_x = 1.20
+waterLine_x = 1.22
 waterLine_z = 0.55
 
 def signedDistance(x):

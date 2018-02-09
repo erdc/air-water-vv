@@ -1,14 +1,23 @@
 from proteus import *
 from proteus.default_p import *
-from marin import *
-from proteus.mprans import NCLS
+from proteus.mprans import NCLS3P
+from proteus import Context
+name="ls"
+ct = Context.get()
+nd = ct.nd
+domain = ct.domain
+genMesh = ct.genMesh
+LevelModelType = NCLS3P.LevelModel
 
-LevelModelType = NCLS.LevelModel
+coefficients = NCLS3P.Coefficients(V_model=ct.V_model,
+                                   RD_model=ct.RD_model,
+                                   ME_model=ct.LS_model,
+                                   checkMass=True,
+                                   useMetrics=ct.useMetrics,
+                                   epsFact=ct.epsFact_consrv_heaviside,
+                                   sc_uref=ct.ls_sc_uref,
+                                   sc_beta=ct.ls_sc_beta)
 
-coefficients = NCLS.Coefficients(V_model=0,RD_model=3,ME_model=2,
-                                 checkMass=False, useMetrics=useMetrics,
-                                 epsFact=epsFact_consrv_heaviside,sc_uref=ls_sc_uref,sc_beta=ls_sc_beta)
- 
 def getDBC_ls(x,flag):
     return None
 
@@ -19,6 +28,6 @@ diffusiveFluxBoundaryConditions = {0:{}}
 
 class PerturbedSurface_phi:       
     def uOfXT(self,x,t):
-        return signedDistance(x)
+        return ct.signedDistance(x)
     
 initialConditions  = {0:PerturbedSurface_phi()}

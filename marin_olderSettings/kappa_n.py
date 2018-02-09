@@ -41,3 +41,4 @@ useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
 
+nLevels=ct.nLevels

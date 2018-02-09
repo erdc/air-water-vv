@@ -1,11 +1,11 @@
-from proteus import *
-from marin import *
+from proteus.default_n import *
 from ls_consrv_p import *
 
-timeIntegrator  = ForwardIntegrator
 timeIntegration = NoIntegration
 
-femSpaces = {0:basis}
+femSpaces = {0:ct.basis}
+elementQuadrature = ct.elementQuadrature
+elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 subgridError      = None
 massLumping       = False
@@ -22,25 +22,19 @@ linearSmoother    = None
 
 matrix = SparseMatrix
 
-if useOldPETSc:
-    multilevelLinearSolver = PETSc
-    levelLinearSolver      = PETSc
-else:
-    multilevelLinearSolver = KSP_petsc4py
-    levelLinearSolver      = KSP_petsc4py
-
-if useSuperlu:
-    multilevelLinearSolver = LU
-    levelLinearSolver      = LU
+multilevelLinearSolver = KSP_petsc4py
+levelLinearSolver      = KSP_petsc4py
 
 linear_solver_options_prefix = 'mcorr_'
 linearSolverConvergenceTest  = 'r-true'
 
 tolFac = 0.0
-linTolFac = 0.001
-l_atol_res = 0.001*mcorr_nl_atol_res
-nl_atol_res = mcorr_nl_atol_res
-useEisenstatWalker = False#True
+linTolFac = 0.01
+l_atol_res = 0.01*ct.mcorr_nl_atol_res
+nl_atol_res = ct.mcorr_nl_atol_res
 
 maxNonlinearIts = 50
 maxLineSearches = 0
+parallelPartitioningType = ct.parallelPartitioningType
+nLayersOfOverlapForParallel = ct.nLayersOfOverlapForParallel
+nLevels=ct.nLevels

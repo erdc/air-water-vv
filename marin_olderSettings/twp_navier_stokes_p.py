@@ -1,34 +1,41 @@
-from proteus import *
 from proteus.default_p import *
-from marin import *
-from proteus.mprans import RANS2P
+from proteus.mprans import RANS3PF
+from proteus import Context
+name="rans3p"
+ct = Context.get()
+nd = ct.nd
+domain = ct.domain
+genMesh = ct.genMesh
 
-LevelModelType = RANS2P.LevelModel
-if useOnlyVF:
-    LS_model = None
-else:
-    LS_model = 2
-coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
-                                   sigma=0.0,
-                                   rho_0 = rho_0,
-                                   nu_0 = nu_0,
-                                   rho_1 = rho_1,
-                                   nu_1 = nu_1,
-                                   g=g,
-                                   nd=nd,
-                                   VF_model=1,
-                                   LS_model=LS_model,
-                                   epsFact_density=epsFact_density,
-                                   stokes=False,
-                                   useVF=useVF,
-				   useRBLES=useRBLES,
-				   useMetrics=useMetrics,
-                                   eb_adjoint_sigma=1.0,
-                                   forceStrongDirichlet=0,
-                                   turbulenceClosureModel=ns_closure)
+LevelModelType = RANS3PF.LevelModel
 
-def getDBC_p(x,flag):
-    return None
+coefficients = RANS3PF.Coefficients(epsFact=ct.epsFact_viscosity,
+                                    sigma=0.0,
+                                    rho_0 = ct.rho_0,
+                                    nu_0 = ct.nu_0,
+                                    rho_1 = ct.rho_1,
+                                    nu_1 = ct.nu_1,
+                                    g=ct.g,
+                                    nd=ct.nd,
+                                    ME_model=ct.V_model,
+                                    PRESSURE_model=ct.PRESSURE_model,
+                                    SED_model=None,
+                                    VOF_model=ct.VOF_model,
+                                    VOS_model=None,
+                                    LS_model=ct.LS_model,
+                                    Closure_0_model=None,
+                                    Closure_1_model=None,
+                                    epsFact_density=ct.epsFact_density,
+                                    stokes=False,
+                                    useVF=ct.useVF,
+                                    useRBLES=ct.useRBLES,
+                                    useMetrics=ct.useMetrics,
+                                    eb_adjoint_sigma=1.0,
+                                    eb_penalty_constant=10.0,
+                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
+                                    turbulenceClosureModel=0,
+                                    movingDomain=False,
+                                    PSTAB=0.0)
 
 def getDBC_u(x,flag):
     return None
@@ -39,60 +46,19 @@ def getDBC_v(x,flag):
 def getDBC_w(x,flag):
     return None
     
-dirichletConditions = {0:getDBC_p,
-                       1:getDBC_u,
-                       2:getDBC_v,
-                       3:getDBC_w}
+dirichletConditions = {0:getDBC_u,
+                       1:getDBC_v,
+                       2:getDBC_w}
 
-def getAFBC_p(x,flag):
-    return lambda x,t: 0.0
-
-def getAFBC_u_old(x,flag):
-    if (flag == bt['left']     or
-        flag == bt['right']    or
-	flag == bt['box_left'] or
-        flag == bt['box_right']):
-       return lambda x,t: 0.0
-
-def getAFBC_v_old(x,flag):
-    if (flag == bt['front']     or
-        flag == bt['back']      or
-	flag == bt['box_front'] or
-        flag == bt['box_back'] ):
-       return lambda x,t: 0.0
-
-def getAFBC_w_old(x,flag):
-    if (flag == bt['bottom']     or
-        flag == bt['top']        or
-        flag == bt['box_top']):
-       return lambda x,t: 0.0
-
-eps=1.0e-4
      
 def getAFBC_u(x,flag):
-    if x[0] in [0.0, 3.22] or x[1] in [0.0,1.0] or x[2] in [0.0,1.0]:
-        return lambda x,t: 0.0
-    if x[0]>=2.3955-eps and x[0]<=2.5565+eps and x[1]>=0.2985-eps and x[1]<=0.7015+eps and x[2]>=0.0-eps and x[2]<=0.161+eps:
-        return lambda x,t: 0.0
-    else:
-        return lambda x,t: 0.0
-	
+    return lambda x,t: 0.0
+
 def getAFBC_v(x,flag):
-    if x[0] in [0.0, 3.22] or x[1] in [0.0,1.0] or x[2] in [0.0,1.0]:
-        return lambda x,t: 0.0
-    if x[0]>=2.3955-eps and x[0]<=2.5565+eps and x[1]>=0.2985-eps and x[1]<=0.7015+eps and x[2]>=0.0-eps and x[2]<=0.161+eps:
-        return lambda x,t: 0.0
-    else:
-        return lambda x,t: 0.0
-	
+    return lambda x,t: 0.0
+
 def getAFBC_w(x,flag):
-    if x[0] in [0.0, 3.22] or x[1] in [0.0,1.0] or x[2] in [0.0,1.0]:
-        return lambda x,t: 0.0
-    if x[0]>=2.3955-eps and x[0]<=2.5565+eps and x[1]>=0.2985-eps and x[1]<=0.7015+eps and x[2]>=0.0-eps and x[2]<=0.161+eps:
-        return lambda x,t: 0.0
-    else:
-        return lambda x,t: 0.0
-	
+    return lambda x,t: 0.0
 
 def getDFBC_u(x,flag):
     return lambda x,t: 0.0
@@ -103,29 +69,17 @@ def getDFBC_v(x,flag):
 def getDFBC_w(x,flag):
     return lambda x,t: 0.0
 
-advectiveFluxBoundaryConditions =  {0:getAFBC_p,
-                                    1:getAFBC_u,
-                                    2:getAFBC_v,
-                                    3:getAFBC_w}
+advectiveFluxBoundaryConditions =  {0:getAFBC_u,
+                                    1:getAFBC_v,
+                                    2:getAFBC_w}
 
-diffusiveFluxBoundaryConditions = {0:{},
-                                   1:{1:getDFBC_u},
-                                   2:{2:getDFBC_v},
-                                   3:{3:getDFBC_w}}
+diffusiveFluxBoundaryConditions = {0:{0:getDFBC_u},
+                                   1:{1:getDFBC_v},
+                                   2:{2:getDFBC_w}}
 
 fluxBoundaryConditions = {0:'mixedFlow',
                           1:'mixedFlow',
-                          2:'mixedFlow',
-                          3:'mixedFlow'}
-
-class PerturbedSurface_p:
-    def __init__(self,waterLevel):
-        self.waterLevel=waterLevel
-    def uOfXT(self,x,t):
-        if signedDistance(x) < 0:
-            return -(L[2] - self.waterLevel)*rho_1*g[2] - (self.waterLevel - x[2])*rho_0*g[2]
-        else:
-            return -(L[2] - self.waterLevel)*rho_1*g[2]
+                          2:'mixedFlow'}
 
 class AtRest:
     def __init__(self):
@@ -133,7 +87,6 @@ class AtRest:
     def uOfXT(self,x,t):
         return 0.0
 
-initialConditions = {0:PerturbedSurface_p(waterLine_z),
+initialConditions = {0:AtRest(),
                      1:AtRest(),
-                     2:AtRest(),
-                     3:AtRest()}
+                     2:AtRest()}

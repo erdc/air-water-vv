@@ -1,15 +1,25 @@
 from proteus import *
 from proteus.default_p import *
-from marin import *
-from proteus.mprans import MCorr
+from proteus.mprans import MCorr3P
+from proteus import Context
+name="ls_consrv"
+ct = Context.get()
+nd = ct.nd
+domain = ct.domain
+genMesh = ct.genMesh
+LevelModelType = MCorr3P.LevelModel
 
-LevelModelType = MCorr.LevelModel
-
-coefficients = MCorr.Coefficients(LSModel_index=2,V_model=0,me_model=4,VOFModel_index=1,
-                                  applyCorrection=applyCorrection,nd=nd,checkMass=False,useMetrics=useMetrics,
-                                  epsFactHeaviside=epsFact_consrv_heaviside,
-                                  epsFactDirac=epsFact_consrv_dirac,
-                                  epsFactDiffusion=epsFact_consrv_diffusion)
+coefficients = MCorr3P.Coefficients(LS_model=ct.LS_model,
+                                    V_model=ct.V_model,
+                                    ME_model=ct.MCORR_model,
+                                    VOF_model=ct.VOF_model,
+                                    applyCorrection=ct.applyCorrection,
+                                    nd=nd,
+                                    checkMass=True,
+                                    useMetrics=ct.useMetrics,
+                                    epsFactHeaviside=ct.epsFact_consrv_heaviside,
+                                    epsFactDirac=ct.epsFact_consrv_dirac,
+                                    epsFactDiffusion=ct.epsFact_consrv_diffusion)
 
 class zero_phi:
     def __init__(self):
@@ -20,7 +30,3 @@ class zero_phi:
         return 0.0
 
 initialConditions  = {0:zero_phi()}
-
-
-
-
