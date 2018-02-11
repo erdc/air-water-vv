@@ -1,11 +1,14 @@
-from math import *
-import proteus.MeshTools
-from proteus import Domain
-from proteus.default_n import *   
+import math
+from proteus import (Domain,
+                     Context,
+                     FemTools,
+                     Quadrature,
+                     MeshTools,
+                     Gauges)
+from proteus.Gauges import PointGauges, LineIntegralGauges
 from proteus.Profiling import logEvent
 from proteus.MeshAdaptPUMI import MeshAdaptPUMI
 name = "marin"
-
 VOF_model=0
 LS_model=1
 RD_model=2
@@ -15,12 +18,42 @@ PINC_model=5
 PRESSURE_model=6
 PINIT_model=7
 
-openTop = False
+opts = Context.Options([
+    ("openTop", False, "Open the top of the tank to the atmosphere"),
+    ("he", 0.5, "Maximum mesh element diameter"),
+    ("genMesh", True, "Generate a new mesh"),
+    ("T", 7.4, "Simulate over over the interval [0,T]"),
+    ("dt_out", 0.1, "Save the solution every dt_out steps"),
+    ("gauges", True, "Collect data for validation"),
+    ("cfl",0.9, "CFL number to use for time stepping")
+    ])
+
+if opts.gauges:
+    pressure_gauges = PointGauges(gauges=((('p',),
+                                          ((2.3950,0.4745,0.020),
+                                           (2.3950,0.4745,0.100),
+                                           (2.4195,0.5255,0.161),
+                                           (2.4995,0.5255,0.161))),),
+                                  fileName="pressure.csv")
+    height_gauges = LineIntegralGauges(gauges=((("vof",),
+                                                (((2.724, 0.5, 0.0),
+                                                  (2.724, 0.5, 1.0)),
+                                                 ((2.228, 0.5, 0.0),
+                                                  (2.228, 0.5, 1.0)),
+                                                 ((1.732, 0.5, 0.0),
+                                                  (1.732, 0.5, 1.0)),
+                                                 ((0.582, 0.5, 0.0),
+                                                  (0.582, 0.5, 1.0)))),),
+                                       fileName="height.csv")
+
+runCFL = opts.cfl
+openTop = opts.openTop
 #  Discretization -- input options    
-genMesh=True
+genMesh=opts.genMesh
 useOldPETSc=False
 useSuperlu=False
 timeDiscretization = 'vbdf'
+timeOrder = 2
 spaceOrder = 2
 pspaceOrder = 1
 useHex     = False
@@ -49,33 +82,35 @@ if useMetrics not in [0.0, 1.0]:
 nd = 3
 if spaceOrder == 1:
     hFactor=1.0
+    PSTAB=1.0
     if useHex:
-        pbasis=C0_AffineLinearOnCubeWithNodalBasis    
-	basis=C0_AffineLinearOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd,2)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,2)     	 
+        pbasis=FemTools.C0_AffineLinearOnCubeWithNodalBasis    
+	basis=FemTools.C0_AffineLinearOnCubeWithNodalBasis
+        elementQuadrature = Quadrature.CubeGaussQuadrature(nd,2)
+        elementBoundaryQuadrature = Quadrature.CubeGaussQuadrature(nd-1,2)     	 
     else:
-    	pbasis=C0_AffineLinearOnSimplexWithNodalBasis
-    	basis=C0_AffineLinearOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd,3)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3) 	    
+    	pbasis=FemTools.C0_AffineLinearOnSimplexWithNodalBasis
+    	basis=FemTools.C0_AffineLinearOnSimplexWithNodalBasis
+        elementQuadrature = Quadrature.SimplexGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = Quadrature.SimplexGaussQuadrature(nd-1,3) 	    
 elif spaceOrder == 2:
     hFactor=0.5
+    PSTAB=0.0
     if useHex:    
-        pbasis=C0_AffineLinearOnCubeWithNodalBasis    
-	basis=C0_AffineLagrangeOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd,6)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,6)    
+        pbasis=FemTools.C0_AffineLinearOnCubeWithNodalBasis    
+	basis=FemTools.C0_AffineLagrangeOnCubeWithNodalBasis
+        elementQuadrature = Quadrature.CubeGaussQuadrature(nd,6)
+        elementBoundaryQuadrature = Quadrature.CubeGaussQuadrature(nd-1,6)    
     else:    
-    	pbasis=C0_AffineLinearOnSimplexWithNodalBasis
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis	
-        elementQuadrature = SimplexGaussQuadrature(nd,6)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,6)
+    	pbasis=FemTools.C0_AffineLinearOnSimplexWithNodalBasis
+	basis=FemTools.C0_AffineQuadraticOnSimplexWithNodalBasis	
+        elementQuadrature = Quadrature.SimplexGaussQuadrature(nd,6)
+        elementBoundaryQuadrature = Quadrature.SimplexGaussQuadrature(nd-1,6)
 
 
 # Domain and mesh
 nLevels = 1
-parallelPartitioningType = proteus.MeshTools.MeshParallelPartitioningTypes.node
+parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
 nLayersOfOverlapForParallel = 0
 usePUMI=0
 
@@ -98,7 +133,7 @@ elif usePUMI:
     domain = Domain.PUMIDomain() #initialize the domain
     domain.faceList=[[1],[2],[3],[4],[5],[6],[8],[9],[10],[11],[12]]
     #set max edge length, min edge length, number of meshadapt iterations and initialize the MeshAdaptPUMI object
-    he = 0.018
+    he = opts.he
     #these are now inputs to the numerics
     adaptMesh = False#True
     adaptMesh_nSteps = 5
@@ -117,7 +152,7 @@ else:
     L      = [3.22,1.0,1.0]
     box_L  = [0.161,0.403,0.161]
     box_xy = [2.3955,0.2985]
-    he = 0.1
+    he = opts.he
     boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     bt = boundaryTags
@@ -197,26 +232,26 @@ else:
     triangleOptions="VApq1.25q12feena%e" % ((he**3)/6.0,)
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=6.00
+T=opts.T
 dt_init  =0.001
-dt_fixed = 0.1
+dt_fixed = opts.dt_out
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False
 if useMetrics:
-    ns_shockCapturingFactor  = 0.9
+    ns_shockCapturingFactor  = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
+    ls_shockCapturingFactor  = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.9
+    vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.9
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
@@ -298,5 +333,5 @@ def signedDistance(x):
         if phi_z < 0.0:
             return phi_x
         else:
-            return sqrt(phi_x**2 + phi_z**2)
+            return math.sqrt(phi_x**2 + phi_z**2)
 

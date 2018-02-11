@@ -2,8 +2,9 @@ from proteus.default_n import *
 from twp_navier_stokes_p import *
 
 triangleOptions = ct.triangleOptions
-timeIntegration = BackwardEuler_cfl
-stepController  = Min_dt_controller
+timeIntegration = VBDF
+timeOrder = ct.timeOrder
+stepController  = Min_dt_cfl_controller
 runCFL = ct.runCFL
 femSpaces = {0:ct.basis,
 	     1:ct.basis,

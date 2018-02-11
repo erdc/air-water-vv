@@ -12,7 +12,7 @@ domain = ct.domain
 coefficients=Pres.Coefficients(modelIndex=ct.PRESSURE_model,
                                fluidModelIndex=ct.V_model,
                                pressureIncrementModelIndex=ct.PINC_model,
-                               useRotationalForm=False)
+                               useRotationalForm=True)
 
 def getDBC_p(x,flag):
     if flag == ct.boundaryTags['top'] and ct.openTop:

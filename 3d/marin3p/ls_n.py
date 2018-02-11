@@ -1,9 +1,9 @@
 from proteus.default_n import *
 from ls_p import *
 triangleOptions = ct.triangleOptions
-timeIntegration = TimeIntegration.BackwardEuler_cfl
-stepController  = StepControl.Min_dt_controller
-
+timeIntegration = VBDF
+timeOrder = ct.timeOrder
+stepController  = Min_dt_cfl_controller
 femSpaces = {0:ct.basis}
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature

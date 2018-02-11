@@ -40,3 +40,4 @@ linearSolverConvergenceTest         = 'r-true'
 periodicDirichletConditions=None
 
 conservativeFlux=None
+auxiliaryVariables=[ct.pressure_gauges]

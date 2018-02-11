@@ -7,7 +7,5 @@
 -dissipation_ksp_type preonly -dissipation_pc_type lu -dissipation_pc_factor_mat_solver_package superlu_dist
 -mesh_ksp_type preonly -mesh_pc_type lu -mesh_pc_factor_mat_solver_package superlu_dist
 -pinit_ksp_type preonly  -pinit_pc_type lu  -pinit_pc_factor_mat_solver_package superlu_dist
--phi_ksp_type cg -phi_pc_type  hypre -phi_pc_hypre_type gamg -phi_ksp_gmres_restart 300 -phi_ksp_knoll -phi_ksp_max_it 2000
+-phi_ksp_type cg -phi_pc_type  hypre -phi_pc_hypre_type boomeramg 
 -vos_ksp_type   preonly  -vos_pc_type   lu  -vos_pc_factor_mat_solver_package superlu_dist
-
-
