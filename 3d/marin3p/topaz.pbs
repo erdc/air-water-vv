@@ -16,4 +16,4 @@ cp *.py $WORKDIR/marin.$PBS_JOBID
 cp topaz.pbs $WORKDIR/marin.$PBS_JOBID
 cp petsc.options.asm $WORKDIR/marin.$PBS_JOBID
 cd  $WORKDIR/marin.$PBS_JOBID
-mpiexec_mpt -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O petsc.options.asm -C "he=0.025"
+mpiexec_mpt -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -m -p -l 5 -F -O petsc.options.asm -C "he=0.025"
