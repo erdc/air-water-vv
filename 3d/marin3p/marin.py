@@ -25,7 +25,7 @@ opts = Context.Options([
     ("T", 7.4, "Simulate over over the interval [0,T]"),
     ("dt_out", 0.1, "Save the solution every dt_out steps"),
     ("gauges", True, "Collect data for validation"),
-    ("cfl",0.9, "CFL number to use for time stepping")
+    ("cfl",0.33, "CFL number to use for time stepping")
     ])
 
 if opts.gauges:
@@ -240,14 +240,14 @@ nDTout = int(round(T/dt_fixed))
 # Numerical parameters
 ns_forceStrongDirichlet = False
 if useMetrics:
-    ns_shockCapturingFactor  = 0.5
+    ns_shockCapturingFactor  = 0.75
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.5
+    ls_shockCapturingFactor  = 0.75
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.5
+    vof_shockCapturingFactor = 0.75
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
