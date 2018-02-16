@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-os.chdir('2d/benchmarks/wavesloshing')
+os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/wavesloshing')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm

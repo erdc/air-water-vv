@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-os.chdir('2d/benchmarks/dambreak_Ubbink')
+os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/dambreak_Ubbink')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
