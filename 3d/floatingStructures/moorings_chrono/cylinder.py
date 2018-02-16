@@ -50,7 +50,6 @@ opts=Context.Options([
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "use_gmsh"),
     ("refinement", True, "ref"),
-    ("refinement_freesurface", 0.04, "ref"),
     ("refinement_grading", 1.2, "ref"),
     ("movingDomain", True, "True/False"),
     ("T", 50.0, "Simulation time"),
@@ -58,7 +57,7 @@ opts=Context.Options([
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("chrono_dt", 1e-4, "time step in chrono"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
-    ("cfl", 0.4, "Target cfl"),
+    ("cfl", 0.9, "Target cfl"),
     ("nsave", 20, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ])
@@ -244,7 +243,7 @@ if opts.cylinder is True:
     inert = pcc.ChVector(Ixx, Iyy, Izz)
     body.ChBody.SetInertiaXX(inert)
 
-prescribed_init = False
+prescribed_init = opts.moorings_stretched
 if opts.moorings is True:
     # variables
     L = 6.950
@@ -419,10 +418,7 @@ if opts.use_gmsh and opts.refinement is True:
     he_max = 10.
     he_max_water = 10.
     ecH = 3.
-    if opts.refinement_freesurface > 0:
-        box = opts.refinement_freesurface
-    else:
-        box = ecH*he
+    box = opts.wave_height/2.
     field_list = []
     def mesh_grading(start, he, grading):
         #return '{he}*{grading}^({start}/{he})'.format(he=he, start=start, grading=grading)
@@ -440,6 +436,7 @@ if opts.use_gmsh and opts.refinement is True:
     dist_x = dist_plane(xn=-sponges['x-'], xp=tank_dim[0], plane='x')
     dist_y = dist_plane(xn=0., xp=tank_dim[1], plane='y')
     dist = 'sqrt(({dist_x})^2+({dist_y})^2+({dist_z})^2)'.format(dist_x=dist_x, dist_y=dist_y, dist_z=dist_z)
+    dist = dist_z
     me1.F = '{he}*{grading}^({dist}/{he})'.format(dist=dist, he=he, grading=grading)
     me1.F = mesh_grading(start=dist, he=he, grading=grading)
     field_list += [me1]
