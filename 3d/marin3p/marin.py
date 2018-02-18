@@ -7,7 +7,7 @@ from proteus import (Domain,
                      Gauges)
 from proteus.Gauges import PointGauges, LineIntegralGauges
 from proteus.Profiling import logEvent
-from proteus.MeshAdaptPUMI import MeshAdaptPUMI
+#from proteus.MeshAdaptPUMI import MeshAdaptPUMI
 name = "marin"
 VOF_model=0
 LS_model=1
@@ -19,6 +19,7 @@ PRESSURE_model=6
 PINIT_model=7
 
 opts = Context.Options([
+    ("strong", False, "Use strong BC for NSE"),
     ("openTop", False, "Open the top of the tank to the atmosphere"),
     ("he", 0.5, "Maximum mesh element diameter"),
     ("genMesh", True, "Generate a new mesh"),
@@ -238,20 +239,20 @@ dt_fixed = opts.dt_out
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = False
+ns_forceStrongDirichlet = opts.strong
 if useMetrics:
-    ns_shockCapturingFactor  = 0.75
+    ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.75
+    ls_shockCapturingFactor  = 0.9
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.75
+    vof_shockCapturingFactor = 0.9
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.75
+    rd_shockCapturingFactor  = 0.9
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density

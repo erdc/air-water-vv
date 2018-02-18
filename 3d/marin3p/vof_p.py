@@ -20,12 +20,16 @@ coefficients = VOF3P.Coefficients(LS_model=ct.LS_model,
                                   sc_beta=ct.vof_sc_beta)
 
 def getDBC_vof(x,flag):
-    return None
+    if ct.openTop and flag == ct.boundaryTags['top']:
+        return lambda x,t: 0.0
 
 dirichletConditions = {0:getDBC_vof}
 
 def getAFBC_vof(x,flag):
-    return lambda x,t: 0.0
+    if ct.openTop and flag == ct.boundaryTags['top']:
+        return None
+    else:
+        return lambda x,t: 0.0
 
 advectiveFluxBoundaryConditions = {0:getAFBC_vof}
 diffusiveFluxBoundaryConditions = {0:{}}

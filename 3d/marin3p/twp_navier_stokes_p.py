@@ -38,13 +38,19 @@ coefficients = RANS3PF.Coefficients(epsFact=ct.epsFact_viscosity,
                                     PSTAB=0.0)
 
 def getDBC_u(x,flag):
-    return None
+    if ct.openTop and flag == ct.boundaryTags['top']:
+        return lambda  x,t: 0.0
 
 def getDBC_v(x,flag):
-    return None
+    if ct.openTop and flag == ct.boundaryTags['top']:
+        return lambda  x,t: 0.0
 
 def getDBC_w(x,flag):
-    return None
+    if ct.openTop and flag == ct.boundaryTags['top']:
+        if ct.ns_forceStrongDirichlet:
+            return None
+        else:
+            return lambda  x,t: 0.0
     
 dirichletConditions = {0:getDBC_u,
                        1:getDBC_v,
@@ -52,13 +58,22 @@ dirichletConditions = {0:getDBC_u,
 
      
 def getAFBC_u(x,flag):
-    return lambda x,t: 0.0
+    if ct.openTop and flag == ct.boundaryTags['top']:
+        return None
+    else:
+        return lambda x,t: 0.0
 
 def getAFBC_v(x,flag):
-    return lambda x,t: 0.0
+    if ct.openTop and flag == ct.boundaryTags['top']:
+        return None
+    else:
+        return lambda x,t: 0.0
 
 def getAFBC_w(x,flag):
-    return lambda x,t: 0.0
+    if ct.openTop and flag == ct.boundaryTags['top']:
+        return None
+    else:
+        return lambda x,t: 0.0
 
 def getDFBC_u(x,flag):
     return lambda x,t: 0.0
