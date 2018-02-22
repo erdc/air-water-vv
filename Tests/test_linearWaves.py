@@ -38,7 +38,8 @@ class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
                 os.remove(file)
             else:
                 pass
-            
+
+
     def test_run(self):
         from petsc4py import PETSc
         pList = []
@@ -75,6 +76,7 @@ class TestLinearWavesTetgen(TestTools.AirWaterVVTest):
                     print "setting ", all[i].strip(), "True"
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
+        so.tnList=[0.0,0.001]+[0,001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('linear_waves')
         assert(True)
