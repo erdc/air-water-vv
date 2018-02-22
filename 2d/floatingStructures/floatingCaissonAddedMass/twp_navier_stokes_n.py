@@ -88,4 +88,4 @@ if ct.opts.caisson is True:
     auxs = [ct.system]
 else:
     auxs = []
-auxiliaryVariables = ct.domain.auxiliaryVariables['twp']+auxs
+auxiliaryVariables = auxs
