@@ -133,7 +133,7 @@ if opts.caisson is True:
                             [0., 0., inertia]])
         body.setRecordValues(filename='record_bridge', all_values=True)
         body.coords_system = caisson.coords_system  # hack
-
+        body.last_Aij = np.zeros((6,6),'d')
         body.last_Omega = np.zeros((3,3),'d')
         body.last_velocity = np.zeros((3,),'d')
         body.last_Q = np.eye(3)
@@ -175,9 +175,12 @@ if opts.caisson is True:
                                   [ omega[2],       0.0, -omega[0]],
                                   [-omega[1],  omega[0],      0.0]])
                 I = np.matmul(np.matmul(Q, body.It), Q.transpose())
-                M = body.bodyAddedMass.model.levelModelList[-1].Aij[1].copy()
-                for i in range(2, 5):
-                    M += body.bodyAddedMass.model.levelModelList[-1].Aij[i]
+                body.Aij = body.bodyAddedMass.model.levelModelList[-1].Aij[1].copy()
+                avg_Aij=False
+                if avg_Aij:
+                    M = 0.5*(body.Aij + body.last_Aij)
+                else:
+                    M = body.Aij.copy()
                 for i in range(6):
                     for j in range(6):
                         M[i,j]*=body.free_dof[j]#only allow j accelerations to contribute to i force balance if j is free
@@ -189,7 +192,11 @@ if opts.caisson is True:
                     for j in range(3):
                         M[3+i, 3+j] += I[i, j]
                 r = np.zeros((18,),'d')
-                r[:6] = np.matmul(M, u[:6]) - body.last_mom - dt*0.5*(body.FT+body.last_FT)
+                body_cons=True
+                if body_cons:
+                    r[:6] = np.matmul(M, u[:6] - body.last_u[:6]) - dt*0.5*(body.FT+body.last_FT)
+                else:
+                    r[:6] = np.matmul(M, u[:6]) - body.last_mom - dt*0.5*(body.FT+body.last_FT)
                 r[6:9] = h - body.last_h - dt*0.5*(v + body.last_velocity)
                 rQ = Q - body.last_Q - dt*0.25*np.matmul((Omega + body.last_Omega),(Q+body.last_Q))
                 r[9:18] = rQ.flatten()
@@ -238,6 +245,7 @@ if opts.caisson is True:
                 logEvent("rotation, Q = "+`body.Q`)
                 logEvent("velocity, v = "+`body.velocity`)
                 logEvent("angular acceleration matrix, Omega = "+`body.Omega`)
+            body.last_Aij[:]=body.Aij
             body.last_FT[:] = body.FT
             body.last_Omega[:] = body.Omega
             body.last_velocity[:] = body.velocity
