@@ -83,7 +83,7 @@ nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = False#True
 maxNonlinearIts = 50
 maxLineSearches = 0
-conservativeFlux = {0:'pwl-bdm-opt'}
+#conservativeFlux = {0:'pwl-bdm-opt'}
 if ct.opts.caisson is True:
     auxs = [ct.system]
 else:
