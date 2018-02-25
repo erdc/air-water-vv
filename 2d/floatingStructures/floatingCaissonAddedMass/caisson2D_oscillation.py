@@ -7,7 +7,6 @@ from proteus.mbd import ChRigidBody as crb
 from math import *
 import numpy as np
 
-
 opts=Context.Options([
     ("nc_form",True,"Use non-conservative NSE form"),
     ("use_chrono", True, "use chrono (True) or custom solver"),
@@ -203,6 +202,8 @@ if opts.caisson is True:
                     for j in range(6):
                         M[i,j]*=body.free_dof[j]#only allow j accelerations to contribute to i force balance if j is free
                         M[j,i]*=body.free_dof[j]#only allow j added mass forces if j is free
+                        body.Aij[i,j]*=body.free_dof[j]#only allow j accelerations to contribute to i force balance if j is free
+                        body.Aij[j,i]*=body.free_dof[j]#only allow j added mass forces if j is free
                 body.FT[:3] = body.F
                 body.FT[3:] = body.M
                 for i in range(3):
@@ -210,11 +211,7 @@ if opts.caisson is True:
                     for j in range(3):
                         M[3+i, 3+j] += I[i, j]
                 r = np.zeros((18,),'d')
-                body_cons=True
-                if body_cons:
-                    r[:6] = np.matmul(M, u[:6] - body.last_u[:6]) - DT*(body.FT*theta+body.last_FT*(1.0-theta))
-                else:
-                    r[:6] = np.matmul(M, u[:6]) - body.last_mom - DT*(body.FT*theta+body.last_FT*(1.0-theta))
+                r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*(body.FT*theta+body.last_FT*(1.0-theta))
                 r[6:9] = h - body.last_h - DT*0.5*(v + body.last_velocity)
                 rQ = Q - body.last_Q - DT*0.25*np.matmul((Omega + body.last_Omega),(Q+body.last_Q))
                 r[9:18] = rQ.flatten()
@@ -235,7 +232,8 @@ if opts.caisson is True:
                 body.Q[:] = Q
                 body.h[:] = h
                 body.u[:] = u
-                body.mom[:] = np.matmul(M,u[:6])
+                body.mom[:3] = body.mass*u[:3]
+                body.mom[3:6] = np.matmul(I,u[3:6])
                 return r, J
             nd = body.nd
             Q_start=body.Q.copy()
@@ -251,6 +249,8 @@ if opts.caisson is True:
                     u -= np.linalg.solve(J,r)
                     r,J = F(u,theta)
                     its+=1
+                logEvent("6DOF its "+`its`)
+                logEvent("6DOF res "+`np.linalg.norm(r)`)
                 body.last_Aij[:]=body.Aij
                 body.last_FT[:] = body.FT
                 body.last_Omega[:] = body.Omega
@@ -261,7 +261,9 @@ if opts.caisson is True:
                 body.last_mom[:] = body.mom
             # translate and rotate
             body.last_position[:] = body.position
-            body.rotation_matrix[:] = np.linalg.solve(Q_start,body.Q)
+            #body.rotation_matrix[:] = np.linalg.solve(Q_start,body.Q)
+            body.rotation_matrix[:] = np.matmul(np.linalg.inv(body.Q),Q_start)
+            body.rotation_euler[2] -= math.asin(body.rotation_matrix[1,0])#cek hack
             body.Shape.translate(body.h[:nd])
             body.barycenter[:] = body.Shape.barycenter
             body.position[:] = body.Shape.barycenter

@@ -57,7 +57,7 @@ needEBQ_GLOBAL = False
 needEBQ = False
 
 modelSpinUpList = [0]  # for initial conditions of movemesh
-#archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
+archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
 
 if ct.opts.nsave == 0:
     if ct.dt_fixed > 0:
