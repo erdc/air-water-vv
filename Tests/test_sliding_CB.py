@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import pytest
 import os 
 os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/caissonBreakwater/sliding')
