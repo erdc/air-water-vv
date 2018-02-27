@@ -38,8 +38,10 @@ advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].vof_advect
 
 diffusiveFluxBoundaryConditions = {0: {}}
 
+
+
 class VF_IC:
     def uOfXT(self, x, t):
-        return smoothedHeaviside(ct.epsFact_consrv_heaviside*ct.he,x[nd-1]-ct.water_level)
+        return smoothedHeaviside(ct.epsFact_consrv_heaviside*ct.he,x[2]-ct.signedDistance(x)[0])
 
 initialConditions = {0: VF_IC()}
