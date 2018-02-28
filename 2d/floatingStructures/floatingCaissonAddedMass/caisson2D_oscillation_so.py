@@ -49,6 +49,7 @@ if ct.useRANS > 0:
 if ct.dt_fixed:
     systemStepControllerType = Sequential_FixedStep
     dt_system_fixed = ct.dt_fixed
+    systemStepExact=False
 else:  # use CFL
     systemStepControllerType = Sequential_MinAdaptiveModelStep
     systemStepExact=False
