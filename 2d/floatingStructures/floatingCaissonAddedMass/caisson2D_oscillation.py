@@ -151,6 +151,8 @@ if opts.caisson is True:
         body.last_h = np.zeros((3,),'d')
         body.last_mom = np.zeros((6,),'d')
         body.last_u = np.zeros((18,),'d')
+        body.last_t = 0.0
+        body.t = 0.0
         body.h = np.zeros((3,),'d')
         body.velocity = np.zeros((3,),'d')
         body.mom = np.zeros((6,),'d')
@@ -195,7 +197,7 @@ if opts.caisson is True:
                         body.Aij += body.bodyAddedMass.model.levelModelList[-1].Aij[i]
                 avg_Aij=False
                 if avg_Aij:
-                    M = 0.5*(body.Aij + body.last_Aij)
+                    M = body.Aij*theta + body.last_Aij*(1-theta)
                 else:
                     M = body.Aij.copy()
                 for i in range(6):
@@ -206,26 +208,41 @@ if opts.caisson is True:
                         body.Aij[j,i]*=body.free_dof[j]#only allow j added mass forces if j is free
                 body.FT[:3] = body.F
                 body.FT[3:] = body.M
+                #cek debug
+                #body.FT[:] = 0.0
+                #body.FT[1] = body.mass * 0.125*math.pi**2 * math.cos(body.t*math.pi)
                 for i in range(3):
                     M[i, i] += body.mass
                     for j in range(3):
                         M[3+i, 3+j] += I[i, j]
                 r = np.zeros((18,),'d')
-                r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*(body.FT*theta+body.last_FT*(1.0-theta))
-                r[6:9] = h - body.last_h - DT*0.5*(v + body.last_velocity)
-                rQ = Q - body.last_Q - DT*0.25*np.matmul((Omega + body.last_Omega),(Q+body.last_Q))
+                BE=False
+                if BE:
+                    r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*body.FT
+                    r[6:9] = h - body.last_h - DT*v
+                    rQ = Q - body.last_Q - DT*np.matmul(Omega,Q)
+                else:
+                    r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*(body.FT*theta+body.last_FT*(1.0-theta))
+                    r[6:9] = h - body.last_h - DT*0.5*(v + body.last_velocity)
+                    rQ = Q - body.last_Q - DT*0.25*np.matmul((Omega + body.last_Omega),(Q+body.last_Q))
                 r[9:18] = rQ.flatten()
                 J = np.zeros((18,18),'d')
                 J[:6,:6] = M
                 #neglecting 0:6 dependence on Q
                 for i in range(3):
-                    J[6+i,i] = -DT*0.5
+                    if BE:
+                        J[6+i,i] = -DT
+                    else:
+                        J[6+i,i] = -DT*0.5
                     J[6+i,6+i] = 1.0
                 for i in range(9):
                     J[9+i,9+i] = 1.0
                 for i in range(3):
                     for j in range(3):
-                        J[9+i*3+j, 9+i+j*3] -= DT*0.25*(Omega+body.last_Omega)[i,j]
+                        if BE:
+                            J[9+i*3+j, 9+i+j*3] -= DT*Omega[i,j]
+                        else:
+                            J[9+i*3+j, 9+i+j*3] -= DT*0.25*(Omega+body.last_Omega)[i,j]
                 #neglecting 9:18 dependence on omega
                 body.Omega[:] = Omega
                 body.velocity[:] = v
@@ -237,8 +254,11 @@ if opts.caisson is True:
                 return r, J
             nd = body.nd
             Q_start=body.Q.copy()
+            h_start=body.last_h.copy()
             for i in range(int(n)):
                 theta = (i+1)*DT/dt
+                body.t = body.last_t + DT
+                logEvent("6DOF theta "+`theta`)
                 u = np.zeros((18,),'d')
                 u[:] = body.last_u
                 r = np.zeros((18,),'d')
@@ -259,7 +279,10 @@ if opts.caisson is True:
                 body.last_h[:] = body.h
                 body.last_u[:] = body.u
                 body.last_mom[:] = body.mom
+                body.last_t = body.t
             # translate and rotate
+            body.h -= h_start
+            body.last_h[:] = 0.0
             body.last_position[:] = body.position
             #body.rotation_matrix[:] = np.linalg.solve(Q_start,body.Q)
             body.rotation_matrix[:] = np.matmul(np.linalg.inv(body.Q),Q_start)
@@ -268,6 +291,10 @@ if opts.caisson is True:
             body.barycenter[:] = body.Shape.barycenter
             body.position[:] = body.Shape.barycenter
             #logEvent("6DOF its = " + `its` + " residual = "+`r`)
+            logEvent("6DOF time "+`body.t`)
+            logEvent("6DOF DT "+`DT`)
+            logEvent("6DOF n "+`n`)
+            logEvent("6DOF force "+`body.FT[1]`)
             logEvent("displacement, h = "+`body.h`)
             logEvent("rotation, Q = "+`body.Q`)
             logEvent("velocity, v = "+`body.velocity`)
