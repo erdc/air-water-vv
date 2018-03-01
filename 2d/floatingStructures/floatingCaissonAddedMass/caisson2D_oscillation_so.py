@@ -47,18 +47,18 @@ if ct.useRANS > 0:
 
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
 if ct.dt_fixed:
-#    systemStepControllerType = Sequential_FixedStep
-    systemStepControllerType = Sequential_MinAdaptiveModelStep
+    systemStepControllerType = Sequential_FixedStep
     dt_system_fixed = ct.dt_fixed
-    stepExactSystem=False
+    systemStepExact=False
 else:  # use CFL
     systemStepControllerType = Sequential_MinAdaptiveModelStep
-    stepExactSystem=False
+    systemStepExact=False
 
 needEBQ_GLOBAL = False
 needEBQ = False
 
 modelSpinUpList = [0]  # for initial conditions of movemesh
+archiveFlag = ArchiveFlags.EVERY_SEQUENCE_STEP
 
 if ct.opts.nsave == 0:
     if ct.dt_fixed > 0:

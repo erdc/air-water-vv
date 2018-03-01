@@ -7,8 +7,8 @@ from proteus.mbd import ChRigidBody as crb
 from math import *
 import numpy as np
 
-
 opts=Context.Options([
+    ("nc_form",True,"Use non-conservative NSE form"),
     ("use_chrono", True, "use chrono (True) or custom solver"),
     # predefined test cases
     ("water_level", 1.5, "Height of free surface above bottom"),
@@ -19,7 +19,7 @@ opts=Context.Options([
     ("addedMass", True, "added mass"),
     ("caisson", True, "caisson"),
     ("caisson_dim", (0.5, 0.5), "Dimensions of the caisson"),
-    ("caisson_coords", (1.5, 1.5-0.05), "Dimensions of the caisson"),
+    ("caisson_coords", (1.5, 1.5+0.5), "Dimensions of the caisson"),
     ("free_x", (0.0, 1.0, 0.0), "Translational DOFs"),
     ("free_r", (0.0, 0.0, 0.0), "Rotational DOFs"),
     ("VCG", 0.05, "vertical position of the barycenter of the caisson"),
@@ -71,7 +71,13 @@ if opts.caisson is True:
     inertia = opts.caisson_inertia
 
     caisson_dim = opts.caisson_dim
+    caisson_name='caisson_chrono'
+    if opts.addedMass:
+        caisson_name+='_am'
+    if opts.nc_form:
+        caisson_name+='_nc'
     caisson = st.Rectangle(domain, dim=opts.caisson_dim, coords=[0.,0.], barycenter=np.zeros(3))
+    caisson.name=caisson_name
     ang = rotation_angle
     caisson.setHoles([[0., 0.]])
     caisson.holes_ind = np.array([0])
@@ -131,7 +137,12 @@ if opts.caisson is True:
         body.It = np.array([[1., 0., 0.],
                             [0., 1., 0.],
                             [0., 0., inertia]])
-        body.setRecordValues(filename='record_bridge', all_values=True)
+        filename='record_caisson'
+        if opts.addedMass:
+            filename+='_am'
+        if opts.nc_form:
+            filename+='_nc'
+        body.setRecordValues(filename=filename, all_values=True)
         body.coords_system = caisson.coords_system  # hack
         body.last_Aij = np.zeros((6,6),'d')
         body.last_Omega = np.zeros((3,3),'d')
@@ -140,6 +151,8 @@ if opts.caisson is True:
         body.last_h = np.zeros((3,),'d')
         body.last_mom = np.zeros((6,),'d')
         body.last_u = np.zeros((18,),'d')
+        body.last_t = 0.0
+        body.t = 0.0
         body.h = np.zeros((3,),'d')
         body.velocity = np.zeros((3,),'d')
         body.mom = np.zeros((6,),'d')
@@ -164,8 +177,11 @@ if opts.caisson is True:
         # body.ProtChAddedMass = crb.ProtChAddedMass(system)
 
         def step(dt):
+            from math import ceil
             logEvent("Barycenter "+str(body.barycenter))
-            def F(u):
+            n = max(1.0,ceil(dt/opts.chrono_dt))
+            DT=dt/n
+            def F(u,theta):
                 """The residual and Jacobian for discrete 6DOF motion with added mass"""
                 v = u[:3]
                 omega = u[3:6]
@@ -175,90 +191,114 @@ if opts.caisson is True:
                                   [ omega[2],       0.0, -omega[0]],
                                   [-omega[1],  omega[0],      0.0]])
                 I = np.matmul(np.matmul(Q, body.It), Q.transpose())
-                body.Aij = body.bodyAddedMass.model.levelModelList[-1].Aij[1].copy()
+                body.Aij = np.zeros((6,6),'d')
+                if opts.addedMass:
+                    for i in range(1,5):#number of rigid body facets
+                        body.Aij += body.bodyAddedMass.model.levelModelList[-1].Aij[i]
                 avg_Aij=False
                 if avg_Aij:
-                    M = 0.5*(body.Aij + body.last_Aij)
+                    M = body.Aij*theta + body.last_Aij*(1-theta)
                 else:
                     M = body.Aij.copy()
                 for i in range(6):
                     for j in range(6):
                         M[i,j]*=body.free_dof[j]#only allow j accelerations to contribute to i force balance if j is free
                         M[j,i]*=body.free_dof[j]#only allow j added mass forces if j is free
+                        body.Aij[i,j]*=body.free_dof[j]#only allow j accelerations to contribute to i force balance if j is free
+                        body.Aij[j,i]*=body.free_dof[j]#only allow j added mass forces if j is free
                 body.FT[:3] = body.F
                 body.FT[3:] = body.M
+                #cek debug
+                #body.FT[:] = 0.0
+                #body.FT[1] = body.mass * 0.125*math.pi**2 * math.cos(body.t*math.pi)
                 for i in range(3):
                     M[i, i] += body.mass
                     for j in range(3):
                         M[3+i, 3+j] += I[i, j]
                 r = np.zeros((18,),'d')
-                body_cons=True
-                if body_cons:
-                    r[:6] = np.matmul(M, u[:6] - body.last_u[:6]) - dt*0.5*(body.FT+body.last_FT)
+                BE=True
+                if BE:
+                    r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*body.FT
+                    r[6:9] = h - body.last_h - DT*v
+                    rQ = Q - body.last_Q - DT*np.matmul(Omega,Q)
                 else:
-                    r[:6] = np.matmul(M, u[:6]) - body.last_mom - dt*0.5*(body.FT+body.last_FT)
-                r[6:9] = h - body.last_h - dt*0.5*(v + body.last_velocity)
-                rQ = Q - body.last_Q - dt*0.25*np.matmul((Omega + body.last_Omega),(Q+body.last_Q))
+                    r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*(body.FT*theta+body.last_FT*(1.0-theta))
+                    r[6:9] = h - body.last_h - DT*0.5*(v + body.last_velocity)
+                    rQ = Q - body.last_Q - DT*0.25*np.matmul((Omega + body.last_Omega),(Q+body.last_Q))
                 r[9:18] = rQ.flatten()
                 J = np.zeros((18,18),'d')
                 J[:6,:6] = M
                 #neglecting 0:6 dependence on Q
                 for i in range(3):
-                    J[6+i,i] = -dt*0.5
+                    if BE:
+                        J[6+i,i] = -DT
+                    else:
+                        J[6+i,i] = -DT*0.5
                     J[6+i,6+i] = 1.0
                 for i in range(9):
                     J[9+i,9+i] = 1.0
                 for i in range(3):
                     for j in range(3):
-                        J[9+i*3+j, 9+i+j*3] -= dt*0.25*(Omega+body.last_Omega)[i,j]
-                #cek, this indexing may be correct too, not sure
-                #for j in range(9,18):
-                #    row = (j-9)/3
-                #    col = j%3
-                #    print("jjj", row, col)
-                #    J[i,j] = 1.0 - dt*0.25*(Omega[row, col]+body.last_Omega[row, col])
-
+                        if BE:
+                            J[9+i*3+j, 9+i+j*3] -= DT*Omega[i,j]
+                        else:
+                            J[9+i*3+j, 9+i+j*3] -= DT*0.25*(Omega+body.last_Omega)[i,j]
                 #neglecting 9:18 dependence on omega
                 body.Omega[:] = Omega
                 body.velocity[:] = v
                 body.Q[:] = Q
                 body.h[:] = h
                 body.u[:] = u
-                body.mom[:] = np.matmul(M,u[:6])
+                body.mom[:3] = body.mass*u[:3]
+                body.mom[3:6] = np.matmul(I,u[3:6])
                 return r, J
-            # if body.ProtChAddedMass.model is not None:
-            #     body.Aij[:] = body.ProtChAddedMass.model.Aij
-            #     print("body Aij", body.Aij)
             nd = body.nd
-            u = np.zeros((18,),'d')
-            u[:] = body.last_u
-            r = np.zeros((18,),'d')
-            r,J = F(u)
-            its=0
-            maxits=100
-            while ((its==0 or np.linalg.norm(r) > 1.0e-8) and its < maxits):
-                u -= np.linalg.solve(J,r)
-                r,J = F(u)
-                its+=1
-                logEvent("6DOF its = " + `its` + " residual = "+`r`)
-                logEvent("displacement, h = "+`body.h`)
-                logEvent("rotation, Q = "+`body.Q`)
-                logEvent("velocity, v = "+`body.velocity`)
-                logEvent("angular acceleration matrix, Omega = "+`body.Omega`)
-            body.last_Aij[:]=body.Aij
-            body.last_FT[:] = body.FT
-            body.last_Omega[:] = body.Omega
-            body.last_velocity[:] = body.velocity
-            body.last_Q[:] = body.Q
-            body.last_h[:] = body.h
-            body.last_u[:] = body.u
-            body.last_mom[:] = body.mom
+            Q_start=body.Q.copy()
+            h_start=body.last_h.copy()
+            for i in range(int(n)):
+                theta = (i+1)*DT/dt
+                body.t = body.last_t + DT
+                logEvent("6DOF theta "+`theta`)
+                u = np.zeros((18,),'d')
+                u[:] = body.last_u
+                r = np.zeros((18,),'d')
+                r,J = F(u,theta)
+                its=0
+                maxits=100
+                while ((its==0 or np.linalg.norm(r) > 1.0e-8) and its < maxits):
+                    u -= np.linalg.solve(J,r)
+                    r,J = F(u,theta)
+                    its+=1
+                logEvent("6DOF its "+`its`)
+                logEvent("6DOF res "+`np.linalg.norm(r)`)
+                body.last_Aij[:]=body.Aij
+                body.last_FT[:] = body.FT
+                body.last_Omega[:] = body.Omega
+                body.last_velocity[:] = body.velocity
+                body.last_Q[:] = body.Q
+                body.last_h[:] = body.h
+                body.last_u[:] = body.u
+                body.last_mom[:] = body.mom
+                body.last_t = body.t
             # translate and rotate
+            body.h -= h_start
+            body.last_h[:] = 0.0
             body.last_position[:] = body.position
-            body.rotation_matrix[:] = np.linalg.solve(body.last_Q,body.Q)
+            #body.rotation_matrix[:] = np.linalg.solve(Q_start,body.Q)
+            body.rotation_matrix[:] = np.matmul(np.linalg.inv(body.Q),Q_start)
+            body.rotation_euler[2] -= math.asin(body.rotation_matrix[1,0])#cek hack
             body.Shape.translate(body.h[:nd])
             body.barycenter[:] = body.Shape.barycenter
             body.position[:] = body.Shape.barycenter
+            #logEvent("6DOF its = " + `its` + " residual = "+`r`)
+            logEvent("6DOF time "+`body.t`)
+            logEvent("6DOF DT "+`DT`)
+            logEvent("6DOF n "+`n`)
+            logEvent("6DOF force "+`body.FT[1]`)
+            logEvent("displacement, h = "+`body.h`)
+            logEvent("rotation, Q = "+`body.Q`)
+            logEvent("velocity, v = "+`body.velocity`)
+            logEvent("angular acceleration matrix, Omega = "+`body.Omega`)
 
         body.step = step
         #body.scheme = 'Forward_Euler'
@@ -458,8 +498,8 @@ elif spaceOrder == 2:
 # Numerical parameters
 if opts.sc == 0.25:
     sc = 0.25 # default: 0.5. Test: 0.25
-    sc_beta = 1. # default: 1.5. Test: 1.
-    epsFact_consrv_diffusion = 0.1 # default: 1.0. Test: 0.1. Safe: 10.
+    sc_beta = 1.5 # default: 1.5. Test: 1.
+    epsFact_consrv_diffusion = 10.0 # default: 1.0. Test: 0.1. Safe: 10.
 elif opts.sc == 0.5:
     sc = 0.5
     sc_beta = 1.5
@@ -481,9 +521,9 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = sc_beta
-    rd_shockCapturingFactor  =sc
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
-    epsFact_density    = 3.
+    epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = epsFact_consrv_diffusion
@@ -529,12 +569,12 @@ mesh_tol = 0.001
 ns_nl_atol_res = max(1.0e-8,tolfac*he**2)
 vof_nl_atol_res = max(1.0e-8,tolfac*he**2)
 ls_nl_atol_res = max(1.0e-8,tolfac*he**2)
-mcorr_nl_atol_res = max(1.0e-8,0.1*tolfac*he**2)
+mcorr_nl_atol_res = max(1.0e-8,tolfac*he**2)
 rd_nl_atol_res = max(1.0e-8,tolfac*he)
 kappa_nl_atol_res = max(1.0e-8,tolfac*he**2)
 dissipation_nl_atol_res = max(1.0e-8,tolfac*he**2)
 mesh_nl_atol_res = max(1.0e-8,mesh_tol*he**2)
-am_nl_atol_res = max(1.0e-8,mesh_tol*he**2)
+am_nl_atol_res = 0.001#max(1.0e-8,mesh_tol*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega

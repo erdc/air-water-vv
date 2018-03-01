@@ -18,6 +18,9 @@ coefficients = AddedMass.Coefficients(nd=nd,
                                       flags_rigidbody=ct.flags_rigidbody)
 
 def getDBC_am(x,flag):
+#    if flag == ct.domain.boundaryTags['tank2D1_y+']:
+#        return lambda x,t: 0.0
+#    else:
     return None
 
 dirichletConditions = {0:getDBC_am}
@@ -25,8 +28,11 @@ dirichletConditions = {0:getDBC_am}
 advectiveFluxBoundaryConditions = {}
 
 def getFlux_am(x, flag):
-    #the unit rigid motions will applied internally
+    #the unit rigid motions will be applied internally
     #leave this set to zero
+#    if flag == ct.domain.boundaryTags['tank2D1_y+']:
+#        return None
+#    else:
     return lambda x,t: 0.0
 
 diffusiveFluxBoundaryConditions = {0: {0:getFlux_am}}
