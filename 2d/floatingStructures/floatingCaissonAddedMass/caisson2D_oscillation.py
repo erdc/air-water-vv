@@ -216,7 +216,7 @@ if opts.caisson is True:
                     for j in range(3):
                         M[3+i, 3+j] += I[i, j]
                 r = np.zeros((18,),'d')
-                BE=False
+                BE=True
                 if BE:
                     r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*body.FT
                     r[6:9] = h - body.last_h - DT*v
