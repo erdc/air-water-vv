@@ -8,6 +8,7 @@ from math import *
 import numpy as np
 
 opts=Context.Options([
+    ("cf",1.0,"Use corrected form of added mass"),
     ("nc_form",True,"Use non-conservative NSE form"),
     ("use_chrono", True, "use chrono (True) or custom solver"),
     # predefined test cases
@@ -142,9 +143,13 @@ if opts.caisson is True:
             filename+='_am'
         if opts.nc_form:
             filename+='_nc'
+        if opts.cf:
+            filename+='_cf'
         body.setRecordValues(filename=filename, all_values=True)
         body.coords_system = caisson.coords_system  # hack
         body.last_Aij = np.zeros((6,6),'d')
+        body.last_a = np.zeros((6,),'d')
+        body.a = np.zeros((6,),'d')
         body.last_Omega = np.zeros((3,3),'d')
         body.last_velocity = np.zeros((3,),'d')
         body.last_Q = np.eye(3)
@@ -217,12 +222,13 @@ if opts.caisson is True:
                         M[3+i, 3+j] += I[i, j]
                 r = np.zeros((18,),'d')
                 BE=True
+                CF=opts.cf
                 if BE:
-                    r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*body.FT
+                    r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*body.FT - CF*np.matmul(body.Aij,body.last_a)
                     r[6:9] = h - body.last_h - DT*v
                     rQ = Q - body.last_Q - DT*np.matmul(Omega,Q)
                 else:
-                    r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*(body.FT*theta+body.last_FT*(1.0-theta))
+                    r[:6] = np.matmul(M, u[:6]) - np.matmul(body.Aij, body.last_u[:6]) - body.last_mom - DT*(body.FT*theta+body.last_FT*(1.0-theta)) - CF*np.matmul(body.Aij,body.last_a)
                     r[6:9] = h - body.last_h - DT*0.5*(v + body.last_velocity)
                     rQ = Q - body.last_Q - DT*0.25*np.matmul((Omega + body.last_Omega),(Q+body.last_Q))
                 r[9:18] = rQ.flatten()
@@ -251,6 +257,7 @@ if opts.caisson is True:
                 body.u[:] = u
                 body.mom[:3] = body.mass*u[:3]
                 body.mom[3:6] = np.matmul(I,u[3:6])
+                body.a[:] = u[:6] - body.last_u[:6]
                 return r, J
             nd = body.nd
             Q_start=body.Q.copy()
@@ -280,6 +287,7 @@ if opts.caisson is True:
                 body.last_u[:] = body.u
                 body.last_mom[:] = body.mom
                 body.last_t = body.t
+            body.last_a[:] = body.a
             # translate and rotate
             body.h -= h_start
             body.last_h[:] = 0.0
