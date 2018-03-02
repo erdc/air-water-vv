@@ -48,6 +48,12 @@ opts=Context.Options([
     ])
 
 
+rho_0=1000.
+nu_0 =1.004e-6
+rho_1=1.205
+nu_1 =1.500e-5
+sigma_01=0.0
+g = [0., -9.81]
 
 # ----- CONTEXT ------ #
 
@@ -240,11 +246,6 @@ if opts.caisson is True:
                 u -= np.linalg.solve(J,r)
                 r,J = F(u)
                 its+=1
-                logEvent("6DOF its = " + `its` + " residual = "+`r`)
-                logEvent("displacement, h = "+`body.h`)
-                logEvent("rotation, Q = "+`body.Q`)
-                logEvent("velocity, v = "+`body.velocity`)
-                logEvent("angular acceleration matrix, Omega = "+`body.Omega`)
             body.last_Aij[:]=body.Aij
             body.last_FT[:] = body.FT
             body.last_Omega[:] = body.Omega
@@ -266,6 +267,8 @@ if opts.caisson is True:
 # ----- SHAPES ----- #
 tank = st.Tank2D(domain, tank_dim)
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+dragAlpha = 1./nu_0
+tank.setAbsorptionZones(x_n=bool(tank_sponge[0]), x_p=bool(tank_sponge[1]), dragAlpha=dragAlpha)
 if opts.caisson:
     # let gmsh know that the caisson is IN the tank
     tank.setChildShape(caisson, 0)
@@ -294,7 +297,7 @@ he = opts.he
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 domain.use_gmsh = opts.use_gmsh
-geofile='mesh'+str(opts.he)
+geofile='mesh'+str(opts.he)+'_'+str(caisson_dim[0])+'x'+str(caisson_dim[1])
 domain.geofile=geofile
 
 
@@ -315,6 +318,7 @@ if opts.use_gmsh:
 
     me01 = py2gmsh.Fields.MathEval(mesh=mesh)
     dist = '(abs({zcoord}-y))'.format(zcoord=water_level)
+    dist = '(abs(abs({z_p}-y)+abs(y-{z_n})-({z_p}-{z_n}))/2.)'.format(z_p=1.04, z_n=0.94)
     me01.F = mesh_grading(he=he, start=dist, grading=grading)
     field_list += [me01]
 
@@ -357,12 +361,6 @@ else:
 ##########################################
 
 
-rho_0=998.2
-nu_0 =1.004e-6
-rho_1=1.205
-nu_1 =1.500e-5
-sigma_01=0.0
-g = [0., -9.81]
 
 
 
@@ -390,7 +388,7 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = opts.weak_factor/nu_0#Re
+weak_bc_penalty_constant = opts.weak_factor/nu_0
 dt_init = opts.dt_init
 T = opts.T
 nDTout = int(opts.T*opts.nsave)
@@ -526,15 +524,15 @@ else:
 
 tolfac = 0.001
 mesh_tol = 0.001
-ns_nl_atol_res = max(1.0e-8,tolfac*he**2)
-vof_nl_atol_res = max(1.0e-8,tolfac*he**2)
-ls_nl_atol_res = max(1.0e-8,tolfac*he**2)
-mcorr_nl_atol_res = max(1.0e-8,0.1*tolfac*he**2)
-rd_nl_atol_res = max(1.0e-8,tolfac*he)
-kappa_nl_atol_res = max(1.0e-8,tolfac*he**2)
-dissipation_nl_atol_res = max(1.0e-8,tolfac*he**2)
-mesh_nl_atol_res = max(1.0e-8,mesh_tol*he**2)
-am_nl_atol_res = max(1.0e-8,mesh_tol*he**2)
+ns_nl_atol_res = max(1.0e-6,tolfac*he**2)
+vof_nl_atol_res = max(1.0e-6,tolfac*he**2)
+ls_nl_atol_res = max(1.0e-6,tolfac*he**2)
+mcorr_nl_atol_res = max(1.0e-6,0.1*tolfac*he**2)
+rd_nl_atol_res = max(1.0e-6,tolfac*he)
+kappa_nl_atol_res = max(1.0e-6,tolfac*he**2)
+dissipation_nl_atol_res = max(1.0e-6,tolfac*he**2)
+mesh_nl_atol_res = max(1.0e-6,mesh_tol*he**2)
+am_nl_atol_res = max(1.0e-6,mesh_tol*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
