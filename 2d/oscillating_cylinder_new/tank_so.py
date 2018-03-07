@@ -6,6 +6,7 @@ import os
 from proteus.default_so import *
 from proteus import Context
 
+check = 'Right path'
 
 # Create context from main module
 name_so = os.path.basename(__file__)
