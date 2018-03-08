@@ -43,11 +43,11 @@ class TestOscillatingCylinderTetgen(TestTools.AirWaterVVTest):
         from petsc4py import PETSc
         pList = []
         nList = []
-        #print check
-        #pnList = tank_so.pnList[1:]
-        for (p,n) in tank_so.pnList:
-            pList.append(importlib.import_module(p))
-            nList.append(importlib.import_module(n))
+        print tank_so.check
+        pnList = tank_so.pnList[1:]
+        for (p,n) in pnList:
+            pList.append(__import__(p))
+            nList.append(__import__(n))
             if pList[-1].name == None:
                 pList[-1].name = p
         so = tank_so
