@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/oscillating_cylinder_new')
+os.chdir('/home/travis/build/Pedrohrw/proteus/air-water-vv/2d/oscillating_cylinder_new')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
