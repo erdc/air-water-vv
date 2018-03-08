@@ -12,6 +12,7 @@ import csv
 from proteus.test_utils import TestTools
 import AnalysisTools as at
 import math
+import importlib
 
 class TestOscillatingCylinderTetgen(TestTools.AirWaterVVTest):
 
