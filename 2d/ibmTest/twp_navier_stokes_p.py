@@ -108,3 +108,5 @@ class AtRest:
 
 initialConditions = {0:AtRest(),
                      1:AtRest()}
+
+auciliaryVariables = [system]

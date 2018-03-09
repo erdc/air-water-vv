@@ -3,6 +3,9 @@ import proteus.MeshTools
 from proteus import Domain
 from proteus.default_n import *
 from proteus.Profiling import logEvent
+from proteus.mprans import SpatialTools as st
+from proteus.mbd import ChRigidBody as crb
+from proteus.mbd import pyChronoCore as pych
 
 
 from proteus import Context
@@ -12,8 +15,38 @@ ct = Context.Options([
     ("Refinement",4, "refinement"),
     ("onlySaveFinalSolution",False,"Only save the final solution"),
     ("vspaceOrder",1,"FE space for velocity"),
+    ("he",0.01,"he"),
+    ("genMesh",True,"genMesh"),
+    ("use_gmsh",True,"use_gmsh"),
+    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     ("pspaceOrder",1,"FE space for pressure")
 ], mutable=True)
+
+# Water
+rho_0 = 1.0e0
+nu_0 = 1.0e-3
+
+# Air
+rho_1 = rho_0#1.205
+nu_1 = nu_0#1.500e-5
+
+# Sediment
+
+rho_s = rho_0
+nu_s = 10000.0*nu_0
+dragAlpha = 0.0
+
+# Surface tension
+sigma_01 = 0.0
+
+# Gravity
+g = [0.0, 0.0]
+
+# Initial condition
+waterLine_x = 0.75
+waterLine_z = 1.6
+
+
 
 #  Discretization -- input options
 #Refinement = 20#45min on a single core for spaceOrder=1, useHex=False
@@ -114,95 +147,69 @@ structured = False
 # #'lineGauge_x/H=1.653':((0.99,0.0,0.0),(0.99,1.8,0.0))
 # lineGauges_phi = LineGauges_phi(lineGauges.endpoints, linePoints=20)
 
-if useHex:
-    nnx = 4 * Refinement + 1
-    nny = 2 * Refinement + 1
-    hex = True
-    domain = Domain.RectangularDomain(L)
-else:
-    boundaries = ['bottom', 'right', 'top', 'left', 'front', 'back']
-    boundaryTags = dict([(key, i + 1) for (i, key) in enumerate(boundaries)])
-    if structured:
-        nnx = 4 * Refinement
-        nny = 2 * Refinement
-    else:
-        vertices = [[0.0, 0.0],  #0
-                    [L[0], 0.0],  #1
-                    [L[0], L[1]],  #2
-                    [0.0, L[1]],  #3
-                    [0.2-0.16,L[1]*0.2],
-                    [0.2-0.16,L[1]*0.8],
-                    [0.2+0.3,L[1]*0.8],
-                    [0.2+0.3,L[1]*0.2],
-                    # the following are set for refining the mesh
-                    [0.2-0.06,0.2-0.06],
-                    [0.2-0.06,0.2+0.06],
-                    [0.2+0.06,0.2+0.06],
-                    [0.2+0.06,0.2-0.06]]
 
-                    
-                    
-        vertexFlags = [boundaryTags['bottom'],
-                       boundaryTags['bottom'],
-                       boundaryTags['top'],
-                       boundaryTags['top'],
-                       # the interior vertices should be flaged to 0
-                       0, 0, 0, 0,
-                       0, 0, 0, 0 ]
+domain = Domain.PlanarStraightLineGraphDomain()
+tank = st.Tank2D(domain, dim=[2.2, 0.41])
+# needed for BC
+boundaryTags = {'left': tank.boundaryTags['x-'],
+                'right': tank.boundaryTags['x+'],
+                'bottom': tank.boundaryTags['y-'],
+                'top': tank.boundaryTags['y+'],
+                'front': None,
+                'back': None}
 
-        segments = [[0, 1],
-                    [1, 2],
-                    [2, 3],
-                    [3, 0],
-                    #Interior segments
-                    [4, 5],
-                    [5, 6],
-                    [6, 7],
-                    [7,4],
-                    [8,9],
-                    [9,10],
-                    [10,11],
-                    [11,8]]
-        segmentFlags = [boundaryTags['bottom'],
-                        boundaryTags['right'],
-                        boundaryTags['top'],
-                        boundaryTags['left'],
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0]
+# Chrono system
+system = crb.ProtChSystem(gravity=np.array([0.,-9.81,0.]))
+# Chrono particle
+cylinder = crb.ProtChBody(system)
+pos = pych.ChVector(0.2, 1.8, 0.)
+inertia = pych.ChVector(1., 1., 1.)
+cylinder.ChBody.SetPos(pos)
+cylinder.ChBody.SetMass(np.pi*0.05**2*rho_0)
+cylinder.ChBody.SetInertiaXX(inertia)
 
-        regions = [[0.95*L[0], 0.2],[0.2-0.15,0.2],[0.2,0.2]]
-        regionFlags = [1,2,3]
-        regionConstraints=[0.5*he**2,0.5*(he/2.0)**2,0.5*(he/6.0)**2]
-        #        for gaugeName,gaugeCoordinates in pointGauges.locations.iteritems():
-        #            vertices.append(gaugeCoordinates)
-        #            vertexFlags.append(pointGauges.flags[gaugeName])
 
-        # for gaugeName, gaugeLines in lineGauges.linepoints.iteritems():
-        #     for gaugeCoordinates in gaugeLines:
-        #         vertices.append(gaugeCoordinates)
-        #         vertexFlags.append(lineGauges.flags[gaugeName])
-        domain = Domain.PlanarStraightLineGraphDomain(vertices=vertices,
-                                                      vertexFlags=vertexFlags,
-                                                      segments=segments,
-                                                      segmentFlags=segmentFlags,
-                                                      regions=regions,
-                                                      regionFlags=regionFlags,
-                                                      regionConstraints=regionConstraints)
-        #go ahead and add a boundary tags member
-        domain.boundaryTags = boundaryTags
-        domain.writePoly("mesh")
-        domain.writePLY("mesh")
-        domain.writeAsymptote("mesh")
-        #triangleOptions = "VApq30Dena%8.8f" % ((he ** 2) / 2.0,)
-        triangleOptions = "VApq30Dena"
 
-logEvent("""Mesh generated using: tetgen -%s %s""" % (triangleOptions, domain.polyfile + ".poly"))
+domain.MeshOptions.use_gmsh = ct.use_gmsh
+domain.MeshOptions.genMesh = ct.genMesh
+he = ct.he
+domain.MeshOptions.he = he
+st.assembleDomain(domain)
+domain.use_gmsh = ct.use_gmsh
+geofile='mesh'+str(ct.he)
+domain.geofile=geofile
+
+# MESH REFINEMENT
+if ct.use_gmsh:
+    import py2gmsh
+    from MeshRefinement import geometry_to_gmsh
+    mesh = geometry_to_gmsh(domain)
+    grading = ct.refinement_grading
+    he = ct.he
+    he_max = 10.
+    field_list = []
+
+    def mesh_grading(start, he, grading):
+        return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
+
+    me01 = py2gmsh.Fields.MathEval(mesh=mesh)
+    dist = '(abs(abs({y_p}-y)+abs(y-{y_n})-({y_p}-{y_n}))/2.)'.format(y_p=0.15, y_n=0.25)
+    me01.F = mesh_grading(he=he, start=dist, grading=grading)
+    field_list += [me01]
+
+    # background field
+    fmin = py2gmsh.Fields.Min(mesh=mesh)
+    fmin.FieldsList = field_list
+    mesh.setBackgroundField(fmin)
+
+    # max element size
+    mesh.Options.Mesh.CharacteristicLengthMax = he_max
+
+    mesh.writeGeo(geofile+'.geo')
+
+
+
+
 # Time stepping
 T=ct.T
 dt_fixed = 0.01#0.03
@@ -298,29 +305,6 @@ if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
     ns_closure == 4
-# Water
-rho_0 = 1.0e0
-nu_0 = 1.0e-3
-
-# Air
-rho_1 = rho_0#1.205
-nu_1 = nu_0#1.500e-5
-
-# Sediment
-
-rho_s = rho_0
-nu_s = 10000.0*nu_0
-dragAlpha = 0.0
-
-# Surface tension
-sigma_01 = 0.0
-
-# Gravity
-g = [0.0, 0.0]
-
-# Initial condition
-waterLine_x = 0.75
-waterLine_z = 1.6
 
 U = 1.5 # this is the inlet max velocity not the mean velocity
 def velRamp(t):
@@ -336,8 +320,9 @@ def signedDistance(x):
     return x[1]-L[1]/2
 
 def particle_sdf(t, x):
-    cx = 0.2
-    cy = 0.2
+    pos = cylinder.ChBody.GetPos()
+    cx = pos[0]
+    cy = pos[1]
     r = math.sqrt( (x[0]-cx)**2 + (x[1]-cy)**2)
     n = ((x[0]-cx)/r,(x[1]-cy)/r)
     return  r - 0.05,n
