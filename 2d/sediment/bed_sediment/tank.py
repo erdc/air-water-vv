@@ -119,32 +119,16 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 #############################################################################################################################################################################################################################################################################################################################################################################################
 
 tank.BC['y-'].setFreeSlip()
-tank.BC['y-'].k_dirichlet.resetBC()
-tank.BC['y-'].vos_advective.setConstantBC(0.0)
-tank.BC['y-'].us_diffusive.setConstantBC(0.0)
-tank.BC['y-'].vs_diffusive.setConstantBC(0.0)
-tank.BC['y-'].ws_diffusive.setConstantBC(0.0)
+
 
 tank.BC['y+'].setFreeSlip()
-tank.BC['y+'].k_dirichlet.resetBC()
-tank.BC['y+'].vos_dirichlet.setConstantBC(0.0)
-tank.BC['y+'].us_diffusive.setConstantBC(0.0)
-tank.BC['y+'].vs_diffusive.setConstantBC(0.0)
-tank.BC['y+'].ws_diffusive.setConstantBC(0.0)
+
 
 tank.BC['x-'].setFreeSlip()
-tank.BC['x-'].k_dirichlet.resetBC()
-tank.BC['x-'].vos_dirichlet.setConstantBC(0.0)
-tank.BC['x-'].us_diffusive.setConstantBC(0.0)
-tank.BC['x-'].vs_diffusive.setConstantBC(0.0)
-tank.BC['x-'].ws_diffusive.setConstantBC(0.0)
+
 
 tank.BC['x+'].setFreeSlip()
-tank.BC['x+'].k_dirichlet.resetBC()
-tank.BC['x+'].vos_dirichlet.setConstantBC(0.0)
-tank.BC['x+'].us_diffusive.setConstantBC(0.0)
-tank.BC['x+'].vs_diffusive.setConstantBC(0.0)
-tank.BC['x+'].ws_diffusive.setConstantBC(0.0)
+
 
 
 
