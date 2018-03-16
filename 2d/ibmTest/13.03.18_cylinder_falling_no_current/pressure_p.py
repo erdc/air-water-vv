@@ -6,13 +6,13 @@ from proteus.mprans import Pres
 
 name = "pressure"
 
-coefficients=Pres.Coefficients(modelIndex=PRESSURE_model,
-                               fluidModelIndex=V_model,
-                               pressureIncrementModelIndex=PINC_model,
+coefficients=Pres.Coefficients(modelIndex=6,
+                               fluidModelIndex=4,
+                               pressureIncrementModelIndex=5,
                                useRotationalForm=False)
 
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init()} # pressure bc are explicitly set
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython()} # pressure bc are explicitly set
 advectiveFluxBoundaryConditions = {0: lambda x,flag: domain.bc[flag].p_advective.init_cython()}
 
 

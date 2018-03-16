@@ -26,14 +26,14 @@ coefficients = RANS3PF.Coefficients(epsFact=epsFact_viscosity,
                                     nu_1 = nu_1,
                                     g=g,
                                     nd=nd,
-                                    ME_model=V_model,
-                                    PRESSURE_model=PRESSURE_model,
-                                    SED_model=SED_model,
-                                    VOF_model=VOF_model,
-                                    VOS_model=VOS_model,
-                                    LS_model=LS_model,
-                                    Closure_0_model=Closure_0_model,
-                                    Closure_1_model=Closure_1_model,
+                                    ME_model=4,
+                                    PRESSURE_model=6,
+                                    SED_model=None,
+                                    VOF_model=0,
+                                    VOS_model=None,
+                                    LS_model=1,
+                                    Closure_0_model=None,
+                                    Closure_1_model=None,
                                     epsFact_density=epsFact_density,
                                     stokes=False,
                                     useVF=useVF,
@@ -45,7 +45,7 @@ coefficients = RANS3PF.Coefficients(epsFact=epsFact_viscosity,
                                     turbulenceClosureModel=ns_closure,
                                     movingDomain=movingDomain,
                                     dragAlpha=dragAlpha,
-                                    PSTAB=0.0,
+                                    PSTAB=1.0,
                                     nParticles=1,
                                     particle_epsFact=2.0,
                                     particle_alpha=1e6,
@@ -68,6 +68,9 @@ advectiveFluxBoundaryConditions =  {0: lambda x, flag: domain.bc[flag].u_advecti
 diffusiveFluxBoundaryConditions = {0: {0:lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
                                    1: {1:lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}}
 
+fluxBoundaryConditions = {0: 'mixedFlow',
+                          1: 'mixedFlow'}
+
 class AtRest:
     def __init__(self):
         pass
@@ -77,4 +80,3 @@ class AtRest:
 initialConditions = {0:AtRest(),
                      1:AtRest()}
 
-auxiliaryVariables = [system]

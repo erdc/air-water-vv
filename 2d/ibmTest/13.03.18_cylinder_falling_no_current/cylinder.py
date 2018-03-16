@@ -1,11 +1,12 @@
 from math import *
 import proteus.MeshTools
-from proteus import Domain
+from proteus import Domain, Context
 from proteus.default_n import *
 from proteus.Profiling import logEvent
 from proteus.mprans import SpatialTools as st
 from proteus.mbd import ChRigidBody as crb
 from proteus.mbd import pyChronoCore as pych
+import numpy as np
 
 
 from proteus import Context
@@ -15,19 +16,22 @@ ct = Context.Options([
     ("Refinement",4, "refinement"),
     ("onlySaveFinalSolution",False,"Only save the final solution"),
     ("vspaceOrder",1,"FE space for velocity"),
-    ("he",0.01,"he"),
-    ("genMesh",True,"genMesh"),
-    ("use_gmsh",True,"use_gmsh"),
+    ("he",0.010,"he"),
+    ("genMesh", True,"genMesh"),
+    ("use_gmsh",not True,"use_gmsh"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     ("pspaceOrder",1,"FE space for pressure"),
-    ("waterLevel",0.35,"water level")
+    ("waterLevel",0.25,"water level"),
+    ("openTop", True, "Enable open atmosphere")
 ], mutable=True)
 
 # Water
-rho_0 = 1.0e0
-nu_0 = 1.0e-3
+rho_0 = 998.2 
+nu_0 = 1.004e-6
 
 # Air
+#rho_1=rho_0
+#nu_1=nu_0
 rho_1 = 1.205
 nu_1 = 1.500e-5
 
@@ -44,8 +48,9 @@ sigma_01 = 0.0
 g = [0.0, -9.81, 0.0]
 
 # Initial condition
-waterLine_x = 0.75
-waterLine_z = 1.6
+#waterLine_x = 0.75
+waterLine_z = ct.waterLevel
+waterLevel = ct.waterLevel
 
 
 
@@ -57,8 +62,8 @@ genMesh = True
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = True
-timeDiscretization = 'vbdf'#vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
+useSuperlu = not True
+timeDiscretization = 'be'#vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = ct.vspaceOrder
 pspaceOrder = ct.pspaceOrder
 useHex = False
@@ -123,9 +128,9 @@ elif pspaceOrder == 2:
 # Domain and mesh
 #L = (0.584,0.350)
 L = (2.2, 0.41)
-he = L[0]/float(4*Refinement-1)
-he*=0.5
-he*=0.5
+#he = L[0]/float(4*Refinement-1)
+#he*=0.5
+#he*=0.5
 #he*=0.5
 #he*=0.5
 #he*=0.5
@@ -164,59 +169,57 @@ boundaryTags = {'left': tank.boundaryTags['x-'],
 # ------- BOUNDARY CONDITIONS ------- # 
 ###############################################################################################
 
-tank.BC['x-'].setTwoPhaseVelocityInlet(U=0.2, 
-                                         waterLevel = ct.waterLevel,
-                                         smoothing=3*ct.he,
-                                         vert_axis=1)
-
-def myadv(x,t):
-    u_dir = tank.BC['x-'].u_dirichlet.uOfXT(x, t)
-    return -u_dir
-tank.BC['x-'].pInc_advective.uOfXT = myadv #for presssureincrement
-#tank.BC['x-'].pInc_advective.setConstantBC(0.0)  #for presssureincrement
-
-tank.BC['x-'].pInc_diffusive.setConstantBC(0.0)  #for presssureincrement
-tank.BC['x-'].pInit_advective.setConstantBC(0.0) # for pressureInitial
-tank.BC['x-'].pInit_diffusive.setConstantBC(0.0) # for pressureInitial  
-
-
-tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=ct.waterLevel, 
-                                                       rhoUp=rho_1,
-                                                       rhoDown=rho_0,
-                                                       g=g,
-                                                       refLevel=L[1],
-                                                       smoothing=3.0*ct.he)
-
-tank.BC['x+'].pInc_dirichlet.setConstantBC(0.0) #for presssureincrement
-tank.BC['x+'].pInit_dirichlet.setConstantBC(0.0) # for pressureInitial
-
-
-tank.BC['y+'].setNoSlip()
-tank.BC['y+'].pInc_advective.setConstantBC(0.0)#for presssureincrement
-tank.BC['y+'].pInc_diffusive.setConstantBC(0.0)#for presssureincrement
-tank.BC['y+'].pInit_advective.setConstantBC(0.0) #for pressureInitial
-tank.BC['y+'].pInit_diffusive.setConstantBC(0.0) # for pressureInitial
+tank.BC['x-'].setFreeSlip()
+#                                         
+#                                         
+tank.BC['x+'].setFreeSlip()
+#
+#
+tank.BC['y+'].setFreeSlip()
+#
+#
+tank.BC['y-'].setFreeSlip()
+#
 
 
 
-tank.BC['y-'].setNoSlip()
-tank.BC['y-'].pInc_advective.setConstantBC(0.0)#for presssureincrement
-tank.BC['y-'].pInc_diffusive.setConstantBC(0.0)#for presssureincrement
-tank.BC['y-'].pInit_advective.setConstantBC(0.0) #for pressureInitial
-tank.BC['y-'].pInit_diffusive.setConstantBC(0.0) #for pressureInitial
+tank.BC['x-'].p_advective.uOfXT = None
+#tank.BC['x-'].pInc_diffusive.uOfXT = None
+#tank.BC['x-'].pInit_diffusive.setConstantBC(0.0)
+#
+tank.BC['x+'].p_advective.uOfXT = None
+#tank.BC['x+'].pInc_diffusive.uOfXT = None
+#tank.BC['x+'].pInit_diffusive.setConstantBC(0.0)
+#
+tank.BC['y-'].p_advective.uOfXT = None
+#tank.BC['y-'].pInc_diffusive.uOfXT = None
+#tank.BC['y-'].pInit_diffusive.setConstantBC(0.0)
+#
+
+if ct.openTop:
+    tank.BC['y+'].reset()
+    tank.BC['y+'].setAtmosphere()
+    #tank.BC['y+'].v_dirichlet.uOfXT = None
+    tank.BC['y+'].p_advective.setConstantBC(0.0)
+    tank.BC['y+'].pInc_dirichlet.setConstantBC(0.0)
+    tank.BC['y+'].pInc_advective.setConstantBC(0.0)
+    tank.BC['y+'].pInc_diffusive.setConstantBC(0.0)
+    tank.BC['y+'].pInit_dirichlet.setConstantBC(0.0)
 
 
 
 
 # Chrono system
 system = crb.ProtChSystem(gravity=np.array([0.,-9.81,0.]))
+system.setTimeStep(1e-4)
 # Chrono particle
 cylinder = crb.ProtChBody(system)
-pos = pych.ChVector(0.2, 0.2, 0.)
+pos = pych.ChVector(0.2, 0.17, 0.)
 inertia = pych.ChVector(1., 1., 1.)
 cylinder.ChBody.SetPos(pos)
 cylinder.ChBody.SetMass(np.pi*0.05**2*rho_0)
 cylinder.ChBody.SetInertiaXX(inertia)
+cylinder.setRecordValues(all_values=True)
 
 
 
@@ -270,27 +273,31 @@ tnList = [0.0,dt_init]+[i*dt_fixed for i in range(1,nDTout+1)]
 
 if ct.onlySaveFinalSolution == True:
     tnList = [0.0,dt_init,ct.T]
+
+
 # Numerical parameters
-ns_forceStrongDirichlet = True
+ns_forceStrongDirichlet = not False 
 ns_sed_forceStrongDirichlet = False
+backgroundDiffusionFactor = 0.01
+
 if useMetrics:
-    ns_shockCapturingFactor  = 0.5
+    ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.5
+    ls_shockCapturingFactor  = 0.9
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.5
+    vof_shockCapturingFactor = 0.9
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.5
+    rd_shockCapturingFactor  = 0.9
     rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
+    epsFact_density    = 3 
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
+    epsFact_consrv_diffusion = 1.0
     redist_Newton = True
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True#False
@@ -367,16 +374,26 @@ def velRamp(t):
 
 
 def signedDistance(x):
-    return x[1]-L[1]/2
+    return x[1]-waterLine_z
 
+#def particle_sdf(t, x):
+#    pos = cylinder.ChBody.GetPos()
+#    cx = pos[0]
+#    cy = pos[1]
+#    r = math.sqrt( (x[0]-cx)**2 + (x[1]-cy)**2)
+#    n = ((x[0]-cx)/r,(x[1]-cy)/r)
+#    return  r - 0.05,n
+#
 def particle_sdf(t, x):
     pos = cylinder.ChBody.GetPos()
-    cx = pos[0]
-    cy = pos[1]
+    cx = 1
+    #cx = 1 + 0.7* np.cos(1*t)
+    cy = 0.12
     r = math.sqrt( (x[0]-cx)**2 + (x[1]-cy)**2)
     n = ((x[0]-cx)/r,(x[1]-cy)/r)
     return  r - 0.05,n
 
+
 def particle_vel(t, x):
-    return (0.0,0.0)
+    return (0.3,0.0)
 

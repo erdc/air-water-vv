@@ -13,19 +13,11 @@ coefficients=PresInit.Coefficients(nd=nd,
                                    fluidModelIndex=V_model,
                                    pressureModelIndex=PRESSURE_model)
 
-#pressure increment should be zero on any pressure dirichlet boundaries
-def getDBC_pInit(x,flag):
-    if flag in [boundaryTags['right']]: #,boundaryTags['left'],boundaryTags['front'], boundaryTags['back']]:
-        return lambda x,t: 0.0
 
-#the advectiveFlux should be zero on any no-flow  boundaries
-def getAdvectiveFlux_pInit(x,flag):
-    if flag != boundaryTags['right']:
-        return lambda x,t: 0.0
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].pIni_dirichlet.init_cython()}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pIni_advective.init_cython()}
+diffusiveFluxBoundaryConditions = {0:{0: lambda x, flag: domain.bc[flag].pIni_diffusive.init_cython()}}
 
-def getDiffusiveFlux_pInit(x,flag):
-    if flag != boundaryTags['right']:
-        return lambda x,t: 0.0
 
 class getIBC_pInit:
     def __init__(self):
@@ -35,6 +27,4 @@ class getIBC_pInit:
 
 initialConditions = {0:getIBC_pInit()}
 
-dirichletConditions = {0:getDBC_pInit }
-advectiveFluxBoundaryConditions = {0:getAdvectiveFlux_pInit}
-diffusiveFluxBoundaryConditions = {0:{0:getDiffusiveFlux_pInit}}
+
