@@ -4,7 +4,30 @@ from proteus.default_so import *
 import cylinder
 reload(cylinder)
 
+from proteus import Context
+
 from proteus.SplitOperator import Sequential_FixedStep_Simple, defaultSystem
+
+
+
+import os
+
+####### Create context from main module
+name_so = os.path.basename(__file__)
+if '_so.py' in name_so[-6:]:
+    name = name_so[:-6]
+elif '_so.pyc' in name_so[-7:]:
+    name = name_so[:-7]
+else:
+    raise NameError('Split operator module must end with "_so.py"')
+
+try:
+    case = __import__(name)
+    Context.setFromModule(case)
+    ct = Context.get()
+except ImportError:
+    raise ImportError(str(name) + '.py not found')
+
 
 if cylinder.sedimentDynamics:
     pnList = [("vos_p",               "vos_n"),#0
@@ -28,38 +51,39 @@ if cylinder.sedimentDynamics:
     cylinder.PRESSURE_model=8
     cylinder.PINIT_model=9
 else:
-#     pnList = [("vof_p",               "vof_n"),#0
-#               ("ls_p",                "ls_n"),#1
-#               ("redist_p",            "redist_n"),#2
-#               ("ls_consrv_p",         "ls_consrv_n"),#3
-#               ("twp_navier_stokes_p", "twp_navier_stokes_n"),#4
-#               ("pressureincrement_p", "pressureincrement_n"),#5
-#               ("pressure_p", "pressure_n"),#6
-#               ("pressureInitial_p", "pressureInitial_n")]#7
-#     cylinder.VOS_model=None
-#     cylinder.SED_model=None
-#     cylinder.VOF_model=0
-#     cylinder.LS_model=1
-#     cylinder.RD_model=2
-#     cylinder.MCORR_model=3
-#     cylinder.V_model=4
-#     cylinder.PINC_model=5
-#     cylinder.PRESSURE_model=6
-#     cylinder.PINIT_model=7
-    
-    pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),#0
-          ("pressureincrement_p", "pressureincrement_n"),#1
-          ("pressure_p", "pressure_n"),#2
-          ("pressureInitial_p", "pressureInitial_n")]#3
- 
-    cylinder.VOF_model=None
+
+    pnList = [("vof_p",               "vof_n"),#0
+              ("ls_p",                "ls_n"),#1
+              ("redist_p",            "redist_n"),#2
+              ("ls_consrv_p",         "ls_consrv_n"),#3
+              ("twp_navier_stokes_p", "twp_navier_stokes_n"),#4
+              ("pressureincrement_p", "pressureincrement_n"),#5
+              ("pressure_p", "pressure_n"),#6
+              ("pressureInitial_p", "pressureInitial_n")]#7
     cylinder.VOS_model=None
     cylinder.SED_model=None
-    cylinder.V_model=0
-    cylinder.PINC_model=1
-    cylinder.PRESSURE_model=2
-    cylinder.PINIT_model=3
-
+    cylinder.VOF_model=0
+    cylinder.LS_model=1
+    cylinder.RD_model=2
+    cylinder.MCORR_model=3
+    cylinder.V_model=4
+    cylinder.PINC_model=5
+    cylinder.PRESSURE_model=6
+    cylinder.PINIT_model=7
+   
+#    pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),#0
+#          ("pressureincrement_p", "pressureincrement_n"),#1
+#          ("pressure_p", "pressure_n"),#2
+#          ("pressureInitial_p", "pressureInitial_n")]#3
+# 
+#    cylinder.VOF_model=None
+#    cylinder.VOS_model=None
+#    cylinder.SED_model=None
+#    cylinder.V_model=0
+#    cylinder.PINC_model=1
+#    cylinder.PRESSURE_model=2
+#    cylinder.PINIT_model=3
+#
 if cylinder.useRANS > 0:
     pnList.append(("kappa_p",
                    "kappa_n"))

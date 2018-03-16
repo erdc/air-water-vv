@@ -9,14 +9,14 @@ from proteus.mprans import PresInit
 name = "pressureInitial"
 
 coefficients=PresInit.Coefficients(nd=nd,
-                                   modelIndex=PINIT_model,
-                                   fluidModelIndex=V_model,
-                                   pressureModelIndex=PRESSURE_model)
+                                   modelIndex=7,
+                                   fluidModelIndex=4,
+                                   pressureModelIndex=6)
 
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].pIni_dirichlet.init_cython()}
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pIni_advective.init_cython()}
-diffusiveFluxBoundaryConditions = {0:{0: lambda x, flag: domain.bc[flag].pIni_diffusive.init_cython()}}
+dirichletConditions = {0: lambda x, flag: domain.bc[flag].pInit_dirichlet.init_cython()}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pInit_advective.init_cython()}
+diffusiveFluxBoundaryConditions = {0:{0: lambda x, flag: domain.bc[flag].pInit_diffusive.init_cython()}}
 
 
 class getIBC_pInit:
@@ -25,6 +25,17 @@ class getIBC_pInit:
     def uOfXT(self,x,t):
         return 0.0
 
+class PerturbedSurface_p:
+    def __init__(self,waterLevel):
+        self.waterLevel=waterLevel
+    def uOfXT(self,x,t):
+        if signedDistance(x) < 0:
+            return -(L[1] - self.waterLevel)*rho_1*g[1] - (self.waterLevel - x[1])*rho_0*g[1]
+        else:
+            return -(L[1] - x[1])*rho_1*g[1]
+
+
 initialConditions = {0:getIBC_pInit()}
+#initialConditions = {0:PerturbedSurface_p(waterLine_z)}
 
 
