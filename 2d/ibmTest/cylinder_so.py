@@ -105,8 +105,10 @@ class Sequential_MinAdaptiveModelStepPS(Sequential_FixedStep):
         Sequential_FixedStep.__init__(self,modelList,system,stepExact)
         self.modelList = modelList[:len(pnList)-1]
 
-dt_system_fixed = cylinder.dt_fixed
-systemStepControllerType = Sequential_MinAdaptiveModelStepPS
+if ct.dt_fixed:
+    dt_system_fixed = cylinder.dt_fixed
+#systemStepControllerType = Sequential_MinAdaptiveModelStepPS
+systemStepControllerType = Sequential_MinAdaptiveModelStep
 
 # systemStepControllerType = Sequential_FixedStep #Sequential_FixedStep_Simple # uses time steps in so.tnList
 # dt_system_fixed = 0.01; 

@@ -19,6 +19,12 @@ ct = Context.Options([
     ("he",0.010,"he"),
     ("genMesh", True,"genMesh"),
     ("use_gmsh",not True,"use_gmsh"),
+    ("use_chrono", False, "use Chrono for MBD"),
+    ("cylinder_radius", 0.05, "radius of cylinder"),
+    ("tank_dim_x", 2.2, "x dim of tank"),
+    ("tank_dim_y", 0.41, "y dim of tank"),
+    ("cylinder_pos_x", 0.205, "x position of cylinder"),
+    ("cylinder_pos_y", 0.25-0.01, "y position of cylinder"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     ("pspaceOrder",1,"FE space for pressure"),
     ("waterLevel",0.25,"water level"),
@@ -52,6 +58,9 @@ g = [0.0, -9.81, 0.0]
 waterLine_z = ct.waterLevel
 waterLevel = ct.waterLevel
 
+tank_dim = (ct.tank_dim_x, ct.tank_dim_y)
+cylinder_pos = np.array([ct.cylinder_pos_x, ct.cylinder_pos_y, 0.])
+cylinder_radius = ct.cylinder_radius
 
 
 #  Discretization -- input options
@@ -155,7 +164,7 @@ structured = False
 
 
 domain = Domain.PlanarStraightLineGraphDomain()
-tank = st.Tank2D(domain, dim=[2.2, 0.41])
+tank = st.Tank2D(domain, dim=tank_dim)
 # needed for BC
 boundaryTags = {'left': tank.boundaryTags['x-'],
                 'right': tank.boundaryTags['x+'],
@@ -214,10 +223,13 @@ system = crb.ProtChSystem(gravity=np.array([0.,-9.81,0.]))
 system.setTimeStep(1e-4)
 # Chrono particle
 cylinder = crb.ProtChBody(system)
-pos = pych.ChVector(0.2, 0.17, 0.)
+# set index of particle in list of particle (sdf and velocity list)
+cylinder.setIndexBoundary(0)
+# set initial conditions
 inertia = pych.ChVector(1., 1., 1.)
+pos = pych.ChVector(cylinder_pos[0], cylinder_pos[1], cylinder_pos[2])
 cylinder.ChBody.SetPos(pos)
-cylinder.ChBody.SetMass(np.pi*0.05**2*rho_0)
+cylinder.ChBody.SetMass(np.pi*cylinder_radius**2*rho_0/2.)
 cylinder.ChBody.SetInertiaXX(inertia)
 cylinder.setRecordValues(all_values=True)
 
@@ -265,14 +277,14 @@ if ct.use_gmsh:
 
 # Time stepping
 T=ct.T
-dt_fixed = 0.01#0.03
+dt_fixed = 0.#0.01#0.03
 dt_init = 0.005#min(0.1*dt_fixed,0.001)
 runCFL=0.33
-nDTout = int(round(T/dt_fixed))
-tnList = [0.0,dt_init]+[i*dt_fixed for i in range(1,nDTout+1)]
-
+nDTout = int(round(T*20.))
+dt_out= (T-dt_init)/nDTout
+tnList=[0.0,dt_init]+[dt_init+i*dt_out for i in range(1,nDTout+1)]
 if ct.onlySaveFinalSolution == True:
-    tnList = [0.0,dt_init,ct.T]
+    tnList = [0.0,dt_init,T]
 
 
 # Numerical parameters
@@ -376,24 +388,17 @@ def velRamp(t):
 def signedDistance(x):
     return x[1]-waterLine_z
 
-#def particle_sdf(t, x):
-#    pos = cylinder.ChBody.GetPos()
-#    cx = pos[0]
-#    cy = pos[1]
-#    r = math.sqrt( (x[0]-cx)**2 + (x[1]-cy)**2)
-#    n = ((x[0]-cx)/r,(x[1]-cy)/r)
-#    return  r - 0.05,n
-#
 def particle_sdf(t, x):
     pos = cylinder.ChBody.GetPos()
-    cx = 1
-    #cx = 1 + 0.7* np.cos(1*t)
-    cy = 0.12
+    cx = pos[0]
+    cy = pos[1]
     r = math.sqrt( (x[0]-cx)**2 + (x[1]-cy)**2)
     n = ((x[0]-cx)/r,(x[1]-cy)/r)
     return  r - 0.05,n
 
-
 def particle_vel(t, x):
-    return (0.3,0.0)
-
+    pos = cylinder.position
+    pos2 = cylinder.ChBody.GetPos()
+    pos_last = cylinder.position_last
+    vel = ((pos-pos_last)/system.dt_fluid)[:domain.nd]
+    return (vel[0], vel[1])
