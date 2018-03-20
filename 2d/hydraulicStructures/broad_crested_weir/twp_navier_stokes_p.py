@@ -47,6 +47,7 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    eb_penalty_constant=ct.weak_bc_penalty_constant,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ct.ns_closure,
+                                   NONCONSERVATIVE_FORM=1.0,
                                    movingDomain=ct.movingDomain)
 
 dirichletConditions = {

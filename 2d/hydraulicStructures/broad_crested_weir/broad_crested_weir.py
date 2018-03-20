@@ -14,20 +14,20 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 opts = Context.Options([
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
-    ("air_vent", True, "Include an air vent in the obstacle."),
+    ("air_vent", False, "Include an air vent in the obstacle."),
     # air vent position
-    ("airvent_y1",0.25,"Vertical distance from bottom to the lower 
-                        vertex of the air ventilation boundary in m"),
+    ("airvent_y1",0.25,"Vertical distance from bottom to the lower "
+                        "vertex of the air ventilation boundary in m"),
     ("airvent_dim",0.1,"Dimension of the air boundary patch in m"),
     # water
-    ("water_level", 0.54, "Mean levelat inflow  from y=0 in m")
+    ("water_level", 0.54, "Mean levelat inflow  from y=0 in m"),
     ("water_width_over_obst",1.02, "Domain length upstream of the obstacle in m"),
     ("outflow_level", 0.04, "Estimated mean water level at the outlet in m "),
     ("inflow_velocity", 0.139, "Water inflow velocity in m/s"),
     ("outflow_velocity", 3.0, "Estimated water outflow velocity in m/s"),
     # tank
     ("tank_dim", (2.5, 1.0), "Dimensions (x,y) of the tank in m"),
-    ("tank_sponge", (0.5,0.5), "Length of (generation, absorption) zones in m, if any"),
+    ("tank_sponge", (0.,0.), "Length of (generation, absorption) zones in m, if any"),
     ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle. in m"),
     ("obstacle_x_start", 1.0, "x coordinate of the start of the obstacle in m"),
     # gauges
@@ -123,7 +123,7 @@ useSuperlu = False
 useRBLES = 0.0
 useMetrics = 1.0
 useVF = 1.0
-useOnlyVF = False
+useOnlyVF = True
 useRANS = 0  # 0 -- None
              # 1 -- K-Epsilon
              # 2 -- K-Omega
@@ -248,9 +248,9 @@ if opts.waves:
     )
  
 dragAlpha = 5.*omega/nu_0
-tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-tank.setAbsorptionZones(x_n=True, dragAlpha = dragAlpha)
-tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
+# tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+# tank.setAbsorptionZones(x_n=True, dragAlpha = dragAlpha)
+# tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -301,10 +301,12 @@ if opts.gauge_output:
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 # Open Top
-tank.BC['y+'].setAtmosphere()
+tank.BC['y+'].setNoSlip()
+#tank.BC['y+'].setAtmosphere()
 
 # Free Slip Tank
-tank.BC['y-'].setFreeSlip()
+tank.BC['y-'].setNoSlip()
+#tank.BC['y-'].setFreeSlip()
 
 # Outflow
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
@@ -323,7 +325,7 @@ if not opts.waves:
                                            )
     tank.BC['x-'].p_advective.uOfXT = lambda x, t: - inflow_velocity
 tank.BC['sponge'].setNonMaterial()
-    
+
 if air_vent:
     tank.BC['airvent'].reset()
     tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1])*rho_1*abs(g[1])
