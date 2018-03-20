@@ -13,17 +13,17 @@ from proteus.mprans.SedClosure import  HsuSedStress
 opts=Context.Options([
     # predefined test cases
     ("waterLine_x", 10.00, "Width of free surface from left to right"),
-    ("waterLine_z", 0.5, "Heigth of free surface above bottom"),
-    ("Lx", 1.50, "Length of the numerical domain"),
-    ("Ly", 0.7, "Heigth of the numerical domain"),
+    ("waterLine_z", 0.3, "Heigth of free surface above bottom"),
+    ("Lx", 2.00, "Length of the numerical domain"),
+    ("Ly", 0.5, "Heigth of the numerical domain"),
     # sediment parameters
-    ('cSed', 0.50,'Sediment concentration'),
+    ('cSed', 0.05,'Sediment concentration'),
     # numerical options
-    ("refinement", 50.,"L[0]/refinement"),
+    ("refinement", 75.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop", not True, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.90 ,"Target cfl"),
-    ("duration", 1.0 ,"Duration of the simulation"),
+    ("duration", 6.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
@@ -117,10 +117,9 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #############################################################################################################################################################################################################################################################################################################################################################################################
-
 tank.BC['y-'].setFreeSlip()
-
-
+#tank.BC['y-'].setNoSlip()
+#tank.BC['y-'].pInc_advective.setConstantBC(0.)
 tank.BC['y+'].setFreeSlip()
 
 
@@ -157,34 +156,6 @@ if opts.useRANS:
     tank.BC['x+'].setTurbulentZeroGradient()
     tank.BC['y-'].setTurbulentZeroGradient()
     tank.BC['y+'].setTurbulentZeroGradient()
-
-
-######################################################################################################################################################################################################################
-# Gauges and probes #
-######################################################################################################################################################################################################################
-
-T=opts.duration
-PG = []
-gauge_dy=0.01
-tank_dim_y=dimy
-nprobes=int(tank_dim_y/gauge_dy)+1
-probes=np.linspace(0., tank_dim_y, nprobes)
-for i in probes:
-    PG.append((dimx/2., i, 0.),)
-v_output = ga.PointGauges(gauges=((('u',), PG),
-                                  (('v',), PG),),
-                          activeTime = (0., T),
-                          sampleRate=0.,
-                          fileName='fluidVelocityGauges.csv')
-vs_output = ga.PointGauges(gauges=((('us',),PG), 
-                                   (('vs',),PG),),
-                          activeTime = (0., T),
-                          sampleRate=0.,
-                          fileName='solidVelocityGauges.csv')
-vos_output = ga.PointGauges(gauges=((('vos',),PG),),
-                          activeTime = (0., T),
-                          sampleRate=0.,
-                          fileName='solidFractionGauges.csv')
 
 
 ######################################################################################################################################################################################################################
@@ -417,26 +388,90 @@ class Suspension_class:
     def __init__(self):
         pass
     def uOfXT(self, x, t=0):
-        phi = signedDistance(x) + 0.4
+        phi = signedDistance(x) + 0.1
+        phiBottom = x[1] - 0.05
+        phiLeft = x[0] - 0.8
+        phiRight = x[0] - (dimx-0.8)
         smoothing = (epsFact_consrv_heaviside)*he/2.
-        Heav = smoothedHeaviside(smoothing, phi)      
+        Heav = smoothedHeaviside(smoothing, phi)     
+        HeavBottom = smoothedHeaviside(smoothing, phiBottom)     
+        HeavLeft = smoothedHeaviside(smoothing, phiLeft)     
+        HeavRight = smoothedHeaviside(smoothing, phiRight)        
+        if phiLeft>=smoothing and phiRight<=-smoothing:
+            if phi <= -smoothing:
+                if phiBottom >= smoothing:
+                    return opts.cSed
+                elif -smoothing < phiBottom < smoothing :
+                    return opts.cSed * (HeavBottom)
+                else:
+                    return 1e-10            
+            elif -smoothing < phi < smoothing:
+                return opts.cSed * (1.-Heav)            
+            else:
+                return 1e-10    
+        elif -smoothing < phiLeft < smoothing:
+            if phi <= 0.0 and phiBottom >= 0.0:
+                return opts.cSed * (HeavLeft)
+            elif 0. < phi < smoothing:
+                return opts.cSed * (1.-Heav)
+            elif 0. > phiBottom > -smoothing:
+                return opts.cSed * (HeavBottom)
+            else:
+                return 1e-10 
+        elif -smoothing < phiRight < smoothing:
+            if phi <= 0.0 and phiBottom >= 0.0:
+                return opts.cSed * (1.-HeavRight)
+            elif 0. < phi < smoothing:
+                return opts.cSed * (1.-Heav)
+            elif 0. > phiBottom > -smoothing:
+                return opts.cSed * (HeavBottom)
+            else:
+                return 1e-10 
+        else:
+            return 1e-10
+
+def vos_function(x, t=0):
+    phi = signedDistance(x) + 0.1
+    phiBottom = x[1] - 0.05
+    phiLeft = x[0] - 0.8
+    phiRight = x[0] - (dimx-0.8)
+    smoothing = (epsFact_consrv_heaviside)*he/2.
+    Heav = smoothedHeaviside(smoothing, phi)     
+    HeavBottom = smoothedHeaviside(smoothing, phiBottom)     
+    HeavLeft = smoothedHeaviside(smoothing, phiLeft)     
+    HeavRight = smoothedHeaviside(smoothing, phiRight)        
+    if phiLeft>=smoothing and phiRight<=-smoothing:
         if phi <= -smoothing:
-            return opts.cSed
+            if phiBottom >= smoothing:
+                return opts.cSed
+            elif -smoothing < phiBottom < smoothing :
+                return opts.cSed * (HeavBottom)
+            else:
+                return 1e-10            
         elif -smoothing < phi < smoothing:
             return opts.cSed * (1.-Heav)            
         else:
             return 1e-10    
-
-def vos_function(x, t=0):
-    phi = signedDistance(x) + 0.4
-    smoothing = (epsFact_consrv_heaviside)*he/2.
-    Heav = smoothedHeaviside(smoothing, phi)      
-    if phi <= -smoothing:
-        return opts.cSed
-    elif -smoothing < phi < smoothing:
-        return opts.cSed * (1.-Heav)            
+    elif -smoothing < phiLeft < smoothing:
+        if phi <= 0.0 and phiBottom >= 0.0:
+            return opts.cSed * (HeavLeft)
+        elif 0. < phi < smoothing:
+            return opts.cSed * (1.-Heav)
+        elif 0. > phiBottom > -smoothing:
+            return opts.cSed * (HeavBottom)
+        else:
+            return 1e-10 
+    elif -smoothing < phiRight < smoothing:
+        if phi <= 0.0 and phiBottom >= 0.0:
+            return opts.cSed * (1.-HeavRight)
+        elif 0. < phi < smoothing:
+            return opts.cSed * (1.-Heav)
+        elif 0. > phiBottom > -smoothing:
+            return opts.cSed * (HeavBottom)
+        else:
+            return 1e-10 
     else:
-        return 1e-10    
+        return 1e-10
 
 
 Suspension = Suspension_class()

@@ -247,6 +247,7 @@ KILL_PRESSURE_TERM = False
 fixNullSpace_PresInc = True
 INTEGRATE_BY_PARTS_DIV_U_PresInc = True
 CORRECT_VELOCITY = True
+ns_forceStrongDirichlet = True
 STABILIZATION_TYPE = 0 #0: SUPG, 1: EV via weak residual, 2: EV via strong residual
 
 # Input checks
@@ -417,26 +418,50 @@ class Suspension_class:
     def __init__(self):
         pass
     def uOfXT(self, x, t=0):
-        phi = signedDistance(x) + 0.4
+        phi = signedDistance(x) + 0.35
+        phiRight = x[0] - 0.2
         smoothing = (epsFact_consrv_heaviside)*he/2.
-        Heav = smoothedHeaviside(smoothing, phi)      
+        Heav = smoothedHeaviside(smoothing, phi)     
+        HeavRight = smoothedHeaviside(smoothing, phiRight)        
+        if phiRight<=-smoothing:
+            if phi <= -smoothing:
+                return opts.cSed
+            elif -smoothing < phi < smoothing:
+                return opts.cSed * (1.-Heav)            
+            else:
+                return 1e-10    
+        elif -smoothing < phiRight < smoothing:
+            if phi <= 0.0:
+                return opts.cSed * (1.-HeavRight)
+            elif 0. < phi < smoothing:
+                return opts.cSed * (1.-Heav)
+            else:
+                return 1e-10 
+        else:
+            return 1e-10
+
+def vos_function(x, t=0):
+    phi = signedDistance(x) + 0.35
+    phiRight = x[0] - 0.2
+    smoothing = (epsFact_consrv_heaviside)*he/2.
+    Heav = smoothedHeaviside(smoothing, phi)     
+    HeavRight = smoothedHeaviside(smoothing, phiRight)        
+    if phiRight<=-smoothing:
         if phi <= -smoothing:
             return opts.cSed
         elif -smoothing < phi < smoothing:
             return opts.cSed * (1.-Heav)            
         else:
             return 1e-10    
-
-def vos_function(x, t=0):
-    phi = signedDistance(x) + 0.4
-    smoothing = (epsFact_consrv_heaviside)*he/2.
-    Heav = smoothedHeaviside(smoothing, phi)      
-    if phi <= -smoothing:
-        return opts.cSed
-    elif -smoothing < phi < smoothing:
-        return opts.cSed * (1.-Heav)            
+    elif -smoothing < phiRight < smoothing:
+        if phi <= 0.0:
+            return opts.cSed * (1.-HeavRight)
+        elif 0. < phi < smoothing:
+            return opts.cSed * (1.-Heav)
+        else:
+            return 1e-10 
     else:
-        return 1e-10    
+        return 1e-10
 
 
 Suspension = Suspension_class()

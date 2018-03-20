@@ -66,7 +66,6 @@ modelSpinUpList = [PINIT_model]
 #        Sequential_MinAdaptiveModelStep.__init__(self,modelList,system,stepExact)
 #        self.modelList = modelList[:len(pnList)-1]
 
-
 class Sequential_MinAdaptiveModelStepPS(Sequential_FixedStep):
     def __init__(self,modelList,system=defaultSystem,stepExact=True):
         Sequential_FixedStep.__init__(self,modelList,system,stepExact)
