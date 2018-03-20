@@ -14,9 +14,9 @@ T = ct.T
 
 LevelModelType = NCLS.LevelModel
 
-coefficients = NCLS.Coefficients(V_model=int(ct.movingDomain)+int(ct.opts.addedMass)+0,
-                                 RD_model=int(ct.movingDomain)+int(ct.opts.addedMass)+3,
-                                 ME_model=int(ct.movingDomain)+int(ct.opts.addedMass)+2,
+coefficients = NCLS.Coefficients(V_model=int(ct.movingDomain)+0,
+                                 RD_model=int(ct.movingDomain)+3,
+                                 ME_model=int(ct.movingDomain)+2,
                                  checkMass=False,
                                  useMetrics=ct.useMetrics,
                                  epsFact=ct.epsFact_consrv_heaviside,

@@ -78,39 +78,18 @@ if opts.waves is True:
     mwl = depth = opts.water_level
     direction = opts.wave_dir
     period = opts.wave_period
+    BCoeffs = np.zeros(3)
+    YCoeffs = np.zeros(3)
     if opts.wave_type in ['Linear', 'Fenton']:
-        if opts.wave_type == 'Linear':
-            BCoeffs = np.zeros(3)
-            YCoeffs = np.zeros(3)
-        if opts.wave_type == 'Fenton':
-            import Fenton
-            comm = Comm.get()
-            if comm.isMaster():
-                Fenton.writeInput(height, depth, period)
-                Fenton.runFourier()
-            comm.barrier()
-            BCoeffs, YCoeffs = Fenton.getBYCoeffs()
-            logEvent("BCOEFFS: "+str(BCoeffs))
-            logEvent("YCOEFFS: "+str(YCoeffs))
-            with open('Solution.res', 'r') as f:
-                for line in f:
-                    if 'Wave period' in line:
-                        words = line.split()
-                        period = float(words[5])/np.sqrt(9.81/depth)
-                    if 'Wave length' in line:
-                        words = line.split()
-                        wavelength = float(words[5])*depth
-                        logEvent("PERIOD: "+str(period))
-                        logEvent("WAVELENGTH: "+str(wavelength))
-            #getFFT.copyFiles()
-        wave = wt.MonochromaticWaves(period=period, waveHeight=height, mwl=mwl, depth=depth,
-                                    g=np.array([0., -9.81, 0.]), waveDir=direction,
-                                    wavelength=wavelength,
-                                    waveType=opts.wave_type,
-                                    Ycoeff=YCoeffs,
-                                    Bcoeff=BCoeffs,
-                                    Nf=len(BCoeffs),
-                                    fast=False)
+        wave = wt.MonochromaticWaves(period=period,
+                                     waveHeight=height,
+                                     mwl=mwl,
+                                     depth=depth,
+                                     g=np.array([0., -9.81, 0.]),
+                                     waveDir=direction,
+                                     waveType=opts.wave_type,
+                                     Nf=len(BCoeffs),
+                                     fast=False)
         wavelength = wave.wavelength
     elif opts.wave_type == 'Focused':
         N = 100
@@ -126,19 +105,19 @@ if opts.waves is True:
         phi = -kk*xf+(2*np.pi*frange)*tf
         depth = water_level
         wave = wt.RandomWaves(Tp=1./fp,
-                            Hs=Hs,
-                            mwl=water_level,
-                            depth=depth,
-                            waveDir=np.array([1.,0.,0.]),
-                            g=np.array([0.,-9.81,0.]),
-                            N=N,
-                            bandFactor=bandFactor,
-                            spectName='JONSWAP',
-                            spectral_params={'gamma': 3.3,
-                                             'TMA': False,
-                                             'depth': depth},
-                            phi=phi,
-                            fast=False)
+                              Hs=Hs,
+                              mwl=water_level,
+                              depth=depth,
+                              waveDir=np.array([1.,0.,0.]),
+                              g=np.array([0.,-9.81,0.]),
+                              N=N,
+                              bandFactor=bandFactor,
+                              spectName='JONSWAP',
+                              spectral_params={'gamma': 3.3,
+                                               'TMA': False,
+                                               'depth': depth},
+                              phi=phi,
+                              fast=False)
         wavelength = np.max(2*np.pi/kk)
         period = 1./fp
 
@@ -203,8 +182,8 @@ if opts.caisson is True:
     system = crb.ProtChSystem(np.array([0., -9.81, 0.]))
     system.setTimeStep(opts.chrono_dt)
     system.step_start = 10
-    body = crb.ProtChBody(shape=caisson,
-                          system=system)
+    body = crb.ProtChBody(system=system)
+    body.attachShape(caisson)
     body.setWidth2D(width)
     chbod = body.ChBody
     from proteus.mbd import pyChronoCore as pych

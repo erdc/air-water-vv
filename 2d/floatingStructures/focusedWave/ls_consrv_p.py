@@ -14,10 +14,10 @@ T = ct.T
 
 LevelModelType = MCorr.LevelModel
 
-coefficients = MCorr.Coefficients(LSModel_index=int(ct.movingDomain)+int(ct.opts.addedMass)+2,
-                                  V_model=int(ct.movingDomain)+int(ct.opts.addedMass)+0,
-                                  me_model=int(ct.movingDomain)+int(ct.opts.addedMass)+4,
-                                  VOFModel_index=int(ct.movingDomain)+int(ct.opts.addedMass)+1,
+coefficients = MCorr.Coefficients(LSModel_index=int(ct.movingDomain)+2,
+                                  V_model=int(ct.movingDomain)+0,
+                                  me_model=int(ct.movingDomain)+4,
+                                  VOFModel_index=int(ct.movingDomain)+1,
                                   applyCorrection=ct.applyCorrection,
                                   nd=nd,
                                   checkMass=True,

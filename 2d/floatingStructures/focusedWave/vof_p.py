@@ -21,10 +21,10 @@ else:
     RD_model = 3
     LS_model = 2
 
-coefficients = VOF.Coefficients(LS_model=int(ct.movingDomain)+int(ct.opts.addedMass)+LS_model,
-                                V_model=int(ct.movingDomain)+int(ct.opts.addedMass)+0,
-                                RD_model=int(ct.movingDomain)+int(ct.opts.addedMass)+RD_model,
-                                ME_model=int(ct.movingDomain)+int(ct.opts.addedMass)+1,
+coefficients = VOF.Coefficients(LS_model=int(ct.movingDomain)+LS_model,
+                                V_model=int(ct.movingDomain)+0,
+                                RD_model=int(ct.movingDomain)+RD_model,
+                                ME_model=int(ct.movingDomain)+1,
                                 checkMass=True,
                                 useMetrics=ct.useMetrics,
                                 epsFact=ct.epsFact_vof,

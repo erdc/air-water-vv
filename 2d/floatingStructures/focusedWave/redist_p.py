@@ -20,8 +20,8 @@ LevelModelType = RDLS.LevelModel
 
 coefficients = RDLS.Coefficients(applyRedistancing=ct.applyRedistancing,
                                  epsFact=ct.epsFact_redistance,
-                                 nModelId=int(ct.movingDomain)+int(ct.opts.addedMass)+2,
-                                 rdModelId=int(ct.movingDomain)+int(ct.opts.addedMass)+3,
+                                 nModelId=int(ct.movingDomain)+2,
+                                 rdModelId=int(ct.movingDomain)+3,
                                  useMetrics=ct.useMetrics,
                                  backgroundDiffusionFactor=ct.backgroundDiffusionFactor)
 
