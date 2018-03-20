@@ -14,7 +14,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 opts = Context.Options([
     # test options
     ("waves", False, "Generate waves - uses sponge layers."),
-    ("air_vent", False, "Include an air vent in the obstacle."),
+    ("air_vent", True, "Include an air vent in the obstacle."),
     # air vent position
     ("airvent_y1",0.25,"Vertical distance from bottom to the lower "
                         "vertex of the air ventilation boundary in m"),
@@ -123,7 +123,7 @@ useSuperlu = False
 useRBLES = 0.0
 useMetrics = 1.0
 useVF = 1.0
-useOnlyVF = True
+useOnlyVF = False
 useRANS = 0  # 0 -- None
              # 1 -- K-Epsilon
              # 2 -- K-Omega
@@ -346,7 +346,7 @@ st.assembleDomain(domain)
 
 # ----- STRONG DIRICHLET ----- #
 
-ns_forceStrongDirichlet = False #True
+ns_forceStrongDirichlet = True
 
 # ----- NUMERICAL PARAMETERS ----- #
 
@@ -357,19 +357,19 @@ if useMetrics:
     ls_shockCapturingFactor = 0.75
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.50
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.75
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.50
+    vof_sc_beta = 1.5
     rd_shockCapturingFactor = 0.75
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH = epsFact_consrv_dirac \
-                    = 3.0
+                    = 1.5
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
-    redist_Newton = False
+    epsFact_consrv_diffusion = 10.0
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
@@ -412,7 +412,7 @@ else:
 ns_nl_atol_res = max(1.0e-10,0.001*he**2)
 vof_nl_atol_res = max(1.0e-10,0.001*he**2)
 ls_nl_atol_res = max(1.0e-10,0.001*he**2)
-rd_nl_atol_res = max(1.0e-10,0.005*he)
+rd_nl_atol_res = max(1.0e-10,0.01*he)
 mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
@@ -426,7 +426,7 @@ elif useRANS == 2:
     ns_closure = 4
 else:
     ns_closure = 2
-
+ns_closure=0
 ##########################################
 #            Signed Distance             #
 ##########################################
