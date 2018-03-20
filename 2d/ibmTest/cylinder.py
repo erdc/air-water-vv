@@ -20,14 +20,14 @@ ct = Context.Options([
     ("genMesh", True,"genMesh"),
     ("use_gmsh",not True,"use_gmsh"),
     ("use_chrono", False, "use Chrono for MBD"),
-    ("cylinder_radius", 0.05, "radius of cylinder"),
-    ("tank_dim_x", 2.2, "x dim of tank"),
-    ("tank_dim_y", 0.41, "y dim of tank"),
-    ("cylinder_pos_x", 0.205, "x position of cylinder"),
-    ("cylinder_pos_y", 0.25-0.01, "y position of cylinder"),
+    ("cylinder_radius", 3*0.0254, "radius of cylinder"),
+    ("tank_dim_x", 1.5, "x dim of tank"),
+    ("tank_dim_y", 2.4384, "y dim of tank"),
+    ("cylinder_pos_x", 0.75, "x position of cylinder"),
+    ("cylinder_pos_y", 1.2102-0.0254, "y position of cylinder"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     ("pspaceOrder",1,"FE space for pressure"),
-    ("waterLevel",0.25,"water level"),
+    ("waterLevel",1.2192,"water level"),
     ("openTop", True, "Enable open atmosphere")
 ], mutable=True)
 
@@ -231,6 +231,7 @@ pos = pych.ChVector(cylinder_pos[0], cylinder_pos[1], cylinder_pos[2])
 cylinder.ChBody.SetPos(pos)
 cylinder.ChBody.SetMass(np.pi*cylinder_radius**2*rho_0/2.)
 cylinder.ChBody.SetInertiaXX(inertia)
+#cylinder.ChBody.SetBodyFixed(True)
 cylinder.setRecordValues(all_values=True)
 
 
@@ -279,8 +280,9 @@ if ct.use_gmsh:
 T=ct.T
 dt_fixed = 0.#0.01#0.03
 dt_init = 0.005#min(0.1*dt_fixed,0.001)
-runCFL=0.33
-nDTout = int(round(T*20.))
+runCFL=0.4
+nsave = 20
+nDTout = int(round(T*nsave))+1
 dt_out= (T-dt_init)/nDTout
 tnList=[0.0,dt_init]+[dt_init+i*dt_out for i in range(1,nDTout+1)]
 if ct.onlySaveFinalSolution == True:
@@ -397,8 +399,6 @@ def particle_sdf(t, x):
     return  r - 0.05,n
 
 def particle_vel(t, x):
-    pos = cylinder.position
-    pos2 = cylinder.ChBody.GetPos()
-    pos_last = cylinder.position_last
-    vel = ((pos-pos_last)/system.dt_fluid)[:domain.nd]
+    vel = cylinder.velocity_fluid[:domain.nd]
+    vel = cylinder.ChBody.GetPos_dt()[:domain.nd]
     return (vel[0], vel[1])
