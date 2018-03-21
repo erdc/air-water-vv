@@ -13,6 +13,7 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 
 opts = Context.Options([
     # test options
+    ("strong", False, "Enforce boundary conditions strongly."),
     ("waves", False, "Generate waves - uses sponge layers."),
     ("air_vent", True, "Include an air vent in the obstacle."),
     # air vent position
@@ -174,7 +175,7 @@ elif spaceOrder == 2:
 #   Physical, Time, & Misc. Parameters   #
 ##########################################
 
-weak_bc_penalty_constant = 100.0
+weak_bc_penalty_constant = 10.0
 nLevels = 1
 backgroundDiffusionFactor = 0.01
 
@@ -346,7 +347,7 @@ st.assembleDomain(domain)
 
 # ----- STRONG DIRICHLET ----- #
 
-ns_forceStrongDirichlet = True
+ns_forceStrongDirichlet = opts.strong
 
 # ----- NUMERICAL PARAMETERS ----- #
 
