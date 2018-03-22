@@ -21,7 +21,7 @@ if marin.useRANS > 0:
 name = "marin_p" 
 
 systemStepControllerType = Sequential_MinAdaptiveModelStep
-
+systemStepExact = False
 needEBQ_GLOBAL = False
 needEBQ = False
 

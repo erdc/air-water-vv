@@ -3,7 +3,7 @@ import proteus.MeshTools
 from proteus import Domain
 from proteus.default_n import *   
 from proteus.Profiling import logEvent
-from proteus.MeshAdaptPUMI import MeshAdaptPUMI
+#from proteus.MeshAdaptPUMI import MeshAdaptPUMI
 from proteus import Context
 from proteus import Gauges
 from proteus.Gauges import PointGauges, LineIntegralGauges
@@ -35,9 +35,9 @@ if opts.gauges:
 #  Discretization -- input options    
 #Refinement=8#4-32 cores
 #Refinement=12
-runCFL=0.33
+runCFL=0.9
 Refinement=24
-genMesh=False#True
+genMesh=True
 useOldPETSc=False
 useSuperlu=False
 spaceOrder = 1
@@ -45,9 +45,9 @@ useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
 applyCorrection=True
-useVF = 1.0
+useVF = 0.0
 useOnlyVF = False
-redist_Newton = False#True
+redist_Newton = True
 useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
             # 2 -- K-Omega
@@ -114,7 +114,7 @@ elif usePUMI:
     domain.faceList=[[1],[2],[3],[4],[5],[6],[8],[9],[10],[11],[12]]
     #set max edge length, min edge length, number of meshadapt iterations and initialize the MeshAdaptPUMI object
     #these are now inputs to the numerics
-    he = 0.02#0.015
+    he = 0.01#0.015
     he_max = he*2.0#he*3.375
     adaptMesh = False#True
     adaptMesh_nSteps = 10#40
@@ -135,7 +135,7 @@ else:
     box_L  = [0.161,0.403,0.161]
     box_xy = [2.3955,0.2985]
     #he = L[0]/float(6.5*Refinement)
-    he = 0.04#L[0]/64.0
+    he = 0.02#L[0]/64.0
     #he*=0.5#256
     boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
@@ -219,24 +219,24 @@ nDTout = int(round(T/dt_fixed))
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
 if useMetrics:
-    ns_shockCapturingFactor  = 0.9
+    ns_shockCapturingFactor  = 0.75
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
+    ls_shockCapturingFactor  = 0.75
     ls_lag_shockCapturing = True
     ls_sc_uref  = 1.0
     ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.9
+    vof_shockCapturingFactor = 0.75
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.9
+    rd_shockCapturingFactor  = 0.75
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = 10.0
-    redist_Newton = False
+    redist_Newton = True
 else:
     ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True

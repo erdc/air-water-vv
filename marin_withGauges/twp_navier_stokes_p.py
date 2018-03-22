@@ -25,7 +25,8 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
 				   useMetrics=useMetrics,
                                    eb_adjoint_sigma=1.0,
                                    forceStrongDirichlet=0,
-                                   turbulenceClosureModel=ns_closure)
+                                   turbulenceClosureModel=ns_closure,
+                                   NONCONSERVATIVE_FORM=1.0)
 
 def getDBC_p(x,flag):
     return None
