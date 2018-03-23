@@ -189,7 +189,8 @@ if timestepper == "HHT":
     system.setTimestepperType("HHT")
 
 if opts.cylinder is True:
-    body = crb.ProtChBody(system, shape=cylinder)
+    body = crb.ProtChBody(system)
+    body.attachShape(shape)
     body.setConstraints(free_x=free_x, free_r=free_r)
     body.ChBody.SetMass(opts.cylinder_mass)
     body.setRecordValues(all_values=True)
@@ -336,13 +337,6 @@ if opts.moorings is True:
     box.SetBodyFixed(True)
     system.addBodyEasyBox(box)
 
-
-system.calculate_init()
-
-dt = 1e-3
-for i in range(10000):
-    system.calculate(1e-3)
-    print(i*dt, np.linalg.norm(m1.getTensionBack()), np.linalg.norm(m2.getTensionBack()), np.linalg.norm(m3.getTensionBack()))
     
     
 
