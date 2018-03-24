@@ -211,7 +211,7 @@ else:
 #logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 domain.MeshOptions.setParallelPartitioningType('node')
 # Time stepping
-T=0.45#6.0
+T=7.4#6.0
 dt_init  =0.001
 dt_fixed = 0.005#0.1/Refinement
 nDTout = int(round(T/dt_fixed))
