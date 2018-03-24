@@ -1,0 +1,16 @@
+#!/bin/bash
+#PBS -A ERDCV00898R40
+#PBS -l walltime=3:00:00
+#PBS -l select=6:ncpus=36:mpiprocs=24
+#PBS -q standard
+#PBS -N Rmarin11memL144
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M alv.zhang@gmail.com
+
+export  MPI_UNBUFFERED_STDIO=true
+cd $PBS_O_WORKDIR
+mpiexec_mpt -np 144 parun marin_so.py  -l2 -v --memory -O petsc.options.asm -F -D $PBS_O_WORKDIR/testRun_T0p6_noAdapt_changeSmoother2_master
+
