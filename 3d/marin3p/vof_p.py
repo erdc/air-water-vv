@@ -21,7 +21,7 @@ coefficients = VOF3P.Coefficients(LS_model=ct.LS_model,
 
 def getDBC_vof(x,flag):
     if ct.openTop and flag == ct.boundaryTags['top']:
-        return lambda x,t: 0.0
+        return lambda x,t: 1.0
 
 dirichletConditions = {0:getDBC_vof}
 
