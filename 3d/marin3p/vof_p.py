@@ -14,7 +14,7 @@ coefficients = VOF3P.Coefficients(LS_model=ct.LS_model,
                                   RD_model=ct.RD_model,
                                   ME_model=ct.VOF_model,
                                   checkMass=True,
-                                  useMetrics=ct.useMetrics,
+                                  useMetrics=1.0,
                                   epsFact=ct.epsFact_vof,
                                   sc_uref=ct.vof_sc_uref,
                                   sc_beta=ct.vof_sc_beta)

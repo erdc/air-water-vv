@@ -16,7 +16,7 @@ coefficients = MCorr3P.Coefficients(LS_model=ct.LS_model,
                                     applyCorrection=ct.applyCorrection,
                                     nd=nd,
                                     checkMass=True,
-                                    useMetrics=ct.useMetrics,
+                                    useMetrics=1.0,
                                     epsFactHeaviside=ct.epsFact_consrv_heaviside,
                                     epsFactDirac=ct.epsFact_consrv_dirac,
                                     epsFactDiffusion=ct.epsFact_consrv_diffusion)

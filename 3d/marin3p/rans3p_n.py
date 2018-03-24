@@ -1,5 +1,5 @@
 from proteus.default_n import *
-from twp_navier_stokes_p import *
+from rans3p_p import *
 
 triangleOptions = ct.triangleOptions
 timeIntegration = VBDF

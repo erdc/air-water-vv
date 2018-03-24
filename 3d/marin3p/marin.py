@@ -9,26 +9,39 @@ from proteus.Gauges import PointGauges, LineIntegralGauges
 from proteus.Profiling import logEvent
 #from proteus.MeshAdaptPUMI import MeshAdaptPUMI
 name = "marin"
-VOF_model=0
-LS_model=1
-RD_model=2
-MCORR_model=3
-V_model=4
-PINC_model=5
-PRESSURE_model=6
-PINIT_model=7
 
 opts = Context.Options([
-    ("strong", False, "Use strong BC for NSE"),
-    ("openTop", False, "Open the top of the tank to the atmosphere"),
-    ("he", 0.5, "Maximum mesh element diameter"),
+    ("strong", True, "Use strong BC for NSE"),
+    ("openTop", True, "Open the top of the tank to the atmosphere"),
+    ("he", 0.125, "Maximum mesh element diameter"),
     ("genMesh", True, "Generate a new mesh"),
     ("T", 7.4, "Simulate over over the interval [0,T]"),
     ("dt_out", 0.1, "Save the solution every dt_out steps"),
     ("gauges", True, "Collect data for validation"),
-    ("cfl",0.33, "CFL number to use for time stepping")
+    ("cfl",0.9, "CFL number to use for time stepping"),
+    ("rans3p",True, "Use RANS3P model insteady of RANS2P"),
+    ("useOnlyVF",False, "Turn off CLSVOF")
     ])
 
+if opts.rans3p:
+    VOF_model=0
+    LS_model=1
+    RD_model=2
+    MCORR_model=3
+    V_model=4
+    PINC_model=5
+    PRESSURE_model=6
+    PINIT_model=7
+else:
+    V_model=0
+    VOF_model=1
+    LS_model=2
+    RD_model=3
+    MCORR_model=4
+    PINC_model=None
+    PRESSURE_model=None
+    PINIT_model=None
+    
 if opts.gauges:
     pressure_gauges = PointGauges(gauges=((('p',),
                                           ((2.3950,0.4745,0.020),
@@ -51,15 +64,17 @@ runCFL = opts.cfl
 openTop = opts.openTop
 #  Discretization -- input options    
 genMesh=opts.genMesh
-useOldPETSc=False
-useSuperlu=False
 timeDiscretization = 'vbdf'
 timeOrder = 2
-spaceOrder = 2
-pspaceOrder = 1
+if opts.rans3p:
+    spaceOrder = 2
+    pspaceOrder = 1
+else:
+    spaceOrder = 1
+    pspaceOrder = 1
+    
 useHex     = False
 useRBLES   = 0.0
-useMetrics = 1.0
 applyCorrection=True
 useVF = 0.0
 useOnlyVF = False
@@ -75,10 +90,6 @@ if useRBLES not in [0.0, 1.0]:
     print "INVALID: useRBLES" + useRBLES 
     sys.exit()
 
-if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
-    sys.exit()
-    
 #  Discretization   
 nd = 3
 if spaceOrder == 1:
@@ -127,14 +138,15 @@ if useHex:
         failed = os.system("../../scripts/marinHexMesh")      
      
     domain = Domain.MeshHexDomain("marinHex") 
-
+    bcCoords=False
 elif usePUMI:
+    bcCoords=True
     boundaries=['bottom','top','front','right','back','left','box_top','box_front','box_right','box_back','box_left']
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     domain = Domain.PUMIDomain() #initialize the domain
     domain.faceList=[[1],[2],[3],[4],[5],[6],[8],[9],[10],[11],[12]]
     #set max edge length, min edge length, number of meshadapt iterations and initialize the MeshAdaptPUMI object
-    he = opts.he
+    he = opts.he*float(spaceOrder)
     #these are now inputs to the numerics
     adaptMesh = False#True
     adaptMesh_nSteps = 5
@@ -148,12 +160,12 @@ elif usePUMI:
     case_mesh = "Marin.smb"
     input_mesh = "%s/%s" % (model_dir,case_mesh)
     domain.PUMIMesh.loadModelAndMesh("Marin.dmg", input_mesh)
-
 else:
+    bcCoords=False
     L      = [3.22,1.0,1.0]
     box_L  = [0.161,0.403,0.161]
     box_xy = [2.3955,0.2985]
-    he = opts.he
+    he = opts.he*float(spaceOrder)
     boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     bt = boundaryTags
@@ -223,7 +235,6 @@ else:
                                                  regionFlags = regionFlags,
                                                  holes=holes)
 						 
-						 
     #go ahead and add a boundary tags member 
     domain.MeshOptions.setParallelPartitioningType('node')
     domain.boundaryTags = boundaryTags
@@ -240,53 +251,24 @@ nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
 ns_forceStrongDirichlet = opts.strong
-if useMetrics:
-    ns_shockCapturingFactor  = 0.9
-    ns_lag_shockCapturing = True
-    ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
-    ls_lag_shockCapturing = True
-    ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.5
-    vof_shockCapturingFactor = 0.9
-    vof_lag_shockCapturing = True
-    vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    rd_shockCapturingFactor  = 0.9
-    rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
-    redist_Newton = True
-else:
-    ns_shockCapturingFactor  = 0.9
-    ns_lag_shockCapturing = True
-    ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
-    ls_lag_shockCapturing = True
-    ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.9
-    vof_lag_shockCapturing = True
-    vof_sc_uref  = 1.0
-    vof_sc_beta  = 1.0
-    rd_shockCapturingFactor  = 0.9
-    rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
-    redist_Newton = True
-    kappa_shockCapturingFactor = 0.9
-    kappa_lag_shockCapturing = True#False
-    kappa_sc_uref  = 1.0
-    kappa_sc_beta  = 1.0
-    dissipation_shockCapturingFactor = 0.9
-    dissipation_lag_shockCapturing = True#False
-    dissipation_sc_uref  = 1.0
-    dissipation_sc_beta  = 1.0
-
+ns_shockCapturingFactor  = 0.75
+ns_lag_shockCapturing = True
+ns_lag_subgridError = True
+ls_shockCapturingFactor  = 0.75
+ls_lag_shockCapturing = True
+ls_sc_uref  = 1.0
+ls_sc_beta  = 1.5
+vof_shockCapturingFactor = 0.75
+vof_lag_shockCapturing = True
+vof_sc_uref = 1.0
+vof_sc_beta = 1.5
+rd_shockCapturingFactor  = 0.75
+rd_lag_shockCapturing = False
+epsFact_density    = 1.5
+epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
+epsFact_redistance = 0.33
+epsFact_consrv_diffusion = 10.0
+redist_Newton = True
 pressureincrement_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 pressure_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 phi_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)

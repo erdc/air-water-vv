@@ -13,7 +13,7 @@ coefficients = NCLS3P.Coefficients(V_model=ct.V_model,
                                    RD_model=ct.RD_model,
                                    ME_model=ct.LS_model,
                                    checkMass=True,
-                                   useMetrics=ct.useMetrics,
+                                   useMetrics=1.0,
                                    epsFact=ct.epsFact_consrv_heaviside,
                                    sc_uref=ct.ls_sc_uref,
                                    sc_beta=ct.ls_sc_beta)

@@ -17,7 +17,7 @@ coefficients = RDLS3P.Coefficients(applyRedistancing=True,
                                    epsFact=ct.epsFact_redistance,
                                    nModelId=ct.LS_model,
                                    rdModelId=ct.RD_model,
-		                   useMetrics=ct.useMetrics)
+		                   useMetrics=1.0)
 
 def getDBC_rd(x,flag):
     pass
