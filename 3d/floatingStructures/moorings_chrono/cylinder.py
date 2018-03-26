@@ -91,8 +91,6 @@ if opts.waves is True:
     mwl = depth = opts.water_level
     direction = np.array(opts.wave_dir)
     period = opts.wave_period
-    BCoeffs = np.zeros(3)
-    YCoeffs = np.zeros(3)
     wave = wt.MonochromaticWaves(period=period,
                                  waveHeight=height,
                                  mwl=mwl,
@@ -100,10 +98,8 @@ if opts.waves is True:
                                  g=g,
                                  waveDir=direction,
                                  wavelength=wavelength,
-                                 waveType='Linear',
-                                 Ycoeff=YCoeffs,
-                                 Bcoeff=BCoeffs,
-                                 Nf=len(BCoeffs),
+                                 waveType='Fenton',
+                                 Nf=8,
                                  fast=False)
     wavelength = wave.wavelength
 
@@ -433,8 +429,13 @@ if opts.use_gmsh and opts.refinement is True:
 
     me1 = py2gmsh.Fields.MathEval(mesh=mesh)
     dist_z = dist_plane(xn=water_level-box, xp=water_level+box, plane='z')
-    dist_x = dist_plane(xn=-sponges['x-'], xp=tank_dim[0], plane='x')
-    dist_y = dist_plane(xn=0., xp=tank_dim[1], plane='y')
+    coarsen_genabs = False
+    if coarsen_genabs:
+        dist_x = dist_plane(xn=-sponges['x-'], xp=tank_dim[0], plane='x')
+        dist_y = dist_plane(xn=0., xp=tank_dim[1], plane='y')
+    else:
+        dist_x = 0
+        dist_y = 0
     dist = 'sqrt(({dist_x})^2+({dist_y})^2+({dist_z})^2)'.format(dist_x=dist_x, dist_y=dist_y, dist_z=dist_z)
     dist = dist_z
     me1.F = '{he}*{grading}^({dist}/{he})'.format(dist=dist, he=he, grading=grading)
