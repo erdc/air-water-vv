@@ -26,15 +26,15 @@ opts=Context.Options([
     # waves
     ("waves", True, "Generate waves (True/False)"),
     ("wave_period", 1., "Period of the waves"),
-    ("wave_height", 0.072, "Height of the waves"),
+    ("wave_height", 0.062, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
-    ("wave_type", 'Fenton', "type of wave"),
+    ("wave_type", 'Focused', "type of wave"),
     # caisson
     ("addedMass", False, "added mass"),
     ("caisson", True, "caisson"),
-    ("caisson_BC", 'noslip', "BC on caisson ('noslip'/'freeslip')"),
-    ("free_x", (1.0, 1.0, 1.0), "Translational DOFs"),
-    ("free_r", (1.0, 1.0, 1.0), "Rotational DOFs"),
+    ("caisson_BC", 'freeslip', "BC on caisson ('noslip'/'freeslip')"),
+    ("free_x", (0.0, 1.0, 0.0), "Translational DOFs"),
+    ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
     ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
     ("chrono_dt", 0.00001, "time step of chrono"),
     # mooring
@@ -48,7 +48,7 @@ opts=Context.Options([
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
     ("he", 0.01, "Set characteristic element size"),
-    ("refinement_freesurface", 0.031,"Set area of constant refinement around free surface (+/- value)"),
+    ("refinement_freesurface", 0.062,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
@@ -148,7 +148,7 @@ if opts.caisson is True:
     rotation = np.radians(opts.rotation_angle)
     width = 0.29
     #inertia = 0.34165
-    mass = 14.5+0.276
+    mass = 14.5#+0.276
     inertia = mass*(0.1535**2+(0.1-0.0796)**2)
     vertices = np.array([[0.,0.], [0.5,0.], [0.5,0.123], [0.35,0.123], [0.35,0.373], 
                                 [0.15,0.373], [0.15,0.123], [0., 0.123]])
@@ -159,7 +159,7 @@ if opts.caisson is True:
     facetFlags = [1]
     regions = np.array([0.25,0.1])
     boundaryTags = {'caisson': 1}
-    barycenter = np.array([0.25,0.0796,0.])
+    barycenter = np.array([0.25,0.1,0.])
     caisson = st.CustomShape(domain, barycenter=barycenter,
                             vertices=vertices, vertexFlags=vertexFlags,
                             segments=segments, segmentFlags=segmentFlags,
@@ -174,7 +174,10 @@ if opts.caisson is True:
     ang = rotation_angle
     caisson.setHoles([[0.1, 0.1]])
     caisson.holes_ind = np.array([0])
-    caisson.translate([caisson_coords[0], 0.4-0.1-0.01])
+    if opts.wave_type == 'Focused':
+        caisson.translate([7.-sponges['x-'], 0.4-0.1])
+    else:
+        caisson.translate([caisson_coords[0], 0.4-0.1])
     # system = crb.System(np.array([0., -9.81, 0.]))
     # rotation = np.array([1, 0., 0., 0.])
     rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
@@ -663,4 +666,4 @@ def twpflowPressure_init(x, t):
     return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi)))
 
-
+system.calculate_init()
