@@ -1,0 +1,31 @@
+#!/bin/csh
+#PBS -A ERDCV00898R40
+#PBS -l walltime=048:00:00
+#PBS -l select=2:ncpus=32:mpiprocs=32
+#PBS -q standard
+#PBS -N marincompsc
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M cekees@gmail.com
+setenv LD_LIBRARY_PATH ${HOME}/proteus/copper.gnu/lib:${LD_LIBRARY_PATH}
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
+cp *.py $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
+cp copperschur.pbs $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
+cp $HOME/air-water-vv/inputTemplates/petsc.options.schur.selfp_petsc_1 $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID/petsc.schur
+cp $HOME/air-water-vv/inputTemplates/petsc.options.schur.selfp_petsc_2 $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID/petsc.schur2
+cp $HOME/air-water-vv/inputTemplates/petsc.options.schur.selfp_petsc_3 $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID/petsc.schur3
+cp $HOME/air-water-vv/inputTemplates/petsc.options.schur.selfp_petsc_4 $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID/petsc.schur4
+cp petsc.optinos.asm $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID/petsc.asm
+cd  $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -p -l 5 -F -O ~/air-water-vv/inputTemplates/petsc.options.schur.selfp_petsc_1 -C "T=0.1 he=0.04 gauges=True rans3p=False strong=False" -D weak2p_asm_prof
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -p -l 5 -F -O petsc.schur -C "T=0.1 he=0.04 gauges=True rans3p=False strong=False" -D weak2p_schur_prof
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -p -l 5 -F -O petsc.asm -C "T=0.1 he=0.04 gauges=True rans3p=True strong=False" -D weak3p_prof
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O ~/air-water-vv/inputTemplates/petsc.options.schur.selfp_petsc_1 -C "T=1.0 he=0.04 gauges=True rans3p=False strong=False" -D weak2p_asm
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O petsc.schur -C "T=1.0 he=0.04 gauges=True rans3p=False strong=False" -D weak2p_schur
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O petsc.asm -C "T=1.0 he=0.04 gauges=True rans3p=True strong=False" -D weak3p
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O petsc.schur -C "T=1.0 he=0.04 gauges=True rans3p=False strong=False" -D weak2p_schur2
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O petsc.schur -C "T=1.0 he=0.04 gauges=True rans3p=False strong=False" -D weak2p_schur3
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O petsc.schur -C "T=1.0 he=0.04 gauges=True rans3p=False strong=False" -D weak2p_schur4
