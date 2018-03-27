@@ -67,6 +67,7 @@ genMesh=opts.genMesh
 timeDiscretization = 'vbdf'
 timeOrder = 2
 if opts.rans3p:
+    runCFL = opts.cfl/2.0
     spaceOrder = 2
     pspaceOrder = 1
 else:

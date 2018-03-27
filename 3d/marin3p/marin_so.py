@@ -35,7 +35,6 @@ if ct.opts.rans3p:
 
     systemStepControllerType = Sequential_MinAdaptiveModelStepPS
     modelSpinUpList = [ct.PINIT_model]
-    assert(False)
 else:
     if ct.opts.useOnlyVF:
         assert(False)

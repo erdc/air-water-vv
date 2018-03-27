@@ -39,7 +39,7 @@ matrix = SparseMatrix
 multilevelLinearSolver = KSP_petsc4py
 levelLinearSolver      = KSP_petsc4py
 
-linear_solver_options_prefix = 'rans2p_'
+linear_solver_options_prefix = 'rans3p_'
 levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest             = 'r-true'
 

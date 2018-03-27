@@ -1,9 +1,9 @@
 #!/bin/csh
 #PBS -A ERDCV00898R40
 #PBS -l walltime=048:00:00
-#PBS -l select=16:ncpus=32:mpiprocs=32
+#PBS -l select=2:ncpus=32:mpiprocs=32
 #PBS -q standard
-#PBS -N marin2p
+#PBS -N marincomp
 #PBS -j oe
 #PBS -l application=proteus
 #PBS -V
@@ -16,4 +16,8 @@ cp *.py $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
 cp copper.pbs $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
 cp $HOME/air-water-vv/inputTemplates/petsc.options.asm $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
 cd  $WORKDIR/${PBS_JOBNAME}.$PBS_JOBID
-aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "gauges=True"
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "he=0.04 gauges=True rans3p=False strong=False" -D weak
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "he=0.04 gauges=True rans3p=False strong=True" -D strong
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "he=0.04 gauges=True rans3p=True strong=False" -D weak3p
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "he=0.04 gauges=True rans3p=True strong=True" -D strong3p
+aprun -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "he=0.04 gauges=True rans3p=True strong=FalseopenTop=False" -D closed3p
