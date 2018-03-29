@@ -56,6 +56,9 @@ else:  # use CFL
     systemStepControllerType = Sequential_MinAdaptiveModelStep
     stepExactSystem=False
 
+stepExactSystem=False
+systemStepExact=False
+
 needEBQ_GLOBAL = False
 needEBQ = False
 

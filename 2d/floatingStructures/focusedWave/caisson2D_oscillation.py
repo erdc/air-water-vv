@@ -175,7 +175,8 @@ if opts.caisson is True:
     caisson.setHoles([[0.1, 0.1]])
     caisson.holes_ind = np.array([0])
     if opts.wave_type == 'Focused':
-        caisson.translate([7.-sponges['x-'], 0.4-0.1])
+        #caisson.translate([7.-sponges['x-'], 0.4-0.1])
+        caisson.translate([7., 0.4-0.1])
     else:
         caisson.translate([caisson_coords[0], 0.4-0.1])
     # system = crb.System(np.array([0., -9.81, 0.]))
@@ -666,4 +667,5 @@ def twpflowPressure_init(x, t):
     return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi_L)
                                                          -smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi)))
 
-system.calculate_init()
+if opts.caisson:
+    system.calculate_init()
