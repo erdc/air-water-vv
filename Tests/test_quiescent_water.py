@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-os.chdir('2d/benchmarks/quiescent_water_probe_benchmark')
+os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/quiescent_water_probe_benchmark')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
@@ -35,6 +35,8 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
                 os.remove(file)
             else:
                 pass
+
+
             
     def test_run(self):
         from petsc4py import PETSc
@@ -72,6 +74,7 @@ class TestQuiescentWaterTetgen(TestTools.AirWaterVVTest):
                     print "setting ", all[i].strip(), "True"
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
+        so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('quiescent_water_test_gauges')
         assert(True)
