@@ -16,18 +16,18 @@ ct = Context.Options([
     ("Refinement",4, "refinement"),
     ("onlySaveFinalSolution",False,"Only save the final solution"),
     ("vspaceOrder",1,"FE space for velocity"),
-    ("he",0.010,"he"),
+    ("he",0.005,"he"),
     ("genMesh", True,"genMesh"),
     ("use_gmsh",not True,"use_gmsh"),
     ("use_chrono", False, "use Chrono for MBD"),
     ("cylinder_radius", 0.05, "radius of cylinder"),
-    ("tank_dim_x", 2.2, "x dim of tank"),
-    ("tank_dim_y", 0.41, "y dim of tank"),
+    ("tank_dim_x", 1., "x dim of tank"),
+    ("tank_dim_y", 0.60, "y dim of tank"),
     ("cylinder_pos_x", 0.205, "x position of cylinder"),
-    ("cylinder_pos_y", 0.25-0.01, "y position of cylinder"),
+    ("cylinder_pos_y", 0.45-0.01, "y position of cylinder"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     ("pspaceOrder",1,"FE space for pressure"),
-    ("waterLevel",0.25,"water level"),
+    ("waterLevel",0.20,"water level"),
     ("openTop", True, "Enable open atmosphere")
 ], mutable=True)
 
@@ -229,7 +229,7 @@ cylinder.setIndexBoundary(0)
 inertia = pych.ChVector(1., 1., 1.)
 pos = pych.ChVector(cylinder_pos[0], cylinder_pos[1], cylinder_pos[2])
 cylinder.ChBody.SetPos(pos)
-cylinder.ChBody.SetMass(np.pi*cylinder_radius**2*rho_0/2.)
+cylinder.ChBody.SetMass(np.pi*cylinder_radius**2*rho_0/0.9)
 cylinder.ChBody.SetInertiaXX(inertia)
 cylinder.setRecordValues(all_values=True)
 
