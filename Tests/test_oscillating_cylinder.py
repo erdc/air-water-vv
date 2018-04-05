@@ -13,6 +13,9 @@ from proteus.test_utils import TestTools
 import AnalysisTools as at
 import math
 import importlib
+from proteus import defaults
+
+modulepath = os.path.abspath('/home/travis/build/erdc/proteus/air-water-vv/2d/oscillating_cylinder_new/')
 
 class TestOscillatingCylinderTetgen(TestTools.AirWaterVVTest):
 
@@ -43,11 +46,9 @@ class TestOscillatingCylinderTetgen(TestTools.AirWaterVVTest):
         from petsc4py import PETSc
         pList = []
         nList = []
-        print tank_so.check
-        pnList = tank_so.pnList[1:]
         for (p,n) in pnList:
-            pList.append(__import__(p))
-            nList.append(__import__(n))
+            pList.append(defaults.load_physics('p',modulepath))
+            nList.append(defaults.load_numerics('n',modulepath))
             if pList[-1].name == None:
                 pList[-1].name = p
         so = tank_so

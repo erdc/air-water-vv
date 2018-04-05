@@ -12,6 +12,9 @@ import csv
 from proteus.test_utils import TestTools
 import AnalysisTools as at
 import math
+from proteus import defaults
+
+modulepath = os.path.abspath('/home/travis/build/erdc/proteus/air-water-vv/2d/caissonBreakwater/sliding/')
 
 class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
 
@@ -43,8 +46,8 @@ class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
         pList = []
         nList = []
         for (p,n) in tank_so.pnList:
-            pList.append(__import__(p))
-            nList.append(__import__(n))
+            pList.append(defaults.load_physics('p',modulepath))
+            nList.append(defaults.load_numerics('n',modulepath))
             if pList[-1].name == None:
                 pList[-1].name = p
         so = tank_so
