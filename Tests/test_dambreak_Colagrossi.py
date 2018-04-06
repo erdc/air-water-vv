@@ -43,8 +43,6 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
         pList = []
         nList = []
         so = load_so('dambreak_Colagrossi_so',modulepath)
-        import pdb
-        pdb.set_trace()
         for (p,n) in so.pnList:
             pList.append(load_p(p,modulepath))
             nList.append(load_n(n,modulepath))
