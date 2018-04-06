@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/dambreak_Colagrossi')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import dambreak_Colagrossi_so
 import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
-
+from proteus.defaults import (load_physics as load_p,
+                              load_numerics as load_n,
+                              load_system as load_so)
+modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/benchmarks/dambreak_Colagrossi')
+petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
 class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
@@ -40,12 +42,12 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
         from petsc4py import PETSc
         pList = []
         nList = []
-        for (p,n) in dambreak_Colagrossi_so.pnList:
-            pList.append(__import__(p))
-            nList.append(__import__(n))
+        so = load_so('dambreak_Colagrossi_so',modulepath)
+        for (p,n) in so.pnList:
+            pList.append(load_p(p,modulepath))
+            nList.append(load_n(n,modulepath))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = dambreak_Colagrossi_so
         so.name = "dambreak_Colagrossi"
         if so.sList == []:
             for i in range(len(so.pnList)):
@@ -55,7 +57,7 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
         Profiling.verbose=True
         # PETSc solver configuration
         OptDB = PETSc.Options()
-        with open("../../../inputTemplates/petsc.options.asm") as f:
+        with open(petsc_options) as f:
             all = f.read().split()
             i=0
             while i < len(all):
