@@ -19,7 +19,7 @@ with open(sys.argv[1],'r') as f:
        else:
            words = line.split()
            for i,w in enumerate(words):
-               if w == "ksp.its=":
+               if w == "iterations":
                    avg+=float(words[i+1])  
                    newton_its+=1.0
                    if int(words[i+1]) > max_its:
