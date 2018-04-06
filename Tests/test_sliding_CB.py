@@ -46,8 +46,8 @@ class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
         pList = []
         nList = []
         for (p,n) in tank_so.pnList:
-            pList.append(defaults.load_physics('p',modulepath))
-            nList.append(defaults.load_numerics('n',modulepath))
+            pList.append(defaults.load_physics(p,modulepath))
+            nList.append(defaults.load_numerics(n,modulepath))
             if pList[-1].name == None:
                 pList[-1].name = p
         so = tank_so
