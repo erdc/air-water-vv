@@ -1,6 +1,9 @@
 #!/usr/bin/env python
+import gc
+gc.collect()
 import os
 os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/oscillating_cylinder_new/')
+#os.chdir('../2d/oscillating_cylinder_new')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
