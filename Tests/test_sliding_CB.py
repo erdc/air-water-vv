@@ -6,6 +6,7 @@ from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 import tank_so
+import tank
 import numpy as np
 import collections as cll
 import csv

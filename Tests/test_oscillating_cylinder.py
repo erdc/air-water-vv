@@ -5,6 +5,7 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
+import tank
 import tank_so
 import numpy as np
 import collections as cll
