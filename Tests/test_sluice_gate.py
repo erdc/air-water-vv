@@ -3,12 +3,20 @@ import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import sluice_gate_so
+#import sluice_gate_so
 import os
 import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
+
+from proteus.defaults import (load_physics as load_p,
+                              load_numerics as load_n,
+                              load_system as load_so)
+
+modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/hydraulicStructures/sluice_gate')
+petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
+
 
 class TestSluiceGateTetgen(TestTools.AirWaterVVTest):
 
@@ -36,13 +44,14 @@ class TestSluiceGateTetgen(TestTools.AirWaterVVTest):
     def test_run(self):
         from petsc4py import PETSc
         pList = []
-        nList = []
-        for (p,n) in sluice_gate_so.pnList:
-            pList.append(__import__(p))
-            nList.append(__import__(n))
+        nList = []i
+        so = load_so('sluice_gate_so',modulepath)
+        for (p,n) in so.pnList:
+            pList.append(load_p(p,modulepath))
+            nList.append(load_n(n,modulepath))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = sluice_gate_so
+        #so = sluice_gate_so
         so.name = "sluice_gate"
         if so.sList == []:
             for i in range(len(so.pnList)):
@@ -52,7 +61,7 @@ class TestSluiceGateTetgen(TestTools.AirWaterVVTest):
         Profiling.verbose=True
         # PETSc solver configuration
         OptDB = PETSc.Options()
-        with open("../../../inputTemplates/petsc.options.asm") as f:
+        with open(petsc_options) as f:
             all = f.read().split()
             i=0
             while i < len(all):
