@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/hydraulicStructures/crump_weir')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm

@@ -1,4 +1,5 @@
 import pytest
+os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/floatingStructures/floating_caisson_chrono')
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()

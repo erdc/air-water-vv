@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import pytest
+os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/hydraulicStructures/sluice_gate')
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
@@ -44,7 +45,7 @@ class TestSluiceGateTetgen(TestTools.AirWaterVVTest):
     def test_run(self):
         from petsc4py import PETSc
         pList = []
-        nList = []i
+        nList = []
         so = load_so('sluice_gate_so',modulepath)
         for (p,n) in so.pnList:
             pList.append(load_p(p,modulepath))
