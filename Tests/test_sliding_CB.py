@@ -1,13 +1,11 @@
 #!/usr/bin/env python
-import gc
-gc.collect()
 import os 
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/caissonBreakwater/sliding/')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/caissonBreakwater/sliding/')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import tank_so
+#import tank_so
 import tank
 import numpy as np
 import collections as cll
@@ -17,7 +15,14 @@ import AnalysisTools as at
 import math
 from proteus import defaults
 
-modulepath = os.path.abspath('/home/travis/build/erdc/proteus/air-water-vv/2d/caissonBreakwater/sliding/')
+from proteus.defaults import (load_physics as load_p,
+                              load_numerics as load_n,
+                              load_system as load_so)
+
+
+modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/caissonBreakwater/sliding')
+petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
+
 
 class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
 
@@ -48,13 +53,13 @@ class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
         from petsc4py import PETSc
         pList = []
         nList = []
-        for (p,n) in tank_so.pnList:
-            os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/caissonBreakwater/sliding/')
-            pList.append(defaults.load_physics(p,modulepath))
-            nList.append(defaults.load_numerics(n,modulepath))
+        so = load_so('tank_so',modulepath)
+        for (p,n) in so.pnList:
+            pList.append(load_p(p,modulepath))
+            nList.append(load_n(n,modulepath))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = tank_so
+        #so = tank_so
         so.name = "tank"
         if so.sList == []:
             for i in range(len(so.pnList)):
@@ -64,7 +69,7 @@ class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
         Profiling.verbose=True
         # PETSc solver configuration
         OptDB = PETSc.Options()
-        with open("../../../inputTemplates/petsc.options.asm") as f:
+        with open(petsc_options) as f:
             all = f.read().split()
             i=0
             while i < len(all):
