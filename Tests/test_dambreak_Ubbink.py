@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/dambreak_Ubbink')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/dambreak_Ubbink')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import dambreak_Ubbink_so
+#import dambreak_Ubbink_so
 import numpy as np
 import collections as cll
 import csv

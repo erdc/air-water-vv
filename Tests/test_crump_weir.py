@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/hydraulicStructures/crump_weir')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/hydraulicStructures/crump_weir')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 #import crump_weir_so
-import crump_weir as cw
+#import crump_weir as cw
 import numpy as np
 import collections as cll
 import csv

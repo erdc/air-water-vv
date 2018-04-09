@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/oscillating_cylinder')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/oscillating_cylinder')
 #os.chdir('../2d/oscillating_cylinder_new')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import tank
+#import tank
 #import tank_so
 import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
-import AnalysisTools as at
+#import AnalysisTools as at
 import math
-import importlib
+#import importlib
 from proteus import defaults
 
 from proteus.defaults import (load_physics as load_p,

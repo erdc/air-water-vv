@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/wavesloshing')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/wavesloshing')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 #import wavesloshing_so
-import wavesloshing
+#import wavesloshing
 import numpy as np
 import collections as cll
 import csv

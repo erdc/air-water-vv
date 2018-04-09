@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import pytest
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/rubbleMoundBreakWater/Submerged_breakwater')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/rubbleMoundBreakWater/Submerged_breakwater')
 from proteus.iproteus import *
 #import submerged_breakwater_so
 #import submerged_breakwater as sbw
@@ -10,7 +10,7 @@ import collections as cll
 import csv
 import math
 from proteus.test_utils import TestTools
-from AnalysisTools import zeroCrossing
+#from AnalysisTools import zeroCrossing
 
 from proteus.defaults import (load_physics as load_p,
                               load_numerics as load_n,

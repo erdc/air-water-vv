@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 import os 
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/caissonBreakwater/sliding')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/caissonBreakwater/sliding')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 #import tank_so
-import tank
+#import tank
 import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
-import AnalysisTools as at
+#import AnalysisTools as at
 import math
 from proteus import defaults
 

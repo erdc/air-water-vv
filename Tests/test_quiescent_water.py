@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/quiescent_water_probe_benchmark')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/quiescent_water_probe_benchmark')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 #import quiescent_water_test_gauges_so
-import quiescent_water_test_gauges as qw
+#import quiescent_water_test_gauges as qw
 import numpy as np
 import collections as cll
 import csv

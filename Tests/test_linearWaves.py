@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/numericalTanks/linearWaves')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/numericalTanks/linearWaves')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 #import linear_waves_so
-import linear_waves as lw
+#import linear_waves as lw
 import numpy as np
 import collections as cll
 import csv
 from proteus.WaveTools import decompose_tseries
 from proteus.test_utils import TestTools
-from AnalysisTools import readProbeFile,signalFilter,zeroCrossing,reflStat
+#from AnalysisTools import readProbeFile,signalFilter,zeroCrossing,reflStat
 
 from proteus.defaults import (load_physics as load_p,
                               load_numerics as load_n,

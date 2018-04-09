@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/numericalTanks/standingWaves')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/numericalTanks/standingWaves')
 import pytest
 from proteus.iproteus import *
 #import standing_waves_so
-import standing_waves as sw
+#import standing_waves as sw
 import numpy as np
 import collections as cll
 import csv
