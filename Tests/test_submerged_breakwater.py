@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import pytest
+import os
 os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/rubbleMoundBreakWater/Submerged_breakwater')
 from proteus.iproteus import *
 #import submerged_breakwater_so
 import submerged_breakwater as sbw
-import os
 import numpy as np
 import collections as cll
 import csv

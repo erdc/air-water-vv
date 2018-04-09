@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import pytest
+import os
 os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/hydraulicStructures/sluice_gate')
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
 #import sluice_gate_so
-import os
 import numpy as np
 import collections as cll
 import csv
