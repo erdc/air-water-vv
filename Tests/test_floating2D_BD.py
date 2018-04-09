@@ -9,7 +9,7 @@ import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
-import AnalysisTools as at
+#import AnalysisTools as at
 import math
 
 from proteus.defaults import (load_physics as load_p,
