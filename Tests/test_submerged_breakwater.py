@@ -75,55 +75,55 @@ class TestSubmergedBreakwaterTetgen(TestTools.AirWaterVVTest):
         assert(True)
 
         
-    def test_validate(self):
-        file_vof = 'line_integral_gauges_1.csv'
-
-        def readProbeFile(filename):
-            with open (filename, 'rb') as csvfile:
-                data=np.loadtxt(csvfile, delimiter=",",skiprows=1)
-                time=data[:,0]
-                data = data[:,1:]
-                csvfile.seek(0)
-                header = csvfile.readline()
-                header = header.replace("time","")
-                header = header.replace("[","")
-                header = header.replace("]","")
-                header = header.replace(","," ")
-                header = header.split()
-                probeType = []
-                probex = []
-                probey = []
-                probez = []        
-                for ii in range(0,len(header),4):
-                    probeType.append(header[ii])
-                    probex.append(float(header[ii+1]))
-                    probey.append(float(header[ii+2]))
-                    probez.append(float(header[ii+3]))
-                probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
-                datalist = [probeType,probeCoord,time,data]
-                return datalist
-
-        # Exctracting probes
-        data_vof = readProbeFile(file_vof)    
-        time = data_vof[2]
-        vof = data_vof[3]
-        ETA = []
-        tank_dim = sbw.tank_dim #[13.7815, 0.75] 
-        waterLevel = sbw.waterLevel #0.315
-        for j in range(len(data_vof[1])/2):
-            eta = []
-            for i in range(len(vof)):
-                eta.append(tank_dim[1]-vof[:,j][i]-waterLevel)
-            ETA.append(eta)
-        ETA = np.array(ETA)
-        zc = []
-        for i in range(len(ETA)):
-            zc.append(zeroCrossing(time,ETA[i]))
-        zc = np.array(zc)
-        K = np.mean(zc[2:][:,1])/sbw.opts.wave_height
-        Kref = 0.5
-        err = 100*abs(K-Kref)/Kref
-        assert(err<16.)
+#    def test_validate(self):
+#        file_vof = 'line_integral_gauges_1.csv'
+#
+#        def readProbeFile(filename):
+#            with open (filename, 'rb') as csvfile:
+#                data=np.loadtxt(csvfile, delimiter=",",skiprows=1)
+#                time=data[:,0]
+#                data = data[:,1:]
+#                csvfile.seek(0)
+#                header = csvfile.readline()
+#                header = header.replace("time","")
+#                header = header.replace("[","")
+#                header = header.replace("]","")
+#                header = header.replace(","," ")
+#                header = header.split()
+#                probeType = []
+#                probex = []
+#                probey = []
+#                probez = []        
+#                for ii in range(0,len(header),4):
+#                    probeType.append(header[ii])
+#                    probex.append(float(header[ii+1]))
+#                    probey.append(float(header[ii+2]))
+#                    probez.append(float(header[ii+3]))
+#                probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+#                datalist = [probeType,probeCoord,time,data]
+#                return datalist
+#
+#        # Exctracting probes
+#        data_vof = readProbeFile(file_vof)    
+#        time = data_vof[2]
+#        vof = data_vof[3]
+#        ETA = []
+#        tank_dim = sbw.tank_dim #[13.7815, 0.75] 
+#        waterLevel = sbw.waterLevel #0.315
+#        for j in range(len(data_vof[1])/2):
+#            eta = []
+#            for i in range(len(vof)):
+#                eta.append(tank_dim[1]-vof[:,j][i]-waterLevel)
+#            ETA.append(eta)
+#        ETA = np.array(ETA)
+#        zc = []
+#        for i in range(len(ETA)):
+#            zc.append(zeroCrossing(time,ETA[i]))
+#        zc = np.array(zc)
+#        K = np.mean(zc[2:][:,1])/sbw.opts.wave_height
+#        Kref = 0.5
+#        err = 100*abs(K-Kref)/Kref
+#        assert(err<16.)
         
 if __name__ == '__main__':
     pass
