@@ -209,11 +209,11 @@ if opts.cylinder is True:
     body = crb.ProtChBody(system)
     body.attachShape(cylinder)
     body.setConstraints(free_x=free_x, free_r=free_r)
-    body.ChBody.SetMass(opts.cylinder_mass/(opts.scale))
+    body.ChBody.SetMass(opts.cylinder_mass/(opts.scale**3))
     body.setRecordValues(all_values=True)
     #body.ChBody.SetBodyFixed(True)
     Ixx = Iyy = opts.Iyy/(opts.scale**5)
-    Izz = 1.22E+10/(opts.scale)
+    Izz = 1.22E+10/(opts.scale**5)
     #Izz = cylinder_radius**2/2.*opts.cylinder_mass
     from proteus.mbd import pyChronoCore as pcc
     inert = pcc.ChVector(Ixx, Iyy, Izz)
@@ -228,7 +228,7 @@ if opts.moorings is True:
     w = 108.63/(opts.scale**2)  # kg/m
     nb_elems =  50
     dens = w/A0+rho_0
-    E = 753.6e6/A0
+    E = (753.6e6/opts.scale**3)/A0
     fairlead_radius = 40.9/opts.scale
     anchor_radius = 837.6/opts.scale
     fairlead_depth = 14./opts.scale
