@@ -87,7 +87,6 @@ class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
         so.tnList=[0.0,0.001,0.011]  
-        opts.he = 0.1
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('tank')
         assert(True)
