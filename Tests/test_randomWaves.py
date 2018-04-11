@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
-#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/numericalTanks/randomWaves')
+os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/numericalTanks/randomWaves'))
+
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
