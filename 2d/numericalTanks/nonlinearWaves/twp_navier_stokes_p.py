@@ -69,7 +69,8 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    dragAlphaTypes=dragAlphaTypes,
                                    dragBetaTypes=dragBetaTypes,
                                    epsFact_solid=epsFact_solid,
-                                   barycenters=ct.domain.barycenters)
+                                   barycenters=ct.domain.barycenters,
+                                   NONCONSERVATIVE_FORM=1.0)
 
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),

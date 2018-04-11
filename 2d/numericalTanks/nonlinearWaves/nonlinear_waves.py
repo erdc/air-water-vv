@@ -56,6 +56,12 @@ opts=Context.Options([
     ])
 
 # ----- CONTEXT ------ #
+rho_0=998.2
+nu_0 =1.004e-6
+rho_1=1.205
+nu_1 =1.500e-5
+sigma_01=0.0
+g = [0., -9.81]
 
 # waves
 omega = 1.
@@ -93,7 +99,15 @@ tank = st.Tank2D(domain, tank_dim)
 
 # ----- GENERATION / ABSORPTION LAYERS ----- #
 
-tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+if opts.absorption:
+    if opts.generation:
+        tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+    else:
+        tank.setSponge(x_p=tank_sponge[1])
+else:
+    if opts.generation:
+        tank.setSponge(x_n=tank_sponge[0])
+
 dragAlpha = 5.*omega/1e-6
  
 if opts.generation:
@@ -111,12 +125,20 @@ tank.BC['y+'].setAtmosphere()
 
 if opts.free_slip:
     tank.BC['y-'].setFreeSlip()
-    tank.BC['x+'].setFreeSlip()
-    if not opts.generation:
-        tank.BC['x-'].setFreeSlip()
+    if opts.absorption:
+        tank.BC['x+'].setFreeSlip()
 else:  # no slip
     tank.BC['y-'].setNoSlip()
-    tank.BC['x+'].setNoSlip()
+    if opts.absorption:
+        tank.BC['x+'].setFreeSlip()
+
+if not opts.absorption:
+    tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.water_level,
+                                                        rhoUp=rho_1,
+                                                        rhoDown=rho_0,
+                                                        g=g,
+                                                        refLevel=tank_dim[1],
+                                                        smoothing=1.5*opts.he)
 
 # sponge
 tank.BC['sponge'].setNonMaterial()
@@ -196,12 +218,6 @@ if domain.use_gmsh is True:
 # Numerical Options and other parameters #
 ##########################################
 
-rho_0=998.2
-nu_0 =1.004e-6
-rho_1=1.205
-nu_1 =1.500e-5
-sigma_01=0.0
-g = [0., -9.81]
 
 
 
