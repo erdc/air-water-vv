@@ -1,0 +1,83 @@
+# set petsc ksp object and preconditioner
+-rans2p_ksp_type fgmres
+-rans2p_ksp_gmres_restart 300
+-rans2p_ksp_atol 1e-14
+-rans2p_ksp_rtol 1e-6
+-rans2p_ksp_gmres_modifiedgramschmidt
+-rans2p_pc_type fieldsplit
+-rans2p_ksp_pc_side right
+-rans2p_ksp_converged_reason
+
+# pc options
+-rans2p_pc_fieldsplit_type schur
+-rans2p_pc_fieldsplit_schur_fact_type upper
+-rans2p_pc_fieldsplit_schur_precondition selfp
+
+# pressure block options
+-rans2p_fieldsplit_pressure_ksp_type preonly  # This should always be turned on
+-rans2p_fieldsplit_pressure_pc_type hypre
+-rans2p_fieldsplit_pressure_pc_type_hypre_type boomeramg
+#-rans2p_fieldsplit_pressure_ksp_constant_null_space  #Turn on if there is no outflow region
+
+# velocity block options
+-rans2p_fieldsplit_velocity_ksp_type gmres
+-rans2p_fieldsplit_velocity_ksp_atol 1e-14
+-rans2p_fieldsplit_velocity_ksp_rtol 1e-2
+-rans2p_fieldsplit_velocity_pc_type hypre
+-rans2p_fieldsplit_velocity_pc_hypre_type boomeramg
+-rans2p_fieldsplit_velocity_gmres_modifiedgramschmidt
+-rans2p_fieldsplit_velocity_pc_factor_mat_solver_package superlu_dist
+-rans2p_fieldsplit_velocity_ksp_converged_reason
+
+# velocity block boomeramg options
+#-rans2p_fieldsplit_velocity_pc_hypre_boomeramg_coarsen_type PMIS
+-rans2p_fieldsplit_velocity_pc_hypre_boomeramg_interp_type ext+i
+
+### list of all boomeramg options for the velocity block
+  # -rans2p_fieldsplit_velocity_pc_hypre_type <boomeramg> (choose one of) pilut parasails boomeramg ams (PCHYPRESetType)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_cycle_type <V> (choose one of) V W (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_max_levels <25>: Number of levels (of grids) allowed (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_max_iter <1>: Maximum iterations used PER hypre call (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_tol <0.>: Convergence tolerance PER hypre call (0.0 = use a fixed number of iterations) (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_truncfactor <0.>: Truncation factor for interpolation (0=no truncation) (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_P_max <0>: Max elements per row for interpolation operator (0=unlimited) (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_agg_nl <0>: Number of levels of aggressive coarsening (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_agg_num_paths <1>: Number of paths for aggressive coarsening (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_strong_threshold <0.25>: Threshold for being strongly connected (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_max_row_sum <0.9>: Maximum row sum (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_grid_sweeps_all <1>: Number of sweeps for the up and down grid levels (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_nodal_coarsen <0>: Use a nodal based coarsening 1-6 (HYPRE_BoomerAMGSetNodal)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_vec_interp_variant <0>: Variant of algorithm 1-3 (HYPRE_BoomerAMGSetInterpVecVariant)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_grid_sweeps_down <1>: Number of sweeps for the down cycles (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_grid_sweeps_up <1>: Number of sweeps for the up cycles (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_grid_sweeps_coarse <1>: Number of sweeps for the coarse level (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_smooth_type <Schwarz-smoothers> (choose one of) Schwarz-smoothers Pilut ParaSails Euclid (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_smooth_num_levels <25>: Number of levels on which more complex smoothers are used (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_eu_level <0>: Number of levels for ILU(k) in Euclid smoother (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_eu_droptolerance <0.>: Drop tolerance for ILU(k) in Euclid smoother (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_eu_bj: <FALSE> Use Block Jacobi for ILU in Euclid smoother? (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_relax_type_all <symmetric-SOR/Jacobi> (choose one of) Jacobi sequential-Gauss-Seidel seqboundary-Gauss-Seidel SOR/Jacobi backward-SOR/Jacobi  symmetric-SOR/Jacobi  l1scaled-SOR/Jacobi Gaussian-elimination      CG Chebyshev FCF-Jacobi l1scaled-Jacobi (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_relax_type_down <symmetric-SOR/Jacobi> (choose one of) Jacobi sequential-Gauss-Seidel seqboundary-Gauss-Seidel SOR/Jacobi backward-SOR/Jacobi  symmetric-SOR/Jacobi  l1scaled-SOR/Jacobi Gaussian-elimination      CG Chebyshev FCF-Jacobi l1scaled-Jacobi (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_relax_type_up <symmetric-SOR/Jacobi> (choose one of) Jacobi sequential-Gauss-Seidel seqboundary-Gauss-Seidel SOR/Jacobi backward-SOR/Jacobi  symmetric-SOR/Jacobi  l1scaled-SOR/Jacobi Gaussian-elimination      CG Chebyshev FCF-Jacobi l1scaled-Jacobi (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_relax_type_coarse <Gaussian-elimination> (choose one of) Jacobi sequential-Gauss-Seidel seqboundary-Gauss-Seidel SOR/Jacobi backward-SOR/Jacobi  symmetric-SOR/Jacobi  l1scaled-SOR/Jacobi Gaussian-elimination      CG Chebyshev FCF-Jacobi l1scaled-Jacobi (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_relax_weight_all <1.>: Relaxation weight for all levels (0 = hypre estimates, -k = determined with k CG steps) (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_relax_weight_level <1.>: Set the relaxation weight for a particular level (weight,level) (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_outer_relax_weight_all <1.>: Outer relaxation weight for all levels (-k = determined with k CG steps) (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_outer_relax_weight_level <1.>: Set the outer relaxation weight for a particular level (weight,level) (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_no_CF: <FALSE> Do not use CF-relaxation (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_measure_type <local> (choose one of) local global (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_coarsen_type <Falgout> (choose one of) CLJP Ruge-Stueben  modifiedRuge-Stueben   Falgout  PMIS  HMIS (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_interp_type <classical> (choose one of) classical   direct multipass multipass-wts ext+i ext+i-cc standard standard-wts   FF FF1 (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_print_statistics: Print statistics (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_print_debug: Print debug information (None)
+  # -rans2p_fieldsplit_velocity_pc_hypre_boomeramg_nodal_relaxation: <FALSE> Nodal relaxation via Schwarz (None)
+
+-ncls_ksp_type   gmres -ncls_pc_type   hypre -ncls_pc_hypre_type    boomeramg -ncls_ksp_gmres_restart 300 -ncls_ksp_knoll -ncls_ksp_max_it 2000
+-vof_ksp_type    gmres -vof_pc_type    hypre -vof_pc_hypre_type     boomeramg -vof_ksp_gmres_restart 300 -vof_ksp_knoll -vof_ksp_max_it 2000
+-rdls_ksp_type   gmres -rdls_pc_type asm -rdls_pc_asm_type basic -rdls_ksp_gmres_modifiedgramschmidt -rdls_ksp_gmres_restart 300 -rdls_ksp_knoll -rdls_sub_ksp_type preonly -rdls_sub_pc_factor_mat_solver_package superlu -rdls_sub_pc_type lu -rdls_ksp_max_it 2000
+-mcorr_ksp_type  cg -mcorr_pc_type hypre -mcorr_pc_hypre_type boomeramg -mcorr_ksp_max_it 2000
+-mesh_ksp_type cg -mesh_pc_type asm -mesh_pc_asm_type basic -mesh_ksp_max_it 2000
+-mesh_sub_ksp_type preonly -mesh_sub_pc_factor_mat_solver_package superlu -mesh_ksp_knoll -mesh_sub_pc_type lu
+
+-log_view
+-help
