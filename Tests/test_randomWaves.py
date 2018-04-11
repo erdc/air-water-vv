@@ -49,7 +49,7 @@ class TestRandomWavesTetgen(TestTools.AirWaterVVTest):
         from petsc4py import PETSc
         pList = []
         nList = []
-        so = load_so('randon_waves_so',modulepath)
+        so = load_so('random_waves_so',modulepath)
         for (p,n) in so.pnList:
             pList.append(load_p(p,modulepath))
             nList.append(load_n(n,modulepath))
