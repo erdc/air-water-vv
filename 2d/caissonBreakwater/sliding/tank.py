@@ -62,7 +62,7 @@ opts=Context.Options([
     ("GenZone", True, 'Turn on generation zone at left side'),
     ("AbsZone", True, 'Turn on absorption zone at right side'),
     ("refinement_level", 0.0,"he=walength/refinement_level"),
-    ("he", 0.01,"he=walength/refinement_level"),
+    ("he", 0.05,"he=walength/refinement_level"),
     ("cfl", 0.450 ,"Target cfl"),
     ("duration", 20., "Durarion of the simulation"),
     ("freezeLevelSet", True, "No motion to the levelset"),

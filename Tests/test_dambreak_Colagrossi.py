@@ -1,18 +1,24 @@
 #!/usr/bin/env python
 import os
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/dambreak_Colagrossi')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
+#import dambreak_Colagrossi_so
 import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
+
 from proteus.defaults import (load_physics as load_p,
                               load_numerics as load_n,
                               load_system as load_so)
+
 modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/benchmarks/dambreak_Colagrossi')
 petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
+
+
 class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
@@ -48,6 +54,7 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
             nList.append(load_n(n,modulepath))
             if pList[-1].name == None:
                 pList[-1].name = p
+        #so = dambreak_Colagrossi_so
         so.name = "dambreak_Colagrossi"
         if so.sList == []:
             for i in range(len(so.pnList)):
@@ -74,7 +81,8 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
                     print "setting ", all[i].strip(), "True"
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
-        so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1, int(round(0.03/0.01))+1)]            
+        so.tnList=[0.0,0.001,0.011]            
+        #so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1, int(round(0.03/0.01))+1)]            
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('dambreak_Colagrossi')
         assert(True)

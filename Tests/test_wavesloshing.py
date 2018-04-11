@@ -1,16 +1,23 @@
 #!/usr/bin/env python
 import os
-os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/wavesloshing')
+#os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/benchmarks/wavesloshing')
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
 comm = Comm.get()
-import wavesloshing_so
-import wavesloshing
+#import wavesloshing_so
+#import wavesloshing
 import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
+
+from proteus.defaults import (load_physics as load_p,
+                              load_numerics as load_n,
+                              load_system as load_so)
+
+modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/benchmarks/wavesloshing')
+petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
 
 class TestWaveSloshingTetgen(TestTools.AirWaterVVTest):
 
@@ -41,12 +48,13 @@ class TestWaveSloshingTetgen(TestTools.AirWaterVVTest):
         from petsc4py import PETSc
         pList = []
         nList = []
-        for (p,n) in wavesloshing_so.pnList:
-            pList.append(__import__(p))
-            nList.append(__import__(n))
+        so = load_so('wavesloshing_so',modulepath)
+        for (p,n) in so.pnList:
+            pList.append(load_p(p,modulepath))
+            nList.append(load_n(n,modulepath))
             if pList[-1].name == None:
                 pList[-1].name = p
-        so = wavesloshing_so
+        #so = wavesloshing_so
         so.name = "wavesloshing"
         if so.sList == []:
             for i in range(len(so.pnList)):
@@ -56,7 +64,7 @@ class TestWaveSloshingTetgen(TestTools.AirWaterVVTest):
         Profiling.verbose=True
         # PETSc solver configuration
         OptDB = PETSc.Options()
-        with open("../../../inputTemplates/petsc.options.asm") as f:
+        with open(petsc_options) as f:
             all = f.read().split()
             i=0
             while i < len(all):
@@ -73,7 +81,8 @@ class TestWaveSloshingTetgen(TestTools.AirWaterVVTest):
                     print "setting ", all[i].strip(), "True"
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
-        so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
+        so.tnList=[0.0,0.001,0.011]            
+        #so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('wavesloshing')
         assert(True)
