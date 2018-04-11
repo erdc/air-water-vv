@@ -184,7 +184,7 @@ if opts.cylinder is True:
     mz = (min(cylinder.vertices[:,2])+max(cylinder.vertices[:,2]))/2.
     cylinder.setRegions([[mx, my, mz]], [1])
     cylinder.setHoles([[mx, my, mz]])
-    cylinder.setBarycenter(np.array([mx, my, mz-0.1892])) # 0.1892 is the different between the geometrical center and the mass center
+    cylinder.setBarycenter(np.array([0.5, 0.28876, mz-0.1892])) # X and Y coords ASD taken from CFX, scaled and translated - z coords from paper
     cylinder.translate(location)
     cylinder.holes_ind = np.array([0])
     tank.setChildShape(cylinder, 0)
