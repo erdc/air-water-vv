@@ -12,6 +12,7 @@ opts=Context.Options([
     # predefined test cases
     ("water_level", 0.4, "Height of free surface above bottom"),
     # tank
+    ('tank_as_experiment', False, 'if True: tank_x=value*wavelength, tank_y=value*wavelength'),
     ('tank_wavelength_scale', True, 'if True: tank_x=value*wavelength, tank_y=value*wavelength'),
     ('tank_x', 2., 'Length of tank'),
     ('tank_y', 0.8, 'Height of tank'),
@@ -93,7 +94,7 @@ if opts.waves is True:
         wavelength = wave.wavelength
     elif opts.wave_type == 'Focused':
         N = 100
-        Hs = 0.0195
+        Hs = 0.0194486
         fp = 1.
         xf = 7.
         tf = 20.
@@ -127,6 +128,8 @@ tank_dim = np.array([opts.tank_x, opts.tank_y])
 tank_sponge = np.array([opts.tank_sponge_xn, opts.tank_sponge_xp])
 if opts.tank_wavelength_scale and opts.waves:
     tank_dim[0] *= wavelength
+if opts.tank_as_experiment:
+    tank_dim = [18., opts.tank_y]
 sponges = {'x-': opts.tank_sponge_xn,
            'x+': opts.tank_sponge_xp}
 if opts.tank_sponge_wavelength_scale and opts.waves:
@@ -168,6 +171,8 @@ if opts.caisson is True:
     #caisson = st.Rectangle(domain, dim=(0.5,0.2), barycenter=[0.25,opts.VCG,0.])
     caisson_dim = [0.5, 0.378]
     caisson_coords = [tank_dim[0]/2.-0.25, 0.4-0.1+0.378/2.]
+    if opts.tank_as_experiment:
+        caisson_coords = [7.-0.25, 0.4-0.1]
 
     caisson.facetFlags = np.array([1])
     caisson.regionFlags = np.array([1])
@@ -176,9 +181,13 @@ if opts.caisson is True:
     caisson.holes_ind = np.array([0])
     if opts.wave_type == 'Focused':
         #caisson.translate([7.-sponges['x-'], 0.4-0.1])
-        caisson.translate([7., 0.4-0.1])
+        caisson_coords = [7.-0.25, 0.4-0.1]
+        caisson.translate([7.-0.25, 0.4-0.1])
     else:
-        caisson.translate([caisson_coords[0], 0.4-0.1])
+        if opts.tank_as_experiment:
+            caisson.translate([7.-0.25, 0.4-0.1])
+        else:
+            caisson.translate([caisson_coords[0], 0.4-0.1])
     # system = crb.System(np.array([0., -9.81, 0.]))
     # rotation = np.array([1, 0., 0., 0.])
     rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
@@ -318,6 +327,61 @@ tank.BC['y-'].setTank()  #sliding mesh nodes
 
 # ----- GAUGES ----- #
 
+if opts.gauge_output:
+    if left or right:
+        gauge_dx = tank_sponge[0]/10.
+    else:
+        gauge_dx = tank_dim[0]/10.
+    gauge_dx = 0.1
+    probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
+    PG=[]
+    PG2=[]
+    LIG = []
+    zProbes=waterLevel*0.5
+    for i in probes:
+        PG.append((i, zProbes, 0.),)
+        PG2.append((i, waterLevel, 0.),)
+        if i == probes[0]:
+            LIG.append(((i, 0.+0.0001, 0.),(i, tank_dim[1]-0.0001,0.)),)
+        elif i != probes[0]:
+            if opts.caisson:
+                if not caisson_coords[0]-caisson_dim[0]*2. < i < caisson_coords[0]+caisson_dim[0]*2.:
+                    LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
+            else:
+                LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
+    tank.attachPointGauges(
+        'twp',
+        gauges = ((('p',), PG),),
+        activeTime=(0, opts.T),
+        sampleRate=0,
+        fileName='pointGauge_pressure.csv'
+    )
+    tank.attachPointGauges(
+        'ls',
+        gauges = ((('phi',), PG),),
+        activeTime=(0, opts.T),
+        sampleRate=0,
+        fileName='pointGauge_levelset.csv'
+    )
+
+    tank.attachLineIntegralGauges(
+        'vof',
+        gauges=((('vof',), LIG),),
+        activeTime = (0., opts.T),
+        sampleRate = 0,
+        fileName = 'lineGauge.csv'
+    )
+    if opts.gauge_fixed:
+        PGF = []
+        for i in range(4):
+            PGF.append((caisson_coords[0]-0.15+0.1*i, waterLevel-0.28, 0.), )
+        tank.attachPointGauges(
+            'twp',
+            gauges = ((('p', 'u', 'v'), PGF),),
+            activeTime=(0, opts.T),
+            sampleRate=0,
+            fileName='pointGauge_fixed.csv'
+        )
 
 
 domain.MeshOptions.use_gmsh = opts.use_gmsh
@@ -326,7 +390,7 @@ he = opts.he
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 domain.use_gmsh = opts.use_gmsh
-geofile='mesh'+str(opts.he)
+geofile='mesh'+str(opts.he)+'_'+opts.wave_type
 domain.geofile=geofile
 
 
@@ -420,61 +484,6 @@ if opts.addedMass is True:
 
 
 
-if opts.gauge_output:
-    if left or right:
-        gauge_dx = tank_sponge[0]/10.
-    else:
-        gauge_dx = tank_dim[0]/10.
-    gauge_dx = 0.1
-    probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
-    PG=[]
-    PG2=[]
-    LIG = []
-    zProbes=waterLevel*0.5
-    for i in probes:
-        PG.append((i, zProbes, 0.),)
-        PG2.append((i, waterLevel, 0.),)
-        if i == probes[0]:
-            LIG.append(((i, 0.+0.0001, 0.),(i, tank_dim[1]-0.0001,0.)),)
-        elif i != probes[0]:
-            if opts.caisson:
-                if not caisson_coords[0]-caisson_dim[0]*2. < i < caisson_coords[0]+caisson_dim[0]*2.:
-                    LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
-            else:
-                LIG.append(((i-0.0001, 0.+0.0001, 0.),(i-0.0001, tank_dim[1]-0.0001,0.)),)
-    tank.attachPointGauges(
-        'twp',
-        gauges = ((('p',), PG),),
-        activeTime=(0, opts.T),
-        sampleRate=0,
-        fileName='pointGauge_pressure.csv'
-    )
-    tank.attachPointGauges(
-        'ls',
-        gauges = ((('phi',), PG),),
-        activeTime=(0, opts.T),
-        sampleRate=0,
-        fileName='pointGauge_levelset.csv'
-    )
-
-    tank.attachLineIntegralGauges(
-        'vof',
-        gauges=((('vof',), LIG),),
-        activeTime = (0., opts.T),
-        sampleRate = 0,
-        fileName = 'lineGauge.csv'
-    )
-    if opts.gauge_fixed:
-        PGF = []
-        for i in range(4):
-            PGF.append((caisson_coords[0]-0.15+0.1*i, waterLevel-0.28, 0.), )
-        tank.attachPointGauges(
-            'twp',
-            gauges = ((('p', 'u', 'v'), PGF),),
-            activeTime=(0, opts.T),
-            sampleRate=0,
-            fileName='pointGauge_fixed.csv'
-        )
 
 ##########################################
 # Numerical Options and other parameters #
