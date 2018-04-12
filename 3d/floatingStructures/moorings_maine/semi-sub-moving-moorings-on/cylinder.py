@@ -38,7 +38,7 @@ opts=Context.Options([
     ("free_r", (1., 1., 1.), "Rotational DOFs"),
     ("VCG", 0.0758, "VCG"),
     # moorings
-    ("moorings", not True, "moorings"),
+    ("moorings", True, "moorings"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
     ("wave_period", 1.2, "Period of the waves"),
@@ -185,7 +185,8 @@ if opts.cylinder is True:
     cylinder.setRegions([[mx, my, mz]], [1])
     cylinder.setHoles([[mx, my, mz]])
     cylinder.setBarycenter(np.array([0.5, 0.28876, mz-0.1892])) # X and Y coords ASD taken from CFX, scaled and translated - z coords from paper
-    cylinder.translate(location)
+    cylinder.rotate(-np.pi/6., axis=np.array([0.,0.,10.]))
+    cylinder.translate(location-np.array([cylinder.barycenter[0], cylinder.barycenter[1], 0.]))
     cylinder.holes_ind = np.array([0])
     tank.setChildShape(cylinder, 0)
     for key, bc in cylinder.BC.items():
@@ -233,7 +234,7 @@ if opts.moorings is True:
     anchor_radius = 837.6/opts.scale
     fairlead_depth = 14./opts.scale
     anchor_depth = 200./opts.scale
-    mooring_X = fairlead_radius-anchor_radius
+    mooring_X = anchor_radius-fairlead_radius
     fairlead_height = anchor_depth-fairlead_depth
     # prescribed motion of body
     # start with fully stretched line and go to initial position before simulation starts
@@ -250,18 +251,18 @@ if opts.moorings is True:
         prescribed_z = np.linspace(0., water_level-fairlead_height, len(prescribed_t))
         body.setPrescribedMotionCustom(t=prescribed_t, z=prescribed_z, t_max=time_init)
     # fairleads
-    dist_from_center = fairlead_radius
+    dist_from_center = -fairlead_radius
     fairlead1_offset = np.array([dist_from_center*np.cos(np.radians(120)), dist_from_center*np.sin(np.radians(120)), 0.])
     fairlead2_offset = np.array([dist_from_center,0.,0.])
     fairlead3_offset = np.array([dist_from_center*np.cos(np.radians(-120)), dist_from_center*np.sin(np.radians(-120)), 0.])
-    fairlead_center = np.array([mx + tank_dim[0], my + tank_dim[1], fairlead_height])
+    fairlead_center = np.array([cylinder.barycenter[0], cylinder.barycenter[1], fairlead_height])
     fairlead1 = fairlead_center + fairlead1_offset
     fairlead2 = fairlead_center + fairlead2_offset
     fairlead3 = fairlead_center + fairlead3_offset
     # anchors
-    anchor1 = fairlead1-[0.,0.,fairlead1[2]] + np.array([mooring_X*np.cos(np.radians(120)), mooring_X*np.sin(np.radians(120)), 0.])
-    anchor2 = fairlead2-[0.,0.,fairlead2[2]] + np.array([mooring_X, 0., 0.])
-    anchor3 = fairlead3-[0.,0.,fairlead3[2]] + np.array([mooring_X*np.cos(np.radians(-120)), mooring_X*np.sin(np.radians(-120)), 0.])
+    anchor1 = fairlead1-[0.,0.,fairlead1[2]] + np.array([-mooring_X*np.cos(np.radians(120)), -mooring_X*np.sin(np.radians(120)), 0.])
+    anchor2 = fairlead2-[0.,0.,fairlead2[2]] + np.array([-mooring_X, 0., 0.])
+    anchor3 = fairlead3-[0.,0.,fairlead3[2]] + np.array([-mooring_X*np.cos(np.radians(-120)), -mooring_X*np.sin(np.radians(-120)), 0.])
     # quasi-statics for laying out cable
     from catenary import MooringLine
     EA = 1e20  # strong EA so there is no stretching
@@ -661,19 +662,8 @@ waterLine_y = 2 * tank_dim[1]
 
 def signedDistance(x):
     water_level = (wave.eta(x,0)+wave.mwl)
-    phi_z = x[2]-(wave.eta(x,0.)+wave.mwl)
-    phi_x = x[0] - waterLine_x
-    phi_y = x[1] - waterLine_y
-    #phi_z = x[2] - waterLine_z
-
-    if phi_x < 0.0:
-        if phi_y < 0.0:
-            if phi_z < 0.0:
-                phi = max(phi_x,phi_y,phi_z)
-            else:
-                phi = phi_z
-
-    return water_level,phi
+    phi_z = x[2]-water_level
+    return water_level,phi_z
         
 def vel_u(x,t):
     return wave.u(x,0)
@@ -682,4 +672,4 @@ def eta_IC(x,t):
     return wave.eta(x,0)
 
 print("DONE")
-
+system.calculate_init()
