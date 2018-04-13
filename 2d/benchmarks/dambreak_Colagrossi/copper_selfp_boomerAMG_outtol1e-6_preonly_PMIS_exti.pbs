@@ -1,0 +1,21 @@
+#!/bin/bash
+#PBS -A ERDCV00898R40
+#PBS -l walltime=01:14:59
+#PBS -l select=1:ncpus=32:mpiprocs=32
+#PBS -q standard
+#PBS -N d_1e-6_pre_Pe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M bootland@maths.ox.ac.uk
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/dambreak_test_$PBS_JOBID 
+cd /u/bootland/air-water-vv/2d/benchmarks/dambreak_Colagrossi/
+cp petsc.options.schur.selfp_boomerAMG_outtol1e-6_preonly_PMIS_exti $WORKDIR/dambreak_test_$PBS_JOBID/
+cp *.py $WORKDIR/dambreak_test_$PBS_JOBID/
+cd $WORKDIR/dambreak_test_$PBS_JOBID
+aprun -n 32  parun dambreak_Colagrossi_so.py -l 9 -v -C "T=2.0 refinement=16" -O petsc.options.schur.selfp_boomerAMG_outtol1e-6_preonly_PMIS_exti >& out_selfp_boomerAMG_outtol1e-6_preonly_PMIS_exti_r16.all
+aprun -n 32  parun dambreak_Colagrossi_so.py -l 9 -v -C "T=2.0 refinement=24" -O petsc.options.schur.selfp_boomerAMG_outtol1e-6_preonly_PMIS_exti >& out_selfp_boomerAMG_outtol1e-6_preonly_PMIS_exti_r24.all
+aprun -n 32  parun dambreak_Colagrossi_so.py -l 9 -v -C "T=2.0 refinement=32" -O petsc.options.schur.selfp_boomerAMG_outtol1e-6_preonly_PMIS_exti >& out_selfp_boomerAMG_outtol1e-6_preonly_PMIS_exti_r32.all
+aprun -n 32  parun dambreak_Colagrossi_so.py -l 9 -v -C "T=2.0 refinement=40" -O petsc.options.schur.selfp_boomerAMG_outtol1e-6_preonly_PMIS_exti >& out_selfp_boomerAMG_outtol1e-6_preonly_PMIS_exti_r40.all
+python ./clean_directory.py
