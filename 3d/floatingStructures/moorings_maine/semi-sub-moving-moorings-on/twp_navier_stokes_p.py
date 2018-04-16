@@ -95,95 +95,104 @@ k = 0.18
 smoothing = 1.5 * ct.he
 x_max=np.zeros(3)
 
-class PerturbedSurface_p:
-    #def __init__(self,waterLevel):
-       # self.waterLevel = opts.waterLine_z
-    def uOfXT(self,x,t):
-        if ct.signedDistance(x)[1] < 0:
-            H = 0
-            dyn = -(ct.eta_IC(x,t)*((cosh(k*(ct.water_level-(ct.water_level-x[2]))))/(cosh(ct.water_level*k)))*ct.rho_0*ct.g[2]) 
-            hyd = -(ct.tank_dim[2] - ct.signedDistance(x)[0])*ct.rho_1*ct.g[2]-(ct.water_level - x[2])*ct.rho_0*ct.g[2]
-            pressure = dyn + hyd
-            p_air = 0.0
+if ct.opts.IC == 'Perturbed':
+    class P_IC:
+        #def __init__(self,waterLevel):
+        # self.waterLevel = opts.waterLine_z
+        def uOfXT(self,x,t):
+            if ct.signedDistance(x)[1] < 0:
+                H = 0
+                dyn = -(ct.eta_IC(x,t)*((cosh(k*(ct.water_level-(ct.water_level-x[2]))))/(cosh(ct.water_level*k)))*ct.rho_0*ct.g[2]) 
+                hyd = -(ct.tank_dim[2] - ct.signedDistance(x)[0])*ct.rho_1*ct.g[2]-(ct.water_level - x[2])*ct.rho_0*ct.g[2]
+                pressure = dyn + hyd
+                p_air = 0.0
+            elif 0 < ct.signedDistance(x)[1] <= smoothing:
+                H = smoothedHeaviside(smoothing/2. , ct.signedDistance(x)[1] - smoothing / 2.)
+                x_max[0]=x[0]
+                x_max[1]=x[1]
+                x_max[2]=x[2] - ct.signedDistance(x)[1]
+                dyn = -(ct.eta_IC(x,t)*((cosh(k*(ct.water_level-(-ct.eta_IC(x,t)))))/(cosh(ct.water_level*k)))*ct.rho_0*ct.g[2])	                 
+                hyd = -(ct.tank_dim[2] - ct.signedDistance(x_max)[0])*ct.rho_1*ct.g[2]-(ct.water_level - x_max[2])*ct.rho_0*ct.g[2]	
+                pressure = dyn + hyd
+                p_air =  -(ct.tank_dim[2] - ct.signedDistance(x)[0])*ct.rho_1*ct.g[2]
+            else:
+                H = 1
+                p_air =  -(ct.tank_dim[2] - ct.signedDistance(x)[0])*ct.rho_1*ct.g[2]
+                pressure = 0.0
+            p = H * p_air + (1-H) * pressure
+            return p
 
-        elif 0 < ct.signedDistance(x)[1] <= smoothing:
-            H = smoothedHeaviside(smoothing/2. , ct.signedDistance(x)[1] - smoothing / 2.)
-            x_max[0]=x[0]
-            x_max[1]=x[1]
-            x_max[2]=x[2] - ct.signedDistance(x)[1]
-            dyn = -(ct.eta_IC(x,t)*((cosh(k*(ct.water_level-(-ct.eta_IC(x,t)))))/(cosh(ct.water_level*k)))*ct.rho_0*ct.g[2])	                 
-            hyd = -(ct.tank_dim[2] - ct.signedDistance(x_max)[0])*ct.rho_1*ct.g[2]-(ct.water_level - x_max[2])*ct.rho_0*ct.g[2]	
-            pressure = dyn + hyd
-            p_air =  -(ct.tank_dim[2] - ct.signedDistance(x)[0])*ct.rho_1*ct.g[2]
+    class U_IC:
+        def uOfXT(self,x,t):
+            if ct.signedDistance(x)[1] < 0:
+                H = 0
+                speed =  ct.vel_u(x,t)
+            elif 0 < ct.signedDistance(x)[1] <= smoothing:
+                H = smoothedHeaviside(smoothing/2. , ct.signedDistance(x)[1] - smoothing / 2.)
+                x_max[0]=x[0]
+                x_max[1]=x[1]
+                x_max[2]=x[2] - ct.signedDistance(x)[1]
+                speed = ct.vel_u(x_max,t)
+            else:
+                H = 1.
+                speed = np.zeros(3)
 
-        else:
-            H = 1
-            p_air =  -(ct.tank_dim[2] - ct.signedDistance(x)[0])*ct.rho_1*ct.g[2]
-            pressure = 0.0
+            u = H * 0.0 + (1-H)*speed[0]
+            return u
 
-        p = H * p_air + (1-H) * pressure
+    class V_IC:
+        def uOfXT(self,x,t):
+            if ct.signedDistance(x)[1] < 0:
+                H = 0
+                speed =  ct.vel_u(x,t)
+            elif 0 < ct.signedDistance(x)[1] <= smoothing:
+                H = smoothedHeaviside(smoothing/2. , ct.signedDistance(x)[1] - smoothing / 2.)
+                x_max[0]=x[0]
+                x_max[1]=x[1]
+                x_max[2]=x[2] - ct.signedDistance(x)[1]
+                speed = ct.vel_u(x_max,t)
+            else:
+                H = 1.
+                speed = np.zeros(3)
+            v = H * 0.0 + (1-H)*speed[1]
+            return v
 
-        return p   
+    class W_IC:
+        def uOfXT(self,x,t):
+            if ct.signedDistance(x)[1] < 0:
+                H = 0
+                speed =  ct.vel_u(x,t)
+            elif 0 < ct.signedDistance(x)[1] <= smoothing:
+                H = smoothedHeaviside(smoothing/2. , ct.signedDistance(x)[1] - smoothing / 2.)
+                x_max[0]=x[0]
+                x_max[1]=x[1]
+                x_max[2]=x[2] - ct.signedDistance(x)[1]
+                speed = ct.vel_u(x_max,t)
+            else:
+                H = 1.
+                speed = np.zeros(3)
+            w = H * 0.0 + (1-H)*speed[2]
+            return w
 
-smoothing = 1.5 * ct.he
-x_max=np.zeros(3)
-            
-class U_IC:
-    def uOfXT(self,x,t):
-        if ct.signedDistance(x)[1] < 0:
-            H = 0
-            speed =  ct.vel_u(x,t)
-        elif 0 < ct.signedDistance(x)[1] <= smoothing:
-            H = smoothedHeaviside(smoothing/2. , ct.signedDistance(x)[1] - smoothing / 2.)
-            x_max[0]=x[0]
-            x_max[1]=x[1]
-            x_max[2]=x[2] - ct.signedDistance(x)[1]
-            speed = ct.vel_u(x_max,t)
-        else:
-            H = 1.
-            speed = np.zeros(3)
+elif ct.opts.IC == 'AtRest':
+    class P_IC:
+        def uOfXT(self, x, t):
+            return ct.twpflowPressure_init(x, t)
 
-        u = H * 0.0 + (1-H)*speed[0]
-        return u 
+    class U_IC:
+        def uOfXT(self, x, t):
+            return 0.0
+
+    class V_IC:
+        def uOfXT(self, x, t):
+            return 0.0
+
+    class W_IC:
+        def uOfXT(self, x, t):
+            return 0.0
 
 
-class V_IC:
-    def uOfXT(self,x,t):
-        if ct.signedDistance(x)[1] < 0:
-            H = 0
-            speed =  ct.vel_u(x,t)
-        elif 0 < ct.signedDistance(x)[1] <= smoothing:
-            H = smoothedHeaviside(smoothing/2. , ct.signedDistance(x)[1] - smoothing / 2.)
-            x_max[0]=x[0]
-            x_max[1]=x[1]
-            x_max[2]=x[2] - ct.signedDistance(x)[1]
-            speed = ct.vel_u(x_max,t)
-        else:
-            H = 1.
-            speed = np.zeros(3)
-
-        v = H * 0.0 + (1-H)*speed[1]
-        return v
-        
-class W_IC:
-    def uOfXT(self,x,t):
-        if ct.signedDistance(x)[1] < 0:
-            H = 0
-            speed =  ct.vel_u(x,t)
-        elif 0 < ct.signedDistance(x)[1] <= smoothing:
-            H = smoothedHeaviside(smoothing/2. , ct.signedDistance(x)[1] - smoothing / 2.)
-            x_max[0]=x[0]
-            x_max[1]=x[1]
-            x_max[2]=x[2] - ct.signedDistance(x)[1]
-            speed = ct.vel_u(x_max,t)
-        else:
-            H = 1.
-            speed = np.zeros(3)
-
-        w = H * 0.0 + (1-H)*speed[2]
-        return w
-
-initialConditions = {0: PerturbedSurface_p(),
+initialConditions = {0: P_IC(),
                      1: U_IC(),
                      2: V_IC()}
 if nd == 3:

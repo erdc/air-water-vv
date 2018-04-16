@@ -23,6 +23,7 @@ opts=Context.Options([
     ('tank_sponge_yp', 0., 'length of sponge layer y+'),
     ('tank_sponge_gen', 'x-y-y+', 'sponge layers to be gen zones (if waves)'),
     ('tank_sponge_abs', 'x+', 'sponge layers to be abs zones'),
+    ('IC', 'Perturbed', 'Initial Conditions: Perturbed or AtRest'),
     # chrono options
     ("sampleRate", 0., "sampling rate for chrono. 0 for every timestep"),
     # cylinder
@@ -228,7 +229,7 @@ if opts.moorings is True:
     A0 = (np.pi*d**2/4)
     w = 108.63/(opts.scale**2)  # kg/m
     nb_elems =  50
-    dens = w/A0+rho_0
+    dens = w/A0
     E = (753.6e6/opts.scale**3)/A0
     fairlead_radius = 40.9/opts.scale
     anchor_radius = 837.6/opts.scale
@@ -290,6 +291,7 @@ if opts.moorings is True:
 
     # make chrono cables
     mesh = crb.Mesh(system)
+    mesh.setAutomaticGravity(True)
     # make variables arrays
     L = np.array([L])
     d = np.array([d])
@@ -323,7 +325,7 @@ if opts.moorings is True:
         m.setNodesPosition()
         # set NodesPosition must be calle dbefore buildNodes!
         m.buildNodes()
-        m.setFluidDensityAtNodes(np.array([rho_0 for i in range(m.nodes_nb)]))
+        m.setFluidDensityAtNodes(np.array([0 for i in range(m.nodes_nb)]))
         # small Iyy for bending
         m.setIyy(1e-20, 0)
         if opts.cylinder is True:
