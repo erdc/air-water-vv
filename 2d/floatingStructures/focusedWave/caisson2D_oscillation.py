@@ -62,6 +62,7 @@ opts=Context.Options([
     ("cfl", 0.4 , "Target cfl"),
     ("nsave", 5, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
+    ("ns_closure", 0, "ns closure"),
     ])
 
 
@@ -332,8 +333,8 @@ if opts.gauge_output:
         gauge_dx = tank_sponge[0]/10.
     else:
         gauge_dx = tank_dim[0]/10.
-    gauge_dx = 0.1
-    probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
+    gauge_dx = 0.01
+    probes=np.linspace(-sponges['x-']+0.0001, tank_dim[0]+sponges['x+'], (sponges['x-']+tank_dim[0]+sponges['x+'])/gauge_dx+1)
     PG=[]
     PG2=[]
     LIG = []
@@ -662,7 +663,7 @@ mesh_nl_atol_res = max(1.0e-8,mesh_tol*he**2)
 am_nl_atol_res = max(1.0e-8,mesh_tol*he**2)
 
 #turbulence
-ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=opts.ns_closure #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 
 if useRANS == 1:
     ns_closure = 3

@@ -69,6 +69,7 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    dragAlphaTypes=dragAlphaTypes,
                                    dragBetaTypes=dragBetaTypes,
                                    epsFact_solid=epsFact_solid,
+                                   smagorinskyConstant=1.0,
                                    barycenters=ct.domain.barycenters)
 
 
