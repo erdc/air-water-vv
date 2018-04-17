@@ -1,16 +1,15 @@
 def geometry_to_gmsh(domain):
     import py2gmsh
-    from py2gmsh.Mesh import *
-    from py2gmsh.Entity import *
-    from py2gmsh.Fields import *
+    from py2gmsh.Mesh import Mesh
+    from py2gmsh.Entity import (Point, Line, LineLoop, PlaneSurface, SurfaceLoop, Volume, PhysicalGroup)
     self = domain
     lines_dict = {}
 
     mesh = Mesh()
 
     if self.boundaryTags:
-        for i, tag in enumerate(self.boundaryTags):
-            phys = PhysicalGroup(nb=i, name=tag)
+        for tag, flag in self.boundaryTags.items():
+            phys = PhysicalGroup(nb=flag, name=tag)
             mesh.addGroup(phys)
 
     for i, v in enumerate(self.vertices):
@@ -25,7 +24,7 @@ def geometry_to_gmsh(domain):
     nb_points = i+1
     for i in range(nb_points):
         lines_dict[i] = {}
-        
+
     for i, s in enumerate(self.segments):
         lines_dict[s[0]][s[1]] = i
         l = Line([mesh.points[s[0]+1], mesh.points[s[1]+1]])
@@ -61,15 +60,15 @@ def geometry_to_gmsh(domain):
 
     for i, V in enumerate(self.volumes):
         surface_loops = []
-        if i not in self.holes_ind:
-            for j, sV in enumerate(V):
-                sl = SurfaceLoop((np.array(sV)+1).tolist())
-                mesh.addEntity(sl)
-                surface_loops += [sl.nb]
-            vol = Volume(surface_loops)
-            mesh.addEntity(vol)
-            g = mesh.groups.get(self.regionFlags[i])
-            if g:
-                g.addEntity(vol)
+        hole_loops = []
+        for j, sV in enumerate(V):
+            sl = SurfaceLoop(mesh.getSurfacesFromIndex((np.array(sV)+1).tolist()))
+            mesh.addEntity(sl)
+            surface_loops += [sl]
+        vol = Volume(surface_loops)
+        mesh.addEntity(vol)
+        g = mesh.groups.get(self.regionFlags[i])
+        if g:
+            g.addEntity(vol)
 
     return mesh
