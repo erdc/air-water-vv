@@ -85,7 +85,27 @@ class TestStandingWavesTetgen(TestTools.AirWaterVVTest):
         #so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('standing_waves')
-        assert(True)
+
+        def failed(filename,word):
+            file = open(filename,"r")
+            text = file.read()
+
+            if text.find(word) != -1:
+                a = "No convergence"
+            else:
+                a = "good"
+            file.close()
+            return a
+
+        b = failed('proteus.log','failed')
+
+        if b == "No convergence":
+            print ("Convergence issue")
+            assert False
+        else:
+            assert True
+
+        #assert(True)
 
         
 #    def test_validate(self):
