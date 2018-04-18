@@ -99,7 +99,7 @@ class TestRandomWavesTetgen(TestTools.AirWaterVVTest):
             file.close()
             return a
 
-        b = failed('proteus.log','failed')
+        b = failed('proteus.log','Step Failed,')
 
         if b == "No convergence":
             print ("Convergence issue")
