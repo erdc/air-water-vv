@@ -26,15 +26,20 @@ pnList = []
 if ct.movingDomain:
     pnList += [("moveMesh_p", "moveMesh_n")]
 
-# Navier-Stokes and VOF
-pnList += [("twp_navier_stokes_p", "twp_navier_stokes_n"),
-           ("vof_p", "vof_n")]
+# Navier-Stokes
+pnList += [("twp_navier_stokes_p", "twp_navier_stokes_n")]
 
-# Level set
-if not ct.useOnlyVF:
-    pnList += [("ls_p", "ls_n"),
-               ("redist_p", "redist_n"),
-               ("ls_consrv_p", "ls_consrv_n")]
+# LEVEL SET MODELS #
+if ct.useCLSVOF:
+    pnList += [("clsvof_p", "clsvof_n")]
+else:
+    # VOF
+    pnList += [("vof_p", "vof_n")]
+    # Level set
+    if not ct.useOnlyVF:
+        pnList += [("ls_p", "ls_n"),
+                   ("redist_p", "redist_n"),
+                   ("ls_consrv_p", "ls_consrv_n")]
 
 # Turbulence
 if ct.useRANS > 0:

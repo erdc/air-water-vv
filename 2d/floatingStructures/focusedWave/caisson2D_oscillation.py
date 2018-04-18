@@ -65,9 +65,13 @@ opts=Context.Options([
     ("ns_closure", 0, "ns closure"),
     ])
 
-
-
 # ----- CONTEXT ------ #
+# ----- PARAMETERS FOR CLSVOF ----- #
+useCLSVOF=True
+epsHeaviside_clsvof=1.5
+lambdaFact_clsvof=10.0
+eps_tolerance_clsvof=False
+# --------------------------------- #
 
 wavelength=1.
 # general options
@@ -656,6 +660,7 @@ ns_nl_atol_res = max(1.0e-8,tolfac*he**2)
 vof_nl_atol_res = max(1.0e-8,tolfac*he**2)
 ls_nl_atol_res = max(1.0e-8,tolfac*he**2)
 mcorr_nl_atol_res = max(1.0e-8,0.1*tolfac*he**2)
+clsvof_nl_atol_res = max(1.0e-8,0.1*tolfac*he**2)
 rd_nl_atol_res = max(1.0e-8,tolfac*he)
 kappa_nl_atol_res = max(1.0e-8,tolfac*he**2)
 dissipation_nl_atol_res = max(1.0e-8,tolfac*he**2)

@@ -42,6 +42,17 @@ else:
     dragBetaTypes = None
     epsFact_solid = None
 
+if ct.useCLSVOF:
+    ME_model = int(ct.movingDomain)+0
+    CLSVOF_model = int(ct.movingDomain)+1
+    VF_model = None
+    LS_model = None
+else:
+    ME_model = int(ct.movingDomain)+0
+    CLSVOF_model = None
+    VF_model = int(ct.movingDomain)+1
+    LS_model = int(ct.movingDomain)+2
+
 coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    sigma=0.0,
                                    rho_0=ct.rho_0,
@@ -50,9 +61,10 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    nu_1=ct.nu_1,
                                    g=ct.g,
                                    nd=nd,
-                                   ME_model=int(ct.movingDomain)+0,
-                                   VF_model=int(ct.movingDomain)+1,
-                                   LS_model=int(ct.movingDomain)+LS_model,
+                                   ME_model=ME_model,
+                                   CLSVOF_model=CLSVOF_model,
+                                   VF_model=VF_model,
+                                   LS_model=LS_model,
                                    Closure_0_model=Closure_0_model,
                                    Closure_1_model=Closure_1_model,
                                    epsFact_density=ct.epsFact_density,
