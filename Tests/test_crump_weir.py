@@ -96,7 +96,7 @@ class TestCrumpWeirTetgen(TestTools.AirWaterVVTest):
             file.close()
             return a
 
-        b = failed('proteus.log','Step Failed,')
+        b = failed(os.path.join(Profiling.logDir,'proteus.log'),'Step Failed,')
 
         if b == "No convergence":
             print ("Convergence issue")
