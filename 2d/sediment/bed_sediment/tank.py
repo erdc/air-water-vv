@@ -22,7 +22,7 @@ opts=Context.Options([
     ("refinement", 50.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop", not True, "Enable open atmosphere for air phase on the top"),
-    ("cfl", 0.90 ,"Target cfl"),
+    ("cfl", 0.75 ,"Target cfl"),
     ("duration", 1.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
@@ -212,7 +212,7 @@ st.assembleDomain(domain)
 
 T=opts.duration
 weak_bc_penalty_constant = 10.0/nu_0 #100
-dt_fixed = 0.001 
+dt_fixed = 0.01 
 dt_init = min(0.1*dt_fixed,0.001)
 nDTout= int(round(T/dt_fixed))
 runCFL = opts.cfl
@@ -228,7 +228,7 @@ genMesh = True
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = False #True
+useSuperlu = True
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
 pspaceOrder = 1
