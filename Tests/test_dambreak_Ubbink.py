@@ -19,6 +19,20 @@ modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/benc
 petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
 
 
+class NumericResults:
+
+    @staticmethod
+    def _read_log(file_name):
+        log_file = open(file_name,'r')
+        return log_file
+
+    @classmethod
+    def create_log(cls,file_name):
+        ubbink_log = cls._read_log(file_name)
+        return ubbink_log
+
+
+
 class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
@@ -86,24 +100,45 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('dambreak_Ubbink')
 
-        def failed(filename,word):
-            file = open(filename,"r")
-            text = file.read()
+        
+        ubbink_log = NumericResults.create_log('proteus.log')
 
-            if text.find(word) != -1:
-                a = "No convergence"
-            else:
-                a = "good"
-            file.close()
-            return a
+        text = ubbink_log.read()
+        
+        #if text.find('CFL') != -1:
+        if text.find('Step Failed,') != -1:
+   
+            a = "No convergence"
+        else:
+            a = "good"
+        
 
-        b = failed('proteus.log','Step Failed,')
-
-        if b == "No convergence":
+        if a  == "No convergence":
             print ("Convergence issue")
             assert False
         else:
             assert True
+
+        
+        
+        #def failed(filename,word):
+        #    file = open(filename,"r")
+        #    text = file.read()
+        #
+        #    if text.find(word) != -1:
+        #        a = "No convergence"
+        #    else:
+        #        a = "good"
+        #    file.close()
+        #    return a
+
+        #b = failed('proteus.log','Step Failed,')
+
+        #if b == "No convergence":
+        #    print ("Convergence issue")
+        #    assert False
+        #else:
+        #    assert True
         #assert(True)
 
         

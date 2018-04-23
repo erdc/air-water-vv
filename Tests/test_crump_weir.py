@@ -19,6 +19,18 @@ from proteus.defaults import (load_physics as load_p,
 modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/hydraulicStructures/crump_weir')
 petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
 
+class NumericResults:
+
+    @staticmethod
+    def _read_log(file_name):
+        log_file = open(file_name,'r')
+        return log_file
+
+    @classmethod
+    def create_log(cls,file_name):
+        crump_log = cls._read_log(file_name)
+        return crump_log
+
 
 class TestCrumpWeirTetgen(TestTools.AirWaterVVTest):
 
@@ -85,24 +97,44 @@ class TestCrumpWeirTetgen(TestTools.AirWaterVVTest):
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('crump_weir')
 
-        def failed(filename,word):
-            file = open(filename,"r")
-            text = file.read()
+        crump_log = NumericResults.create_log('proteus.log')
 
-            if text.find(word) != -1:
-                a = "No convergence"
-            else:
-                a = "good"
-            file.close()
-            return a
+        text = crump_log.read()
+        
+        #if text.find('CFL') != -1:
+        if text.find('Step Failed,') != -1:
+   
+            a = "No convergence"
+        else:
+            a = "good"
+        
 
-        b = failed(os.path.join(Profiling.logDir,'proteus.log'),'Step Failed,')
-
-        if b == "No convergence":
+        if a  == "No convergence":
             print ("Convergence issue")
             assert False
         else:
             assert True
+
+        
+
+        #def failed(filename,word):
+        #    file = open(filename,"r")
+        #    text = file.read()
+        #
+        #    if text.find(word) != -1:
+        #        a = "No convergence"
+        #    else:
+        #        a = "good"
+        #    file.close()
+        #    return a
+        #    
+        #b = failed(os.path.join(Profiling.logDir,'proteus.log'),'Step Failed,')
+
+        #if b == "No convergence":
+        #    print ("Convergence issue")
+        #    assert False
+        #else:
+        #    assert True
 
         #assert(True)
 
