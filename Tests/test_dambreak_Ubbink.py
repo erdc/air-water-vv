@@ -44,7 +44,10 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
         pass
 
     def setup_method(self,method):
-        pass
+        #pass
+        Profiling.openLog("proteus.log",10)
+        Profiling.logAllprocesses = True
+
 
     def teardown_method(self,method):
         """ Tear down function """
@@ -105,8 +108,8 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
 
         text = ubbink_log.read()
         
-        #if text.find('CFL') != -1:
-        if text.find('Step Failed,') != -1:
+        if text.find('dambreak_Colagrossi') != -1:
+        #if text.find('Step Failed,') != -1:
    
             a = "No convergence"
         else:
