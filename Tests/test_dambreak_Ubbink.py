@@ -50,6 +50,8 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
 
 
     def teardown_method(self,method):
+        Profiling.closeLog()
+
         """ Tear down function """
         FileList = ['dambreak_Ubbink.xmf',
                     'dambreak_Ubbink.h5']

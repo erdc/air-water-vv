@@ -24,6 +24,19 @@ modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/cais
 petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
 
 
+class NumericResults:
+
+    @staticmethod
+    def _read_log(file_name):
+        log_file = open(file_name,'r')
+        return log_file
+
+    @classmethod
+    def create_log(cls,file_name):
+        sliding_log = cls._read_log(file_name)
+        return sliding_log
+
+
 class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
@@ -35,9 +48,15 @@ class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
         pass
 
     def setup_method(self,method):
-        pass
+        #pass
+        Profiling.openLog("proteus.log",10)
+        Profiling.logAllProcesses = True
+            
+
 
     def teardown_method(self,method):
+        Profiling.closeLog()
+
         """ Tear down function """
         FileList = ['tank.xmf',
                     'tank.h5']
@@ -91,24 +110,45 @@ class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('tank')
 
-        def failed(filename,word):
-            file = open(filename,"r")
-            text = file.read()
 
-            if text.find(word) != -1:
-                a = "No convergence"
-            else:
-                a = "good"
-            file.close()
-            return a
+        sliding_log = NumericResults.create_log('proteus.log')
 
-        b = failed('proteus.log','Step Failed,')
+        text = sliding_log.read()
+        
+        #if text.find('CFL') != -1:
+        if text.find('Step Failed,') != -1:
+   
+            a = "No convergence"
+        else:
+            a = "good"
+        
 
-        if b == "No convergence":
+        if a  == "No convergence":
             print ("Convergence issue")
             assert False
         else:
             assert True
+
+        
+        
+        #def failed(filename,word):
+        #    file = open(filename,"r")
+        #    text = file.read()
+
+        #    if text.find(word) != -1:
+        #        a = "No convergence"
+        #    else:
+        #        a = "good"
+        #    file.close()
+        #    return a
+
+        #b = failed('proteus.log','Step Failed,')
+
+        #if b == "No convergence":
+        #    print ("Convergence issue")
+        #    assert False
+        #else:
+        #    assert True
 
         #assert(True)
 
