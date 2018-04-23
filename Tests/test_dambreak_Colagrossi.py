@@ -46,7 +46,10 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
         pass
 
     def setup_method(self,method):
-        pass
+        #pass
+        Profiling.openLog("proteus.log",10)
+        Profiling.logAllProcesses = True
+
 
     def teardown_method(self,method):
         """ Tear down function """
