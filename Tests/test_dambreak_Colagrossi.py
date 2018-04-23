@@ -52,6 +52,7 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
 
 
     def teardown_method(self,method):
+        Profiling.closeLog()
         """ Tear down function """
         FileList = ['dambreak_Colagrossi.xmf',
                     'dambreak_Colagrossi.h5']
