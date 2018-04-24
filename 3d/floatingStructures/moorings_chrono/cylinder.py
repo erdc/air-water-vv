@@ -32,13 +32,14 @@ opts=Context.Options([
     ("cylinder_draft", 0.172, "radius of cylinder"),
     ("cylinder_coords", (1., 1., 0.929), "coordinates of cylinder"),
     ("cylinder_mass", 35.85, "mass of cylinder"),
+    ("cylinder_BC", 'noslip', "BC of cylinder"),
     ("Iyy", 0.9, "moment of inertia. Ixx=Iyy"),
     ("free_x", (1., 1., 1.), "Translational DOFs"),
     ("free_r", (1., 1., 1.), "Rotational DOFs"),
     ("VCG", 0.0758, "VCG"),
     # moorings
     ("moorings", True, "moorings"),
-    ("moorings_stretched", True, "True: moorings start fully stretched"),
+    ("moorings_stretched", False, "True: moorings start fully stretched"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
     ("wave_period", 1.4, "Period of the waves"),
@@ -47,17 +48,18 @@ opts=Context.Options([
     # mesh refinement
     ("he", 0.02, "Set characteristic element size"),
     # numerical options
+    ("addedMass", False, "activate added mass model"),
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "use_gmsh"),
     ("refinement", True, "ref"),
     ("refinement_grading", 1.2, "ref"),
     ("movingDomain", True, "True/False"),
-    ("T", 50.0, "Simulation time"),
+    ("T", 30.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("chrono_dt", 1e-4, "time step in chrono"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
-    ("cfl", 0.9, "Target cfl"),
+    ("cfl", 0.4, "Target cfl"),
     ("nsave", 20, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ])
@@ -211,7 +213,10 @@ if opts.cylinder is True:
     else:
         tank.setChildShape(cylinder, 0)
     for key, bc in cylinder.BC.items():
-        bc.setNoSlip()
+        if opts.cylinder_BC == 'noslip':
+            bc.setNoSlip()
+        if opts.cylinder_BC == 'freeslip':
+            bc.setFreeSlip()
 
 
 
@@ -496,6 +501,17 @@ if opts.use_gmsh and opts.refinement is True:
     mesh.writeGeo(mesh_fileprefix+'.geo')
 
 
+if opts.addedMass is True:
+    # passed in added_mass_p.py coefficients
+    max_flag = 0
+    max_flag = max(domain.vertexFlags)
+    max_flag = max(domain.segmentFlags+[max_flag])
+    max_flag = max(domain.facetFlags+[max_flag])
+    flags_rigidbody = np.zeros(max_flag+1, dtype='int32')
+    for s in system.subcomponents:
+        if type(s) is crb.ProtChBody:
+            for i in range(s.i_start, s.i_end):
+                flags_rigidbody[i] = 1
 
 
 
@@ -674,6 +690,7 @@ rd_nl_atol_res = 1e-4 #max(1.0e-6,tolfac*he)
 kappa_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
 dissipation_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
 mesh_nl_atol_res = 1e-6 #max(1.0e-6,opts.mesh_tol*he**2)
+am_nl_atol_res = 1e-6 #max(1.0e-6,opts.mesh_tol*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega

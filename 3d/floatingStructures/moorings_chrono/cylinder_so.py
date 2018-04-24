@@ -41,6 +41,10 @@ if ct.useRANS > 0:
     pnList += [("kappa_p", "kappa_n"),
                ("dissipation_p", "dissipation_n")]
 
+# added mass
+if ct.opts.addedMass:
+    pnList += [("added_mass_p","added_mass_n")]
+
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
 if ct.dt_fixed:
 #    systemStepControllerType = Sequential_FixedStep
@@ -50,6 +54,8 @@ if ct.dt_fixed:
 else:  # use CFL
     systemStepControllerType = Sequential_MinAdaptiveModelStep
     stepExactSystem=False
+stepExactSystem=False
+systemStepExact=False
 
 needEBQ_GLOBAL = False
 needEBQ = False
