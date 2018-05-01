@@ -117,8 +117,8 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
             #file = open(filename,"r")
         text = colagrossi_log.read()
 
-        #if text.find('Step Failed,') != -1:
-        if text.find('dambreak_Colagrossi') != -1:
+        if text.find('Step Failed,') != -1:
+        #if text.find('dambreak_Colagrossi') != -1:
             
             a = "No convergence"
         else:
