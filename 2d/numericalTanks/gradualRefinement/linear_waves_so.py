@@ -47,6 +47,7 @@ if ct.useRANS > 0:
 
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
 systemStepControllerType = Sequential_MinAdaptiveModelStep
+systemStepExact = False
 
 needEBQ_GLOBAL = False
 needEBQ = False

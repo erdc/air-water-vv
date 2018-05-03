@@ -14,18 +14,12 @@ from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 opts = Context.Options([
     # test options
-    ("water_level", 0.9, "Height of free surface above bottom"),
+    ("water_level", 1., "Height of free surface above bottom"),
     # tank
-    ("tank_dim", (10., 1.5,), "Dimensions of the tank"),
-    ("generation", True, "Generate waves at the left boundary (True/False)"),
-    ("absorption", True, "Absorb waves at the right boundary (True/False)"),
-    ("tank_sponge", (5., 10.), "Length of generation/absorption zone"),
-    ("free_slip", True, "Should tank walls have free slip conditions "
-                        "(otherwise, no slip conditions will be applied)."),
+    ("tank_dim", (10., 2.,), "Dimensions of the tank"),
     #gravity 
     ("g", [0, -9.81, 0], "Gravity vector"),
     # refinement
-    ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
     # run time
     ("T", 30.0, "Simulation time"),
@@ -33,10 +27,8 @@ opts = Context.Options([
     # run details
     ("gen_mesh", True, "Generate new mesh"),
     ("use_gmsh", True, "use gmsh"),
-    ("refinement_grading", 1.1, "refinement grading"),
-    ("useHex", False, "Use (hexahedral) structured mesh"),
-    ("structured", False, "Use (triangular/tetrahedral) structured mesh"),
-    ("nperiod", 10., "Number of time steps to save per period"),
+    ("refinement_grading", 1.2, "refinement grading"),
+    ("refinement_type", 'point', "refinement types: 'band' or 'point'"),
     ("nsave", 20., "Number of time steps to save per period"),
     ("parallel", True, "Run in parallel")])
 
@@ -45,21 +37,17 @@ opts = Context.Options([
 # general options
 waterLevel = opts.water_level
 
-wavelength=3
-
 # tank options
-tank_dim = (2*wavelength, 1.8)
-tank_sponge = (1*wavelength, 2*wavelength)
+tank_dim = opts.tank_dim
 
 ##########################################
 #     Discretization Input Options       #
 ##########################################
 
 # ----- From Context.Options ----- #
-refinement_level = opts.refLevel
 genMesh = opts.gen_mesh
-useHex = opts.useHex
-structured = opts.structured
+useHex = False
+structured = False
 
 # ----- SpaceOrder & Tool Usage ----- #
 spaceOrder = 1
@@ -174,23 +162,11 @@ smoothing = he*3.
 # ----- TANK ------ #
 
 tank = st.Tank2D(domain, tank_dim)
-tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 
-tank.BC['x-'].setNoSlip()
 tank.BC['y+'].setAtmosphere()
-if opts.free_slip:
-    tank.BC['y-'].setFreeSlip()
-    tank.BC['x+'].setFreeSlip()
-    if not opts.generation:
-        tank.BC['x-'].setFreeSlip()
-else:  # no slip
-    tank.BC['y-'].setNoSlip()
-    tank.BC['x+'].setNoSlip()
-    if not opts.generation:
-        tank.BC['x-'].setNoSlip()
-
-# sponge
-tank.BC['sponge'].setNonMaterial()
+tank.BC['x-'].setFreeSlip()
+tank.BC['y-'].setFreeSlip()
+tank.BC['x+'].setFreeSlip()
 
 
 # ----- MESH CONSTRUCTION ----- #
@@ -203,15 +179,11 @@ st.assembleDomain(domain)
 grading = np.cbrt(opts.refinement_grading*12/np.sqrt(2))/np.cbrt(1.*12/np.sqrt(2))  # convert change of volume to change of element size
 geofile = 'mesh'+str(int(he*1000))
 if opts.use_gmsh is True:
-    grading = np.sqrt(opts.refinement_grading*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3))
     import py2gmsh
     from MeshRefinement import geometry_to_gmsh
     mesh = geometry_to_gmsh(domain)
     grading = np.cbrt(opts.refinement_grading*12/np.sqrt(2))/np.cbrt(1.*12/np.sqrt(2))  # convert change of volume to change of element size
     he_max = 10.
-    he_max_water = 10.
-    ecH = 3.
-    box = 0.08
     field_list = []
     def mesh_grading(start, he, grading):
         return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
@@ -222,8 +194,13 @@ if opts.use_gmsh is True:
         return dist
 
     me1 = py2gmsh.Fields.MathEval(mesh=mesh)
-    dist_x = dist_plane(xn=-tank_sponge[0], xp=tank_dim[0], plane='x')
-    dist_y = dist_plane(xn=waterLevel-box, xp=waterLevel+box, plane='y')
+    if opts.refinement_type == 'band':
+        box = 0.  # width of band around free surface
+        dist_x = dist_plane(xn=0, xp=tank_dim[0], plane='x')
+        dist_y = dist_plane(xn=waterLevel-box, xp=waterLevel+box, plane='y')
+    elif opts.refinement_type == 'point':
+        dist_x = '({center_x}-x)'.format(center_x=tank_dim[0]/2.)
+        dist_y = '({center_y}-y)'.format(center_y=tank_dim[1]/2.)
     dist = 'sqrt(({dist_x})^2+({dist_y})^2)'.format(dist_x=dist_x, dist_y=dist_y)
     me1.F = mesh_grading(start=dist, he=he, grading=grading)
     field_list += [me1]
@@ -329,12 +306,6 @@ else:
 ##########################################
 #            Boundary Edit               #
 ##########################################
-
-def get_he(x):
-    dist_x = 0.5*(abs(x[0]-(-tank_sponge[0]))+abs(x[0]-tank_dim[0])-(tank_sponge[0]+tank_dim[0]))
-    dist = dist_x
-    hee = he*grading**(1+np.log((-1/grading*(abs(dist)-he)+abs(dist))/he)/np.log(grading))
-    return hee
 
 def twpflowPressure_init(x, t):
     p_L = 0.0
