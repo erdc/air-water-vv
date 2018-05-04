@@ -26,6 +26,19 @@ modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/osci
 petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm") 
 
 
+class NumericResults:
+
+    @staticmethod
+    def _read_log(file_name):
+        log_file = open(file_name,'r')
+        return log_file
+
+    @classmethod
+    def create_log(cls,file_name):
+        oscillating_log = cls._read_log(file_name)
+        return oscillating_log
+
+
 class TestOscillatingCylinderTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
@@ -37,9 +50,15 @@ class TestOscillatingCylinderTetgen(TestTools.AirWaterVVTest):
         pass
 
     def setup_method(self,method):
-        pass
+        #pass
+        Profiling.openLog("proteus.log",10)
+        Profiling.logAllProcesses = True
+
+
 
     def teardown_method(self,method):
+        Profiling.closeLog()
+
         """ Tear down function """
         FileList = ['tank.xmf',
                     'tank.h5']
@@ -92,7 +111,47 @@ class TestOscillatingCylinderTetgen(TestTools.AirWaterVVTest):
         #so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('tank')
-        assert(True)
+
+        
+        oscillating_log = NumericResults.create_log('proteus.log')
+
+        text = oscillating_log.read()
+        
+        #if text.find('CFL') != -1:
+        if text.find('Step Failed,') != -1:
+   
+            a = "No convergence"
+        else:
+            a = "good"
+        
+
+        if a  == "No convergence":
+            print ("Convergence issue")
+            assert False
+        else:
+            assert True
+
+
+        #def failed(filename,word):
+        #    file = open(filename,"r")
+        #    text = file.read()
+
+        #    if text.find(word) != -1:
+        #        a = "No convergence"
+        #    else:
+        #        a = "good"
+        #    file.close()
+        #    return a
+
+        #b = failed('proteus.log','Step Failed,')
+
+        #if b == "No convergence":
+        #    print ("Convergence issue")
+        #    assert False
+        #else:
+        #    assert True
+
+        #assert(True)
 
 
 #    def test_validate(self):

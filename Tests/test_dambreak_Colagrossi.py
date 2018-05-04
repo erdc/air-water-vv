@@ -7,6 +7,7 @@ from proteus import Comm
 comm = Comm.get()
 #import dambreak_Colagrossi_so
 import numpy as np
+import tables
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
@@ -19,29 +20,52 @@ modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/benc
 petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
 
 
+class NumericResults:
+
+    @staticmethod
+    def _read_log(file_name):
+        log_file = open(file_name,'r')
+        return log_file
+
+    @classmethod
+    def create_log(cls,file_name):
+        colagrossi_log = cls._read_log(file_name)
+        return colagrossi_log
+
 class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
 
     @classmethod
     def setup_class(cls):
         pass
 
+
+    
+
     @classmethod
     def teardown_class(cls):
         pass
 
     def setup_method(self,method):
-        pass
+        #pass
+        Profiling.openLog("proteus.log",10)
+        Profiling.logAllProcesses = True
+
 
     def teardown_method(self,method):
+        Profiling.closeLog()
         """ Tear down function """
         FileList = ['dambreak_Colagrossi.xmf',
                     'dambreak_Colagrossi.h5']
+                    
+
         for file in FileList:
             if os.path.isfile(file):
                 os.remove(file)
             else:
                 pass
     
+    
+
 
     
     def test_run(self):
@@ -85,7 +109,31 @@ class TestDambreakCollagrossiTetgen(TestTools.AirWaterVVTest):
         #so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1, int(round(0.03/0.01))+1)]            
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
         ns.calculateSolution('dambreak_Colagrossi')
-        assert(True)
+
+        
+        #def failed(filename,word):
+        colagrossi_log= NumericResults.create_log('proteus.log')
+
+            #file = open(filename,"r")
+        text = colagrossi_log.read()
+
+        if text.find('Step Failed,') != -1:
+        #if text.find('dambreak_Colagrossi') != -1:
+            
+            a = "No convergence"
+        else:
+            a = "good"
+            #file.close()
+        #return a
+
+        #b = failed('colagrossi_log','Step Failed,')
+
+        if a  == "No convergence":
+            print ("Convergence issue")
+            assert False
+        else:
+            assert True
+        #assert(True)
 
         
 #    def test_validate(self):
