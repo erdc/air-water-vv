@@ -35,7 +35,10 @@ coefficients = RANS3PF.Coefficients(epsFact=ct.epsFact_viscosity,
                                     forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                     turbulenceClosureModel=0,
                                     movingDomain=False,
-                                    PSTAB=0.0)
+                                    PSTAB=0.0,
+                                    USE_SUPG=ct.opts.USE_SUPG,
+                                    ARTIFICIAL_VISCOSITY=ct.opts.ARTIFICIAL_VISCOSITY,
+                                    cE=0.25, cMax=0.25)
 
 def getDBC_u(x,flag):
     if ct.openTop and flag == ct.boundaryTags['top']:

@@ -30,7 +30,7 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
 				   useRBLES=ct.useRBLES,
 				   useMetrics=1.0,
                                    eb_adjoint_sigma=1.0,
-                                   eb_penalty_constant=10.0,
+                                   eb_penalty_constant=ct.weak_bc_penalty_constant,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=0,#ct.ns_closure,
                                    NONCONSERVATIVE_FORM=1.0)

@@ -15,12 +15,14 @@ opts = Context.Options([
     ("openTop", True, "Open the top of the tank to the atmosphere"),
     ("he", 0.125, "Maximum mesh element diameter"),
     ("genMesh", True, "Generate a new mesh"),
-    ("T", 7.4, "Simulate over over the interval [0,T]"),
-    ("dt_out", 0.1, "Save the solution every dt_out steps"),
+    ("T", 4.0, "Simulate over over the interval [0,T]"),
+    ("dt_out", 0.01, "Save the solution every dt_out steps"),
     ("gauges", True, "Collect data for validation"),
-    ("cfl",0.9, "CFL number to use for time stepping"),
+    ("cfl",0.33, "CFL number to use for time stepping"),
     ("rans3p",True, "Use RANS3P model insteady of RANS2P"),
-    ("useOnlyVF",False, "Turn off CLSVOF")
+    ("useOnlyVF",False, "Turn off CLSVOF"),
+    ("USE_SUPG",0,"Use SUPG Stabilization in momentum equations"),
+    ("ARTIFICIAL_VISCOSITY",1,"Art viscosity in mom. equations. 0: No artificial viscosity, 1: shock capturing, 2: entropy-viscosity")
     ])
 
 if opts.rans3p:
@@ -163,14 +165,15 @@ elif usePUMI:
     domain.PUMIMesh.loadModelAndMesh("Marin.dmg", input_mesh)
 else:
     bcCoords=False
-    L      = [3.22,1.0,1.0]
-    box_L  = [0.161,0.403,0.161]
-    box_xy = [2.3955,0.2985]
+    L      = [3.22,0.6,1.8]
+#    box_L  = [0.161,0.403,0.161]
+#    box_xy = [2.3955,0.2985]
     he = opts.he*float(spaceOrder)
-    boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
+#    boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
+    boundaries=['left','right','bottom','top','front','back',]
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     bt = boundaryTags
-    holes = [[0.5*box_L[0]+box_xy[0],0.5*box_L[1]+box_xy[1],0.5*box_L[2]]]
+#    holes = [[0.5*box_L[0]+box_xy[0],0.5*box_L[1]+box_xy[1],0.5*box_L[2]]]
     vertices=[[0.0,0.0,0.0],#0
               [L[0],0.0,0.0],#1
               [L[0],L[1],0.0],#2
@@ -178,15 +181,15 @@ else:
               [0.0,0.0,L[2]],#4
               [L[0],0.0,L[2]],#5
               [L[0],L[1],L[2]],#6
-              [0.0,L[1],L[2]],#7
-              [box_xy[0],box_xy[1],0.0],#8
-              [box_xy[0]+box_L[0],box_xy[1],0.0],#9
-              [box_xy[0]+box_L[0],box_xy[1]+box_L[1],0.0],#10
-              [box_xy[0],box_xy[1]+box_L[1],0.0],#11
-              [box_xy[0],box_xy[1],box_L[2]],#12
-              [box_xy[0]+box_L[0],box_xy[1],box_L[2]],#13
-              [box_xy[0]+box_L[0],box_xy[1]+box_L[1],box_L[2]],#14
-              [box_xy[0],box_xy[1]+box_L[1],box_L[2]]]#15
+              [0.0,L[1],L[2]]]#7
+#              [box_xy[0],box_xy[1],0.0],#8
+#              [box_xy[0]+box_L[0],box_xy[1],0.0],#9
+#              [box_xy[0]+box_L[0],box_xy[1]+box_L[1],0.0],#10
+#              [box_xy[0],box_xy[1]+box_L[1],0.0],#11
+#              [box_xy[0],box_xy[1],box_L[2]],#12
+#              [box_xy[0]+box_L[0],box_xy[1],box_L[2]],#13
+#              [box_xy[0]+box_L[0],box_xy[1]+box_L[1],box_L[2]],#14
+#              [box_xy[0],box_xy[1]+box_L[1],box_L[2]]]#15
     vertexFlags=[boundaryTags['left'],
                  boundaryTags['right'],
                  boundaryTags['right'],
@@ -194,37 +197,37 @@ else:
                  boundaryTags['left'],
                  boundaryTags['right'],
                  boundaryTags['right'],
-                 boundaryTags['left'],
-                 boundaryTags['box_left'],
-                 boundaryTags['box_left'],
-                 boundaryTags['box_left'],
-                 boundaryTags['box_left'],
-                 boundaryTags['box_left'],
-                 boundaryTags['box_left'],
-                 boundaryTags['box_left'],
-                 boundaryTags['box_left']]
-    facets=[[[0,1,2,3],[8,9,10,11]],
+                 boundaryTags['left']]
+#                 boundaryTags['box_left'],
+#                 boundaryTags['box_left'],
+#                 boundaryTags['box_left'],
+#                 boundaryTags['box_left'],
+#                 boundaryTags['box_left'],
+#                 boundaryTags['box_left'],
+#                 boundaryTags['box_left'],
+#                 boundaryTags['box_left']]
+    facets=[[[0,1,2,3]],
             [[0,1,5,4]],
             [[1,2,6,5]],
             [[2,3,7,6]],
             [[3,0,4,7]],
-            [[4,5,6,7]],
-            [[8,9,13,12]],
-            [[9,10,14,13]],
-            [[10,11,15,14]],
-            [[11,8,12,15]],
-            [[12,13,14,15]]]
+            [[4,5,6,7]]]
+#            [[8,9,13,12]],
+#            [[9,10,14,13]],
+#            [[10,11,15,14]],
+#            [[11,8,12,15]],
+#            [[12,13,14,15]]]
     facetFlags=[boundaryTags['bottom'],
                 boundaryTags['front'],
                 boundaryTags['right'],
                 boundaryTags['back'],
                 boundaryTags['left'],
-                boundaryTags['top'],
-                boundaryTags['box_front'],
-                boundaryTags['box_right'],
-                boundaryTags['box_back'],
-                boundaryTags['box_left'],
-                boundaryTags['box_top']]        
+                boundaryTags['top']]
+#                boundaryTags['box_front'],
+#                boundaryTags['box_right'],
+#                boundaryTags['box_back'],
+#                boundaryTags['box_left'],
+#                boundaryTags['box_top']]        
     regions=[[0.5*L[0],0.5*L[1],0.5*L[2]]]
     regionFlags=[0]
 
@@ -233,8 +236,8 @@ else:
                                                  facets=facets,
                                                  facetFlags=facetFlags,
                                                  regions = regions,
-                                                 regionFlags = regionFlags,
-                                                 holes=holes)
+                                                 regionFlags = regionFlags)
+#                                                 holes=holes)
 						 
     #go ahead and add a boundary tags member 
     domain.MeshOptions.setParallelPartitioningType('node')
@@ -280,6 +283,7 @@ rd_nl_atol_res = max(1.0e-8,0.01*he)
 mcorr_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 kappa_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 dissipation_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
+weak_bc_penalty_constant = 100
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -318,4 +322,3 @@ def signedDistance(x):
             return phi_x
         else:
             return math.sqrt(phi_x**2 + phi_z**2)
-
