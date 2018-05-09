@@ -20,8 +20,8 @@ from proteus.defaults import (load_physics as load_p,
                               load_system as load_so)
 
 
-modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/caissonBreakwater/sliding')
-petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
+modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../2d/caissonBreakwater/sliding')
+petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../../inputTemplates/petsc.options.asm")
 
 
 class NumericResults:

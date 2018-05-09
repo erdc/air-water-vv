@@ -16,8 +16,8 @@ from proteus.defaults import (load_physics as load_p,
                               load_numerics as load_n,
                               load_system as load_so)
 
-modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../2d/benchmarks/wavesloshing')
-petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../inputTemplates/petsc.options.asm")
+modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../2d/benchmarks/wavesloshing')
+petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../../inputTemplates/petsc.options.asm")
 
 
 class NumericResults:
