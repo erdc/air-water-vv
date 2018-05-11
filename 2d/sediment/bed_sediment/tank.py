@@ -13,17 +13,18 @@ from proteus.mprans.SedClosure import  HsuSedStress
 opts=Context.Options([
     # predefined test cases
     ("waterLine_x", 10.00, "Width of free surface from left to right"),
-    ("waterLine_z", 0.5, "Heigth of free surface above bottom"),
+    ("waterLine_z", 1., "Heigth of free surface above bottom"),
     ("Lx", 1.50, "Length of the numerical domain"),
-    ("Ly", 0.7, "Heigth of the numerical domain"),
+    ("Ly", 1.5, "Heigth of the numerical domain"),
+    ("dtout", 0.05, "Time interval for output"),
     # sediment parameters
-    ('cSed', 0.50,'Sediment concentration'),
+    ('cSed', 0.1,'Sediment concentration'),
     # numerical options
-    ("refinement", 50.,"L[0]/refinement"),
+    ("refinement", 25.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("openTop", not True, "Enable open atmosphere for air phase on the top"),
-    ("cfl", 0.75 ,"Target cfl"),
-    ("duration", 1.0 ,"Duration of the simulation"),
+    ("openTop",  True, "Enable open atmosphere for air phase on the top"),
+    ("cfl", 0.25 ,"Target cfl"),
+    ("duration", .45 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
@@ -52,8 +53,8 @@ sedClosure = HsuSedStress(aDarcy =  150.0,
                           mContact =  3.0,
                           nContact =  5.0,
                           angFriction =  pi/6.,
-                          vos_limiter = 0.05,
-                          mu_fr_limiter = 100.00,
+                          vos_limiter = 0.62,
+                          mu_fr_limiter = 1e-3,
                           )
 
 # ----- DOMAIN ----- #
@@ -129,18 +130,8 @@ tank.BC['x-'].setFreeSlip()
 
 tank.BC['x+'].setFreeSlip()
 
+tank.BC['y-'].vos_dirichlet.setConstantBC(0.635)
 
-
-
-# ----- If open boundary at the top
-if opts.openTop:
-    tank.BC['y+'].reset()
-    tank.BC['y+'].setAtmosphere()
-    tank.BC['y+'].us_dirichlet.setConstantBC(0.0)
-    tank.BC['y+'].vs_dirichlet.setConstantBC(0.0)
-    tank.BC['y+'].vos_advective.setConstantBC(0.0)
-    tank.BC['y+'].pInc_dirichlet.setConstantBC(0.0)
-    tank.BC['y+'].pInit_dirichlet.setConstantBC(0.0)
 
 
 
@@ -212,7 +203,7 @@ st.assembleDomain(domain)
 
 T=opts.duration
 weak_bc_penalty_constant = 10.0/nu_0 #100
-dt_fixed = 0.01 
+dt_fixed = opts.dtout
 dt_init = min(0.1*dt_fixed,0.001)
 nDTout= int(round(T/dt_fixed))
 runCFL = opts.cfl
@@ -321,13 +312,13 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor = 0.9 # <------------------------------------- 
+    vos_shockCapturingFactor = 2. # <------------------------------------- 
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0
     rd_shockCapturingFactor = 0.5
     rd_lag_shockCapturing = False
-    epsFact_vos = 5.0 # <------------------------------------- 
+    epsFact_vos =opts.epsFact_density
     epsFact_density = opts.epsFact_density # 1.5
     epsFact_viscosity = epsFact_curvature = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
@@ -356,7 +347,7 @@ else:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor = 0.9
+    vos_shockCapturingFactor = 10.
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0
