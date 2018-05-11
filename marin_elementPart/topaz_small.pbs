@@ -1,0 +1,14 @@
+#!/bin/bash
+#PBS -A ERDCV00898R40
+#PBS -q standard
+#PBS -l select=1:ncpus=36:mpiprocs=16
+#PBS -l walltime=0:30:00
+#PBS -N MARIN_proteus
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M alv.zhang@gmail.com
+export MPI_WATCHDOG_TIMER=60
+cd $PBS_O_WORKDIR
+mpiexec_mpt -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -O petsc.options.asm -D R00_proteus
