@@ -23,29 +23,20 @@ opts=Context.Options([
     ('tank_sponge_abs', 'x+', 'sponge layers to be abs zones'),
     ("tank_BC", 'freeslip', "Length of absorption zones (front/back, left/right)"),
     ("gauge_output", True, "Places Gauges in tank"),
-    ("gauge_fixed", False, "Places Gauges in tank"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
     ("wave_period", 1., "Period of the waves"),
     ("wave_height", 0.062, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
-    ("wave_type", 'Focused', "type of wave"),
+    ("wave_type", 'Fenton', "type of wave"),
     # caisson
-    ("addedMass", False, "added mass"),
+    ("addedMass", True, "added mass"),
     ("caisson", True, "caisson"),
     ("caisson_BC", 'freeslip', "BC on caisson ('noslip'/'freeslip')"),
     ("free_x", (0.0, 1.0, 0.0), "Translational DOFs"),
     ("free_r", (0.0, 0.0, 1.0), "Rotational DOFs"),
     ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
     ("chrono_dt", 0.00001, "time step of chrono"),
-    # mooring
-    ("mooring", True, "add moorings"),
-    ("mooring_type", 'prismatic', "type of moorings"),
-    ("mooring_anchor", (2./2.,2.,0.), "anchor coordinates (absolute coorinates)"),
-    ("mooring_fairlead", (0.,0.,0.), "fairlead cooridnates (relative coordinates from barycenter)"),
-    ("mooring_K", 197.58, "mooring (spring) stiffness"),
-    ("mooring_R", 19.8, "mooring (spring) damping"),
-    ("mooring_restlength", 0., "mooring (spring) rest length"),
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
     ("he", 0.01, "Set characteristic element size"),
@@ -74,7 +65,6 @@ opts=Context.Options([
 wavelength=1.
 # general options
 waterLevel = water_level = opts.water_level
-rotation_angle = np.radians(opts.rotation_angle)
 
 # waves
 if opts.waves is True:
@@ -141,23 +131,21 @@ if opts.tank_sponge_wavelength_scale and opts.waves:
 logEvent("TANK SPONGE: "+str(tank_sponge))
 logEvent("TANK DIM: "+str(tank_dim))
 
-
-
-
 # ----- DOMAIN ----- #
 
+# domain
 domain = Domain.PlanarStraightLineGraphDomain()
+
 # caisson options
 if opts.caisson is True:
     free_x = opts.free_x
     free_r = opts.free_r
-    rotation = np.radians(opts.rotation_angle)
     width = 0.29
     #inertia = 0.34165
     mass = 14.5+0.276
     inertia = (mass-0.276)*(0.1535**2+(0.1-0.0796)**2)
-    vertices = np.array([[0.,0.], [0.5,0.], [0.5,0.123], [0.35,0.123], [0.35,0.373], 
-                                [0.15,0.373], [0.15,0.123], [0., 0.123]])
+    vertices = np.array([[0.,0.], [0.5,0.], [0.5,0.123], [0.35,0.123], [0.35,0.373],
+                         [0.15,0.373], [0.15,0.123], [0., 0.123]])
     vertexFlags = [1 for i in range(len(vertices))]
     segments = np.array([[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,0]])
     segmentFlags = [1 for i in range(len(segments))]
@@ -169,7 +157,7 @@ if opts.caisson is True:
     caisson = st.CustomShape(domain, barycenter=barycenter,
                             vertices=vertices, vertexFlags=vertexFlags,
                             segments=segments, segmentFlags=segmentFlags,
-                            facets=facets, facetFlags=facetFlags, 
+                            facets=facets, facetFlags=facetFlags,
                             boundaryTags=boundaryTags)
     #caisson = st.Rectangle(domain, dim=(0.5,0.2), barycenter=[0.25,opts.VCG,0.])
     caisson_dim = [0.5, 0.378]
@@ -179,7 +167,6 @@ if opts.caisson is True:
 
     caisson.facetFlags = np.array([1])
     caisson.regionFlags = np.array([1])
-    ang = rotation_angle
     caisson.setHoles([[0.1, 0.1]])
     caisson.holes_ind = np.array([0])
     if opts.wave_type == 'Focused':
@@ -191,13 +178,13 @@ if opts.caisson is True:
             caisson.translate([7.-0.25, 0.4-0.1])
         else:
             caisson.translate([caisson_coords[0], 0.4-0.1])
-    # system = crb.System(np.array([0., -9.81, 0.]))
-    # rotation = np.array([1, 0., 0., 0.])
-    rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
-    caisson.rotate(ang, pivot=caisson.barycenter)
+
+    # CHRONO 
+    # system
     system = crb.ProtChSystem(np.array([0., -9.81, 0.]))
     system.setTimeStep(opts.chrono_dt)
     system.step_start = 10
+    # floating body
     body = crb.ProtChBody(system=system)
     body.attachShape(caisson)
     body.setWidth2D(width)
@@ -205,32 +192,14 @@ if opts.caisson is True:
     from proteus.mbd import pyChronoCore as pych
     x, y, z = caisson.barycenter
     pos = pych.ChVector(x, y, z)
-    e0, e1, e2, e3 = rotation_init
-    rot = pych.ChQuaternion(e0, e1, e2, e3)
     inertia = pych.ChVector(1., 1., inertia)
     chbod.SetPos(pos)
-    chbod.SetRot(rot)
     chbod.SetMass(mass)
     chbod.SetInertiaXX(inertia)
     body.setConstraints(free_x=np.array(opts.free_x), free_r=np.array(opts.free_r))
     system.setCouplingScheme("CSS", prediction="backwardEuler")
 
-    # body.setInitialRot(rotation_init)
-    # body.rotation_init=np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
     body.setRecordValues(all_values=True)
-    if opts.mooring is True:
-        if opts.mooring_type == 'spring':
-            body.addSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
-                           fairlead=np.array(opts.mooring_fairlead),
-                           anchor=np.array(opts.mooring_anchor),
-                           rest_length=opts.mooring_restlength)
-        elif opts.mooring_type == 'prismatic':
-            body.addPrismaticLinksWithSpring(stiffness=opts.mooring_K, damping=opts.mooring_R,
-                           pris1=np.array([0.,caisson.barycenter[1],0.]),
-                           pris2=np.array([0.,0.,0.]),
-                           rest_length=caisson.barycenter[0])
-
-
 
     for bc in caisson.BC_list:
         if opts.caisson_BC == 'noslip':
@@ -238,58 +207,7 @@ if opts.caisson is True:
         if opts.caisson_BC == 'freeslip':
             bc.setFreeSlip()
 
-    
-    def prescribed_motion(t):
-        new_x = np.array(caisson_coords)
-        new_x[1] = caisson_coords[1]+0.01*cos(2*np.pi*(t/4)+np.pi/2)
-        return new_x
-
-    #body.setPrescribedMotion(prescribed_motion)
-
-
-a = np.genfromtxt('focused_wave.csv', delimiter=',', names=True)
-fpicin = a['f']
-apicin = a['a']
-
-Af = 0.06  # amplitude of wave
-depth = water_level
-xf = 7.  # x position of focused wave
-tf = 20.  # time for focused wave to reach x position
-fr = np.linspace(0.6, 1.6, 29)  # frequency range
-fp = 1.  # peak frequency
-
-from proteus import WaveTools as wt
-
-Hs = 0.03  # Hs value does not matter here
-Sj = wt.JONSWAP(f=fr, f0=fp, Hs=Hs, gamma=3.3, TMA=False, depth=depth)
-
-Gfi = np.zeros(len(Sj))
-for i in range(len(Sj)):
-    Gfi[i] = np.sqrt(2*Sj[i]*(fr[-1]-fr[0]))
-sumGfi = np.sum(Gfi)
-
-aproteus = np.zeros(len(Sj))
-for i in range(len(Sj)):
-    aproteus[i] = Af*Gfi[i]/sumGfi
-
-k = wt.dispersion(2*np.pi*fr, depth)
-w = 2*np.pi*fr
-
-def eta(x, t):
-    eta = 0
-    for i in range(len(aproteus)):
-        eta += aproteus[i]*np.cos(k[i]*(x[0]-xf)-w[i]*(t-tf))
-    return eta
-
-def vel(x, t):
-    Tr = 4*np.sinh(k*depth)**2/(2*k*water_level+np.sinh(2*k*h))
-    U = np.sum(w*Tr*aproteus*np.cos(k*(x[0]-xf)-w*(t-tf)))
-    return U
-
-
-
-
-# ----- SHAPES ----- #
+# tank
 tank = st.Tank2D(domain, tank_dim)
 tank.setSponge(x_n=sponges['x-'], x_p=sponges['x+'])
 left = right = False
@@ -374,17 +292,6 @@ if opts.gauge_output:
         sampleRate = 0,
         fileName = 'lineGauge.csv'
     )
-    if opts.gauge_fixed:
-        PGF = []
-        for i in range(4):
-            PGF.append((caisson_coords[0]-0.15+0.1*i, waterLevel-0.28, 0.), )
-        tank.attachPointGauges(
-            'twp',
-            gauges = ((('p', 'u', 'v'), PGF),),
-            activeTime=(0, opts.T),
-            sampleRate=0,
-            fileName='pointGauge_fixed.csv'
-        )
 
 
 domain.MeshOptions.use_gmsh = opts.use_gmsh

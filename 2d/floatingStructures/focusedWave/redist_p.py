@@ -24,7 +24,7 @@ coefficients = RDLS.Coefficients(applyRedistancing=ct.applyRedistancing,
                                  rdModelId=int(ct.movingDomain)+3,
                                  useMetrics=ct.useMetrics,
                                  ELLIPTIC_REDISTANCING=bool(ct.opts.ELLIPTIC_REDISTANCING_TYPE),
-                                 ELLIPTIC_REDISTANCING_TYPE=ct.opts.ELLIPTIC_REDISTANCING_TYPE,
+                                 ELLIPTIC_REDISTANCING_TYPE=max(ct.opts.ELLIPTIC_REDISTANCING_TYPE, 1),
                                  backgroundDiffusionFactor=ct.backgroundDiffusionFactor)
 
 def getDBC_rd(x, flag):
