@@ -500,14 +500,13 @@ class MooringLine:
                 # fairlead must be on the right of anchor
                 fairlead2D[0], anchor2D[0] = anchor2D[0], fairlead2D[0]
                 vec2D = np.array([-1., 1.])
-        
-  
+
         a, e, x0, angle, state = catenary_tension_elastic2(P1=anchor2D, P2=fairlead2D, L=self.L, w=self.w, EA=self.EA, a0=self.a, tol=1e-8, maxit=10000)
+
         self.a = a
         self.e = e
         self.x0 = x0
         # postprocessing
-        
         Ls = self.L+self.e
         Lsut = np.sum(self.L)
         Lst = np.sum(Ls)
@@ -535,6 +534,14 @@ class MooringLine:
                     x = s0+a*np.arcsinh((s-s0)/a)
                     y = a*(np.cosh((x-(d-x0))/a)-1)
                 return [x, y]
+            def ds_coords(s):
+                if s < d-x0:
+                    return [1.,0.]
+                else:
+                    s = s-(d-x0)
+                    x = a/np.sqrt(a**2+s**2)
+                    y = s/np.sqrt(a**2+s**2)
+                return [x, y]
             angleP2 = np.arctan(dydx(x0))
             xs = [0]+[a*np.arcsinh(np.sum(Ls[:i+1])/a)+(d-x0) for i in range(len(Ls))] 
         elif state == 'full':
@@ -548,6 +555,11 @@ class MooringLine:
             xs = [0]+[a*np.arcsinh((np.sum(Ls[:i+1])+scorr)/a)-k for i in range(len(Ls))]
             y_coords = lambda x: a*(np.cosh((x+k)/a))+m  # y coordinates of points along the
             s_coords = lambda s: [a*np.arcsinh((scorr+s)/a)-k, a*np.cosh((a*np.arcsinh((scorr+s)/a)-k+k)/a)+m]
+            def ds_coords(s):
+                s = (s+scorr)
+                x = a/np.sqrt(a**2+s**2)
+                y = s/np.sqrt(a**2+s**2)
+                return [x, y]
         elif state == 'straight':
             self.y_coords = lambda x: h/d*x
             #s_coords = lambda s: s if s < d-x0 else a*np.arcsinh(s/a), 0 if s < d-x0 else a*(np.cosh((x-(d-x0))/a)-1)
@@ -563,16 +575,16 @@ class MooringLine:
             self.Ta = Ta*vec2D
             self.y = y_coords
             self.s = s_coords
-            self.ds = lambda s: self.s(s+0.001)-self.s(s-0.001)
+            self.ds = ds_coords
         if self.nd == 3:
-            Tf3D = np.zeros(3)                
+            Tf3D = np.zeros(3)
             Ta3D = np.zeros(3)
             # horizontal component from 2D to 3D on x-y
             Ta3D[:2] = Tf[0]*self.direction
             Tf3D[:2] = Tf[0]*self.direction
             self.y = lambda x: y_coords(x)*self.direction
             self.s = lambda s: self.anchor+[s_coords(s)[0]*self.direction[0], s_coords(s)[0]*self.direction[1], s_coords(s)[1]]
-            self.ds = lambda s: self.s(s+0.001)-self.s(s-0.001)
+            self.ds = lambda s: [ds_coords(s)[0]*self.direction[0], ds_coords(s)[0]*self.direction[1], ds_coords(s)[1]]
             #Tf3D[:2] = Tf[0]*vec
             #Ta3D[:2] = Ta[0]*vec
             #self.y = lambda x, y: y_coords(np.sqrt(x**2+y**2))*vec

@@ -6,4 +6,5 @@
 -mcorr_ksp_type  cg -mcorr_pc_type hypre -mcorr_pc_hypre_type boomeramg -mcorr_ksp_max_it 2000
 -mesh_ksp_type cg -mesh_pc_type asm -mesh_pc_asm_type basic -mesh_ksp_max_it 2000
 -mesh_sub_ksp_type preonly -mesh_sub_pc_factor_mat_solver_package superlu -mesh_ksp_knoll -mesh_sub_pc_type lu
+-am_ksp_type cg -am_ksp_constant_null_space -am_pc_type hypre -am_pc_hypre_type boomeramg -am_pc_factor_shift_type NONZERO -am_pc_factor_shift_amount 1.0e-10
 -log_summary

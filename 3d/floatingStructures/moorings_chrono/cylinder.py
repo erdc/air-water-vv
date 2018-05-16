@@ -233,7 +233,8 @@ if timestepper == "HHT":
     system.setTimestepperType("HHT")
 
 if opts.cylinder is True:
-    body = crb.ProtChBody(system, shape=cylinder)
+    body = crb.ProtChBody(system)
+    body.attachShape(cylinder)
     body.setConstraints(free_x=free_x, free_r=free_r)
     body.ChBody.SetMass(opts.cylinder_mass)
     body.setRecordValues(all_values=True)
@@ -380,7 +381,7 @@ if opts.moorings is True:
 
 he = opts.he
 
-mesh_fileprefix = 'mesh'+str(int(he*1000))
+mesh_fileprefix = 'mesh'+str(int(he*1000))+str(int(opts.refinement_grading)*10)+str(int(sponges['x-']*10))+str(int(sponges['x+']*10))+str(int(sponges['y-']*10))+str(int(sponges['y+']*10))+str(int(tank_dim[0]*10))+str(int(tank_dim[1]*10))+str(opts.cylinder)
 domain.MeshOptions.he = he
 domain.MeshOptions.setTriangleOptions()
 domain.use_gmsh = opts.use_gmsh
@@ -525,6 +526,7 @@ if opts.addedMass is True:
 
 
 
+system.calculate_init()
 
 
 
