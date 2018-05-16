@@ -54,6 +54,7 @@ opts=Context.Options([
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
+    ("epsFact_density", 1.5, "epsFact_density"),
     ("movingDomain", True, "True/False"),
     ("T", 10.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
@@ -63,6 +64,7 @@ opts=Context.Options([
     ("nsave", 5, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ("ns_closure", 0, "ns closure"),
+    ("ELLIPTIC_REDISTANCING_TYPE", 0, "Elliptic redistancing type for redist"),
     ])
 
 
@@ -152,8 +154,8 @@ if opts.caisson is True:
     rotation = np.radians(opts.rotation_angle)
     width = 0.29
     #inertia = 0.34165
-    mass = 14.5#+0.276
-    inertia = mass*(0.1535**2+(0.1-0.0796)**2)
+    mass = 14.5+0.276
+    inertia = (mass-0.276)*(0.1535**2+(0.1-0.0796)**2)
     vertices = np.array([[0.,0.], [0.5,0.], [0.5,0.123], [0.35,0.123], [0.35,0.373], 
                                 [0.15,0.373], [0.15,0.123], [0., 0.123]])
     vertexFlags = [1 for i in range(len(vertices))]
@@ -609,7 +611,7 @@ if useMetrics:
     vof_sc_beta = sc_beta
     rd_shockCapturingFactor  =sc
     rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
+    epsFact_density    = opts.epsFact_density
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = epsFact_consrv_diffusion
