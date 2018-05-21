@@ -1,0 +1,8 @@
+To get to MeshAdapt workflow:
+
+1) Generate the mesh w/ tetgen with genMesh=True and have usePUMI=true 
+2) Turn off genMesh=True
+
+Notes:
+
+Ensure you have the context module setup across the inputs
