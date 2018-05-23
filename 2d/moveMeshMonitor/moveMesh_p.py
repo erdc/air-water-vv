@@ -20,6 +20,8 @@ analyticalSolution = {}
 #LevelModelType = MoveMesh.LevelModel
 coefficients = MoveMeshMonitor.Coefficients(ct.my_func,
                                             nd=ct.domain.nd,
+                                            he_max=ct.he_max,
+                                            he_min=ct.he_min,
                                             boundaryNormals=ct.boundaryNormals,
                                             nSmooth=ct.nSmooth)
 

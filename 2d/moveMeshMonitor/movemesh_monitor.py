@@ -21,8 +21,8 @@ def get_center_area(e_nodes):
 
 import copy
 
-el_max=1.
-el_min=0.025
+he_max=1.
+he_min=0.025
 r = 0.1
 nSmooth = 10
 
@@ -81,14 +81,14 @@ if use_gmsh:
     fmin = py2gmsh.Fields.Min(mesh=mesh)
     fmin.FieldsList = field_list
     mesh.setBackgroundField(fmin)
-    mesh.Options.Mesh.CharacteristicLengthMax = he*(el_max/el_min)
+    mesh.Options.Mesh.CharacteristicLengthMax = he*(he_max/he_min)
     mesh.Options.Mesh.CharacteristicLengthMax = he*5
     mesh.writeGeo("mesh.geo")
     domain.geofile = "mesh"
 
 
 def my_func(x):
-    return min(el_max, max(np.abs(np.sqrt((x[0]-0.5)**2+(x[1]-0.5)**2)-r), el_min))
+    return min(he_max, max(np.abs(np.sqrt((x[0]-0.5)**2+(x[1]-0.5)**2)-r), he_min))
 scale = 0.5
 def my_func(x, t):
     t_start = 1000.
@@ -97,23 +97,23 @@ def my_func(x, t):
         # dist2 = np.sqrt((x[0]-(center2[0]))**2+(x[1]-(center2[1]+(t-t_start)/100))**2)-r
         # dist3 = np.sqrt((x[0]-(center3[0])+(t-t_start)/100)**2+(x[1]-(center3[1]))**2)-r
         # dist4 = np.sqrt((x[0]-(center4[0])-(t-t_start)/100)**2+(x[1]-(center4[1]))**2)-r
-        circle1 = min(el_max, max(abs(dist1)/scale, el_min))
-        # circle2 = min(el_max, max(abs(dist2)/scale, el_min))
-        # circle3 = min(el_max, max(abs(dist3)/scale, el_min))
-        # circle4 = min(el_max, max(abs(dist4)/scale, el_min))
+        circle1 = abs(dist1)/scale
+        # circle2 = min(he_max, max(abs(dist2)/scale, he_min))
+        # circle3 = min(he_max, max(abs(dist3)/scale, he_min))
+        # circle4 = min(he_max, max(abs(dist4)/scale, he_min))
     else:
         dist1 = np.sqrt((x[0]-center1[0])**2+(x[1]-center1[1])**2)-r
         # dist2 = np.sqrt((x[0]-center2[0])**2+(x[1]-center2[1])**2)-r
         # dist3 = np.sqrt((x[0]-center3[0])**2+(x[1]-center3[1])**2)-r
         # dist4 = np.sqrt((x[0]-center4[0])**2+(x[1]-center4[1])**2)-r
-        circle1 = min(el_max, max(abs(dist1)/scale, el_min))
-        # circle2 = min(el_max, max(abs(dist2)/scale, el_min))
-        # circle3 = min(el_max, max(abs(dist3)/scale, el_min))
-        # circle4 = min(el_max, max(abs(dist4)/scale, el_min))
-    #border = min(el_max, min(max(abs(x[0]-0.)/scale, el_min),
-    #                         max(abs(x[0]-domain.L[0])/scale, el_min),
-    #                         max(abs(x[1]-0.)/scale, el_min),
-    #                         max(abs(x[1]-domain.L[1])/scale, el_min)))
+        circle1 = abs(dist1)/scale
+        # circle2 = min(he_max, max(abs(dist2)/scale, he_min))
+        # circle3 = min(he_max, max(abs(dist3)/scale, he_min))
+        # circle4 = min(he_max, max(abs(dist4)/scale, he_min))
+    #border = min(he_max, min(max(abs(x[0]-0.)/scale, he_min),
+    #                         max(abs(x[0]-domain.L[0])/scale, he_min),
+    #                         max(abs(x[1]-0.)/scale, he_min),
+    #                         max(abs(x[1]-domain.L[1])/scale, he_min)))
     # return min(circle1, circle2, circle3, circle4) #min(border, circle)
     return circle1#min(circle1, circle2) #min(border, circle)
 
@@ -250,7 +250,7 @@ elif spaceOrder == 2:
 
 
 # def my_func(x, y):
-#     return np.minimum(el_max, np.maximum(np.abs(np.sqrt((x-0.5)**2+(y-0.5)**2)-0.25)/0.25, el_min))
+#     return np.minimum(he_max, np.maximum(np.abs(np.sqrt((x-0.5)**2+(y-0.5)**2)-0.25)/0.25, he_min))
 # x = np.linspace(0., 1., 100)
 # y = np.linspace(0., 1., 100)
 # X, Y = np.meshgrid(x, y)
