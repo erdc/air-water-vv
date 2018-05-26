@@ -51,8 +51,8 @@ opts=Context.Options([
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "use_gmsh"),
     ("refinement", True, "ref"),
-    ("refinement_freesurface", 0.2, "ref"),
-    ("refinement_grading", 1.7, "ref"),
+    ("refinement_freesurface", 0.05, "ref"),
+    ("refinement_grading", 1.2, "ref"),
     ("movingDomain", True, "True/False"),
     ("T", 5.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
@@ -90,7 +90,7 @@ wavelength=1.
 
 wave_to_initial_conditions = True
 
-if wave_to_initial_conditions is True:
+if opts.waves is True:
     height = opts.wave_height
     mwl = depth = opts.water_level
     direction = np.array(opts.wave_dir)
@@ -140,7 +140,10 @@ for key, bc in tank.BC.items():
     bc.setFixedNodes()
 tank.BC['z+'].setAtmosphere()
 tank.BC['z-'].setFreeSlip()
-tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
+if opts.waves:
+    tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
+else:
+    tank.BC['x-'].setFreeSlip()
 #tank.BC['x+'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
 tank.BC['x+'].setFreeSlip()
 tank.BC['y-'].setFreeSlip()
@@ -229,7 +232,7 @@ if opts.moorings is True:
     A0 = (np.pi*d**2/4)
     w = 108.63/(opts.scale**2)  # kg/m
     nb_elems =  50
-    dens = w/A0
+    dens = w/A0+rho_0
     E = (753.6e6/opts.scale**3)/A0
     fairlead_radius = 40.9/opts.scale
     anchor_radius = 837.6/opts.scale
@@ -318,14 +321,14 @@ if opts.moorings is True:
     for m in moorings:
         m.setDragCoefficients(tangential=0.5, normal=2.5, segment_nb=0)
         m.setAddedMassCoefficients(tangential=0., normal=3.8, segment_nb=0)
-        if opts.waves is True:
-            m.setFluidVelocityFunction(wave.u) # acts only out of domain
+        #if opts.waves is True:
+        #    m.setFluidVelocityFunction(wave.u) # acts only out of domain
         m.external_forces_from_ns = True
         m.external_forces_manual = True
         m.setNodesPosition()
         # set NodesPosition must be calle dbefore buildNodes!
         m.buildNodes()
-        m.setFluidDensityAtNodes(np.array([0 for i in range(m.nodes_nb)]))
+        m.setFluidDensityAtNodes(np.array([rho_0 for i in range(m.nodes_nb)]))
         # small Iyy for bending
         m.setIyy(1e-20, 0)
         if opts.cylinder is True:
@@ -350,8 +353,8 @@ if opts.moorings is True:
     m2.setContactMaterial(material)
     m3.setContactMaterial(material)
     # build floor
-    vec = pych.ChVector(0., 0., -0.11)
-    box_dim = [20.,20.,0.2]
+    vec = pych.ChVector(0., 0., -0.15)
+    box_dim = [100.,100.,0.2]
     box = pych.ChBodyEasyBox(box_dim[0], box_dim[1], box_dim[2], 1000, True)
     box.SetPos(vec)
     box.SetMaterialSurface(material)
@@ -403,7 +406,7 @@ if opts.use_gmsh and opts.refinement is True:
         return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
     # refinement free surface
 
-    box = 0.3
+    box = opts.refinement_freesurface
     box1 = py2gmsh.Fields.Box(mesh=mesh)
     box1.VIn = he
     box1.VOut = he_max
@@ -426,7 +429,7 @@ if opts.use_gmsh and opts.refinement is True:
 
     me3 = py2gmsh.Fields.MathEval(mesh=mesh)
     dist_z = '(abs(abs({z_p}-z)+abs(z-{z_n})-({z_p}-{z_n}))/2.)'.format(z_p=max(cylinder.vertices[:,2]), z_n=min(cylinder.vertices[:,2]))
-    radius = 1
+    radius = 1.5
     dist_x = '(abs((Sqrt(({x_center}-x)^2+({y_center}-y)^2)-{radius})))'.format(x_center=cylinder.barycenter[0], radius=radius, y_center=cylinder.barycenter[1])
     dist = 'Sqrt(((abs({dist_x}-{radius})+{dist_x})/2.)^2+{dist_z}^2)'.format(dist_x=dist_x, dist_z=dist_z, radius=radius)
     me3.F = mesh_grading(he=he, start=dist, grading=grading)
@@ -531,22 +534,22 @@ nd = domain.nd
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
+        basis=C0_AffineLinearOnCubeWithNodalBasis
+        elementQuadrature = CubeGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
     else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
-         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
+        basis=C0_AffineLinearOnSimplexWithNodalBasis
+        elementQuadrature = SimplexGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
+        #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
 elif spaceOrder == 2:
     hFactor=0.5
     if useHex:
-	basis=C0_AffineLagrangeOnCubeWithNodalBasis
+        basis=C0_AffineLagrangeOnCubeWithNodalBasis
         elementQuadrature = CubeGaussQuadrature(nd,4)
         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
     else:
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
+        basis=C0_AffineQuadraticOnSimplexWithNodalBasis
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
 
@@ -666,7 +669,7 @@ def signedDistance(x):
     water_level = (wave.eta(x,0)+wave.mwl)
     phi_z = x[2]-water_level
     return water_level,phi_z
-        
+
 def vel_u(x,t):
     return wave.u(x,0)
 
