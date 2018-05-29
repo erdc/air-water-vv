@@ -34,8 +34,13 @@ weakDirichletConditions = {0: RDLS.setZeroLSweakDirichletBCsSimple}
 advectiveFluxBoundaryConditions = {}
 diffusiveFluxBoundaryConditions = {0: {}}
 
-class PHI_IC:
-    def uOfXT(self, x, t):
-        return x[nd-1] - ct.water_level
+if ct.opts.IC == 'Perturbed':
+    class PHI_IC:
+        def uOfXT(self, x, t):
+            return x[nd-1] - ct.signedDistance(x)[0]
+elif ct.opts.IC == 'AtRest':
+    class PHI_IC:
+        def uOfXT(self, x, t):
+            return x[nd-1] - ct.water_level
 
 initialConditions  = {0: PHI_IC()}

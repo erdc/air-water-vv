@@ -10,47 +10,45 @@ from proteus import Comm
 comm=Comm.init()
 
 opts=Context.Options([
-    ("water_level", 1.65, "Height of free surface above bottom"),
+    ("water_level", 4., "Height of free surface above bottom"),
     # tank
-    ('tank_wavelength_scale', False, 'if True: tank_x=value*wavelength, tank_y=value*wavelength'),
-    ('tank_x', 6., 'Length of tank'),
-    ('tank_y', 6., 'Width of tank'),
-    ('tank_z', 3., 'Height of tank'),
+    ('tank_wavelength_scale', True, 'if True: tank_x=value*wavelength, tank_y=value*wavelength'),
+    ('tank_x', 2., 'Length of tank'),
+    ('tank_y', 2., 'Width of tank'),
+    ('tank_z', 6., 'Height of tank'),
     ('tank_sponge_lambda_scale', True, 'True: sponge length relative to wavelength'),
-    ('tank_sponge_xn', 0., 'length of sponge layer x-'),
-    ('tank_sponge_xp', 0., 'length of sponge layer x+'),
+    ('tank_sponge_xn', 1., 'length of sponge layer x-'),
+    ('tank_sponge_xp', 2., 'length of sponge layer x+'),
     ('tank_sponge_yn', 0., 'length of sponge layer y-'),
     ('tank_sponge_yp', 0., 'length of sponge layer y+'),
     ('tank_sponge_gen', 'x-y-y+', 'sponge layers to be gen zones (if waves)'),
     ('tank_sponge_abs', 'x+', 'sponge layers to be abs zones'),
+    ('IC', 'Perturbed', 'Initial Conditions: Perturbed or AtRest'),
     # chrono options
     ("sampleRate", 0., "sampling rate for chrono. 0 for every timestep"),
     # cylinder
+    ("scale", 50., "scale used to reduce the dimensions of the structure"),
     ("cylinder", True, "cylinder"),
-    ("cylinder_radius", 2.0/2., "radius of cylinder"),
-    ("cylinder_height", 2.0, "radius of cylinder"),
-    ("cylinder_draft", 0.7, "radius of cylinder"),
-    ("cylinder_coords", (1., 1., 0.929), "coordinates of cylinder"),
-    ("cylinder_mass", 105.85, "mass of cylinder"),
-    ("Iyy", 0.9, "moment of inertia. Ixx=Iyy"),
-    ("free_x", (0., 0., 0.), "Translational DOFs"),
-    ("free_r", (0., 0., 0.), "Rotational DOFs"),
-    ("VCG", 0.0758, "VCG"),
+    ("turbine", True, "takes turbine mass into account (different COG)"),
+    ("cylinder_draft", 20., "draft of the cylinder without scaling"),
+    ("free_x", (1., 1., 1.), "Translational DOFs"),
+    ("free_r", (1., 1., 1.), "Rotational DOFs"),
     # moorings
-    ("moorings", not True, "moorings"),
+    ("moorings", True, "moorings"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
+    ("waves_case", None, "Takes predefined wave conditions [1 to 7]"),
     ("wave_period", 1.2, "Period of the waves"),
-    ("wave_height",0.20, "Height of the waves"),
+    ("wave_height",0.10, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     # mesh refinement
-    ("he", 0.05, "Set characteristic element size"),
+    ("he", 0.1, "Set characteristic element size"),
     # numerical options
-    ("genMesh", not True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
+    ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "use_gmsh"),
     ("refinement", True, "ref"),
-    ("refinement_freesurface", 0.2, "ref"),
-    ("refinement_grading", 1.7, "ref"),
+    ("refinement_freesurface", 0.05, "ref"),
+    ("refinement_grading", 1.2, "ref"),
     ("movingDomain", True, "True/False"),
     ("T", 5.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
@@ -61,6 +59,11 @@ opts=Context.Options([
     ("nsave", 20, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ])
+
+
+wave_heights = [1.92, 7.578, 7.136, 7.574, 10.304, 10.74, 11.122]
+wave_periods = [7.5, 12.1, 14.3, 20., 12.1, 14.3, 20.]
+scale = opts.scale
 
 
 rho_0=998.2
@@ -77,8 +80,8 @@ water_level = opts.water_level
 
 # tank options
 tank_dim = np.array([opts.tank_x, opts.tank_y, opts.tank_z])
-cylinder_radius = opts.cylinder_radius
-cylinder_height = opts.cylinder_height
+#cylinder_radius = opts.cylinder_radius
+#cylinder_height = opts.cylinder_height
 free_x = np.array(opts.free_x)
 free_r = np.array(opts.free_r)
 chrono_dt = opts.chrono_dt
@@ -88,11 +91,15 @@ wavelength=1.
 
 wave_to_initial_conditions = True
 
-if wave_to_initial_conditions is True:
-    height = opts.wave_height
+if opts.waves is True:
     mwl = depth = opts.water_level
     direction = np.array(opts.wave_dir)
+    height = opts.wave_height
     period = opts.wave_period
+    if opts.waves_case is not None:
+        assert opts.waves_case < 7, 'wave case must be between 0 and 6'
+        heigth = waves_height[opts.waves_case]/scale
+        period = waves_period[opts.waves_case]/np.sqrt(scale)
     BCoeffs = np.zeros(3)
     YCoeffs = np.zeros(3)
     wave = wt.MonochromaticWaves(period=period,
@@ -138,13 +145,16 @@ for key, bc in tank.BC.items():
     bc.setFixedNodes()
 tank.BC['z+'].setAtmosphere()
 tank.BC['z-'].setFreeSlip()
-tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
-tank.BC['x+'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
-#tank.BC['x+'].setFreeSlip()
-#tank.BC['y-'].setFreeSlip()
-tank.BC['y-'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
-#tank.BC['y+'].setFreeSlip()
-tank.BC['y+'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
+if opts.waves:
+    tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
+else:
+    tank.BC['x-'].setFreeSlip()
+#tank.BC['x+'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
+tank.BC['x+'].setFreeSlip()
+tank.BC['y-'].setFreeSlip()
+#tank.BC['y-'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
+tank.BC['y+'].setFreeSlip()
+#tank.BC['y+'].setUnsteadyTwoPhaseVelocityInlet(wave = wave, vert_axis = 2, smoothing= 3.0*opts.he)
 tank.BC['wall'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 dragAlpha = 0.5/nu_0
@@ -169,19 +179,27 @@ tank.setAbsorptionZones(x_n=('x-' in abso and sponges['x-'] != 0),
 
 # CYLINDER
 if opts.cylinder is True:
-    nPoints = int(2*np.pi*cylinder_radius/opts.he)
-    cylinder_coords = [tank_dim[0]/2., tank_dim[1]/2., water_level+cylinder_height/2. - opts.cylinder_draft]
-    barycenter = cylinder_coords - np.array([0.,0.,cylinder_height/2.])+np.array([0.,0.,opts.VCG])
-    cylinder = st.ShapeSTL(domain, 'semi-sub0_50.stl')	
+    #nPoints = int(2*np.pi*cylinder_radius/opts.he)
+    #cylinder_coords = [tank_dim[0]/2., tank_dim[1]/2., water_level+cylinder_height/2. - opts.cylinder_draft]
+    #barycenter = [tank_dim[0]/2., tank_dim[1]/2.,  
+    cylinder = st.ShapeSTL(domain, 'semi-sub0_50.stl')
+    #cylinder_draft = opts.cylinder_draft
+    #scale = scale
+    #draft = cylinder_draft/scale
     #cylinder = st.Cylinder(domain, radius=cylinder_radius, height=cylinder_height, coords=cylinder_coords, barycenter=barycenter, nPoints=nPoints )
-    midtank = [tank_dim[0]/2., tank_dim[1]/2., tank_dim[2]/2.]
+    location = [tank_dim[0]/2., tank_dim[1]/2., opts.water_level - opts.cylinder_draft/scale]
     mx = (min(cylinder.vertices[:,0])+max(cylinder.vertices[:,0]))/2.
     my = (min(cylinder.vertices[:,1])+max(cylinder.vertices[:,1]))/2.
     mz = (min(cylinder.vertices[:,2])+max(cylinder.vertices[:,2]))/2.
     cylinder.setRegions([[mx, my, mz]], [1])
     cylinder.setHoles([[mx, my, mz]])
-    cylinder.setBarycenter(np.array([mx, my, mz]))
-    cylinder.translate(midtank)
+    if opts.turbine is True:
+        KG = 10.11/scale  # from Maine report
+    else:
+        KG = 5.6/scale
+    cylinder.setBarycenter(np.array([0.5, 0.28876, min(cylinder.vertices[:,2])+KG])) # X and Y coords ASD taken from CFX, scaled and translated - z coords from paper
+    cylinder.rotate(-np.pi/6., axis=np.array([0.,0.,10.]))
+    cylinder.translate(location-np.array([cylinder.barycenter[0], cylinder.barycenter[1], 0.]))
     cylinder.holes_ind = np.array([0])
     tank.setChildShape(cylinder, 0)
     for key, bc in cylinder.BC.items():
@@ -192,6 +210,7 @@ if opts.cylinder is True:
 
 g = np.array([0., 0., -9.81])
 system = crb.ProtChSystem(gravity=g, sampleRate=opts.sampleRate)
+system.update_substeps = True  # update drag and added mass forces on cable during substeps
 #system.chrono_processor = 0
 #system.parallel_mode = False
 system.setTimeStep(chrono_dt)
@@ -201,35 +220,41 @@ if timestepper == "HHT":
     system.setTimestepperType("HHT")
 
 
-
 if opts.cylinder is True:
-    body = crb.ProtChBody(system, shape=cylinder)
+    body = crb.ProtChBody(system)
+    body.attachShape(cylinder)
     body.setConstraints(free_x=free_x, free_r=free_r)
-    body.ChBody.SetMass(opts.cylinder_mass)
-    body.setRecordValues(all_values=True)
-    body.ChBody.SetBodyFixed(True)
-    Ixx = Iyy = opts.Iyy
-    Izz = cylinder_radius**2/2.*opts.cylinder_mass
+    mass = 13444000/scale**3
+    Ixx = Iyy = ((23.91+24.90)/scale/2.)**2*mass
+    Izz = (32.17/scale)**2*mass
+    if opts.turbine is True:
+        mass = 14040000/scale**3
+        Ixx = Iyy = ((31.61+32.34)/scale/2.)**2*mass
+        Izz = (32.17/scale)**2*mass
+    body.ChBody.SetMass(mass)
     from proteus.mbd import pyChronoCore as pcc
     inert = pcc.ChVector(Ixx, Iyy, Izz)
     body.ChBody.SetInertiaXX(inert)
+    body.setRecordValues(all_values=True)
 
 if opts.moorings is True:
     # variables
-    scale = 50.
+    #scale = 50.
     L = 835.5/scale
-    d = 0.0766/scale
+    d = 0.13376/scale  # equivalent diameter (chain -> cylinder)
     A0 = (np.pi*d**2/4)
-    w = 108.63/scale  # kg/m
+    w = 108.63/(scale**3)  # kg/m  # 116.6 vs 108.63
     nb_elems =  50
     dens = w/A0+rho_0
-    E = 753.6e6/A0
-    fairlead_radius = 40.9/scale
+    E = (753.6e6/scale**3)/A0
+    fairlead_radius = 40.868/scale
     anchor_radius = 837.6/scale
-    fairlead_depth = 14./scale
-    anchor_depth = 200./scale
-    mooring_X = fairlead_radius-anchor_radius
-    fairlead_height = anchor_depth-fairlead_depth
+    fairlead_depth = 14./scale  # only for 20m draft!
+    anchor_depth = 200./scale  # only for 20m draft!
+    anchor_depth -= 0.01
+    mooring_X = anchor_radius-fairlead_radius
+    fairlead_height = water_level-fairlead_depth
+    anchor_height = water_level-anchor_depth
     # prescribed motion of body
     # start with fully stretched line and go to initial position before simulation starts
     prescribed_init = False
@@ -245,18 +270,18 @@ if opts.moorings is True:
         prescribed_z = np.linspace(0., water_level-fairlead_height, len(prescribed_t))
         body.setPrescribedMotionCustom(t=prescribed_t, z=prescribed_z, t_max=time_init)
     # fairleads
-    dist_from_center = fairlead_radius
+    dist_from_center = -fairlead_radius
     fairlead1_offset = np.array([dist_from_center*np.cos(np.radians(120)), dist_from_center*np.sin(np.radians(120)), 0.])
     fairlead2_offset = np.array([dist_from_center,0.,0.])
     fairlead3_offset = np.array([dist_from_center*np.cos(np.radians(-120)), dist_from_center*np.sin(np.radians(-120)), 0.])
-    fairlead_center = np.array([cylinder_coords[0], cylinder_coords[1], fairlead_height])
+    fairlead_center = np.array([cylinder.barycenter[0], cylinder.barycenter[1], fairlead_height])
     fairlead1 = fairlead_center + fairlead1_offset
     fairlead2 = fairlead_center + fairlead2_offset
     fairlead3 = fairlead_center + fairlead3_offset
     # anchors
-    anchor1 = fairlead1-[0.,0.,fairlead1[2]] + np.array([mooring_X*np.cos(np.radians(120)), mooring_X*np.sin(np.radians(120)), 0.])
-    anchor2 = fairlead2-[0.,0.,fairlead2[2]] + np.array([mooring_X, 0., 0.])
-    anchor3 = fairlead3-[0.,0.,fairlead3[2]] + np.array([mooring_X*np.cos(np.radians(-120)), mooring_X*np.sin(np.radians(-120)), 0.])
+    anchor1 = fairlead1-[0.,0.,fairlead1[2]] + np.array([-mooring_X*np.cos(np.radians(120)), -mooring_X*np.sin(np.radians(120)), 0.]) + np.array([0.,0.,anchor_height])
+    anchor2 = fairlead2-[0.,0.,fairlead2[2]] + np.array([-mooring_X, 0., 0.]) + np.array([0.,0.,anchor_height])
+    anchor3 = fairlead3-[0.,0.,fairlead3[2]] + np.array([-mooring_X*np.cos(np.radians(-120)), -mooring_X*np.sin(np.radians(-120)), 0.]) + np.array([0.,0.,anchor_height])
     # quasi-statics for laying out cable
     from catenary import MooringLine
     EA = 1e20  # strong EA so there is no stretching
@@ -284,6 +309,7 @@ if opts.moorings is True:
 
     # make chrono cables
     mesh = crb.Mesh(system)
+    #mesh.setAutomaticGravity(True)
     # make variables arrays
     L = np.array([L])
     d = np.array([d])
@@ -308,16 +334,21 @@ if opts.moorings is True:
     body2.barycenter0 = np.zeros(3)
     moorings = [m1, m2, m3]
     for m in moorings:
-        m.setDragCoefficients(tangential=0.5, normal=2.5, segment_nb=0)
-        m.setAddedMassCoefficients(tangential=0., normal=3.8, segment_nb=0)
-        if opts.waves is True:
-            m.setFluidVelocityFunction(wave.u) # acts only out of domain
+        #if opts.waves is True:
+        #    m.setFluidVelocityFunction(wave.u) # acts only out of domain
         m.external_forces_from_ns = True
         m.external_forces_manual = True
         m.setNodesPosition()
         # set NodesPosition must be calle dbefore buildNodes!
         m.buildNodes()
+        m.external_forces_manual = True
+        m.external_forces_from_ns = True
+        m.setApplyDrag(True)
+        m.setApplyBuoyancy(True)
+        m.setApplyAddedMass(True)
         m.setFluidDensityAtNodes(np.array([rho_0 for i in range(m.nodes_nb)]))
+        m.setDragCoefficients(tangential=1.15, normal=0.213, segment_nb=0)
+        m.setAddedMassCoefficients(tangential=0.269, normal=0.865, segment_nb=0)
         # small Iyy for bending
         m.setIyy(1e-20, 0)
         if opts.cylinder is True:
@@ -342,16 +373,14 @@ if opts.moorings is True:
     m2.setContactMaterial(material)
     m3.setContactMaterial(material)
     # build floor
-    vec = pych.ChVector(0., 0., -0.11)
-    box_dim = [20.,20.,0.2]
+    vec = pych.ChVector(0., 0., -0.1)
+    box_dim = [100.,100.,0.2]
     box = pych.ChBodyEasyBox(box_dim[0], box_dim[1], box_dim[2], 1000, True)
     box.SetPos(vec)
     box.SetMaterialSurface(material)
     box.SetBodyFixed(True)
     system.addBodyEasyBox(box)
 
-
-system.calculate_init()
 
     
     
@@ -397,7 +426,7 @@ if opts.use_gmsh and opts.refinement is True:
         return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
     # refinement free surface
 
-    box = 0.3
+    box = opts.refinement_freesurface
     box1 = py2gmsh.Fields.Box(mesh=mesh)
     box1.VIn = he
     box1.VOut = he_max
@@ -420,7 +449,7 @@ if opts.use_gmsh and opts.refinement is True:
 
     me3 = py2gmsh.Fields.MathEval(mesh=mesh)
     dist_z = '(abs(abs({z_p}-z)+abs(z-{z_n})-({z_p}-{z_n}))/2.)'.format(z_p=max(cylinder.vertices[:,2]), z_n=min(cylinder.vertices[:,2]))
-    radius = 1
+    radius = 1.5
     dist_x = '(abs((Sqrt(({x_center}-x)^2+({y_center}-y)^2)-{radius})))'.format(x_center=cylinder.barycenter[0], radius=radius, y_center=cylinder.barycenter[1])
     dist = 'Sqrt(((abs({dist_x}-{radius})+{dist_x})/2.)^2+{dist_z}^2)'.format(dist_x=dist_x, dist_z=dist_z, radius=radius)
     me3.F = mesh_grading(he=he, start=dist, grading=grading)
@@ -438,15 +467,10 @@ if opts.use_gmsh and opts.refinement is True:
 
 
 
-if opts.moorings is True:
-
-    dt = 1e-3
-    for i in range(10000):
-        system.calculate(1e-3)
-        print(i*dt, np.linalg.norm(m1.getTensionBack()), np.linalg.norm(m2.getTensionBack()), np.linalg.norm(m3.getTensionBack()))
 
 
-
+print("DONE")
+system.calculate_init()
 
 
 
@@ -532,22 +556,22 @@ nd = domain.nd
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
+        basis=C0_AffineLinearOnCubeWithNodalBasis
+        elementQuadrature = CubeGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
     else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
-         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
+        basis=C0_AffineLinearOnSimplexWithNodalBasis
+        elementQuadrature = SimplexGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
+        #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
 elif spaceOrder == 2:
     hFactor=0.5
     if useHex:
-	basis=C0_AffineLagrangeOnCubeWithNodalBasis
+        basis=C0_AffineLagrangeOnCubeWithNodalBasis
         elementQuadrature = CubeGaussQuadrature(nd,4)
         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
     else:
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
+        basis=C0_AffineQuadraticOnSimplexWithNodalBasis
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
 
@@ -665,24 +689,12 @@ waterLine_y = 2 * tank_dim[1]
 
 def signedDistance(x):
     water_level = (wave.eta(x,0)+wave.mwl)
-    phi_z = x[2]-(wave.eta(x,0.)+wave.mwl)
-    phi_x = x[0] - waterLine_x
-    phi_y = x[1] - waterLine_y
-    #phi_z = x[2] - waterLine_z
+    phi_z = x[2]-water_level
+    return water_level,phi_z
 
-    if phi_x < 0.0:
-        if phi_y < 0.0:
-            if phi_z < 0.0:
-                phi = max(phi_x,phi_y,phi_z)
-            else:
-                phi = phi_z
-
-    return water_level,phi
-        
 def vel_u(x,t):
     return wave.u(x,0)
 
 def eta_IC(x,t):
     return wave.eta(x,0)
-
 
