@@ -29,19 +29,15 @@ opts=Context.Options([
     # cylinder
     ("scale", 50., "scale used to reduce the dimensions of the structure"),
     ("cylinder", True, "cylinder"),
-    #("cylinder_radius", 2.0/2., "radius of cylinder"),
-    #("cylinder_height", 2.0, "height of cylinder"),
+    ("turbine", True, "takes turbine mass into account (different COG)"),
     ("cylinder_draft", 20., "draft of the cylinder without scaling"),
-    ("cylinder_coords", (1., 1., 0.929), "coordinates of cylinder"),
-    ("cylinder_mass", 1.347E+7, "mass of cylinder without scaling"),
-    ("Iyy", 6.82E+9, "moment of inertia. Ixx=Iyy without scaling"),
     ("free_x", (1., 1., 1.), "Translational DOFs"),
     ("free_r", (1., 1., 1.), "Rotational DOFs"),
-    ("VCG", 0.0758, "VCG"),
     # moorings
     ("moorings", True, "moorings"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
+    ("waves_case", None, "Takes predefined wave conditions [1 to 7]"),
     ("wave_period", 1.2, "Period of the waves"),
     ("wave_height",0.10, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
@@ -63,6 +59,18 @@ opts=Context.Options([
     ("nsave", 20, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ])
+
+
+wave_heights = [1.92, 7.578, 7.136, 7.574, 10.304, 10.74, 11.122]
+wave_periods = [7.5, 12.1, 14.3, 20., 12.1, 14.3, 20.]
+scale = opts.scale
+
+if opts.cylinder is True:
+    semi_mass = 13.444e6
+    semi_Ixx = semi_Iyy = 8.011e9
+    semi_Izz = 1.391e10
+    if opts.turbine is True:
+        semi_mass = 14.040e6
 
 
 rho_0=998.2
@@ -91,10 +99,14 @@ wavelength=1.
 wave_to_initial_conditions = True
 
 if opts.waves is True:
-    height = opts.wave_height
     mwl = depth = opts.water_level
     direction = np.array(opts.wave_dir)
+    height = opts.wave_height
     period = opts.wave_period
+    if opts.waves_case is not None:
+        assert opts.waves_case < 7, 'wave case must be between 0 and 6'
+        heigth = waves_height[opts.waves_case]/scale
+        period = waves_period[opts.waves_case]/np.sqrt(scale)
     BCoeffs = np.zeros(3)
     YCoeffs = np.zeros(3)
     wave = wt.MonochromaticWaves(period=period,
@@ -179,16 +191,20 @@ if opts.cylinder is True:
     #barycenter = [tank_dim[0]/2., tank_dim[1]/2.,  
     cylinder = st.ShapeSTL(domain, 'semi-sub0_50.stl')
     #cylinder_draft = opts.cylinder_draft
-    #scale = opts.scale
+    #scale = scale
     #draft = cylinder_draft/scale
     #cylinder = st.Cylinder(domain, radius=cylinder_radius, height=cylinder_height, coords=cylinder_coords, barycenter=barycenter, nPoints=nPoints )
-    location = [tank_dim[0]/2., tank_dim[1]/2., opts.water_level - opts.cylinder_draft/opts.scale]
+    location = [tank_dim[0]/2., tank_dim[1]/2., opts.water_level - opts.cylinder_draft/scale]
     mx = (min(cylinder.vertices[:,0])+max(cylinder.vertices[:,0]))/2.
     my = (min(cylinder.vertices[:,1])+max(cylinder.vertices[:,1]))/2.
     mz = (min(cylinder.vertices[:,2])+max(cylinder.vertices[:,2]))/2.
     cylinder.setRegions([[mx, my, mz]], [1])
     cylinder.setHoles([[mx, my, mz]])
-    cylinder.setBarycenter(np.array([0.5, 0.28876, mz-0.1892])) # X and Y coords ASD taken from CFX, scaled and translated - z coords from paper
+    if opts.turbine is True:
+        KG = 10.11/scale  # from Maine report
+    else:
+        KG = 5.6/scale
+    cylinder.setBarycenter(np.array([0.5, 0.28876, min(cylinder.vertices[:,2])+KG])) # X and Y coords ASD taken from CFX, scaled and translated - z coords from paper
     cylinder.rotate(-np.pi/6., axis=np.array([0.,0.,10.]))
     cylinder.translate(location-np.array([cylinder.barycenter[0], cylinder.barycenter[1], 0.]))
     cylinder.holes_ind = np.array([0])
@@ -214,32 +230,37 @@ if opts.cylinder is True:
     body = crb.ProtChBody(system)
     body.attachShape(cylinder)
     body.setConstraints(free_x=free_x, free_r=free_r)
-    body.ChBody.SetMass(opts.cylinder_mass/(opts.scale**3))
-    body.setRecordValues(all_values=True)
-    #body.ChBody.SetBodyFixed(True)
-    Ixx = Iyy = opts.Iyy/(opts.scale**5)
-    Izz = 1.22E+10/(opts.scale**5)
-    #Izz = cylinder_radius**2/2.*opts.cylinder_mass
+    mass = 13444000/scale**3
+    Ixx = Iyy = ((23.91+24.90)/scale/2.)**2*mass
+    Izz = (32.17/scale)**2*mass
+    if opts.turbine is True:
+        mass = 14040000
+        Ixx = Iyy = ((31.61+32.34)/scale/2.)**2*mass
+        Izz = (32.17/scale)**2*mass
+    body.ChBody.SetMass(mass)
     from proteus.mbd import pyChronoCore as pcc
     inert = pcc.ChVector(Ixx, Iyy, Izz)
     body.ChBody.SetInertiaXX(inert)
+    body.setRecordValues(all_values=True)
 
 if opts.moorings is True:
     # variables
     #scale = 50.
-    L = 835.5/opts.scale
-    d = 0.0766/opts.scale
+    L = 835.5/scale
+    d = 0.0766/scale
     A0 = (np.pi*d**2/4)
-    w = 108.63/(opts.scale**2)  # kg/m
+    w = 108.63/(scale**2)  # kg/m
     nb_elems =  50
     dens = w/A0+rho_0
-    E = (753.6e6/opts.scale**3)/A0
-    fairlead_radius = 40.9/opts.scale
-    anchor_radius = 837.6/opts.scale
-    fairlead_depth = 14./opts.scale
-    anchor_depth = 200./opts.scale
+    E = (753.6e6/scale**3)/A0
+    fairlead_radius = 40.868/scale
+    anchor_radius = 837.6/scale
+    fairlead_depth = 14./scale  # only for 20m draft!
+    anchor_depth = 200./scale  # only for 20m draft!
+    anchor_depth -= 0.01
     mooring_X = anchor_radius-fairlead_radius
-    fairlead_height = anchor_depth-fairlead_depth
+    fairlead_height = water_level-fairlead_depth
+    anchor_height = water_level-anchor_depth
     # prescribed motion of body
     # start with fully stretched line and go to initial position before simulation starts
     prescribed_init = False
@@ -264,9 +285,9 @@ if opts.moorings is True:
     fairlead2 = fairlead_center + fairlead2_offset
     fairlead3 = fairlead_center + fairlead3_offset
     # anchors
-    anchor1 = fairlead1-[0.,0.,fairlead1[2]] + np.array([-mooring_X*np.cos(np.radians(120)), -mooring_X*np.sin(np.radians(120)), 0.])
-    anchor2 = fairlead2-[0.,0.,fairlead2[2]] + np.array([-mooring_X, 0., 0.])
-    anchor3 = fairlead3-[0.,0.,fairlead3[2]] + np.array([-mooring_X*np.cos(np.radians(-120)), -mooring_X*np.sin(np.radians(-120)), 0.])
+    anchor1 = fairlead1-[0.,0.,fairlead1[2]] + np.array([-mooring_X*np.cos(np.radians(120)), -mooring_X*np.sin(np.radians(120)), 0.]) + np.array([0.,0.,anchor_height])
+    anchor2 = fairlead2-[0.,0.,fairlead2[2]] + np.array([-mooring_X, 0., 0.]) + np.array([0.,0.,anchor_height])
+    anchor3 = fairlead3-[0.,0.,fairlead3[2]] + np.array([-mooring_X*np.cos(np.radians(-120)), -mooring_X*np.sin(np.radians(-120)), 0.]) + np.array([0.,0.,anchor_height])
     # quasi-statics for laying out cable
     from catenary import MooringLine
     EA = 1e20  # strong EA so there is no stretching
@@ -353,7 +374,7 @@ if opts.moorings is True:
     m2.setContactMaterial(material)
     m3.setContactMaterial(material)
     # build floor
-    vec = pych.ChVector(0., 0., -0.15)
+    vec = pych.ChVector(0., 0., 0.)
     box_dim = [100.,100.,0.2]
     box = pych.ChBodyEasyBox(box_dim[0], box_dim[1], box_dim[2], 1000, True)
     box.SetPos(vec)
