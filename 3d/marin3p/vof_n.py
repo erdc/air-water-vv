@@ -46,4 +46,4 @@ maxLineSearches = 0
 nLevels=ct.nLevels
 parallelPartitioningType = ct.parallelPartitioningType
 nLayersOfOverlapForParallel = ct.nLayersOfOverlapForParallel
-auxiliaryVariables=[ct.height_gauges]
+#auxiliaryVariables=[ct.height_gauges]

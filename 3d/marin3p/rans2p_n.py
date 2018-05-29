@@ -44,4 +44,4 @@ maxNonlinearIts = 50
 maxLineSearches = 0
 if not ns_forceStrongDirichlet:
     conservativeFlux = {0:'pwl-bdm-opt'}
-auxiliaryVariables=[pressure_gauges]
+#auxiliaryVariables=[pressure_gauges]

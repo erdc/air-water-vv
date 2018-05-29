@@ -22,7 +22,9 @@ opts = Context.Options([
     ("rans3p",True, "Use RANS3P model insteady of RANS2P"),
     ("useOnlyVF",False, "Turn off CLSVOF"),
     ("USE_SUPG",0,"Use SUPG Stabilization in momentum equations"),
-    ("ARTIFICIAL_VISCOSITY",1,"Art viscosity in mom. equations. 0: No artificial viscosity, 1: shock capturing, 2: entropy-viscosity")
+    ("ARTIFICIAL_VISCOSITY",1,"Art viscosity in mom. equations. 0: No artificial viscosity, 1: shock capturing, 2: entropy-viscosity"),
+    ("ydim",0.1,"Width of domain in y"),
+    ("nsc",0,"Turbulence:#1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega ")
     ])
 
 if opts.rans3p:
@@ -165,7 +167,8 @@ elif usePUMI:
     domain.PUMIMesh.loadModelAndMesh("Marin.dmg", input_mesh)
 else:
     bcCoords=False
-    L      = [3.22,0.6,1.8]
+    ydim=float(opts.ydim)
+    L      = [3.22,ydim,1.8]
 #    box_L  = [0.161,0.403,0.161]
 #    box_xy = [2.3955,0.2985]
     he = opts.he*float(spaceOrder)
@@ -286,7 +289,7 @@ dissipation_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 weak_bc_penalty_constant = 100
 
 #turbulence
-ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
+ns_closure=opts.nsc #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
@@ -306,8 +309,8 @@ sigma_01 = 0.0
 g = [0.0,0.0,-9.8]
 
 # Initial condition
-waterLine_x = 1.22
-waterLine_z = 0.55
+waterLine_x = 1.2 #1.22
+waterLine_z = 0.6 #0.55
 
 def signedDistance(x):
     phi_x = x[0]-waterLine_x
