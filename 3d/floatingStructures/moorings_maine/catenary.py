@@ -590,7 +590,7 @@ class MooringLine:
                 return [x, y]
             def ds_coords(s):
                 if s < d-x0:
-                    return [s,0.]
+                    return [1.,0.]
                 else:
                     s = s-(d-x0)
                     x = a/np.sqrt(a**2+s**2)
