@@ -1,0 +1,21 @@
+#!/bin/bash
+#PBS -A ERDCV00898ENQ
+#PBS -l walltime=60:00:00
+#PBS -l select=94:ncpus=36:mpiprocs=36
+#PBS -l place=scatter:excl
+#PBS -q standard
+#PBS -N he0.0125
+#PBS -j oe
+#PBS -l application=proteus
+#PBS -V
+#PBS -m eba
+#PBS -M jhcollins12@gmail.com
+
+cd $PBS_O_WORKDIR
+mkdir $WORKDIR/marin.$PBS_JOBID
+cp *.py $WORKDIR/marin.$PBS_JOBID
+cp he0.0125.pbs $WORKDIR/marin.$PBS_JOBID
+cp petsc.options.asm $WORKDIR/marin.$PBS_JOBID
+cd  $WORKDIR/marin.$PBS_JOBID
+mpiexec_mpt -n ${BC_MPI_TASKS_ALLOC}  parun marin_so.py -l 5 -F -O petsc.options.asm -C "he=0.0125 cfl=0.33 rans3p=False"
+
