@@ -24,7 +24,8 @@ coefficients = MoveMeshMonitor.Coefficients(ct.my_func,
                                             he_min=ct.he_min,
                                             LS_MODEL=3,
                                             ME_MODEL=0,
-                                            boundaryNormals=ct.boundaryNormals,
+                                            boundaryNormals=ct.boundaryNormals_array,
+                                            fixedNodes=ct.fixedNodes,
                                             nSmooth=ct.nSmooth)
 
 
