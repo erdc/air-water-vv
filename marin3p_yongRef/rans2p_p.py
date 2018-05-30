@@ -8,7 +8,7 @@ nd=ct.nd
 domain=ct.domain
 genMesh=ct.genMesh
 LevelModelType = RANS2P.LevelModel
-if ct.opts.useOnlyVF:
+if ct.opts.useOnlyVF or ct.opts.useCLSVOF:
     LS_model = None
 else:
     LS_model = 2
@@ -22,6 +22,7 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    g=ct.g,
                                    nd=nd,
                                    ME_model=ct.V_model,
+                                   CLSVOF_model=ct.CLSVOF_model,
                                    VF_model=ct.VOF_model,
                                    LS_model=ct.LS_model,
                                    epsFact_density=ct.epsFact_density,
@@ -99,24 +100,24 @@ if ct.bcCoords:
 
     def getDFBC_w(x,flag):
         return lambda x,t: 0.0
-else:
+else:    
     eps=1.0e-4
-    print ct.boundaryTags
+    #print ct.boundaryTags    
     def getAFBC_p(x,flag):
-        if x[2]>=1.0-eps and x[0]>0 and x[0]<3.22:
-          print "top"; print flag
-        if x[2]<=0.0+eps and x[0]>0 and x[0]<3.22:
-          print "bottom"; print flag
-        if x[0]<=0.0+eps and x[2]>0 and x[2]<1.0:
-          print "left"; print flag
-        if x[0]>=3.22-eps and x[2]>0 and x[2]<1.0:
-          print "right"; print flag
-        if x[1]<=0+eps and x[2]>0 and x[2]<1.0:
-          print "front"; print flag
-        if x[1]>=1-eps and x[2]>0 and x[2]<1.0:
-          print "back"; print flag
-        if(flag>11):
-          print "trouble"
+        #if x[2]>=1.0-eps and x[0]>0 and x[0]<3.22:
+        #  print "top"; print flag
+        #if x[2]<=0.0+eps and x[0]>0 and x[0]<3.22:
+        #  print "bottom"; print flag
+        #if x[0]<=0.0+eps and x[2]>0 and x[2]<1.0:
+        #  print "left"; print flag
+        #if x[0]>=3.22-eps and x[2]>0 and x[2]<1.0:
+        #  print "right"; print flag
+        #if x[1]<=0+eps and x[2]>0 and x[2]<1.0:
+        #  print "front"; print flag
+        #if x[1]>=1-eps and x[2]>0 and x[2]<1.0:
+        #  print "back"; print flag
+        #if(flag>11):
+        #  print "trouble"
         #box_xy = [2.3955,0.2985]
         #if x[0] > 2.3955 
 

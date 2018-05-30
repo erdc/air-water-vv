@@ -12,7 +12,7 @@ name = "marin"
 
 opts = Context.Options([
     ("strong", True, "Use strong BC for NSE"),
-    ("openTop", True, "Open the top of the tank to the atmosphere"),
+    ("openTop", False, "Open the top of the tank to the atmosphere"),
     ("he", 0.05, "Maximum mesh element diameter"),
     ("genMesh", False, "Generate a new mesh"),
     ("T", 0.1, "Simulate over over the interval [0,T]"),
@@ -21,28 +21,53 @@ opts = Context.Options([
     ("cfl",0.9, "CFL number to use for time stepping"),
     ("rans3p",False, "Use RANS3P model insteady of RANS2P"),
     ("useOnlyVF",False, "Turn off CLSVOF"),
-    ("usePUMI", False, "usePUMI workflow")
+    ("usePUMI", False, "usePUMI workflow"),
+    ("useCLSVOF",False,"Use CLSVOF model")
     ])
 
 if opts.rans3p:
-    VOF_model=0
-    LS_model=1
-    RD_model=2
-    MCORR_model=3
-    V_model=4
-    PINC_model=5
-    PRESSURE_model=6
-    PINIT_model=7
+    if opts.useCLSVOF:
+        CLSVOF_model=0
+        VOF_model=None
+        LS_model=None
+        RD_model=None
+        MCORR_model=None
+        V_model=1
+        PINC_model=2
+        PRESSURE_model=3
+        PINIT_model=4
+    else:
+        CLSVOF_model=None
+        VOF_model=0
+        LS_model=1
+        RD_model=2
+        MCORR_model=3
+        V_model=4
+        PINC_model=5
+        PRESSURE_model=6
+        PINIT_model=7
 else:
-    V_model=0
-    VOF_model=1
-    LS_model=2
-    RD_model=3
-    MCORR_model=4
-    PINC_model=None
-    PRESSURE_model=None
-    PINIT_model=None
-    
+    if opts.useCLSVOF:
+        V_model=0
+        CLSVOF_model=1
+        VOF_model=None
+        LS_model=None
+        RD_model=None
+        MCORR_model=None
+        PINC_model=None
+        PRESSURE_model=None
+        PINIT_model=None
+    else:
+        V_model=0
+        CLSVOF_model=None
+        VOF_model=1
+        LS_model=2
+        RD_model=3
+        MCORR_model=4
+        PINC_model=None
+        PRESSURE_model=None
+        PINIT_model=None
+#
 if opts.gauges:
     pressure_gauges = PointGauges(gauges=((('p',),
                                           ((2.3950,0.4745,0.020),
@@ -124,9 +149,10 @@ elif spaceOrder == 2:
 
 # Domain and mesh
 nLevels = 1
-parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
+#parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.node
+parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.element
 nLayersOfOverlapForParallel = 0
-usePUMI=1
+usePUMI=opts.usePUMI
 
 if useHex: 
     hex=True 
@@ -153,7 +179,7 @@ elif usePUMI and not genMesh:
     domain = Domain.PUMIDomain() #initialize the domain
     #domain.faceList=[[1],[2],[3],[4],[5],[6],[8],[9],[10],[11],[12]]
     he = opts.he*float(spaceOrder)
-    adaptMeshFlag = 0
+    adaptMeshFlag = 1
     adaptMesh_nSteps = 5
     adaptMesh_numIter = 3
     hmax = he*4.0;
@@ -165,7 +191,10 @@ elif usePUMI and not genMesh:
     #read the geometry and mesh
     parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.element
     domain.MeshOptions.setParallelPartitioningType('element')
-    domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "4-Proc_new_zsplit/Marin.smb")
+    #domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "4-Proc_new_zsplit/Marin.smb")
+    #domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "4-proc/marin.smb")
+    domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "8-proc/marin.smb")
+    #domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "Reconstructed.smb")
 else:
     bcCoords=False
     L      = [3.22,1.0,1.0]
@@ -242,7 +271,8 @@ else:
                                                  holes=holes)
 						 
     #go ahead and add a boundary tags member 
-    domain.MeshOptions.setParallelPartitioningType('node')
+    #domain.MeshOptions.setParallelPartitioningType('node')
+    domain.MeshOptions.setParallelPartitioningType('element')
     domain.boundaryTags = boundaryTags
     domain.writePoly("mesh")
     domain.writePLY("mesh")
@@ -283,6 +313,7 @@ vof_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 ls_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 rd_nl_atol_res = max(1.0e-8,0.01*he)
 mcorr_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
+clsvof_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 kappa_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 dissipation_nl_atol_res = max(1.0e-8,0.01*he**2/2.0)
 
