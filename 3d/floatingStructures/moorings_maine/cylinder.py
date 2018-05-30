@@ -98,8 +98,8 @@ if opts.waves is True:
     period = opts.wave_period
     if opts.waves_case is not None:
         assert opts.waves_case < 7, 'wave case must be between 0 and 6'
-        heigth = waves_height[opts.waves_case]/scale
-        period = waves_period[opts.waves_case]/np.sqrt(scale)
+        heigth = wave_heights[opts.waves_case]/scale
+        period = wave_periods[opts.waves_case]/np.sqrt(scale)
     BCoeffs = np.zeros(3)
     YCoeffs = np.zeros(3)
     wave = wt.MonochromaticWaves(period=period,
@@ -422,32 +422,25 @@ if opts.use_gmsh and opts.refinement is True:
     def mesh_grading(start, he, grading):
         return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
     # refinement free surface
+    def dist_plane(xn, xp, plane='x'):
+        x_range = abs(xp-xn)
+        dist = '0.5*(abs({plane}-({xn}))+abs({plane}-({xp}))-{x_range})'.format(xn=xn, xp=xp, x_range=x_range, plane=plane)
+        return dist
 
-    box = opts.refinement_freesurface
-    box1 = py2gmsh.Fields.Box(mesh=mesh)
-    box1.VIn = he
-    box1.VOut = he_max
-    box1.XMin = -1000
-    box1.XMax = 1000
-    box1.YMin = -1000
-    box1.YMax = 1000
-    box1.ZMin = water_level-box
-    box1.ZMax = water_level+box
-    field_list += [box1]
-
-    me01 = py2gmsh.Fields.MathEval(mesh=mesh)
-    dist = '(Sqrt(({zcoord}-z)*({zcoord}-z)))'.format(zcoord=water_level+box)
-    me01.F = mesh_grading(he=he, start=dist, grading=grading)
-    field_list += [me01]
-    me02 = py2gmsh.Fields.MathEval(mesh=mesh)
-    dist = '(Sqrt(({zcoord}-z)*({zcoord}-z)))'.format(zcoord=water_level-box)
-    me02.F = mesh_grading(he=he, start=dist, grading=grading)
-    field_list += [me02]
+    box = opts.wave_height/2.
+    me1 = py2gmsh.Fields.MathEval(mesh=mesh)
+    dist_z = dist_plane(xn=water_level-box, xp=water_level+box, plane='z')
+    #dist = 'sqrt(({dist_x})^2+({dist_y})^2+({dist_z})^2)'.format(dist_x=dist_x, dist_y=dist_y, dist_z=dist_z)
+    dist = dist_z
+    me1.F = mesh_grading(start=dist, he=he, grading=grading)
+    field_list += [me1]
 
     me3 = py2gmsh.Fields.MathEval(mesh=mesh)
-    dist_z = '(abs(abs({z_p}-z)+abs(z-{z_n})-({z_p}-{z_n}))/2.)'.format(z_p=max(cylinder.vertices[:,2]), z_n=min(cylinder.vertices[:,2]))
     radius = 1.5
-    dist_x = '(abs((Sqrt(({x_center}-x)^2+({y_center}-y)^2)-{radius})))'.format(x_center=cylinder.barycenter[0], radius=radius, y_center=cylinder.barycenter[1])
+    mz = (min(cylinder.vertices[:,2])+max(cylinder.vertices[:,2]))/2.
+    center = cylinder.barycenter-np.array([0.,0.,cylinder.barycenter[2]])+np.array([0.,0.,mz])
+    dist_x = '(abs((Sqrt(({x_center}-x)^2+({y_center}-y)^2)-{radius})))'.format(x_center=center[0], radius=radius, y_center=center[1])
+    dist_z = '(abs(abs({z_p}-z)+abs(z-{z_n})-({z_p}-{z_n}))/2.)'.format(z_p=max(cylinder.vertices[:,2]), z_n=min(cylinder.vertices[:,2]))
     dist = 'Sqrt(((abs({dist_x}-{radius})+{dist_x})/2.)^2+{dist_z}^2)'.format(dist_x=dist_x, dist_z=dist_z, radius=radius)
     me3.F = mesh_grading(he=he, start=dist, grading=grading)
     field_list += [me3]
@@ -465,8 +458,6 @@ if opts.use_gmsh and opts.refinement is True:
 
 
 
-
-print("DONE")
 system.calculate_init()
 
 
