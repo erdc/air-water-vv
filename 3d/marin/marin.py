@@ -7,7 +7,7 @@ from proteus.Profiling import logEvent
 #  Discretization -- input options    
 #Refinement=8#4-32 cores
 #Refinement=12
-Refinement=24
+Refinement=1
 genMesh=True
 useOldPETSc=False
 useSuperlu=False
@@ -82,8 +82,8 @@ else:
     box_L  = [0.161,0.403,0.161]
     box_xy = [2.3955,0.2985]
     #he = L[0]/float(6.5*Refinement)
-    he = L[0]/64.0
-    he*=0.5#256
+    he = L[0]/32.0
+#    he*=0.5#256
     boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     bt = boundaryTags
