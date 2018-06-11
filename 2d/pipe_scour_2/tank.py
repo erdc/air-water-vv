@@ -8,23 +8,48 @@ from proteus.mprans import SpatialTools as st
 from proteus import Gauges as ga
 from proteus import WaveTools as wt
 from proteus.mprans.SedClosure import  HsuSedStress
+from proteus.mbd import ChRigidBody as crb
+from proteus.mbd import pyChronoCore as pych
+from proteus.ctransportCoefficients import smoothedHeaviside 
+from proteus.ctransportCoefficients import smoothedHeaviside_integral
+from proteus.mprans import BodyDynamics as bd
+from proteus import WaveTools as wt
+
 
 
 opts=Context.Options([
     # predefined test cases
-    ("waterLine_x", 10.00, "Width of free surface from left to right"),
-    ("waterLine_z", 1., "Heigth of free surface above bottom"),
-    ("Lx", 1.50, "Length of the numerical domain"),
-    ("Ly", 1.5, "Heigth of the numerical domain"),
+    #("waterLine_x", 10.00, "Width of free surface from left to right"),
+    #("waterLine_z", 1., "Heigth of free surface above bottom"),
+    #("Lx", 1.50, "Length of the numerical domain"),
+    #("Ly", 1.5, "Heigth of the numerical domain"),
     ("dtout", 0.05, "Time interval for output"),
+    ("Refiment", 4, "refinement"),
+    ("tank_dim_x", 1.6, "x_dim"),
+    ("tank_dim_y", 0.6, "y_dim"),
+    ("hole_tank", True, "hole"),
+    ("waterLevel" , 0.35, "waterLevel"),
+    # current
+    ("current",True, "yes or no"),
+    ("inflow_vel", 0.3, "inflow velocity"),
+    ("GenZone", True, "on/off"),
+    ("AbsZone", True, "on/off"),
+    #opentop
+    ("openTop", True, "Enable open atmosphere"),
+    # cylinder
+    ("cylinder_radius", 0.05, "radius of cylinder"),
+    ("cylinder_pos_x", 0.8, "x position of cylinder"),
+    ("cylinder_pos_y", 0.085+0.05, "y position of cylinder"),
+    ("circle2D", True, "switch on/off cylinder"),
+    ("circleBC", 'NoSlip','circle BC'),
     # sediment parameters
-    ('cSed', 0.61,'Sediment concentration'),
+    ('cSed', 0.62,'Sediment concentration'),
     # numerical options
     ("refinement", 25.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop",  True, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.25 ,"Target cfl"),
-    ("duration", 3.75 ,"Duration of the simulation"),
+    ("duration", 15.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
@@ -34,6 +59,9 @@ opts=Context.Options([
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
     ])
+
+
+steady_current = wt.SteadyCurrent(U=[opts.inflow_vel,0,0],mwl=opts.waterLevel,rampTime=0.8)
 
 
 # ----- Sediment stress ----- #
@@ -54,12 +82,17 @@ sedClosure = HsuSedStress(aDarcy =  150.0,
                           nContact =  5.0,
                           angFriction =  pi/6.,
                           vos_limiter = 0.62,
-                          mu_fr_limiter = 1e-3,
+                          mu_fr_limiter = 1e-1,
                           )
 
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
+
+
+
+
+
 
 
 # ----- Phisical constants ----- #
@@ -69,8 +102,10 @@ rho_0 = 998.2
 nu_0 = 1.004e-6
 
 # Air
-rho_1 = rho_0 # 1.205 #
-nu_1 = nu_0 # 1.500e-5 # 
+#rho_1 = rho_0
+#nu_1 = nu_0
+rho_1 =  1.205 #rho_0
+nu_1 =  1.500e-5 # 
 
 # Sediment
 
@@ -86,54 +121,249 @@ g = np.array([0.0, -9.8, 0.0])
 gamma_0 = abs(g[1])*rho_0
 
 # Initial condition
-waterLine_x = opts.waterLine_x
-waterLine_z = opts.waterLine_z
-waterLevel = waterLine_z
+#waterLine_x = opts.waterLine_x
+#waterLine_z = opts.waterLine_z
+waterLevel = opts.waterLevel 
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # Domain and mesh
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-L = (opts.Lx, opts.Ly)
-he = L[0]/opts.refinement
-dim = dimx, dimy = L
-coords = [ dimx/2., dimy/2. ]
+#L = (opts.Lx, opts.Ly)
+#he = L[0]/opts.refinement
+he = 0.010 
+#dim = dimx, dimy = L
+#coords = [ dimx/2., dimy/2. ]
+
+############ TANK ###################
+
+
+
+tank_dim = (opts.tank_dim_x, opts.tank_dim_y)
+
+x1=0.2
+
+
+
+
+### CYLINDER #####
+cylinder_pos = np.array([opts.cylinder_pos_x, opts.cylinder_pos_y, 0.])
+cylinder_radius = opts.cylinder_radius
+
+
+
+
+
+if opts.circle2D:
+    circle = st.Circle(domain=domain, radius=cylinder_radius, coords=(cylinder_pos[0],cylinder_pos[1]), barycenter=(cylinder_pos[0],cylinder_pos[1]), nPoints=28)
+
+    circle2D = bd.RigidBody(shape=circle)
+    free_x = (0.0,0.0,0.0)
+    free_r = (0.0,0.0,0.0)
+    circle2D.setConstraints(free_x=free_x,free_r=free_r)
+    circle2D.setNumericalScheme(None)
+    circle2D.setRecordValues(filename='circle2D',all_values=True)
+
+
+
+
 
 boundaryOrientations = {'y-': np.array([0., -1.,0.]),
                         'x+': np.array([+1, 0.,0.]),
                         'y+': np.array([0., +1.,0.]),
                         'x-': np.array([-1., 0.,0.]),
                         'sponge': None,
+                        'circle': None,
+                        'hole_x-': np.array([-1., 0.,0.]),
+                        'hole_x+': np.array([+1., 0.,0.]),
+                        'hole_y-': np.array([0., -1.,0.]),
+
+
                            }
 boundaryTags = {'y-': 1,
                     'x+': 2,
                     'y+': 3,
                     'x-': 4,
                     'sponge': 5,
+                    'circle':6,
+                    'hole_x-':7,
+                    'hole_x+':8,
+                    'hole_y-':9,
                        }
 
-tank = st.Rectangle(domain, dim=dim, coords=coords)
+
+
+
+if opts.hole_tank:
+
+    vertices=[[0.0, 0.08],#0
+              [x1,  0.08],#1
+              [0.3,  0.08],#2
+              [0.3,  0.0],#3
+              [1.3,  0.0],#4
+              [1.3,  0.08],#5
+              [1.4,  0.08],#6
+              [tank_dim[0],0.08],#7
+              [tank_dim[0],tank_dim[1]], #8
+              [1.4, tank_dim[1]], #9
+              [0.2, tank_dim[1]], #10
+              [0.0, tank_dim[1]], #11
+              ]
+
+    vertexFlags=np.array([1, 1, 1,
+                          9, 9,
+                          1, 1, 1,
+                          3, 3, 3, 3,
+                          ])
+    segments=[[0,1],
+              [1,2],
+
+              [2,3],
+              [3,4],
+              [4,5],
+
+              [5,6],
+              [6,7],
+
+              [7,8],
+
+              [8,9],
+              [9,10],
+              [10,11],
+
+              [11,0],
+
+              [1,10],
+              [6,9],
+             ]
+
+    segmentFlags=np.array([ 1, 1, 
+                            7, 9, 8,
+                            1, 1,
+                            2,
+                            3, 3, 3, 
+                            4,
+                            5, 5,
+                         ])
+
+
+regions = [ [ 0.90*x1 , 0.50*tank_dim[1] ],
+            [ 0.7 , 0.50*tank_dim[1] ],
+            [ 0.95*tank_dim[0] , 0.50*tank_dim[1] ] ]
+
+regionFlags=np.array([1, 2, 3])
+
+
+
+tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
+                      segments=segments, segmentFlags=segmentFlags,
+                      regions=regions, regionFlags=regionFlags,
+                      boundaryTags=boundaryTags, boundaryOrientations=boundaryOrientations)
+
+
+
 
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #############################################################################################################################################################################################################################################################################################################################################################################################
 
+if opts.circle2D:
+    
+    for bc in circle.BC_list:
+        if opts.circleBC == 'FreeSlip':
+            bc.setFreeSlip()
+        if opts.circleBC == 'NoSlip':
+            bc.setNoSlip()
+
+
+
 tank.BC['y-'].setFreeSlip()
 
-
+################################## y+ ######################
 tank.BC['y+'].setFreeSlip()
+if opts.openTop:
+    tank.BC['y+'].reset()
+    tank.BC['y+'].setAtmosphere()
+    #tank.BC['y+'].v_dirichlet.uOfXT = None
+    tank.BC['y+'].p_advective.setConstantBC(0.0)
+    tank.BC['y+'].p_dirichlet.setConstantBC(0.0)
+    tank.BC['y+'].pInc_dirichlet.setConstantBC(0.0)
+    #tank.BC['y+'].pInc_advective.setConstantBC(0.0)
+    #tank.BC['y+'].pInc_diffusive.setConstantBC(0.0)
+    tank.BC['y+'].pInit_dirichlet.setConstantBC(0.0)
+    tank.BC['y+'].u_advective.setConstantBC(0.0)
+    tank.BC['y+'].v_advective.setConstantBC(0.0)
+    tank.BC['y+'].u_diffusive.setConstantBC(0.0)
+    tank.BC['y+'].v_diffusive.setConstantBC(0.0)
 
-
+####################################### x- ########################
 tank.BC['x-'].setFreeSlip()
+if opts.current:
+
+    tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current, smoothing = 3*he, vert_axis=1)
+    
+    #tank.BC['x-'].setTwoPhaseVelocityInlet(U=[opts.inflow_vel,0,0], waterLevel = opts.waterLevel,
+                                           #smoothing = 3*he)
+                                           #kInflow=kInflow, dissipationInflow=dissipationInflow,
+                                           #kInflowAir=kInflow, dissipationInflowAir=dissipationInflow)
 
 
+    
+
+    tank.BC['x-'].pInit_advective.setConstantBC(0.0)
+    #tank.BC['x-'].pInc_advective.setConstantBC(0.0) 
+    tank.BC['x-'].pInit_diffusive.setConstantBC(0.0)
+    tank.BC['x-'].pInc_diffusive.setConstantBC(0.0)
+    tank.BC['x-'].pInc_advective.uOfXT = lambda x,t: -opts.inflow_vel
+    tank.BC['x-'].p_advective.setConstantBC(0.0)
+
+
+#################################### x+ ###############################
 tank.BC['x+'].setFreeSlip()
 
-tank.BC['y-'].vos_dirichlet.setConstantBC(0.635)
+if opts.current:
+    
+    tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLevel, rhoUp=rho_1, rhoDown = rho_0, g=g, refLevel= tank_dim[1], smoothing = 3*he)
+    
+    #tank.BC['x+'].pInit_dirichlet.setConstantBC(0.0)
+    #tank.BC['x+'].u_dirichlet.setConstantBC(0.0)
+    #tank.BC['x+'].v_dirichlet.setConstantBC(0.0)
+    #tank.BC['x+'].p_dirichlet.setConstantBC(0.0)
+    tank.BC['x+'].u_dirichlet.uOfXT = None
+    tank.BC['x+'].v_dirichlet.uOfXT = None
+    tank.BC['x+'].u_advective.setConstantBC(0.0)
+    tank.BC['x+'].v_advective.setConstantBC(0.0)
+    tank.BC['x+'].u_diffusive.setConstantBC(0.0)
+    tank.BC['x+'].v_diffusive.setConstantBC(0.0)
+    tank.BC['x+'].pInc_dirichlet.setConstantBC(0.0) 
 
 
+tank.BC['hole_x+'].setFreeSlip()
 
+
+tank.BC['hole_x-'].setFreeSlip()
+
+
+tank.BC['hole_y-'].setFreeSlip()
+
+
+tank.BC['hole_y-'].vos_dirichlet.setConstantBC(0.62)
+
+
+if opts.current:
+
+    if opts.GenZone == True:
+        omega=1.0 
+        tank.setAbsorptionZones(flags=1, epsFact_solid=float(0.2/2.), dragAlpha=10.*omega/nu_0,
+                            orientation=[1., 0.], center=(float(0.2/2.), 0., 0.),
+                            )
+
+    if opts.AbsZone == True:
+        omega= 1.0
+        tank.setAbsorptionZones(flags=3, epsFact_solid=float(0.2/2.), dragAlpha=10.*omega/nu_0,
+                            orientation=[-1., 0.], center=(float(tank_dim[0]-0.2/2.), 0., 0.),
+                            )
 
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
@@ -157,11 +387,11 @@ if opts.useRANS:
 T=opts.duration
 PG = []
 gauge_dy=0.01
-tank_dim_y=dimy
+tank_dim_y=tank_dim[1]
 nprobes=int(tank_dim_y/gauge_dy)+1
 probes=np.linspace(0., tank_dim_y, nprobes)
 for i in probes:
-    PG.append((dimx/2., i, 0.),)
+    PG.append((tank_dim[0]/2., i, 0.),)
 v_output = ga.PointGauges(gauges=((('u',), PG),
                                   (('v',), PG),),
                           activeTime = (0., T),
@@ -396,6 +626,8 @@ elif useRANS == 2:
 # Functions for model variables - Initial conditions
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
+waterLine_z = opts.waterLevel
+
 def signedDistance(x):
     phi_z = x[1] - waterLine_z
     return phi_z
@@ -408,7 +640,7 @@ class Suspension_class:
     def __init__(self):
         pass
     def uOfXT(self, x, t=0):
-        phi = signedDistance(x) + 0.6   # 0.6 is the distance between the free surface and the sediments
+        phi = signedDistance(x) + 0.29   # 0.6 is the distance between the free surface and the sediments
         smoothing = (epsFact_consrv_heaviside)*he/2.
         Heav = smoothedHeaviside(smoothing, phi)      
         if phi <= -smoothing:
@@ -419,7 +651,7 @@ class Suspension_class:
             return 1e-10    
 
 def vos_function(x, t=0):
-    phi = signedDistance(x) + 0.6
+    phi = signedDistance(x) + 0.29
     smoothing = (epsFact_consrv_heaviside)*he/2.
     Heav = smoothedHeaviside(smoothing, phi)      
     if phi <= -smoothing:
