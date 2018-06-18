@@ -41,6 +41,10 @@ if ct.useRANS > 0:
     pnList += [("kappa_p", "kappa_n"),
                ("dissipation_p", "dissipation_n")]
 
+# added mass
+if ct.opts.addedMass:
+    pnList += [("added_mass_p","added_mass_n")]
+
 #systemStepControllerType = ISO_fixed_MinAdaptiveModelStep
 if ct.dt_fixed:
 #    systemStepControllerType = Sequential_FixedStep
@@ -53,6 +57,7 @@ else:  # use CFL
 
 needEBQ_GLOBAL = False
 needEBQ = False
+systemStepExact=False
 
 #modelSpinUpList = [0]  # for initial conditions of movemesh
 

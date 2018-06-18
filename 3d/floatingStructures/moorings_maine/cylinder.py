@@ -29,12 +29,12 @@ opts=Context.Options([
     # cylinder
     ("scale", 50., "scale used to reduce the dimensions of the structure"),
     ("cylinder", True, "cylinder"),
-    ("turbine", True, "takes turbine mass into account (different COG)"),
+    ("turbine", False, "takes turbine mass into account (different COG)"),
     ("cylinder_draft", 20., "draft of the cylinder without scaling"),
     ("free_x", (1., 1., 1.), "Translational DOFs"),
     ("free_r", (1., 1., 1.), "Rotational DOFs"),
     # moorings
-    ("moorings", True, "moorings"),
+    ("moorings", False, "moorings"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
     ("waves_case", None, "Takes predefined wave conditions [1 to 7]"),
@@ -50,8 +50,9 @@ opts=Context.Options([
     ("refinement_freesurface", 0.05, "ref"),
     ("refinement_grading", 1.2, "ref"),
     ("movingDomain", True, "True/False"),
-    ("T", 5.0, "Simulation time"),
-    ("dt_init", 0.001, "Initial time step"),
+    ("addedMass", False, "True/False"),
+    ("T", 30.0, "Simulation time"),
+    ("dt_init", 0.0001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("chrono_dt", 1e-4, "time step in chrono"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
@@ -98,7 +99,7 @@ if opts.waves is True:
     period = opts.wave_period
     if opts.waves_case is not None:
         assert opts.waves_case < 7, 'wave case must be between 0 and 6'
-        heigth = wave_heights[opts.waves_case]/scale
+        height = wave_heights[opts.waves_case]/scale
         period = wave_periods[opts.waves_case]/np.sqrt(scale)
     BCoeffs = np.zeros(3)
     YCoeffs = np.zeros(3)
@@ -228,7 +229,7 @@ if opts.cylinder is True:
     Ixx = Iyy = ((23.91+24.90)/scale/2.)**2*mass
     Izz = (32.17/scale)**2*mass
     if opts.turbine is True:
-        mass = 14040000/scale**3
+        mass = 14040000/scale**5
         Ixx = Iyy = ((31.61+32.34)/scale/2.)**2*mass
         Izz = (32.17/scale)**2*mass
     body.ChBody.SetMass(mass)
@@ -243,7 +244,7 @@ if opts.moorings is True:
     L = 835.5/scale
     d = 0.13376/scale  # equivalent diameter (chain -> cylinder)
     A0 = (np.pi*d**2/4)
-    w = 108.63/(scale**3)  # kg/m  # 116.6 vs 108.63
+    w = 108.63/(scale**2)  # kg/m  # 116.6 vs 108.63
     nb_elems =  50
     dens = w/A0+rho_0
     E = (753.6e6/scale**3)/A0
@@ -456,6 +457,17 @@ if opts.use_gmsh and opts.refinement is True:
     mesh.writeGeo(mesh_fileprefix+'.geo')
 
 
+if opts.addedMass is True:
+    # passed in added_mass_p.py coefficients
+    max_flag = 0
+    max_flag = max(domain.vertexFlags)
+    max_flag = max(domain.segmentFlags+[max_flag])
+    max_flag = max(domain.facetFlags+[max_flag])
+    flags_rigidbody = np.zeros(max_flag+1, dtype='int32')
+    for s in system.subcomponents:
+        if type(s) is crb.ProtChBody:
+            for i in range(s.i_start, s.i_end):
+                flags_rigidbody[i] = 1
 
 
 system.calculate_init()
