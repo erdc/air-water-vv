@@ -442,7 +442,7 @@ if opts.use_gmsh and opts.refinement is True:
     center = cylinder.barycenter-np.array([0.,0.,cylinder.barycenter[2]])+np.array([0.,0.,mz])
     dist_x = 'Sqrt(({x_center}-x)^2+({y_center}-y)^2)'.format(x_center=center[0], radius=radius, y_center=center[1])
     dist_z = '(abs(abs({z_p}-z)+abs(z-{z_n})-({z_p}-{z_n}))/2.)'.format(z_p=max(cylinder.vertices[:,2]), z_n=min(cylinder.vertices[:,2]))
-    dist = 'Sqrt((abs({dist_x}-{radius})+({dist_x}+{radius}))/2.-{radius})^2+{dist_z}^2)'.format(dist_x=dist_x, dist_z=dist_z, radius=radius)
+    dist = 'Sqrt(((abs({dist_x}-{radius})+({dist_x}+{radius}))/2.-{radius})^2+{dist_z}^2)'.format(dist_x=dist_x, dist_z=dist_z, radius=radius)
     me3.F = mesh_grading(he=he, start=dist, grading=grading)
     field_list += [me3]
 
