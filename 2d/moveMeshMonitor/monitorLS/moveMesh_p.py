@@ -26,8 +26,11 @@ coefficients = MoveMeshMonitor.Coefficients(ct.my_func,
                                             ME_MODEL=0,
                                             boundaryNormals=ct.boundaryNormals_array,
                                             fixedNodes=ct.fixedNodes,
-                                            nSmooth=ct.nSmooth)
-
+                                            nSmoothIn=ct.nSmoothIn,
+                                            nSmoothOut=ct.nSmoothOut,
+                                            epsTimeStep=ct.epsTimeStep,
+                                            epsFact_density=ct.epsFact_density,
+                                            )
 
 def getDBC(x,flag):
     if flag != 0:

@@ -39,12 +39,15 @@ opts=Context.Options([
     ("chrono_dt", 0.00001, "time step of chrono"),
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
-    ("he", 0.02, "Set characteristic element size"),
+    ("he", 0.01, "Set characteristic element size"),
     ("refinement_freesurface", 0.062,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
-    ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
+    ("nSmoothIn", 0, "smoothing steps"),
+    ("nSmoothOut", 0, "smoothing steps"),
+    ("epsTimeStep", 1., "smoothing steps"),
+    ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("epsFact_density", 1.5, "epsFact_density"),
     ("movingDomain", True, "True/False"),
     ("T", 10.0, "Simulation time"),
@@ -58,11 +61,14 @@ opts=Context.Options([
     ("ELLIPTIC_REDISTANCING_TYPE", 0, "Elliptic redistancing type for redist"),
     ])
 
+ntimes = 1
 
 he_max = 1.
-he_min = 0.05
+he_min = opts.he
 r = 0.1
-nSmooth = 0
+nSmoothIn = opts.nSmoothIn
+nSmoothOut = opts.nSmoothOut
+epsTimeStep = opts.epsTimeStep
 
 # ----- CONTEXT ------ #
 
@@ -140,6 +146,8 @@ center1 = [tank_dim[0]/2., tank_dim[1]/2.]
 def my_func(x, t):
     dist = abs(np.sqrt((x[0]-center1[0])**2+(x[1]-center1[1])**2)-r)
     dist = abs(np.sqrt((x[1]-0.5)**2))
+    dist = abs(water_level-x[1])
+    dist = 10
     return dist
 
 # domain
@@ -233,10 +241,21 @@ tank.BC['sponge'].setFixedNodes()
 tank.BC['y+'].setTank()  # sliding mesh nodes
 tank.BC['y-'].setTank()  #sliding mesh nodes
 
-boundaryNormals = {tank.boundaryTags['x-']: np.array([-1.,0.]),
-                   tank.boundaryTags['x+']: np.array([1.,0.]),
-                   tank.boundaryTags['y-']: np.array([0.,-1.]),
-                   tank.boundaryTags['y+']: np.array([0.,1.])}
+boundaryNormals = {tank.boundaryTags['x-']: np.array([-1.,0.,0.]),
+                   tank.boundaryTags['x+']: np.array([1.,0.,0.]),
+                   tank.boundaryTags['y-']: np.array([0.,-1.,0.]),
+                   tank.boundaryTags['y+']: np.array([0.,1.,0.])}
+
+boundaryNormals_array = np.zeros((5,3))
+for key, val in boundaryNormals.iteritems():
+    boundaryNormals_array[key,:] = val
+fixedNodes = np.zeros(5, dtype=np.int32)
+#fixedNodes[1] = 1
+#fixedNodes[2] = 1
+#fixedNodes[3] = 1
+#fixedNodes[4] = 1
+
+
 #boundaryNormals = None
 left = right = False
 if tank_sponge[0]: left = True
