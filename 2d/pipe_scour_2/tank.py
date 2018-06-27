@@ -28,28 +28,28 @@ opts=Context.Options([
     ("tank_dim_x", 1.6, "x_dim"),
     ("tank_dim_y", 0.6, "y_dim"),
     ("hole_tank", True, "hole"),
-    ("waterLevel" , 0.35, "waterLevel"),
+    ("waterLevel" , 0.35+0.16, "waterLevel"),
     # current
     ("current",True, "yes or no"),
     ("inflow_vel", 0.3, "inflow velocity"),
-    ("GenZone", True, "on/off"),
-    ("AbsZone", True, "on/off"),
+    ("GenZone", not True, "on/off"),
+    ("AbsZone", not True, "on/off"),
     #opentop
     ("openTop", True, "Enable open atmosphere"),
     # cylinder
     ("cylinder_radius", 0.05, "radius of cylinder"),
     ("cylinder_pos_x", 0.8, "x position of cylinder"),
-    ("cylinder_pos_y", 0.085+0.05, "y position of cylinder"),
+    ("cylinder_pos_y", 0.085+0.05+0.16, "y position of cylinder"),
     ("circle2D", True, "switch on/off cylinder"),
     ("circleBC", 'NoSlip','circle BC'),
     # sediment parameters
-    ('cSed', 0.62,'Sediment concentration'),
+    ('cSed', 0.63,'Sediment concentration'),
     # numerical options
     ("refinement", 25.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop",  True, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.25 ,"Target cfl"),
-    ("duration", 15.0 ,"Duration of the simulation"),
+    ("duration", 30.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
@@ -81,7 +81,7 @@ sedClosure = HsuSedStress(aDarcy =  150.0,
                           mContact =  3.0,
                           nContact =  5.0,
                           angFriction =  pi/6.,
-                          vos_limiter = 0.62,
+                          vos_limiter = opts.cSed,
                           mu_fr_limiter = 1e-1,
                           )
 
@@ -104,8 +104,8 @@ nu_0 = 1.004e-6
 # Air
 #rho_1 = rho_0
 #nu_1 = nu_0
-rho_1 =  1.205 #rho_0
-nu_1 =  1.500e-5 # 
+rho_1 =  rho_0 #1.205 #rho_0
+nu_1 =  nu_0 #1.500e-5 # 
 
 # Sediment
 
@@ -196,18 +196,18 @@ boundaryTags = {'y-': 1,
 
 if opts.hole_tank:
 
-    vertices=[[0.0, 0.08],#0
-              [x1,  0.08],#1
-              [0.3,  0.08],#2
+    vertices=[[0.0, 0.24],#0
+              [x1,  0.24],#1
+              [0.3,  0.24],#2
               [0.3,  0.0],#3
               [1.3,  0.0],#4
-              [1.3,  0.08],#5
-              [1.4,  0.08],#6
-              [tank_dim[0],0.08],#7
-              [tank_dim[0],tank_dim[1]], #8
-              [1.4, tank_dim[1]], #9
-              [0.2, tank_dim[1]], #10
-              [0.0, tank_dim[1]], #11
+              [1.3,  0.24],#5
+              [1.4,  0.24],#6
+              [tank_dim[0],0.24],#7
+              [tank_dim[0],tank_dim[1]+0.16], #8
+              [1.4, tank_dim[1]+0.16], #9
+              [0.2, tank_dim[1]+0.16], #10
+              [0.0, tank_dim[1]+0.16], #11
               ]
 
     vertexFlags=np.array([1, 1, 1,
@@ -348,7 +348,7 @@ tank.BC['hole_x-'].setFreeSlip()
 tank.BC['hole_y-'].setFreeSlip()
 
 
-tank.BC['hole_y-'].vos_dirichlet.setConstantBC(0.62)
+tank.BC['hole_y-'].vos_dirichlet.setConstantBC(opts.cSed)
 
 
 if opts.current:
@@ -449,7 +449,7 @@ genMesh = True
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = True
+useSuperlu = not True
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
 pspaceOrder = 1

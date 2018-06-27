@@ -47,7 +47,7 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    eb_penalty_constant=ct.weak_bc_penalty_constant,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ct.ns_closure,
-                                   NONCONSERVATIVE_FORM=1.0,
+                                   #NONCONSERVATIVE_FORM=1.0,
                                    movingDomain=ct.movingDomain)
 
 if ct.ns_forceStrongDirichlet:
@@ -172,5 +172,5 @@ class initialVelocity_u:
 
 
 initialConditions = {0: PerturbedSurface_p(ct.waterLine_z),
-                     1: AtRest(),
+                     1: initialVelocity_u(ct.waterLine_z),
                      2: AtRest()}
