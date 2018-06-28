@@ -13,7 +13,7 @@ T = ct.T
 LevelModelType = AddedMass.LevelModel
 
 coefficients = AddedMass.Coefficients(nd=nd,
-                                      V_model=int(ct.movingDomain)+1,
+                                      V_model=int(ct.movingDomain),
                                       barycenters=domain.barycenters,
                                       flags_rigidbody=ct.flags_rigidbody)
 
