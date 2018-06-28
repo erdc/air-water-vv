@@ -182,7 +182,7 @@ tank.setAbsorptionZones(x_n=('x-' in abso and sponges['x-'] != 0),
 if opts.cylinder is True:
     #nPoints = int(2*np.pi*cylinder_radius/opts.he)
     #cylinder_coords = [tank_dim[0]/2., tank_dim[1]/2., water_level+cylinder_height/2. - opts.cylinder_draft]
-    #barycenter = [tank_dim[0]/2., tank_dim[1]/2.,  
+    #barycenter = [tank_dim[0]/2., tank_dim[1]/2.,
     cylinder = st.ShapeSTL(domain, 'semi-sub0_50.stl')
     #cylinder_draft = opts.cylinder_draft
     #scale = scale
@@ -211,7 +211,7 @@ if opts.cylinder is True:
 
 g = np.array([0., 0., -9.81])
 system = crb.ProtChSystem(gravity=g, sampleRate=opts.sampleRate)
-system.update_substeps = True  # update drag and added mass forces on cable during substeps
+#system.update_substeps = True  # update drag and added mass forces on cable during substeps
 #system.chrono_processor = 0
 #system.parallel_mode = False
 system.setTimeStep(chrono_dt)
