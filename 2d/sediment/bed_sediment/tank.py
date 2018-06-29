@@ -18,13 +18,12 @@ opts=Context.Options([
     ("Ly", 1.5, "Heigth of the numerical domain"),
     ("dtout", 0.05, "Time interval for output"),
     # sediment parameters
-    ('cSed', 0.61,'Sediment concentration'),
+    ('cSed', 0.55,'Sediment concentration'),
     # numerical options
-    ("refinement", 25.,"L[0]/refinement"),
+    ("refinement", 50.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("openTop",  True, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.25 ,"Target cfl"),
-    ("duration", 3.75 ,"Duration of the simulation"),
+    ("duration", 1.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
@@ -209,7 +208,6 @@ nDTout= int(round(T/dt_fixed))
 runCFL = opts.cfl
 
 sedimentDynamics=opts.sedimentDynamics
-openTop=opts.openTop
 
 #----------------------------------------------------
 #  Discretization -- input options
@@ -219,7 +217,7 @@ genMesh = True
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = True
+useSuperlu = False
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
 pspaceOrder = 1
@@ -347,7 +345,7 @@ else:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor = 10.
+    vos_shockCapturingFactor = 0.9
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0

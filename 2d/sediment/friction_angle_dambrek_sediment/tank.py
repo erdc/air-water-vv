@@ -12,17 +12,18 @@ from proteus.mprans.SedClosure import  HsuSedStress
 
 opts=Context.Options([
     # predefined test cases
-    ("waterLine_x", 10.00, "Width of free surface from left to right"),
-    ("waterLine_z", 0.5, "Heigth of free surface above bottom"),
+    ("waterLine_vos_x", 1.0, "Width of free surface from left to right"),
+    ("waterLine_vos_z", 0.7, "Column height"),
+    ("waterLine_z", 1.2, "Heigth of free surface above bottom"),
     ("Lx", 1.50, "Length of the numerical domain"),
-    ("Ly", 0.7, "Heigth of the numerical domain"),
+    ("Ly", 1.5, "Heigth of the numerical domain"),
+    ("dtout", 0.05, "Time interval for output"),
     # sediment parameters
-    ('cSed', 0.50,'Sediment concentration'),
+    ('cSed', 0.55,'Sediment concentration'),
     # numerical options
     ("refinement", 50.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("openTop", not True, "Enable open atmosphere for air phase on the top"),
-    ("cfl", 0.90 ,"Target cfl"),
+    ("cfl", 0.25 ,"Target cfl"),
     ("duration", 1.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
@@ -32,6 +33,9 @@ opts=Context.Options([
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
+    #====Sed properties
+    ("vos_limiter", 0.633,"Limit for VOS through contact pressure"),
+     ("mu_fr_limiter",1.,"Limit for mu friction")
     ])
 
 
@@ -52,9 +56,10 @@ sedClosure = HsuSedStress(aDarcy =  150.0,
                           mContact =  3.0,
                           nContact =  5.0,
                           angFriction =  pi/6.,
-                          vos_limiter = 0.05,
-                          mu_fr_limiter = 100.00,
-                          )
+                          vos_limiter = opts.vos_limiter,
+                          mu_fr_limiter = opts.mu_fr_limiter)
+
+
 
 # ----- DOMAIN ----- #
 
@@ -68,8 +73,8 @@ rho_0 = 998.2
 nu_0 = 1.004e-6
 
 # Air
-rho_1 = rho_0 # 1.205 #
-nu_1 = nu_0 # 1.500e-5 # 
+rho_1 =  1.205 
+nu_1 =  1.500e-5  
 
 # Sediment
 
@@ -85,7 +90,6 @@ g = np.array([0.0, -9.8, 0.0])
 gamma_0 = abs(g[1])*rho_0
 
 # Initial condition
-waterLine_x = opts.waterLine_x
 waterLine_z = opts.waterLine_z
 waterLevel = waterLine_z
 
@@ -129,18 +133,8 @@ tank.BC['x-'].setFreeSlip()
 
 tank.BC['x+'].setFreeSlip()
 
+tank.BC['y-'].vos_dirichlet.setConstantBC(0.635)
 
-
-
-# ----- If open boundary at the top
-if opts.openTop:
-    tank.BC['y+'].reset()
-    tank.BC['y+'].setAtmosphere()
-    tank.BC['y+'].us_dirichlet.setConstantBC(0.0)
-    tank.BC['y+'].vs_dirichlet.setConstantBC(0.0)
-    tank.BC['y+'].vos_advective.setConstantBC(0.0)
-    tank.BC['y+'].pInc_dirichlet.setConstantBC(0.0)
-    tank.BC['y+'].pInit_dirichlet.setConstantBC(0.0)
 
 
 
@@ -212,13 +206,12 @@ st.assembleDomain(domain)
 
 T=opts.duration
 weak_bc_penalty_constant = 10.0/nu_0 #100
-dt_fixed = 0.001 
+dt_fixed = opts.dtout
 dt_init = min(0.1*dt_fixed,0.001)
 nDTout= int(round(T/dt_fixed))
 runCFL = opts.cfl
 
 sedimentDynamics=opts.sedimentDynamics
-openTop=opts.openTop
 
 #----------------------------------------------------
 #  Discretization -- input options
@@ -228,7 +221,7 @@ genMesh = True
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = False #True
+useSuperlu = True
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
 pspaceOrder = 1
@@ -247,7 +240,6 @@ KILL_PRESSURE_TERM = False
 fixNullSpace_PresInc = True
 INTEGRATE_BY_PARTS_DIV_U_PresInc = True
 CORRECT_VELOCITY = True
-ns_forceStrongDirichlet = True
 STABILIZATION_TYPE = 0 #0: SUPG, 1: EV via weak residual, 2: EV via strong residual
 
 # Input checks
@@ -322,13 +314,13 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor = 0.9 # <------------------------------------- 
+    vos_shockCapturingFactor = 2. # <------------------------------------- 
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0
     rd_shockCapturingFactor = 0.5
     rd_lag_shockCapturing = False
-    epsFact_vos = 5.0 # <------------------------------------- 
+    epsFact_vos =opts.epsFact_density
     epsFact_density = opts.epsFact_density # 1.5
     epsFact_viscosity = epsFact_curvature = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
     epsFact_redistance = 0.33
@@ -409,59 +401,44 @@ elif useRANS == 2:
 def signedDistance(x):
     phi_z = x[1] - waterLine_z
     return phi_z
-
-def vos_signedDistance(x):
-    phi_z = x[1] - 0.75*waterLine_z
-    return phi_z
+def signedDistance_vos(x):
+    phi_x = x[0] - opts.waterLine_vos_x
+    phi_z = x[1] - opts.waterLine_vos_z
+    if phi_x < 0.0:
+        if phi_z < 0.0:
+            return max(phi_x, phi_z)
+        else:
+            return phi_z
+    else:
+        if phi_z < 0.0:
+            return phi_x
+        else:
+            return sqrt(phi_x ** 2 + phi_z ** 2)
 
 class Suspension_class:
     def __init__(self):
         pass
     def uOfXT(self, x, t=0):
-        phi = signedDistance(x) + 0.35
-        phiRight = x[0] - 0.2
+        phi = signedDistance_vos(x)
         smoothing = (epsFact_consrv_heaviside)*he/2.
-        Heav = smoothedHeaviside(smoothing, phi)     
-        HeavRight = smoothedHeaviside(smoothing, phiRight)        
-        if phiRight<=-smoothing:
-            if phi <= -smoothing:
-                return opts.cSed
-            elif -smoothing < phi < smoothing:
-                return opts.cSed * (1.-Heav)            
-            else:
-                return 1e-10    
-        elif -smoothing < phiRight < smoothing:
-            if phi <= 0.0:
-                return opts.cSed * (1.-HeavRight)
-            elif 0. < phi < smoothing:
-                return opts.cSed * (1.-Heav)
-            else:
-                return 1e-10 
+        Heav = smoothedHeaviside(smoothing, phi)
+        if phi <= -smoothing:
+            return opts.cSed
+        elif -smoothing < phi < smoothing:
+            return opts.cSed * (1.-Heav)
         else:
             return 1e-10
 
 def vos_function(x, t=0):
-    phi = signedDistance(x) + 0.35
-    phiRight = x[0] - 0.2
+    phi = signedDistance_vos(x)
     smoothing = (epsFact_consrv_heaviside)*he/2.
-    Heav = smoothedHeaviside(smoothing, phi)     
-    HeavRight = smoothedHeaviside(smoothing, phiRight)        
-    if phiRight<=-smoothing:
-        if phi <= -smoothing:
-            return opts.cSed
-        elif -smoothing < phi < smoothing:
-            return opts.cSed * (1.-Heav)            
-        else:
-            return 1e-10    
-    elif -smoothing < phiRight < smoothing:
-        if phi <= 0.0:
-            return opts.cSed * (1.-HeavRight)
-        elif 0. < phi < smoothing:
-            return opts.cSed * (1.-Heav)
-        else:
-            return 1e-10 
+    Heav = smoothedHeaviside(smoothing, phi)      
+    if phi <= -smoothing:
+        return opts.cSed
+    elif -smoothing < phi < smoothing:
+        return opts.cSed * (1.-Heav)            
     else:
-        return 1e-10
+        return 1e-10    
 
 
 Suspension = Suspension_class()

@@ -3,7 +3,6 @@ from proteus.default_p import *
 from tank import *
 from proteus.mprans import RANS3PSed
 from proteus import Context
-
 ct = Context.get()
 
 LevelModelType = RANS3PSed.LevelModel
@@ -45,6 +44,7 @@ else:
     Closure_0_model = None
     Closure_1_model = None
 
+
 coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                       sigma=0.0,
                                       rho_0 = rho_0,
@@ -75,19 +75,19 @@ coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                       movingDomain=movingDomain,
                                       dragAlpha=dragAlpha,
                                       PSTAB=ct.opts.PSTAB,
-                                    aDarcy = sedClosure.aDarcy,
-                                    betaForch = sedClosure.betaForch,
-                                    grain = sedClosure.grain,
-                                    packFraction = sedClosure.packFraction,
-                                    maxFraction = sedClosure.maxFraction,
-                                    frFraction = sedClosure.frFraction,
-                                    sigmaC = sedClosure.sigmaC,
-                                    C3e = sedClosure.C3e,
-                                    C4e = sedClosure.C4e,
-                                    eR = sedClosure.eR,
-                                    fContact = sedClosure.fContact,
-                                    mContact = sedClosure.mContact,
-                                    nContact = sedClosure.nContact,
+                                    aDarcy = ct.sedClosure.aDarcy,
+                                    betaForch = ct.sedClosure.betaForch,
+                                    grain = ct.sedClosure.grain,
+                                    packFraction = ct.sedClosure.packFraction,
+                                    maxFraction = ct.sedClosure.maxFraction,
+                                    frFraction = ct.sedClosure.frFraction,
+                                    sigmaC =ct.sedClosure.sigmaC,
+                                    C3e = ct.sedClosure.C3e,
+                                    C4e = ct.sedClosure.C4e,
+                                    eR = ct.sedClosure.eR,
+                                    fContact = ct.sedClosure.fContact,
+                                    mContact = ct.sedClosure.mContact,
+                                    nContact = ct.sedClosure.nContact,
                                     angFriction = sedClosure.angFriction,
                                     vos_function = ct.vos_function,
                                     staticSediment = False,

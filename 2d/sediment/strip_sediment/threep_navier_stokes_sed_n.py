@@ -4,6 +4,7 @@ from proteus import (StepControl,
                      NonlinearSolvers,
                      LinearSolvers,
                      LinearAlgebraTools)
+from proteus.default_n import *
 from threep_navier_stokes_sed_p import *
 from tank import *
 

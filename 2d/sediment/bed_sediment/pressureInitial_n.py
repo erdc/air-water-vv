@@ -24,7 +24,6 @@ numericalFluxType = NumericalFlux.ConstantAdvection_exterior
 #numericalFluxType = NumericalFlux
 
 linear_solver_options_prefix = 'pinit_'
-
 if ct.useSuperlu:
     multilevelLinearSolver = LinearSolvers.LU
     levelLinearSolver      = LinearSolvers.LU
