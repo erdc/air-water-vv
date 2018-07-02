@@ -467,9 +467,9 @@ if opts.use_gmsh and opts.refinement is True:
         else:
             me3 = py2gmsh.Fields.MathEval(mesh=mesh)
             dist_z = '(abs(abs({z_p}-z)+abs(z-{z_n})-({z_p}-{z_n}))/2.)'.format(z_p=cylinder.coords[2]+cylinder.height/2., z_n=cylinder.coords[2]-cylinder.height/2.)
-            dist_x = '(abs(Sqrt(({x_center}-x)^2+({y_center}-y)^2)-{radius}))'.format(x_center=cylinder.coords[0], radius=cylinder.radius, y_center=cylinder.coords[1])
+            dist_x = 'Sqrt(({x_center}-x)^2+({y_center}-y)^2)'.format(x_center=cylinder.coords[0], radius=cylinder.radius, y_center=cylinder.coords[1])
+            dist = 'Sqrt(((abs({dist_x}-{radius})+({dist_x}+{radius}))/2.-{radius})^2+{dist_z}^2)'.format(dist_x=dist_x, dist_z=dist_z, radius=cylidner.radius)
             #dist_x = 0.
-            dist = 'sqrt({dist_x}^2+{dist_z}^2)'.format(dist_x=dist_x, dist_z=dist_z)
             me3.F = mesh_grading(he=he, start=dist, grading=grading)
             field_list += [me3]
 
@@ -641,7 +641,7 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = sc_beta
-    rd_shockCapturingFactor  =sc
+    rd_shockCapturingFactor  = 0.9
     rd_lag_shockCapturing = False
     epsFact_density    = 3.
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
@@ -684,15 +684,15 @@ else:
     dissipation_sc_uref  = 1.0
     dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
-vof_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
-ls_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
-mcorr_nl_atol_res = 1e-6 #max(1.0e-6,0.1*tolfac*he**2)
-rd_nl_atol_res = 1e-4 #max(1.0e-6,tolfac*he)
-kappa_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
-dissipation_nl_atol_res = 1e-6 #max(1.0e-6,tolfac*he**2)
-mesh_nl_atol_res = 1e-6 #max(1.0e-6,opts.mesh_tol*he**2)
-am_nl_atol_res = 1e-6 #max(1.0e-6,opts.mesh_tol*he**2)
+ns_nl_atol_res = max(1.0e-6,0.001*he**2)
+vof_nl_atol_res = max(1.0e-6,0.001*he**2)
+ls_nl_atol_res = max(1.0e-6,0.001*he**2)
+mcorr_nl_atol_res = max(1.0e-6,0.1*0.001*he**2)
+rd_nl_atol_res = max(1.0e-6,0.01*he)
+kappa_nl_atol_res = max(1.0e-6,0.001*he**2)
+dissipation_nl_atol_res = max(1.0e-6,0.001*he**2)
+mesh_nl_atol_res = max(1.0e-6,0.001*he**2)
+am_nl_atol_res = max(1.0e-6,0.001*he**2)
 
 #turbulence
 ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
