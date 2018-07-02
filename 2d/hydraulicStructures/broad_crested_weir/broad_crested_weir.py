@@ -13,21 +13,22 @@ from proteus.ctransportCoefficients import smoothedHeaviside
 
 opts = Context.Options([
     # test options
+    ("strong", False, "Enforce boundary conditions strongly."),
     ("waves", False, "Generate waves - uses sponge layers."),
     ("air_vent", True, "Include an air vent in the obstacle."),
     # air vent position
-    ("airvent_y1",0.25,"Vertical distance from bottom to the lower 
-                        vertex of the air ventilation boundary in m"),
+    ("airvent_y1",0.25,"Vertical distance from bottom to the lower "
+                        "vertex of the air ventilation boundary in m"),
     ("airvent_dim",0.1,"Dimension of the air boundary patch in m"),
     # water
-    ("water_level", 0.54, "Mean levelat inflow  from y=0 in m")
+    ("water_level", 0.54, "Mean levelat inflow  from y=0 in m"),
     ("water_width_over_obst",1.02, "Domain length upstream of the obstacle in m"),
     ("outflow_level", 0.04, "Estimated mean water level at the outlet in m "),
     ("inflow_velocity", 0.139, "Water inflow velocity in m/s"),
     ("outflow_velocity", 3.0, "Estimated water outflow velocity in m/s"),
     # tank
     ("tank_dim", (2.5, 1.0), "Dimensions (x,y) of the tank in m"),
-    ("tank_sponge", (0.5,0.5), "Length of (generation, absorption) zones in m, if any"),
+    ("tank_sponge", (0.,0.), "Length of (generation, absorption) zones in m, if any"),
     ("obstacle_dim", (0.5, 0.401), "Dimensions (x,y) of the obstacle. in m"),
     ("obstacle_x_start", 1.0, "x coordinate of the start of the obstacle in m"),
     # gauges
@@ -174,7 +175,7 @@ elif spaceOrder == 2:
 #   Physical, Time, & Misc. Parameters   #
 ##########################################
 
-weak_bc_penalty_constant = 100.0
+weak_bc_penalty_constant = 10.0
 nLevels = 1
 backgroundDiffusionFactor = 0.01
 
@@ -248,9 +249,9 @@ if opts.waves:
     )
  
 dragAlpha = 5.*omega/nu_0
-tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-tank.setAbsorptionZones(x_n=True, dragAlpha = dragAlpha)
-tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
+# tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+# tank.setAbsorptionZones(x_n=True, dragAlpha = dragAlpha)
+# tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -301,10 +302,12 @@ if opts.gauge_output:
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
 # Open Top
-tank.BC['y+'].setAtmosphere()
+tank.BC['y+'].setNoSlip()
+#tank.BC['y+'].setAtmosphere()
 
 # Free Slip Tank
-tank.BC['y-'].setFreeSlip()
+tank.BC['y-'].setNoSlip()
+#tank.BC['y-'].setFreeSlip()
 
 # Outflow
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
@@ -323,7 +326,7 @@ if not opts.waves:
                                            )
     tank.BC['x-'].p_advective.uOfXT = lambda x, t: - inflow_velocity
 tank.BC['sponge'].setNonMaterial()
-    
+
 if air_vent:
     tank.BC['airvent'].reset()
     tank.BC['airvent'].p_dirichlet.uOfXT = lambda x, t: (tank_dim[1] - x[1])*rho_1*abs(g[1])
@@ -344,7 +347,7 @@ st.assembleDomain(domain)
 
 # ----- STRONG DIRICHLET ----- #
 
-ns_forceStrongDirichlet = False #True
+ns_forceStrongDirichlet = opts.strong
 
 # ----- NUMERICAL PARAMETERS ----- #
 
@@ -355,19 +358,19 @@ if useMetrics:
     ls_shockCapturingFactor = 0.75
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.50
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.75
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.50
+    vof_sc_beta = 1.5
     rd_shockCapturingFactor = 0.75
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH = epsFact_consrv_dirac \
-                    = 3.0
+                    = 1.5
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
-    redist_Newton = False
+    epsFact_consrv_diffusion = 10.0
+    redist_Newton = True
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
@@ -410,7 +413,7 @@ else:
 ns_nl_atol_res = max(1.0e-10,0.001*he**2)
 vof_nl_atol_res = max(1.0e-10,0.001*he**2)
 ls_nl_atol_res = max(1.0e-10,0.001*he**2)
-rd_nl_atol_res = max(1.0e-10,0.005*he)
+rd_nl_atol_res = max(1.0e-10,0.01*he)
 mcorr_nl_atol_res = max(1.0e-10,0.001*he**2)
 kappa_nl_atol_res = max(1.0e-10,0.001*he**2)
 dissipation_nl_atol_res = max(1.0e-10,0.001*he**2)
@@ -424,7 +427,7 @@ elif useRANS == 2:
     ns_closure = 4
 else:
     ns_closure = 2
-
+ns_closure=0
 ##########################################
 #            Signed Distance             #
 ##########################################
