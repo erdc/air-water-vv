@@ -20,7 +20,7 @@ opts = Context.Options([
     # water
     ("water_level", 1.4,  "Mean level at inflow from y=0 in m"),
     ("water_width_over_obst", 1.5, "Domain length upstream of the obstacle in m"),
-    ("outflow_level", 0.04, "Estimated mean level at outflow from y=0 in m"),
+    ("outflow_level", 0.05, "Estimated mean level at outflow from y=0 in m"),
     ("inflow_velocity", 0.34, "Inflow velocity m/s"),
     ("outflow_velocity", 3.2, "Estimated outflow velocity m/s"),
     # tank
@@ -44,7 +44,7 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 10.0, "Simulation time in s"),
+    ("T", 2.5, "Simulation time in s"),
     ("dt_fixed", 0.02, "Fixed time step in s"),
     ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10) in s"),
     # run details
@@ -226,9 +226,9 @@ if opts.waves:
         meanVelocity = np.array([inflow_velocity, 0., 0.])
     )
 dragAlpha = 5.*omega/nu_0
-tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
-tank.setAbsorptionZones(x_n=True, dragAlpha=dragAlpha)
-tank.setAbsorptionZones(x_p=True, dragAlpha=dragAlpha)
+#tank.setSponge(x_n = opts.tank_sponge[0], x_p = opts.tank_sponge[1])
+#tank.setAbsorptionZones(x_n=True, dragAlpha=dragAlpha)
+#tank.setAbsorptionZones(x_p=True, dragAlpha=dragAlpha)
 
 # ----- VARIABLE REFINEMENT ----- #
 
@@ -288,9 +288,12 @@ if opts.column_gauge_output:
 
 # ----- EXTRA BOUNDARY CONDITIONS ----- #
 
-tank.BC['y+'].setAtmosphere()
+#tank.BC['y+'].setAtmosphere()
+tank.BC['y+'].setNoSlip()
 
-tank.BC['y-'].setFreeSlip()
+#tank.BC['y-'].setFreeSlip()
+tank.BC['y-'].setNoSlip()
+
 
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoUp=rho_1,
@@ -333,25 +336,25 @@ ns_forceStrongDirichlet = False
 # ----- NUMERICAL PARAMETERS ----- #
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.25
+    ns_shockCapturingFactor = 0.75
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ls_shockCapturingFactor = 0.25
+    ls_shockCapturingFactor = 0.75
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
     ls_sc_beta = 1.50
-    vof_shockCapturingFactor = 0.25
+    vof_shockCapturingFactor = 0.75
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.50
-    rd_shockCapturingFactor = 0.25
+    rd_shockCapturingFactor = 0.75
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH = epsFact_consrv_dirac \
-                    = 3.0
+                    = 1.5 
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 1.0
-    redist_Newton = False
+    epsFact_consrv_diffusion = 15.0
+    redist_Newton = not False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
@@ -391,10 +394,10 @@ else:
 
 # ----- NUMERICS: TOLERANCES ----- #
 
-ns_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
+ns_nl_atol_res = max(1.0e-12, 1.0e-1 * he ** 2)
 vof_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
 ls_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
-rd_nl_atol_res = max(1.0e-12, 5.0e-5 * he)
+rd_nl_atol_res = max(1.0e-12, 1.0e-1 * he)
 mcorr_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
 kappa_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
 dissipation_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
@@ -409,6 +412,7 @@ elif useRANS == 2:
 else:
     ns_closure = 2
 
+#ns_closure = 0
 ##########################################
 #            Signed Distance             #
 ##########################################

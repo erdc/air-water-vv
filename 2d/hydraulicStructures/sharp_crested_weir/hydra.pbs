@@ -1,17 +1,24 @@
-#!/bin/sh
+#!/bin/bash
+#SBATCH -p highp              #name of the queue
+#SBATCH -J cas1234_pom        #job_name
+#SBATCH -N 4                   #num of nodes
+#SBATCH --ntasks-per-node 12   #cores per node
 
-#PBS -S /bin/sh
-#PBS -N cas1215_Sharp_crested_weir_VM_V2
-#PBS -o sharpweir.output.o   # stdout file
-#PBS -e sharpweir.output.e   # stderr file
-#PBS -l nodes=2:ppn=12 # nodes required / processors per node
-#PBS -q highp          # queue name
+
 
 source /etc/profile.d/modules.sh
+export PROTEUS=~/PROTEUS/proteus3/proteus
+export PROTEUS_ARCH=centos
+export PROTEUS_PREFIX=$PROTEUS/$PROTEUS_ARCH
+export PROTEUS_MPRANS=~/PROTEUS/proteus-mprans
 
+export PATH=$PROTEUS/$PROTEUS_ARCH/bin:$PROTEUS_MPRANS/scripts:$PATH
+export LD_LIBRARY_PATH=$PROTEUS/$PROTEUS_ARCH/lib:$LD_LIBRARY_PATH
+export INCLUDE_PATH=$PROTEUS/$PROTEUS_ARCH/include:$INCLUDE_PATH
+module load gcc/6.1.0 openmpi/1.10.2/gcc/6.1.0
 
-module load proteus/0.9.0/
-cd $PBS_O_WORKDIR
+cd $SLURM_SUBMIT_DIR
 
-export NCPUS="24"
-mpirun -n $NCPUS  parun sharp_crested_weir_so.py -m -p -l 7 -v -O /apps/proteus/0.9.0/proteus-mprans/benchmarks/inputTemplates/petsc.options.superlu_dist -D sharp_crested_weir.$PBS_JOBID | tee log.$PBS_JOBID
+export NCPUS="48"
+mpirun -n $NCPUS parun sharp_crested_weir_so.py -F -l 2 -D results_hydra_today_1
+
