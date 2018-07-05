@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from numpy import *
 from scipy import *
 from pylab import *
@@ -45,8 +49,8 @@ with open (filename, 'rb') as csvfile:
     timeA=np.zeros(nRows-1, dtype=float)
     for k in range(1,nRows):
         pressure2[k-1]=(float(a[k][x]))    
-        timeA[k-1]=time[k-1]*(9.81/0.6)**0.5
-    pressure2A=pressure2/(998.2*9.81*0.6)
+        timeA[k-1]=time[k-1]*(old_div(9.81,0.6))**0.5
+    pressure2A=old_div(pressure2,(998.2*9.81*0.6))
 # Plot pressure in time
     import matplotlib.pyplot as plt
     plt.plot(timeA,pressure2A)

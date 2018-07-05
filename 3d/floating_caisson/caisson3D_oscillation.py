@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 import sys
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
@@ -20,7 +23,7 @@ opts=Context.Options([
     ("VCG", 0.175, "vertical position of the barycenter of the caisson"),
     ("draft", 0.425, "Draft of the caisson"),
     ("It", (4.956, 6.620, 5.515), "Inertia tensor: Ixx, Iyy, and Izz components"),
-    ("rotation_angle", np.pi/12., "Initial rotation angle (in radians)"),
+    ("rotation_angle", old_div(np.pi,12.), "Initial rotation angle (in radians)"),
     ("rotation_axis", (1.,0.,0.), "Axis for initial rotation"),
     # numerical options
     #("gen_mesh", True ,"Generate new mesh"),
@@ -96,8 +99,8 @@ if case is not None:
     else:
         sys.exit()
 
-coords = (tank_dim[0]/2., tank_dim[1]/2., waterLevel+dim[2]/2.-draft)
-barycenter = (coords[0], coords[1], coords[2]-dim[2]/2.+VCG)
+coords = (old_div(tank_dim[0],2.), old_div(tank_dim[1],2.), waterLevel+old_div(dim[2],2.)-draft)
+barycenter = (coords[0], coords[1], coords[2]-old_div(dim[2],2.)+VCG)
 
 
 
@@ -128,9 +131,9 @@ caisson3D.setConstraints(free_x=free_x, free_r=free_r)
 # mass is not real mass ---> inerta tensor provided and scaled by mass
 mass = 15
 caisson3D.setMass(mass)
-caisson3D.It = np.array([[Ixx, 0., 0.],
+caisson3D.It = old_div(np.array([[Ixx, 0., 0.],
                          [0., Iyy, 0.],
-                         [0., 0., Izz]])/caisson3D.mass
+                         [0., 0., Izz]]),caisson3D.mass)
 caisson3D.rotate(rotation_angle, rotation_axis)
 caisson3D.setRecordValues(pos=True, rot=True, F=True, M=True)
 
@@ -203,11 +206,11 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = 10.0/nu_0#Re
+weak_bc_penalty_constant = old_div(10.0,nu_0)#Re
 dt_init = opts.dt_init
 T = opts.T
 nDTout = int(opts.T*opts.nsave)
-dt_out =  (T-dt_init)/nDTout
+dt_out =  old_div((T-dt_init),nDTout)
 runCFL = opts.cfl
 
 #----------------------------------------------------
@@ -227,15 +230,15 @@ useRANS = 1 # 0 -- None
             # 3 -- K-Omega, 1988
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 #  Discretization

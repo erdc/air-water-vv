@@ -1,6 +1,10 @@
 """
 Bar floating in half-filled tank
 """
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 from math import *
 from proteus import *
 import numpy
@@ -67,9 +71,9 @@ bar_mass    = bar_length*bar_width*bar_height*0.5*(rho_0+rho_1)
 
 bar_cg      = [0.0,0.0,0.0]
 
-bar_inertia = [[(L[1]**2+L[2]**2)/12.0, 0.0                    , 0.0                   ],
-               [0.0                   , (L[0]**2+L[2]**2)/12.0 , 0.0                   ],
-               [0.0                   , 0.0                    , (L[0]**2+L[1]**2)/12.0]]
+bar_inertia = [[old_div((L[1]**2+L[2]**2),12.0), 0.0                    , 0.0                   ],
+               [0.0                   , old_div((L[0]**2+L[2]**2),12.0) , 0.0                   ],
+               [0.0                   , 0.0                    , old_div((L[0]**2+L[1]**2),12.0)]]
 
 RBR_linCons  = [1,1,0]
 RBR_angCons  = [1,0,1]
@@ -133,11 +137,11 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = 10.0/nu_0#Re
+weak_bc_penalty_constant = old_div(10.0,nu_0)#Re
 dt_init=opts.dt_init
 T = opts.T
 nDTout=opts.nsave
-dt_out =  (T-dt_init)/nDTout
+dt_out =  old_div((T-dt_init),nDTout)
 runCFL = opts.cfl
 
 #----------------------------------------------------
@@ -158,15 +162,15 @@ useRANS = 0 # 0 -- None
             # 3 -- K-Omega, 1988
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 #  Discretization
@@ -384,33 +388,33 @@ class RigidBar(AuxiliaryVariables.AV_base):
             dt = self.dt_init
         F = self.model.levelModelList[-1].coefficients.netForces_p[7,:] + self.model.levelModelList[-1].coefficients.netForces_v[7,:];
         M = self.model.levelModelList[-1].coefficients.netMoments[7,:]
-        logEvent("x Force " +`self.model.stepController.t_model_last`+" "+`F[0]`)
-        logEvent("y Force " +`self.model.stepController.t_model_last`+" "+`F[1]`)
-        logEvent("z Force " +`self.model.stepController.t_model_last`+" "+`F[2]`)
-        logEvent("x Moment " +`self.model.stepController.t_model_last`+" "+`M[0]`)
-        logEvent("y Moment " +`self.model.stepController.t_model_last`+" "+`M[1]`)
-        logEvent("z Moment " +`self.model.stepController.t_model_last`+" "+`M[2]`)
-        logEvent("dt " +`dt`)
+        logEvent("x Force " +repr(self.model.stepController.t_model_last)+" "+repr(F[0]))
+        logEvent("y Force " +repr(self.model.stepController.t_model_last)+" "+repr(F[1]))
+        logEvent("z Force " +repr(self.model.stepController.t_model_last)+" "+repr(F[2]))
+        logEvent("x Moment " +repr(self.model.stepController.t_model_last)+" "+repr(M[0]))
+        logEvent("y Moment " +repr(self.model.stepController.t_model_last)+" "+repr(M[1]))
+        logEvent("z Moment " +repr(self.model.stepController.t_model_last)+" "+repr(M[2]))
+        logEvent("dt " +repr(dt))
         scriptMotion=False
         linearOnly=False
         if self.last_F == None:
             self.last_F = F.copy()
         if scriptMotion:
-            velocity = np.array((0.0,0.3/1.0,0.0))
-            logEvent("script pos="+`(np.array(self.position)+velocity*dt).tolist()`)
+            velocity = np.array((0.0,old_div(0.3,1.0),0.0))
+            logEvent("script pos="+repr((np.array(self.position)+velocity*dt).tolist()))
             self.body.setPosition((np.array(self.position)+velocity*dt).tolist())
             self.body.setLinearVel(velocity)
         else:
             if linearOnly:
                 Fstar = 0.5*(F+self.last_F) + np.array(self.world.getGravity())
                 velocity_last = np.array(self.velocity)
-                velocity = velocity_last + Fstar*(dt/self.totalMass)
+                velocity = velocity_last + Fstar*(old_div(dt,self.totalMass))
                 velocity[0] = 0.0
                 vmax = self.he*self.cfl_target/dt
                 vnorm = np.linalg.norm(velocity,ord=2)
                 if vnorm > vmax:
-                    velocity *= vmax/vnorm
-                    logEvent("Warning: limiting rigid body velocity from "+`vnorm`+" to "+`vmax`)
+                    velocity *= old_div(vmax,vnorm)
+                    logEvent("Warning: limiting rigid body velocity from "+repr(vnorm)+" to "+repr(vmax))
                 position_last = np.array(self.position)
                 position = position_last + 0.5*(velocity_last + velocity)*dt
                 self.body.setPosition(position.tolist())
@@ -443,7 +447,7 @@ position_last = {7}""".format(Fstar,F,self.last_F,dt,velocity,velocity_last,posi
                                          Mstar[1]*opts.free_r[1],
                                          Mstar[2]*opts.free_r[2]))
                     #self.space.collide((self.world,self.contactgroup), near_callback)
-                    self.world.step(dt/float(nSteps))
+                    self.world.step(old_div(dt,float(nSteps)))
         #self.contactgroup.empty()
         self.last_F[:] = F
         self.last_M[:] = M

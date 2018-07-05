@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from past.utils import old_div
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -25,15 +29,15 @@ useRANS = 0 # 0 -- None
             # 2 -- K-Omega
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()    
     
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print("INVALID: useRBLES" + useRBLES) 
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
     
 #  Discretization   
@@ -68,7 +72,7 @@ obst_x_end = obst_x_start + obst_portions[0] # end x coordinate of the obstacle;
 obst = (obst_x_start,obst_portions[1],obst_x_end) #coordinates of the obstacle to be used to define the boundary
 
 
-he = L[0]/float(4*Refinement-1)
+he = old_div(L[0],float(4*Refinement-1))
 #he*=0.5
 #he*=0.5
 #he*=0.5
@@ -92,7 +96,7 @@ class PointGauges(AV_base):
         self.flags={}
         self.files={}#will be opened  later
         pointFlag=100
-        for name,point in self.locations.iteritems():
+        for name,point in self.locations.items():
             self.flags[name] = pointFlag
             pointFlag += 1
     def attachModel(self,model,ar):
@@ -107,10 +111,10 @@ class PointGauges(AV_base):
         return self    
     def calculate(self):
         import numpy as  np
-        for name,flag  in self.flags.iteritems():
+        for name,flag  in self.flags.items():
             vnMask = self.vertexFlags == flag
             if vnMask.any():
-                if not self.files.has_key(name):
+                if name not in self.files:
                     self.files[name] = open(name+'.txt','w')
                 self.files[name].write('%22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]))
 
@@ -123,7 +127,7 @@ class LineGauges(AV_base):
         self.linepoints={}
         self.files={}#while open later
         pointFlag=1000
-        for name,(pStart,pEnd) in self.endpoints.iteritems():
+        for name,(pStart,pEnd) in self.endpoints.items():
             self.flags[name] = pointFlag
             p0 = np.array(pStart)
             direction = np.array(pEnd) - p0
@@ -143,10 +147,10 @@ class LineGauges(AV_base):
         return self    
     def calculate(self):
         import numpy as  np
-        for name,flag  in self.flags.iteritems():
+        for name,flag  in self.flags.items():
             vnMask = self.vertexFlags == flag
             if vnMask.any():
-                if not self.files.has_key(name):
+                if name not in self.files:
                     self.files[name] = open(name+'.txt','w')
                 for x,y,p,u,v in zip(self.vertices[vnMask,0],self.vertices[vnMask,1],self.p[vnMask],self.u[vnMask],self.v[vnMask]):
                     self.files[name].write('%22.16e %22.16e %22.16e  %22.16e  %22.16e\n' % (x,y,p,u,v))
@@ -160,7 +164,7 @@ class LineGauges_phi(AV_base):
         self.linepoints={}
         self.files={}#while open later
         pointFlag=1000
-        for name,(pStart,pEnd) in self.endpoints.iteritems():
+        for name,(pStart,pEnd) in self.endpoints.items():
             self.flags[name] = pointFlag
             p0 = np.array(pStart)
             direction = np.array(pEnd) - p0
@@ -178,10 +182,10 @@ class LineGauges_phi(AV_base):
         return self    
     def calculate(self):
         import numpy as  np
-        for name,flag  in self.flags.iteritems():
+        for name,flag  in self.flags.items():
             vnMask = self.vertexFlags == flag
             if vnMask.any():
-                if not self.files.has_key(name):
+                if name not in self.files:
                     self.files[name] = open(name+'_phi.txt','w')
                 for x,y,phi in zip(self.vertices[vnMask,0],self.vertices[vnMask,1],self.phi[vnMask]):
                     self.files[name].write('%22.16e %22.16e %22.16e\n' % (x,y,phi))
@@ -282,7 +286,7 @@ else:
         domain.writePoly("mesh")
         domain.writePLY("mesh")
         domain.writeAsymptote("mesh")
-        triangleOptions="KVApq1.4q12feena%21.16e" % ((he**3)/6.0,)
+        triangleOptions="KVApq1.4q12feena%21.16e" % (old_div((he**3),6.0),)
 
 
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
@@ -291,7 +295,7 @@ T=0.8
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.1*he)
 runCFL=0.33
-nDTout = int(round(T/dt_fixed))
+nDTout = int(round(old_div(T,dt_fixed)))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True

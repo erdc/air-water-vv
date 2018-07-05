@@ -1,6 +1,11 @@
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import numpy as np
 
-class MeshOptions:
+class MeshOptions(object):
     """
     Mesh options for the domain
     """
@@ -175,7 +180,7 @@ class MeshOptions:
         :param prog: progression parameter for nodes on segments
         """
         var_dict_pos = {'nodes':nb_nodes, 'prog': prog}
-        var_dict_neg = {'nodes':nb_nodes, 'prog': 1./prog}
+        var_dict_neg = {'nodes':nb_nodes, 'prog': old_div(1.,prog)}
         ind_prog_pos = []
         ind_prog_neg = []
         for ind in indice:
@@ -273,9 +278,9 @@ def writeGeo(domain, fileprefix, group_names=False, append=False):
                 lineloop = []
                 # vertices in facet
                 for k, ver in enumerate(subf):
-                    if ver in lines_dict[subf[k-1]].keys():
+                    if ver in list(lines_dict[subf[k-1]].keys()):
                         lineloop += [lines_dict[subf[k-1]][ver]+1]
-                    elif subf[k-1] in lines_dict[ver].keys():
+                    elif subf[k-1] in list(lines_dict[ver].keys()):
                         # reversed
                         lineloop += [-(lines_dict[ver][subf[k-1]]+1)]
                     else:
@@ -317,7 +322,7 @@ def writeGeo(domain, fileprefix, group_names=False, append=False):
     # Physical Groups
     geo.write('\n// Physical Groups\n')
     if self.boundaryTags:
-        inv_bt = {v: k for k, v in self.boundaryTags.iteritems()}
+        inv_bt = {v: k for k, v in self.boundaryTags.items()}
     for flag in pp:
         ind = pp[flag]
         if self.boundaryTags and group_names is True:

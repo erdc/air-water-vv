@@ -1,3 +1,8 @@
+from __future__ import division
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import math
 import csv
@@ -32,7 +37,7 @@ def readProbeFile(filename):
             probex.append(float(header[ii+1]))
             probey.append(float(header[ii+2]))
             probez.append(float(header[ii+3]))
-        probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+        probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
         datalist = [probeType,probeCoord,time,data]
         return datalist
 
@@ -48,14 +53,14 @@ L = sw.opts.wavelength #5.
 time = data_p[2]
 pressure = data_p[3][:,-1]
 Z = -depth + data_p[1][0][1]
-Nwaves = (sw.opts.tank_dim[0]+sw.opts.tank_sponge[0]+sw.opts.tank_sponge[1])/L
+Nwaves = old_div((sw.opts.tank_dim[0]+sw.opts.tank_sponge[0]+sw.opts.tank_sponge[1]),L)
 
 # Calculating the height with the pressure
 
 def pressureToHeight(data,Z,depth,wavelength,rho,g):
     k = 2*math.pi/wavelength
     Kp = rho*g*np.cosh(k*(depth+Z))/np.cosh(k*depth)
-    return data/Kp
+    return old_div(data,Kp)
 
 Tend = time[-1]
 Tstart = Tend-Nwaves*T

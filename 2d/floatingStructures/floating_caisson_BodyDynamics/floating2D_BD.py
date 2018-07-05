@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import Gauges as ga
@@ -109,7 +112,7 @@ else:
 
 # --- MESH SIZE
 if opts.he == 0.0:
-    he = wl/opts.refinement_level
+    he = old_div(wl,opts.refinement_level)
 else:
     he = opts.he 
 
@@ -165,11 +168,11 @@ if opts.caisson2D:
     dimy = dimy
     dim = (dimx,dimy)
     coords = ctr
-    VCG = dim[1]/2.
+    VCG = old_div(dim[1],2.)
     width = opts.width
     mass = opts.mass
     volume = float(dimx*dimy*width)
-    density = float(mass/volume)
+    density = float(old_div(mass,volume))
     inertia = opts.caisson_inertia/mass/width
 
 # --- Shape properties setup
@@ -256,7 +259,7 @@ T = opts.duration
 
 gauge_dx=0.25
 tank_dim_x=int(tank_dim[0])
-nprobes=int(tank_dim_x/gauge_dx)+1
+nprobes=int(old_div(tank_dim_x,gauge_dx))+1
 probes=np.linspace(0., tank_dim_x, nprobes)
 PG=[]
 if opts.caisson2D:
@@ -273,7 +276,7 @@ if opts.caisson2D:
     i_point_f += -tol #to avoid floating point error
     i_point_b=np.array([caisson.vertices[1][0],caisson.vertices[1][1],0.])
     i_point_b += tol #to avoid floating point error
-    yProbes = np.linspace(i_point_f[1],i_point_f[1]+dimy, int(dimy/gauge_dy)+1)
+    yProbes = np.linspace(i_point_f[1],i_point_f[1]+dimy, int(old_div(dimy,gauge_dy))+1)
     LG1=[]
     LG2=[]
     for j in yProbes:
@@ -311,11 +314,11 @@ st.assembleDomain(domain)
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = 10.0/nu_0 #100
+weak_bc_penalty_constant = old_div(10.0,nu_0) #100
 dt_fixed = 0.1
 dt_init = min(0.1*dt_fixed,0.001)
 T = T
-nDTout= int(round(T/dt_fixed))
+nDTout= int(round(old_div(T,dt_fixed)))
 runCFL = opts.cfl
 
 #----------------------------------------------------
@@ -355,15 +358,15 @@ useVF = opts.useVF # used in the smoothing functions as (1.0-useVF)*smoothedHeav
 
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 #  Discretization

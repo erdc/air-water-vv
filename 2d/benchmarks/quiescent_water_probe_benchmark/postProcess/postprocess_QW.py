@@ -1,3 +1,8 @@
+from __future__ import division
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 from numpy import *
 from scipy import *
 from pylab import *
@@ -36,7 +41,7 @@ def readProbeFile(filename):
             probex.append(float(header[ii+1]))
             probey.append(float(header[ii+2]))
             probez.append(float(header[ii+3]))
-        probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+        probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
         datalist = [probeType,probeCoord,time,data]
         return datalist
 
@@ -128,7 +133,7 @@ val1.close()
 
 S = 0.
 for i in range(0,len(Y)-4): # Ignores the 4 last points beside the water surface
-    S = S + abs(p(Y[i])-P_line[-1][i])/p(Y[i])
+    S = S + old_div(abs(p(Y[i])-P_line[-1][i]),p(Y[i]))
 err_pl = 100*S/(len(Y)-4)
 val2 = open('validation_PressureLine_QW.txt', 'w')
 val2.write('Pressure under the water at a column in the middle of the tank.'+'\n')

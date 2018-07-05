@@ -1,11 +1,15 @@
+from __future__ import print_function
+from __future__ import division
 #from scipy import *
+from builtins import range
+from past.utils import old_div
 from pylab import *
 from numpy import *
 import collections as cll
 
 #Define parameters
 L=3.141 #wave length
-h=float(L)/2.0 #water depth
+h=old_div(float(L),2.0) #water depth
 m=1.0 #order of the solution 
 km_sym=(2.0*m-1.0)*3.141/float(L)
 km_asym=2.0*m*3.141/float(L)
@@ -43,7 +47,7 @@ time[:]= a[:,15]
 x_loc=0.0 #define location
 y_loc=h
 
-print time
+print(time)
 for i in range (int(n)):
  y_theor[i]=-y_loc-1.0/9.81*am*cos(km*x_loc)*w*cos(w*time[i])*cosh(km*h) 
 

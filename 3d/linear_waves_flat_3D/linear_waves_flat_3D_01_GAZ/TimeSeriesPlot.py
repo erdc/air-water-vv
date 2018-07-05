@@ -1,4 +1,6 @@
+from __future__ import print_function
 #from scipy import *
+from builtins import range
 import pylab 
 import numpy 
 import collections as cll
@@ -29,7 +31,7 @@ fid.seek(0)
 D0 = fid.readlines()
 header0 = D0[:headerline]
 n=len(D0)
-print n
+print(n)
 F = numpy.zeros((int(n-1.0),2),dtype=float)
 for i in range (1,int(n)):
  F[i-1,:]=D0[i].split(',')
@@ -42,8 +44,8 @@ for j in range (0,6):
   D = fid.readlines()
   header = D[:headerline]
   n=len(D)
-  print n
-  print filename[j]
+  print(n)
+  print(filename[j])
   a = numpy.zeros((int(n-1.0),18),dtype=float)
   for i in range (1,int(n)):
     a[i-1,:]=D[i].split(',')
@@ -87,19 +89,19 @@ time_4[:]=time_4[:]+time_3[-1]
 
 n1=int(len(y_1)+len(y_2))
 n2=int(len(y_3)+len(y_4))
-print n1
-print n2
+print(n1)
+print(n2)
 y_front = numpy.zeros(int(n1),dtype=float)
 y_back = numpy.zeros(int(n2),dtype=float) 
 time_front = numpy.zeros(int(n1),dtype=float)
 time_back = numpy.zeros(int(n2),dtype=float) 
-print y_5
+print(y_5)
 y_front[:]=numpy.append(y_1,y_2)
 y_back[:]=numpy.append(y_3,y_4)
 time_front[:]=numpy.append(time_1,time_2)
 time_back[:]=numpy.append(time_3,time_4)
-print time_front
-print time_back
+print(time_front)
+print(time_back)
 netforce=y_front-y_back
   
 pylab.fig1 = pylab.figure(figsize=(16, 10))

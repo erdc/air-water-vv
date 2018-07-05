@@ -1,7 +1,11 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import AnalysisTools as AT
 import os
 import numpy as np
-print "Reading generation probes"
+print("Reading generation probes")
 
 
 
@@ -15,7 +19,7 @@ folder = "../output"
 os.chdir(folder)
 dataW = AT.readProbeFile("pressure_gaugeArray.csv")
 
-print dataW[1]
+print(dataW[1])
 Z= -depth + dataW[1][0][1]
 
 Nwaves = 3
@@ -23,7 +27,7 @@ Nwaves = 3
 Tend = dataW[2][-1]
 Tstart = Tend-Nwaves*T
 
-print Tstart,Tend,Z
+print(Tstart,Tend,Z)
 
 Ht = 0
 Hi = 0
@@ -31,13 +35,13 @@ bf = 1.2
 
 zc =[]
 for dd in range(0,len(dataW[3][0,:])):
-    dat = AT.zeroCrossing(dataW[2],dataW[3][:,dd],Tstart, Tend,minfreq=1/(bf*T),maxfreq=(bf/T))
+    dat = AT.zeroCrossing(dataW[2],dataW[3][:,dd],Tstart, Tend,minfreq=old_div(1,(bf*T)),maxfreq=(old_div(bf,T)))
     dat[1]=AT.pressureToHeight(dat[1],Z,depth,L,998.2,9.81)
 
     zc.append(dat)
 
 dx_array = dataW[1][1][0]-dataW[1][0][0]          
-print dx_array
+print(dx_array)
 Narray =int(round(L/6./dx_array))
 RR = []
 HH=[]
@@ -50,5 +54,5 @@ for dd in range(0,len(dataW[3][0,:])-2*Narray):
     HH.append(AT.reflStat(H1,H2,H3,Narray*dx_array,L)[0])
     RR.append(AT.reflStat(H1,H2,H3,Narray*dx_array,L)[2])
 
-print np.mean(HH[21:])
-print np.mean(RR[21:])
+print(np.mean(HH[21:]))
+print(np.mean(RR[21:]))

@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -24,15 +27,15 @@ useRANS = 0 # 0 -- None
             # 2 -- K-Omega
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()    
     
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print("INVALID: useRBLES" + useRBLES) 
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
     
 #  Discretization   
@@ -70,9 +73,9 @@ if useHex:
 
     comm=Comm.get()	
     if comm.isMaster():	
-        size = numpy.array([[0.520,0.510   ,0.520],
+        size = old_div(numpy.array([[0.520,0.510   ,0.520],
 	                    [0.330,0.335833,0.330],
-			    [0.320,0.325   ,0.000]])/float(Refinement)
+			    [0.320,0.325   ,0.000]]),float(Refinement))
         numpy.savetxt('size.mesh', size)
         failed = os.system("../../scripts/marinHexMesh")      
      
@@ -82,7 +85,7 @@ else:
     box_L  = [0.161,0.403,0.161]
     box_xy = [2.3955,0.2985]
     #he = L[0]/float(6.5*Refinement)
-    he = L[0]/64.0
+    he = old_div(L[0],64.0)
     he*=0.5#256
     boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
@@ -154,13 +157,13 @@ else:
     domain.writePoly("mesh")
     domain.writePLY("mesh")
     domain.writeAsymptote("mesh")
-    triangleOptions="VApq1.25q12ena%e" % ((he**3)/6.0,)
+    triangleOptions="VApq1.25q12ena%e" % (old_div((he**3),6.0),)
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
 T=6.00
 dt_init  =0.001
-dt_fixed = 0.1/Refinement
-nDTout = int(round(T/dt_fixed))
+dt_fixed = old_div(0.1,Refinement)
+nDTout = int(round(old_div(T,dt_fixed)))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True

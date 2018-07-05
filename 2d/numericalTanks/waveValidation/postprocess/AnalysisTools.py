@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import numpy as np
 from proteus import WaveTools as WT
 import math
@@ -26,12 +31,12 @@ def readProbeFile(filename):
             probex.append(float(header[ii+1]))
             probey.append(float(header[ii+2]))
             probez.append(float(header[ii+3]))
-        probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+        probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
         datalist = [probeType,probeCoord,time,data]
         return datalist
 
 def signalFilter(time,data,minfreq,maxfreq,costapCut = False):
-    dt = (time[-1]-time[0])/(len(time)-1)
+    dt = old_div((time[-1]-time[0]),(len(time)-1))
     doInterp = False
     data1 = np.zeros(data.shape,)
     
@@ -56,7 +61,7 @@ def signalFilter(time,data,minfreq,maxfreq,costapCut = False):
             data = data1
             nprobes = -1
     nfft = len(time)
-    dt = (time[-1]-time[0])/(len(time)-1)
+    dt = old_div((time[-1]-time[0]),(len(time)-1))
     freq = np.fft.fftfreq(nfft,dt)   
     i1 = np.where(freq > maxfreq)[0]
     i3 = np.where(freq < -maxfreq)[0]
@@ -153,28 +158,28 @@ def zeroCrossing(time,data,Tstart=0.,Tend=1e300,mode="mean",up=True,filt=True,mi
         height = np.mean(height[ii:])
         period = np.mean(period[ii:])
     else:
-        print "mode must be either an integer > 1, a float < 1 or a 'mean'"
+        print("mode must be either an integer > 1, a float < 1 or a 'mean'")
     return [period,height]
                       
 
 def pressureToHeight(data,Z,depth,wavelength,rho,g):
     k = 2*math.pi/wavelength
     Kp = rho*g*np.cosh(k*(depth+Z))/np.cosh(k*depth)
-    return data/Kp
+    return old_div(data,Kp)
 
 def reflStat(H1,H2,H3,dx,wavelength):
     D = 2*math.pi*dx/wavelength
-    Amp =np.array([H1/2.,H2/2.,H3/2.])
+    Amp =np.array([old_div(H1,2.),old_div(H2,2.),old_div(H3,2.)])
     A1 = Amp[0]*Amp[0]
     A2 = Amp[1]*Amp[1]
     A3 = Amp[2]*Amp[2]
-    Lamda = (A1 + A3 - 2.*A2*np.cos(2*D))/(4.*np.sin(D)*np.sin(D))
+    Lamda = old_div((A1 + A3 - 2.*A2*np.cos(2*D)),(4.*np.sin(D)*np.sin(D)))
     Gamma = 0.5*np.sqrt(
-        ((2*A2-A1-A3)/(2.*np.sin(D)*np.sin(D)))**2+((A1-A3)/np.sin(2*D))**2)
+        (old_div((2*A2-A1-A3),(2.*np.sin(D)*np.sin(D))))**2+(old_div((A1-A3),np.sin(2*D)))**2)
     
     Hi = np.sqrt(Lamda + Gamma) + np.sqrt(Lamda - Gamma)
     Hr = np.sqrt(Lamda + Gamma) - np.sqrt(Lamda - Gamma)
-    Rf = Hr/(Hi+1e-15)
+    Rf = old_div(Hr,(Hi+1e-15))
     return [Hi,Hr,Rf]
 
 #    i3 = np.where(freq[np.where(freq<0)[0]]

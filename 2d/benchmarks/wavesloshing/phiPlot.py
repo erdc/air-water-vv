@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import input
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import numpy as np
 from scipy import *
 from pylab import *
@@ -40,7 +46,7 @@ with open (filename, 'rb') as csvfile:
    
 # Choose which probes to plot  
     print('Number of probes : '+ str(len(probes)))
-    x = int(raw_input('Enter which probes to plot (range from 1 to number of probes): ')) 
+    x = int(input('Enter which probes to plot (range from 1 to number of probes): ')) 
     phi=[]
     for k in range(1,nRows):
         phi.append(a[k][x]+0.05)    
@@ -106,7 +112,7 @@ with open (filename, 'rb') as csvfile:
         h_ = h*k
         w_ = omega(h_, eps)
         t_ = (t+2*np.pi/(w_*np.sqrt(k*(-g[1])))*0.25)*(w_*np.sqrt(k*(-g[1])))
-        eta = eps_eta(x_, t_, h_, eps)/k
+        eta = old_div(eps_eta(x_, t_, h_, eps),k)
         return eta
     
 # Print an output file to validate the results

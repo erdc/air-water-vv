@@ -1,3 +1,8 @@
+from __future__ import division
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import collections as cll
 import csv
 import os
@@ -36,7 +41,7 @@ def readProbeFile(filename):
             probex.append(float(header[ii+1]))
             probey.append(float(header[ii+2]))
             probez.append(float(header[ii+3]))
-        probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+        probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
         datalist = [probeType,probeCoord,time,data]
         return datalist
 
@@ -65,7 +70,7 @@ spectName =  rw.spectName
 phi = rw.phi
 wave_ref = rw.wt.RandomWaves(Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName,spectral_params=None,phi=phi,fast=True)
 eta_bc = rw.tank.BC['x-'].vof_dirichlet.uOfXT
-zin = np.linspace(rw.he/2,rw.tank_dim[1]-rw.he/2,rw.tank_dim[1]/rw.he)
+zin = np.linspace(old_div(rw.he,2),rw.tank_dim[1]-old_div(rw.he,2),old_div(rw.tank_dim[1],rw.he))
 
 Tstart = rw.Tstart
 Tend = rw.Tend
@@ -113,7 +118,7 @@ c = 0.
 for i in range(len(time)):
     c += 1.
     S += (eta_fast[i]-eta_ref[i])**2
-err = np.sqrt(S/c)
+err = np.sqrt(old_div(S,c))
 err = 100*err/(rw.opts.Hs)
 val = open('validation_eta_RW.txt', 'w')
 val.write('Surface elevation against time for the random waves'+'\n')

@@ -1,6 +1,11 @@
+from __future__ import absolute_import
+from builtins import object
 from proteus import *
 from proteus.default_p import *
-from tank import *
+try:
+    from .tank import *
+except:
+    from tank import *
 from proteus.mprans import Dissipation
 from proteus import Context
 
@@ -49,7 +54,7 @@ diffusiveFluxBoundaryConditions = {0: {},
                                   }
 
  
-class ConstantIC:
+class ConstantIC(object):
     def __init__(self,cval=0.0):
         self.cval=cval
     def uOfXT(self,x,t):

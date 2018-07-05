@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import object
+from past.utils import old_div
 from proteus import *
 from proteus.default_p import *
 from dambreak_Ubbink_medium import *
@@ -36,7 +39,7 @@ coefficients = Dissipation.Coefficients(V_model=0,ME_model=ME_model,LS_model=LS_
 
 dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*L[1])
 if useRANS >= 2:
-    dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
+    dissipationInflow = old_div(dissipationInflow,(kInflow+1.0e-12))
 def getDBC_dissipation(x,flag):
     if flag == boundaryTags['left']:
         return lambda x,t:dissipationInflow
@@ -63,7 +66,7 @@ diffusiveFluxBoundaryConditions = {0:{0:getDFBC_dissipation}}
 
 
 
-class ConstantIC:
+class ConstantIC(object):
     def __init__(self,cval=0.0):
         self.cval=cval
     def uOfXT(self,x,t):

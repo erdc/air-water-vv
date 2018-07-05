@@ -1,3 +1,4 @@
+from __future__ import print_function
 ###############INPUT
 import tank3D
 #=================================
@@ -52,21 +53,21 @@ for face in facets:
     #fx.append(vx[face[0]]+1e-30)
     #fy.append(vy[face[0]]+1e-30)
     #fz.append(vz[face[0]]+1e-30)
-    print icount
+    print(icount)
     if icount[0]<=1e-30 and ((setface is "FaceX") or (setface is "allFaces")):
-        print "FaceX"
+        print("FaceX")
         Y,Z = np.meshgrid(fy,fz)
         Z1,X = np.meshgrid(fz,fx)
         s1=ax.plot_surface(X,Y,Z,rstride=1, cstride=1,color="r",alpha=0.1)
 
     elif icount[1]<=1e-30 and ((setface is "FaceY") or (setface is "allFaces")):
-        print "FaceY"
+        print("FaceY")
         X,Z = np.meshgrid(fx,fz)
         Z1,Y = np.meshgrid(fz,fy)
         s2=ax.plot_surface(X,Y,Z,rstride=1, cstride=1,color="r",alpha=0.1)
         
     elif icount[2]<=1e-30 and ((setface is "FaceZ") or (setface is "allFaces")):
-        print "FaceZ"
+        print("FaceZ")
         X,Y = np.meshgrid(fx,fy)
         Y1,Z = np.meshgrid(fy,fz)
         s3=ax.plot_surface(X,Y,Z,rstride=1, cstride=1,color="r",alpha=0.1)

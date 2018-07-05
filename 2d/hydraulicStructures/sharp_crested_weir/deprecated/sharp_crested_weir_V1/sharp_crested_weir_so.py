@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import range
 import sharp_crested_weir
 from proteus.default_so import *
 

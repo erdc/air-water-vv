@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -18,7 +22,7 @@ rotq_e3 = data[:,7]
 alpha = []
 for i in range(0,len(rotq_e3)):
     alpha.append(2*math.asin(rotq_e3[i]))
-    alpha[i] *= 360/(2*math.pi)
+    alpha[i] *= old_div(360,(2*math.pi))
 alpha = np.array(alpha)
 
 it = np.where(time>2.5)[0][0]

@@ -1,3 +1,4 @@
+from builtins import object
 from proteus import *
 from proteus.default_p import *
 from tank import *
@@ -125,7 +126,7 @@ diffusiveFluxBoundaryConditions = {0:{},
                                    1:{1:getDFBC_u},
                                    2:{2:getDFBC_v}}
 
-class PerturbedSurface_p:
+class PerturbedSurface_p(object):
     def __init__(self,waterLevel):
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
@@ -134,13 +135,13 @@ class PerturbedSurface_p:
         else:
             return -(L[1] - self.waterLevel)*rho_1*g[1]
 
-class AtRest:
+class AtRest(object):
     def __init__(self):
         pass
     def uOfXT(self,x,t):
         return 0.0
 
-class initialVelocity_u:
+class initialVelocity_u(object):
     def __init__(self):
         pass
     def uOfXT(self,x,t):

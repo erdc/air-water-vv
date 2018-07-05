@@ -1,3 +1,4 @@
+from builtins import object
 from proteus.default_p import *
 from proteus.mprans import Kappa
 from proteus import Context
@@ -52,7 +53,7 @@ diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].k_diff
 
 
 
-class ConstantIC:
+class ConstantIC(object):
     def __init__(self, cval=0.):
         self.cval = cval
     def uOfXT(self, x, t):

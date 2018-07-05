@@ -1,3 +1,4 @@
+from builtins import object
 from proteus.default_p import *
 from proteus.mprans import Dissipation
 from proteus import Context
@@ -41,7 +42,7 @@ diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].dissip
 
 dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*ct.L[1])
 
-class ConstantIC:
+class ConstantIC(object):
     def __init__(self,cval=0.0):
         self.cval=cval
     def uOfXT(self,x,t):

@@ -1,3 +1,8 @@
+from __future__ import division
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import csv
 import os
@@ -32,7 +37,7 @@ def readProbeFile(filename):
             probex.append(float(header[ii+1]))
             probey.append(float(header[ii+2]))
             probez.append(float(header[ii+3]))
-        probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+        probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
         datalist = [probeType,probeCoord,time,data]
         return datalist
 
@@ -49,7 +54,7 @@ tank_dim = [58., 1.26] #dws.opts.tank_dim
 waterLevel = 0.86 #dws.opts.water_level
 gauge_x = [6.26, 10.26, 12.66, 23.26, 27.26, 29.26, 31.26, 33.66, 36.86, 40.26, 44.26] #dws.opts.gauge_x
 
-for j in range(len(data_vof[1])/2):
+for j in range(old_div(len(data_vof[1]),2)):
     eta = []
     for i in range(len(vof)):
         eta.append(tank_dim[1]-vof[:,j][i]-waterLevel)
@@ -60,8 +65,8 @@ ETA = np.array(ETA)
 
 # Plotting the probes
 fig = plt.figure(figsize=(25,15))
-ax = ['' for x in range(len(data_vof[1])/2)]
-for i in range(len(data_vof[1])/2):
+ax = ['' for x in range(old_div(len(data_vof[1]),2))]
+for i in range(old_div(len(data_vof[1]),2)):
     ax[i] = fig.add_subplot(4,3,i+1)
     ax[i].plot(time, ETA[i], 'r')
     ax[i].set_ylim([-0.02,0.02])

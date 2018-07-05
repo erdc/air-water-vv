@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import collections as cll
 import csv
 import os
@@ -37,7 +41,7 @@ def readProbeFile(filename):
             probex.append(float(header[ii+1]))
             probey.append(float(header[ii+2]))
             probez.append(float(header[ii+3]))
-        probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+        probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
         datalist = [probeType,probeCoord,time,data]
         return datalist
 
@@ -65,7 +69,7 @@ spectName =  rw.spectName
 phi = rw.phi
 wave_ref = rw.wt.RandomWaves(Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName,spectral_params=None,phi=phi,fast=True)
 eta_bc= rw.tank.BC['x-'].vof_dirichlet.uOfXT
-zin = np.linspace(rw.opts.he/2.,rw.tank_dim[1]-rw.opts.he/2,rw.opts.tank_dim[1]/rw.opts.he)
+zin = np.linspace(old_div(rw.opts.he,2.),rw.tank_dim[1]-old_div(rw.opts.he,2),old_div(rw.opts.tank_dim[1],rw.opts.he))
 ######################################################################################
 
 Tstart =0.# rw.Tstart
@@ -90,8 +94,8 @@ for i in range(0,len(time)):
     #eta_fast.append(wave_fast.eta(X,time[i]))
 eta_ref = np.array(eta_ref)
 eta_bca = np.array(eta_bca)
-fp = 1./Tp
-minf = fp/bandFactor
+fp = old_div(1.,Tp)
+minf = old_div(fp,bandFactor)
 maxf = bandFactor*fp
 time_int = np.linspace(0,time[-1],len(time))
 eta_fast = np.interp(time_int,time,eta_fast)

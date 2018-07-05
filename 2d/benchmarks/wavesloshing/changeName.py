@@ -1,3 +1,4 @@
+from builtins import input
 import os
 import sys
 
@@ -6,8 +7,8 @@ files = os.listdir(".")
 
 
 #Interactively asking for old and new name
-oldname = raw_input("old name:")
-newname = raw_input("new name:")
+oldname = input("old name:")
+newname = input("new name:")
 
 
 

@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -25,15 +28,15 @@ useRANS = 0 # 0 -- None
             # 2 -- K-Omega
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()    
     
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print("INVALID: useRBLES" + useRBLES) 
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
     
 #  Discretization   
@@ -61,7 +64,7 @@ elif spaceOrder == 2:
     
 # Domain and mesh
 L = (0.584,0.146,0.350)
-he = L[0]/float(4*Refinement-1)
+he = old_div(L[0],float(4*Refinement-1))
 #he*=0.5
 #he = L[0]/20.0
 #he*=0.5#128
@@ -134,7 +137,7 @@ else:
         domain.writePoly("mesh")
         domain.writePLY("mesh")
         domain.writeAsymptote("mesh")
-        triangleOptions="VApq1.4q12feena%21.16e" % ((he**3)/6.0,)
+        triangleOptions="VApq1.4q12feena%21.16e" % (old_div((he**3),6.0),)
 
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
@@ -142,7 +145,7 @@ T=2.0
 dt_fixed = 0.01
 dt_init = min(0.1*dt_fixed,0.1*he)
 runCFL=0.33
-nDTout = int(round(T/dt_fixed))
+nDTout = int(round(old_div(T,dt_fixed)))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True

@@ -1,3 +1,7 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import pytest
 from proteus.iproteus import *
 from proteus import Comm
@@ -59,15 +63,15 @@ class TestRandomWavesFastTetgen(TestTools.AirWaterVVTest):
             while i < len(all):
                 if i < len(all)-1:
                     if all[i+1][0]!='-':
-                        print "setting ", all[i].strip(), all[i+1]
+                        print("setting ", all[i].strip(), all[i+1])
                         OptDB.setValue(all[i].strip('-'),all[i+1])
                         i=i+2
                     else:
-                        print "setting ", all[i].strip(), "True"
+                        print("setting ", all[i].strip(), "True")
                         OptDB.setValue(all[i].strip('-'),True)
                         i=i+1
                 else:
-                    print "setting ", all[i].strip(), "True"
+                    print("setting ", all[i].strip(), "True")
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
         ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
@@ -109,7 +113,7 @@ class TestRandomWavesFastTetgen(TestTools.AirWaterVVTest):
         for i in range(len(time)):
             c += 1.
             S += (eta_fast[i]-eta_ref[i])**2
-        err = np.sqrt(S/c)
+        err = np.sqrt(old_div(S,c))
         err = 100*err/(rw.opts.Hs)
         assert(err<10.)
 

@@ -1,6 +1,9 @@
 """
 Wavesloshing Problem
 """
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import numpy as np
 from math import cos
 from proteus import (Domain, Context,
@@ -141,7 +144,7 @@ dt_init = opts.dt_init
 runCFL = opts.cfl
 nDTout = int(round(T*opts.nsave))
 if nDTout > 0:
-    dt_out= (T-dt_init)/nDTout
+    dt_out= old_div((T-dt_init),nDTout)
 else:
     dt_out = 0
 dt_fixed = opts.dt_fixed
@@ -168,8 +171,8 @@ tank.facets = np.array([[[0, 1, 2, 3]]])
 tank.facetFlags = np.array([1])
 
 # ----- GAUGES ----- #
-gauge_dx = tank_dim[0]/100.
-probes=np.linspace(0., tank_dim[0], tank_dim[0]/gauge_dx+1)
+gauge_dx = old_div(tank_dim[0],100.)
+probes=np.linspace(0., tank_dim[0], old_div(tank_dim[0],gauge_dx)+1)
 PG=[]
 PG2=[]
 zProbes=water_depth*0.5
@@ -409,7 +412,7 @@ def eta(x, t):
     h_ = h*k
     w_ = omega(h_, eps)
     t_ = (t+2*np.pi/(w_*np.sqrt(k*(-g[1])))*0.25)*(w_*np.sqrt(k*(-g[1])))
-    eta = eps_eta(x_, t_, h_, eps)/k
+    eta = old_div(eps_eta(x_, t_, h_, eps),k)
     return eta
 
 def signedDistance(x, t):

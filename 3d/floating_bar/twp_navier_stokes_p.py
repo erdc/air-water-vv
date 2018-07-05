@@ -1,3 +1,4 @@
+from builtins import object
 from proteus import *
 from proteus.default_p import *
 from proteus.mprans import RANS2P
@@ -191,22 +192,22 @@ diffusiveFluxBoundaryConditions = {0:{},
                                    2:{2:getDFBC_v},
                                    3:{3:getDFBC_w}}
 
-class P_IC:
+class P_IC(object):
     def uOfXT(self,x,t):
         return ct.twpflowPressure_init(x,t)
 
-class U_IC:
+class U_IC(object):
     def uOfXT(self,x,t):
         if ct.speed > 0.0:
             return ct.speed
         else:
             return 0.0
 
-class V_IC:
+class V_IC(object):
     def uOfXT(self,x,t):
         return 0.0
 
-class W_IC:
+class W_IC(object):
     def uOfXT(self,x,t):
         return 0.0
 

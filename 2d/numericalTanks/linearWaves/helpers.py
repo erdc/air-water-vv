@@ -19,12 +19,12 @@ def CreateFig():
     xi, yi = np.meshgrid(xg,yg)
     plt.figure()
     for it,t in enumerate(linear_waves_so.tnList[:]):
-        phi = archive.getNode("/phi_t"+`it`)
-        vof = archive.getNode("/vof_t"+`it`)
+        phi = archive.getNode("/phi_t"+repr(it))
+        vof = archive.getNode("/vof_t"+repr(it))
         wvof = np.ones(vof.shape,'d')
         wvof -= vof
-        u = archive.getNode("/u_t"+`it`)
-        v = archive.getNode("/v_t"+`it`)
+        u = archive.getNode("/u_t"+repr(it))
+        v = archive.getNode("/v_t"+repr(it))
         plt.clf()
         plt.xlabel(r'z[m]')
         plt.ylabel(r'x[m]')

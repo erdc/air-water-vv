@@ -1,3 +1,4 @@
+from builtins import object
 from proteus.default_p import *
 from proteus.mprans import RANS2P
 from proteus import Context
@@ -69,7 +70,7 @@ diffusiveFluxBoundaryConditions = {
     2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}
 }
 
-class PerturbedSurface_p:
+class PerturbedSurface_p(object):
     def __init__(self, waterLevel):
         self.waterLevel = waterLevel
 
@@ -81,7 +82,7 @@ class PerturbedSurface_p:
             return -(ct.tank_dim[1] - self.waterLevel) * ct.rho_1 * ct.g[1]
 
 
-class AtRest:
+class AtRest(object):
     def __init__(self):
         pass
 

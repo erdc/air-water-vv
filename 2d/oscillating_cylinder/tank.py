@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import Gauges as ga
@@ -126,7 +129,7 @@ wl=opts.wl
 
 #---------MESH SIZE
 if opts.he == 0.0:
-    he = wl/opts.refinement_level
+    he = old_div(wl,opts.refinement_level)
 else:
     he = opts.he 
 
@@ -278,24 +281,24 @@ c_mu = opts.c_mu
 useRANS=opts.useRANS
 
 Re=Ufree*diameter/nu_0
-turbI = 0.16*( Re**(-1./8.) )
+turbI = 0.16*( Re**(old_div(-1.,8.)) )
 kInflow = ((turbI*Ufree)**2) * 3./2. 
 
 if opts.turbLength == 1:
-    dissipationInflow1 = (kInflow**0.5) / (turbLength1) # omega formulation based on turbulent length formulation
+    dissipationInflow1 = old_div((kInflow**0.5), (turbLength1)) # omega formulation based on turbulent length formulation
     dissipationInflow = dissipationInflow1
 elif opts.turbLength == 2:
-    dissipationInflow2 = (kInflow**0.5) / ( turbLength2*(c_mu**0.25) ) # omega formulation based on mixing length formulation
+    dissipationInflow2 = old_div((kInflow**0.5), ( turbLength2*(c_mu**0.25) )) # omega formulation based on mixing length formulation
     dissipationInflow = dissipationInflow2
 else:
-    dissipationInflow = (kInflow**0.5) / (opts.scaleLength*opts.water_level)
+    dissipationInflow = old_div((kInflow**0.5), (opts.scaleLength*opts.water_level))
 
 # pipeline conditions
 # skin-friction calculation (see Pope, pages 279, 301)
 cf = 0.664*(Re**-0.5)
-Ut = Ufree*sqrt(cf/2.)
-kappaP = (Ut**2)/sqrt(c_mu)
-dissipationP = sqrt(kappaP)/((c_mu**0.25)*0.41*he)
+Ut = Ufree*sqrt(old_div(cf,2.))
+kappaP = old_div((Ut**2),sqrt(c_mu))
+dissipationP = old_div(sqrt(kappaP),((c_mu**0.25)*0.41*he))
 
 # inlet values 
 kInflow = 0.0001*kappaP#None
@@ -343,20 +346,20 @@ if opts.movingDomain==True:
 
 if opts.GenZone == True and opts.wave == True:
     omega=2*np.pi/opts.wave_period 
-    tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
-                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+    tank.setGenerationZones(flags=1, epsFact_solid=float(old_div(L_leftSpo,2.)),
+                        orientation=[1., 0.], center=(float(old_div(L_leftSpo,2.)), 0., 0.),
                         waves=waveinput, dragAlpha=10.*omega/nu_0
                         )
 elif opts.GenZone == True:
     omega=1.0 
-    tank.setAbsorptionZones(flags=1, epsFact_solid=float(L_leftSpo/2.), dragAlpha=10.*omega/nu_0,
-                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+    tank.setAbsorptionZones(flags=1, epsFact_solid=float(old_div(L_leftSpo,2.)), dragAlpha=10.*omega/nu_0,
+                        orientation=[1., 0.], center=(float(old_div(L_leftSpo,2.)), 0., 0.),
                         )
 
 if opts.AbsZone == True:
     omega= 1.0
-    tank.setAbsorptionZones(flags=3, epsFact_solid=float(L_rightSpo/2.), dragAlpha=10.*omega/nu_0,
-                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+    tank.setAbsorptionZones(flags=3, epsFact_solid=float(old_div(L_rightSpo,2.)), dragAlpha=10.*omega/nu_0,
+                        orientation=[-1., 0.], center=(float(tank_dim[0]-old_div(L_rightSpo,2.)), 0., 0.),
                         )
 
 ############################################################################################################################################################################
@@ -365,7 +368,7 @@ if opts.AbsZone == True:
 T = opts.duration
 
 gauge_dx=0.25
-probes=np.linspace(0., tank_dim[0], (tank_dim[0]/gauge_dx)+1)
+probes=np.linspace(0., tank_dim[0], (old_div(tank_dim[0],gauge_dx))+1)
 PG=[]
 zProbes=opts.water_level*0.5
 for i in probes:
@@ -400,11 +403,11 @@ st.assembleDomain(domain)
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = 10.0/nu_0 #100
+weak_bc_penalty_constant = old_div(10.0,nu_0) #100
 dt_fixed = 0.1
 dt_init = min(0.1*dt_fixed,0.001)
 T = T
-nDTout= int(round(T/dt_fixed))
+nDTout= int(round(old_div(T,dt_fixed)))
 runCFL = opts.cfl
 
 #----------------------------------------------------
@@ -444,15 +447,15 @@ useVF = opts.useVF # used in the smoothing functions as (1.0-useVF)*smoothedHeav
 
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 #  Discretization

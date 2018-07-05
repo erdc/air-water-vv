@@ -1,6 +1,11 @@
 """
 Submerged Breakwater
 """
+from __future__ import print_function
+from __future__ import division
+from builtins import map
+from builtins import range
+from past.utils import old_div
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
@@ -21,8 +26,8 @@ opts=Context.Options([
     # Geometry of a trapezoidal breakwater
     ("b", 0.25, "Width of breakwater at the top"),
     ("hs", 0.25, "Height of the breakwater"),
-    ("slope1", 1./2., "Slope1 of the breakwater"),
-    ("slope2", 2./3., "Slope2 of the breakwater"),
+    ("slope1", old_div(1.,2.), "Slope1 of the breakwater"),
+    ("slope2", old_div(2.,3.), "Slope2 of the breakwater"),
     ('porosity', 0.4, "Porosity of the medium"),
     ('d50', 0.058, "Mean diameter of the medium"),
     # waves
@@ -43,7 +48,7 @@ opts=Context.Options([
     ("he_max_water", 10, "Set maximum characteristic in water phase"),
     ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
-    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
+    ("refinement_grading", old_div(np.sqrt(1.1*4./np.sqrt(3.)),np.sqrt(1.*4./np.sqrt(3))), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
@@ -103,16 +108,16 @@ slope1 = opts.slope1
 slope2 = opts.slope2
 
 x0 = opts.Ls*wavelength
-x1 = x0 + hs/slope1 
+x1 = x0 + old_div(hs,slope1) 
 x2 = x1 + b
-x3 = x2 + hs/slope2
+x3 = x2 + old_div(hs,slope2)
 
 obs = [[[x0, 0.],
         [x1, hs],
         [x2, hs],
         [x3, 0.]],]
 
-obstacle_regions=[[x1+(x2-x1)/2., hs/2.]]
+obstacle_regions=[[x1+old_div((x2-x1),2.), old_div(hs,2.)]]
 
 tank_dim = [x3+opts.Lend*wavelength, opts.h]
 
@@ -125,15 +130,15 @@ tank = st.TankWithObstacles2D(domain=domain, dim=tank_dim, obstacles=obs, hole=F
 porosity = opts.porosity
 voidFrac = 1.0-porosity
 d50 = opts.d50
-d15 = d50/1.2
+d15 = old_div(d50,1.2)
 
 term1 = 3.12*(10**-3.)
-term2 = (gAbs/(nu_0**2.))**(2./3.)
+term2 = (old_div(gAbs,(nu_0**2.)))**(old_div(2.,3.))
 term3 = (d15**2.)
 Alpha1 = 1684+term1*term2*term3
 
 term1 = -5.10*(10**-3.)
-term2 = (gAbs/(nu_0**2.))**(1./3.)
+term2 = (old_div(gAbs,(nu_0**2.)))**(old_div(1.,3.))
 term3 = (d15)
 Beta1 = 1.72+1.57*math.exp(term1*term2*term3)
 Alpha=Alpha1*nu_0*(voidFrac**2)/((porosity**3)*(d15**2))
@@ -289,13 +294,13 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = 10.0/nu_0#Re
+weak_bc_penalty_constant = old_div(10.0,nu_0)#Re
 dt_init = opts.dt_init
 T = opts.T
 nDTout = int(opts.T*opts.nsave)
 timeIntegration = opts.timeIntegration
 if nDTout > 0:
-    dt_out= (T-dt_init)/nDTout
+    dt_out= old_div((T-dt_init),nDTout)
 else:
     dt_out = 0
 runCFL = opts.cfl
@@ -318,15 +323,15 @@ useRANS = opts.useRANS # 0 -- None
             # 3 -- K-Omega, 1988
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 #  Discretization

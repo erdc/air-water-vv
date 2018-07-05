@@ -1,5 +1,9 @@
+from __future__ import absolute_import
 from proteus import *
-from dissipation_p import *
+try:
+    from .dissipation_p import *
+except:
+    from dissipation_p import *
 from proteus import Context
 
 ct = Context.get()

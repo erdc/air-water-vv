@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import csv
 import os
@@ -33,7 +39,7 @@ def readProbeFile(filename):
             probex.append(float(header[ii+1]))
             probey.append(float(header[ii+2]))
             probez.append(float(header[ii+3]))
-        probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+        probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
         datalist = [probeType,probeCoord,time,data]
         return datalist
 
@@ -50,7 +56,7 @@ waterLevel = sbw.waterLevel #0.315
 gauge_x = []
 for k in range(len(sbw.columnLines1)):
     gauge_x.append(sbw.columnLines1[k][0][0])
-for j in range(len(data_vof[1])/2):
+for j in range(old_div(len(data_vof[1]),2)):
     eta = []
     for i in range(len(vof)):
         eta.append(tank_dim[1]-vof[:,j][i]-waterLevel)
@@ -61,8 +67,8 @@ ETA = np.array(ETA)
 
 # Plotting the probes
 fig = plt.figure(figsize=(25,15))
-ax = ['' for x in range(len(data_vof[1])/2)]
-for i in range(len(data_vof[1])/2):
+ax = ['' for x in range(old_div(len(data_vof[1]),2))]
+for i in range(old_div(len(data_vof[1]),2)):
     ax[i] = fig.add_subplot(6,4,i+1)
     ax[i].plot(time, ETA[i], 'r')
     ax[i].set_ylim([-0.06,0.08])
@@ -80,5 +86,5 @@ zc = []
 for i in range(len(ETA)):
     zc.append(zeroCrossing(time,ETA[i]))
 zc = np.array(zc)
-K = np.mean(zc[2:][:,1])/sbw.opts.wave_height
-print 'Transmission coefficient'+'\t'+'='+'\t'+str(K)
+K = old_div(np.mean(zc[2:][:,1]),sbw.opts.wave_height)
+print('Transmission coefficient'+'\t'+'='+'\t'+str(K))

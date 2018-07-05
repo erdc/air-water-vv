@@ -1,3 +1,4 @@
+from builtins import object
 from proteus.default_p import *
 from proteus.mprans import RANS2P
 import numpy as np
@@ -93,21 +94,21 @@ if nd == 3:
 
 
 
-class PerturbedSurface_p:
+class PerturbedSurface_p(object):
     def __init__(self,waterLevel):
         self.waterLevel=ct.waterLevel
     def uOfXT(self,x,t):
         return - (ct.tank_dim[1] - x[1])*ct.rho_0*ct.g[1]
 
-class U_IC:
+class U_IC(object):
     def uOfXT(self, x, t):
         return ct.opts.meanVelocity[0]
 
-class V_IC:
+class V_IC(object):
     def uOfXT(self, x, t):
         return ct.opts.meanVelocity[1]
 
-class W_IC:
+class W_IC(object):
     def uOfXT(self, x, t):
         return ct.opts.meanVelocity[2]
         

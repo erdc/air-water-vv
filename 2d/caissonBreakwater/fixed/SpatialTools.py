@@ -21,7 +21,12 @@ shape2.BC.left.setNoSlip()
 
 st.assembleDomain(domain)
 """
+from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from math import cos, sin, sqrt, atan2, acos, asin
 from itertools import compress
 import csv
@@ -119,7 +124,7 @@ class ShapeRANS(Shape):
         """
         self.mass = float(mass)
         if self.volume:
-            self.density = self.mass/self.volume
+            self.density = old_div(self.mass,self.volume)
 
     def setDensity(self, density):
         """
@@ -160,7 +165,7 @@ class ShapeRANS(Shape):
         # making unity vector/axis of rotation
         vec = vx, vy, vz = np.array(vec)
         length_vec = sqrt(vx**2+vy**2+vz**2)
-        vec = vec/length_vec
+        vec = old_div(vec,length_vec)
         if self.Domain.nd == 2:
             I = self.It*self.mass
         elif self.Domain.nd == 3:
@@ -215,7 +220,7 @@ class ShapeRANS(Shape):
             self.record_filename = filename + '.csv'
 
     def setAbsorptionZones(self, flags, epsFact_solid, center, orientation,
-                           dragAlpha=0.5/1.005e-6, dragBeta=0.,
+                           dragAlpha=old_div(0.5,1.005e-6), dragBeta=0.,
                            porosity=1.):
         """
         Sets a region (given the local flag) to an absorption zone
@@ -253,7 +258,7 @@ class ShapeRANS(Shape):
 
     def setGenerationZones(self, flags, epsFact_solid, center, orientation,
                            waves, windSpeed=(0., 0., 0.),
-                           dragAlpha=0.5/1.005e-6, dragBeta=0.,
+                           dragAlpha=old_div(0.5,1.005e-6), dragBeta=0.,
                            porosity=1.):
         """
         Sets a region (given the local flag) to a generation zone
@@ -291,7 +296,7 @@ class ShapeRANS(Shape):
                                                  dragBeta=dragBeta[i],
                                                  porosity=porosity[i])
 
-    def setPorousZones(self, flags, epsFact_solid, dragAlpha=0.5/1.005e-6,
+    def setPorousZones(self, flags, epsFact_solid, dragAlpha=old_div(0.5,1.005e-6),
                        dragBeta=0., porosity=1.):
         """
         Sets a region (given the local flag) to a porous zone
@@ -337,9 +342,9 @@ def _CuboidsetInertiaTensor(self):
     (!) should not be used manually
     """
     L, W, H = self.dim
-    self.It = [[(W**2.+H**2.)/12., 0, 0],
-               [0, (L**2.+H**2.)/12., 0],
-               [0, 0, (W**2.+L**2.)/12.]]
+    self.It = [[old_div((W**2.+H**2.),12.), 0, 0],
+               [0, old_div((L**2.+H**2.),12.), 0],
+               [0, 0, old_div((W**2.+L**2.),12.)]]
 
 Cuboid._setInertiaTensor = _CuboidsetInertiaTensor
 
@@ -349,7 +354,7 @@ def _RectanglesetInertiaTensor(self):
     (!) should not be used manually
     """
     L, H = self.dim
-    self.It = (L**2+H**2)/12
+    self.It = old_div((L**2+H**2),12)
 
 Rectangle._setInertiaTensor = _RectanglesetInertiaTensor
 
@@ -373,7 +378,7 @@ class Tank3D(ShapeRANS):
         self.name = "tank3d" + str(self.__class__.count)
         self.from_0 = from_0
         if coords is None:
-            self.coords = np.array(dim)/2.
+            self.coords = old_div(np.array(dim),2.)
         else:
             self.coords = coords
             self.from_0 = False
@@ -448,7 +453,7 @@ class Tank3D(ShapeRANS):
         L, W, H = dim
         self.dim = dim
         if self.from_0 is True:
-            x, y, z = L/2., W/2., H/2.
+            x, y, z = old_div(L,2.), old_div(W,2.), old_div(H,2.)
         else:
             x, y, z = self.coords
         self.coords = [x, y, z]
@@ -472,9 +477,9 @@ class Tank3D(ShapeRANS):
         segmentFlags = [bt['bottom'], bt['bottom'], bt['bottom'], bt['bottom']]
         facets = [[[0, 1, 2, 3]]]
         facetFlags = [bt['bottom']]
-        regions = [[((x0+frontSponge)+(x1-backSponge))/2.,
-                    ((y0+leftSponge)+(y1-rightSponge))/2.,
-                    (z0+z1)/2.]]
+        regions = [[old_div(((x0+frontSponge)+(x1-backSponge)),2.),
+                    old_div(((y0+leftSponge)+(y1-rightSponge)),2.),
+                    old_div((z0+z1),2.)]]
         regionFlags = [1]
         self.regionIndice = {0: 'tank'}
         v_i = 4  # index of next vector to add
@@ -486,9 +491,9 @@ class Tank3D(ShapeRANS):
                          [x1-backSponge, y0, z0]]
             segments += [[0, v_i], [v_i, v_i+1], [v_i+1, 1]]
             facets += [[[0, 1, v_i+1, v_i]]]
-            regions += [[((x0+frontSponge)+(x1-backSponge))/2.,
-                         (y0+(y0+leftSponge))/2.,
-                         (z0+z1)/2.]]
+            regions += [[old_div(((x0+frontSponge)+(x1-backSponge)),2.),
+                         old_div((y0+(y0+leftSponge)),2.),
+                         old_div((z0+z1),2.)]]
             self.regionIndice['left'] = r_i
             regionFlags += [r_i+1]
             v_i += 2  # 2 vertices were added
@@ -499,9 +504,9 @@ class Tank3D(ShapeRANS):
                          [x1, y1-rightSponge, z0]]
             segments += [[1, v_i], [v_i, v_i+1], [v_i+1, 2]]
             facets += [[[1, 2, v_i+1, v_i]]]
-            regions += [[((x1-backSponge)+x1)/2.,
-                         ((y0+leftSponge)+(y1-rightSponge))/2.,
-                         (z0+z1)/2.]]
+            regions += [[old_div(((x1-backSponge)+x1),2.),
+                         old_div(((y0+leftSponge)+(y1-rightSponge)),2.),
+                         old_div((z0+z1),2.)]]
             self.regionIndice['back'] = r_i
             regionFlags += [r_i+1]
             v_i += 2
@@ -512,9 +517,9 @@ class Tank3D(ShapeRANS):
                          [x0+frontSponge, y1, z0]]
             segments += [[2, v_i], [v_i, v_i+1], [v_i+1, 3]]
             facets += [[[2, 3, v_i+1, v_i]]]
-            regions += [[((x0+frontSponge)+(x1-backSponge))/2.,
-                         (y1+(y1-rightSponge))/2.,
-                         (z0+z1)/2.]]
+            regions += [[old_div(((x0+frontSponge)+(x1-backSponge)),2.),
+                         old_div((y1+(y1-rightSponge)),2.),
+                         old_div((z0+z1),2.)]]
             self.regionIndice['right'] = r_i
             regionFlags += [r_i+1]
             v_i += 2
@@ -525,9 +530,9 @@ class Tank3D(ShapeRANS):
                          [x0, y0+leftSponge, z0]]
             segments += [[3, v_i], [v_i, v_i+1], [v_i+1, 0]]
             facets += [[[3, 0, v_i+1, v_i]]]
-            regions += [[((x0+frontSponge)+x0)/2.,
-                         ((y0+leftSponge)+(y1-rightSponge))/2.,
-                         (z0+z1)/2.]]
+            regions += [[old_div(((x0+frontSponge)+x0),2.),
+                         old_div(((y0+leftSponge)+(y1-rightSponge)),2.),
+                         old_div((z0+z1),2.)]]
             self.regionIndice['front'] = r_i
             regionFlags += [r_i+1]
             v_i += 2
@@ -543,9 +548,9 @@ class Tank3D(ShapeRANS):
             vertices += [[x1, y0, z0]]
             segments += [[5+nb_corner, v_i], [v_i, 6+nb_corner]]
             facets += [[[1, 5+nb_corner, v_i, 6+nb_corner]]]
-            regions += [[(x1+(x1-backSponge))/2.,
-                         (y0+(y0+leftSponge))/2.,
-                         (z0+z1)/2.]]
+            regions += [[old_div((x1+(x1-backSponge)),2.),
+                         old_div((y0+(y0+leftSponge)),2.),
+                         old_div((z0+z1),2.)]]
             self.regionIndice['back_left_Sponge'] = r_i
             regionFlags += [r_i+1]
             nb_corner += 2
@@ -555,9 +560,9 @@ class Tank3D(ShapeRANS):
             vertices += [[x1, y1, z0]]
             segments += [[5+nb_corner, v_i], [v_i, 6+nb_corner]]
             facets += [[[2, 5+nb_corner, v_i, 6+nb_corner]]]
-            regions += [[(x1+(x1-backSponge))/2.,
-                         (y1+(y1-rightSponge))/2.,
-                         (z0+z1)/2.]]
+            regions += [[old_div((x1+(x1-backSponge)),2.),
+                         old_div((y1+(y1-rightSponge)),2.),
+                         old_div((z0+z1),2.)]]
             self.regionIndice['back_right_Sponge'] = r_i
             regionFlags += [r_i+1]
             nb_corner += 2
@@ -567,9 +572,9 @@ class Tank3D(ShapeRANS):
             vertices += [[x0, y1, z0]]
             segments += [[5+nb_corner, v_i], [v_i, 6+nb_corner]]
             facets += [[[3, 5+nb_corner, v_i, 6+nb_corner]]]
-            regions += [[(x0+(x0+frontSponge))/2.,
-                         (y1+(y1-rightSponge))/2.,
-                         (z0+z1)/2.]]
+            regions += [[old_div((x0+(x0+frontSponge)),2.),
+                         old_div((y1+(y1-rightSponge)),2.),
+                         old_div((z0+z1),2.)]]
             self.regionIndice['front_right_Sponge'] = r_i
             regionFlags += [r_i+1]
             nb_corner += 2
@@ -579,15 +584,15 @@ class Tank3D(ShapeRANS):
             vertices += [[x0, y0, z0]]
             segments += [[5+nb_corner, v_i], [v_i, 4]]
             facets += [[[0, 5+nb_corner, v_i, 4]]]
-            regions += [[(x0+(x0+frontSponge))/2.,
-                         (y0+(y0+leftSponge))/2.,
-                         (z0+z1)/2.]]
+            regions += [[old_div((x0+(x0+frontSponge)),2.),
+                         old_div((y0+(y0+leftSponge)),2.),
+                         old_div((z0+z1),2.)]]
             self.regionIndice['front_left_Sponge'] = r_i
             regionFlags += [r_i+1]
             nb_corner += 2
             v_i += 1
             r_i += 1
-        for i in range(nb_corner/2):
+        for i in range(old_div(nb_corner,2)):
             vertexFlags += [bt['bottom']]
             segmentFlags += [bt['bottom'], bt['bottom'], bt['bottom']]
             facetFlags += [bt['bottom']]
@@ -648,7 +653,7 @@ class Tank3D(ShapeRANS):
                            right=False, front=False, back=False,
                            # front_left=False, front_right=False,
                            # back_left=False, back_right=False,
-                           dragAlpha=0.5/1.005e-6, dragBeta=0.,
+                           dragAlpha=old_div(0.5,1.005e-6), dragBeta=0.,
                            porosity=1.):
         self.abs_zones = {'left': left,
                           'right': right,
@@ -664,11 +669,11 @@ class Tank3D(ShapeRANS):
         waves = None
         windSpeed = (0., 0., 0.)
         sl = self.spongeLayers
-        for key, value in self.abs_zones.iteritems():
+        for key, value in self.abs_zones.items():
             if value is True:
                 ind = self.regionIndice[key]
                 flag = self.regionFlags[ind]
-                epsFact_solid = self.spongeLayers[key]/2.
+                epsFact_solid = old_div(self.spongeLayers[key],2.)
                 center = list(self.coords)
                 if key == 'front':
                     center[0] += 0.5*self.dim[0]-0.5*sl['front']
@@ -698,7 +703,7 @@ class Tank3D(ShapeRANS):
                            front=False, back=False,
                            # front_left=False, front_right=False,
                            # back_left=False, back_right=False,
-                           dragAlpha=0.5/1.005e-6, dragBeta=0.,
+                           dragAlpha=old_div(0.5,1.005e-6), dragBeta=0.,
                            porosity=1.):
         self.abs_zones = {'left': left,
                           'right': right,
@@ -714,23 +719,23 @@ class Tank3D(ShapeRANS):
         waves = waves
         windSpeed = windSpeed
         sl = self.spongeLayers
-        for key, value in self.abs_zones.iteritems():
+        for key, value in self.abs_zones.items():
             if value is True:
                 ind = self.regionIndice[key]
                 flag = self.regionFlags[ind]
-                epsFact_solid = self.spongeLayers[key]/2.
+                epsFact_solid = old_div(self.spongeLayers[key],2.)
                 center = list(self.coords)
                 if key == 'front':
-                    center[0] += 0.5*self.dim[0]-sl['front']/2.
+                    center[0] += 0.5*self.dim[0]-old_div(sl['front'],2.)
                     orientation = [1., 0., 0.]
                 elif key == 'back':
-                    center[0] += -0.5*self.dim[0]+sl['back']/2.
+                    center[0] += -0.5*self.dim[0]+old_div(sl['back'],2.)
                     orientation = [-1., 0., 0.]
                 elif key == 'left':
-                    center[1] += -0.5*self.dim[1]+sl['left']/2.
+                    center[1] += -0.5*self.dim[1]+old_div(sl['left'],2.)
                     orientation = [0., 1., 0.]
                 elif key == 'right':
-                    center[1] += 0.5*self.dim[1]-sl['right']/2.
+                    center[1] += 0.5*self.dim[1]-old_div(sl['right'],2.)
                     orientation = [0., -1., 0.]
                 self.zones[flag] = bc.RelaxationZone(shape=self,
                                                      zone_type='generation',
@@ -764,7 +769,7 @@ class Tank2D(ShapeRANS):
         self.spongeLayers = {'left': None,
                              'right': None}
         if coords is None:
-            self.coords = self.dim/2.
+            self.coords = old_div(self.dim,2.)
         else:
             self.coords = coords
             self.from_0 = False
@@ -807,7 +812,7 @@ class Tank2D(ShapeRANS):
         """
         self.dim = L, H = dim
         if self.from_0 is True:
-            x, y = L/2., H/2.
+            x, y = old_div(L,2.), old_div(H,2.)
         else:
             x, y = 0., 0.
         self.coords = [x, y]
@@ -817,7 +822,7 @@ class Tank2D(ShapeRANS):
         # add attributes
         leftSponge = self.spongeLayers['left'] or 0.
         rightSponge = self.spongeLayers['right'] or 0.
-        regions_y = y1-y1/100.  # y coord of regions
+        regions_y = y1-old_div(y1,100.)  # y coord of regions
         vertices = [[x-0.5*L, y-0.5*H],
                     [x+0.5*L, y-0.5*H],
                     [x+0.5*L, y+0.5*H],
@@ -825,21 +830,21 @@ class Tank2D(ShapeRANS):
         vertexFlags = [bt['bottom'], bt['bottom'], bt['top'], bt['top']]
         segments = [[0, 1], [1, 2], [2, 3], [3, 0]]
         segmentFlags = [1, 2, 3, 4]  # bottom, right, top, left
-        regions = [[(x0+leftSponge+x1-rightSponge)/2., regions_y]]
+        regions = [[old_div((x0+leftSponge+x1-rightSponge),2.), regions_y]]
         regionFlags = [1]
         self.regionIndice = {'tank': 0}
         ind_region = 1
         if leftSponge:
             vertices += [[x0+leftSponge, y0], [x0+leftSponge, y1]]
             vertexFlags += [bt['bottom'], bt['top']]
-            regions += [[(x0+leftSponge)/2., regions_y]]
+            regions += [[old_div((x0+leftSponge),2.), regions_y]]
             self.regionIndice['leftSponge'] = ind_region
             ind_region += 1
             regionFlags += [ind_region]
         if rightSponge:
             vertices += [[x1-rightSponge, y0], [x1-rightSponge, y1]]
             vertexFlags += [bt['bottom'], bt['top']]
-            regions += [[((x1-rightSponge)+x1)/2., regions_y]]
+            regions += [[old_div(((x1-rightSponge)+x1),2.), regions_y]]
             self.regionIndice['rightSponge'] = ind_region
             ind_region += 1
             regionFlags += [ind_region]
@@ -875,7 +880,7 @@ class Tank2D(ShapeRANS):
         self.setDimensions(self.dim)
 
     def setAbsorptionZones(self, left=False, right=False,
-                           dragAlpha=0.5/1.005e-6, dragBeta=0.,
+                           dragAlpha=old_div(0.5,1.005e-6), dragBeta=0.,
                            porosity=1.):
         waves = None
         windSpeed = (0., 0., 0.)
@@ -886,7 +891,7 @@ class Tank2D(ShapeRANS):
             ind = self.regionIndice['leftSponge']
             flag = self.regionFlags[ind]
             center[0] += 0.5*self.spongeLayers['left']-0.5*self.dim[0]
-            epsFact_solid = self.spongeLayers['left']/2.
+            epsFact_solid = old_div(self.spongeLayers['left'],2.)
             orientation = [1., 0.]
             self.zones[flag] = bc.RelaxationZone(shape=self,
                                                  zone_type='absorption',
@@ -902,8 +907,8 @@ class Tank2D(ShapeRANS):
             center = list(self.coords)
             ind = self.regionIndice['rightSponge']
             flag = self.regionFlags[ind]
-            center[0] += 0.5*self.dim[0]-self.spongeLayers['right']/2.
-            epsFact_solid = self.spongeLayers['right']/2.
+            center[0] += 0.5*self.dim[0]-old_div(self.spongeLayers['right'],2.)
+            epsFact_solid = old_div(self.spongeLayers['right'],2.)
             orientation = [-1., 0.]
             self.zones[flag] = bc.RelaxationZone(shape=self,
                                                  zone_type='absorption',
@@ -917,7 +922,7 @@ class Tank2D(ShapeRANS):
                                                  porosity=porosity)
 
     def setGenerationZones(self, waves=None, windSpeed=(0., 0., 0.),
-                           left=False, right=False,  dragAlpha=0.5/1.005e-6,
+                           left=False, right=False,  dragAlpha=old_div(0.5,1.005e-6),
                            dragBeta=0., porosity=1.):
         waves = waves
         windSpeed = windSpeed
@@ -927,8 +932,8 @@ class Tank2D(ShapeRANS):
             center = list(self.coords)
             ind = self.regionIndice['leftSponge']
             flag = self.regionFlags[ind]
-            center[0] += -0.5*self.dim[0]+self.spongeLayers['left']/2.
-            epsFact_solid = self.spongeLayers['left']/2.
+            center[0] += -0.5*self.dim[0]+old_div(self.spongeLayers['left'],2.)
+            epsFact_solid = old_div(self.spongeLayers['left'],2.)
             orientation = [1., 0.]
             self.zones[flag] = bc.RelaxationZone(shape=self,
                                                  zone_type='generation',
@@ -944,8 +949,8 @@ class Tank2D(ShapeRANS):
             center = list(self.coords)
             ind = self.regionIndice['rightSponge']
             flag = self.regionFlags[ind]
-            center[0] += 0.5*self.dim[0]-self.spongeLayers['right']/2.
-            epsFact_solid = self.spongeLayers['right']/2.
+            center[0] += 0.5*self.dim[0]-old_div(self.spongeLayers['right'],2.)
+            epsFact_solid = old_div(self.spongeLayers['right'],2.)
             orientation = [-1., 0.]
             self.zones[flag] = bc.RelaxationZone(shape=self,
                                                  zone_type='generation',
@@ -983,7 +988,7 @@ class RigidBody(AuxiliaryVariables.AV_base):
         # substeps for smoother motion between timesteps
         ang_disp = 0
         substeps = 20
-        dt_sub = dt/float(substeps)
+        dt_sub = old_div(dt,float(substeps))
         self.h[:] = np.zeros(3)
 
 ################################################################################################################################################################################################################################
@@ -992,7 +997,7 @@ class RigidBody(AuxiliaryVariables.AV_base):
         Fx, Fy, Fz = self.F
         eps = 0.000000000000000001 # to avoid 0/0
         mass = self.Shape.mass
-        sign = (Fx/(abs(Fx)+eps))   
+        sign = (old_div(Fx,(abs(Fx)+eps)))   
         if nd==2:
             g=np.array([0.,-9.81,0.])
             Fv = Fy
@@ -1015,7 +1020,7 @@ class RigidBody(AuxiliaryVariables.AV_base):
                 self.h = np.zeros(3)              
             else:
                 Fx = Fx+Ftan
-                self.acceleration[0] = Fx/mass
+                self.acceleration[0] = old_div(Fx,mass)
                 self.acceleration[1] = 0.0
                 self.acceleration[2] = 0.0 
                 for i in range(substeps):
@@ -1031,7 +1036,7 @@ class RigidBody(AuxiliaryVariables.AV_base):
             """
             Ftan = -sign*m*abs(Fv)
             Fx = Fx+Ftan
-            self.acceleration[0] = Fx/mass
+            self.acceleration[0] = old_div(Fx,mass)
             self.acceleration[1] = 0.0
             self.acceleration[2] = 0.0 
             for i in range(substeps):
@@ -1076,7 +1081,7 @@ class RigidBody(AuxiliaryVariables.AV_base):
                         
         if self.friction != True:
         # acceleration from force:
-            self.acceleration = self.F/self.Shape.mass          
+            self.acceleration = old_div(self.F,self.Shape.mass)          
         # displacement
             for i in range(substeps):
                 self.velocity += self.acceleration*dt_sub
@@ -1086,7 +1091,7 @@ class RigidBody(AuxiliaryVariables.AV_base):
             self.inertia = self.Shape.getInertia(self.M, self.Shape.barycenter)
             assert self.inertia != 0, 'Zero inertia: inertia tensor (It)' \
                                       'was not set correctly!'
-            ang_acc = self.M[:]/self.inertia
+            ang_acc = old_div(self.M[:],self.inertia)
         else:
             self.inertia = None
             ang_acc = np.array([0., 0., 0.])   
@@ -1242,7 +1247,7 @@ class RigidBody(AuxiliaryVariables.AV_base):
         log("================================================================")
         log("=================== Rigid Body Calculation =====================")
         log("================================================================")
-        log("Name: " + `self.Shape.name`)
+        log("Name: " + repr(self.Shape.name))
         log("================================================================")
         log("[proteus]     t=%1.5fsec to t=%1.5fsec" % \
             (t_previous, t_current))
@@ -1361,7 +1366,7 @@ def assembleDomain(domain):
         aux = domain.auxiliaryVariables
         # ----------------------------
         # RIGID BODIES
-        if 'RigidBody' in shape.auxiliaryVariables.keys():
+        if 'RigidBody' in list(shape.auxiliaryVariables.keys()):
             aux += [RigidBody(shape)]
             # fixing mesh on rigid body
             body = aux[-1]
@@ -1373,7 +1378,7 @@ def assembleDomain(domain):
             aux[-1].i_end = start_flag+1+len(shape.BC_list)
         # ----------------------------
         # ABSORPTION/GENERATION ZONES
-        if 'RelaxZones' in shape.auxiliaryVariables.keys():
+        if 'RelaxZones' in list(shape.auxiliaryVariables.keys()):
             if not zones_global:
                 aux += [bc.RelaxationZoneWaveGenerator(zones_global,
                                                        domain.nd)]
@@ -1383,7 +1388,7 @@ def assembleDomain(domain):
             domain.dragBetaTypes = np.zeros(len(domain.regionFlags)+1)
             domain.epsFact_solid = np.zeros(len(domain.regionFlags)+1)
             i0 = start_region+1
-            for flag, zone in shape.zones.iteritems():
+            for flag, zone in shape.zones.items():
                 ind = [i for i, f in enumerate(shape.regionFlags) if f == flag]
                 for i1 in ind:
                     domain.porosityTypes[i0+i1] = zone.porosity
@@ -1409,4 +1414,4 @@ def assembleDomain(domain):
 
 
 def get_unit_vector(vector):
-    return np.array(vector)/np.linalg.norm(vector)
+    return old_div(np.array(vector),np.linalg.norm(vector))

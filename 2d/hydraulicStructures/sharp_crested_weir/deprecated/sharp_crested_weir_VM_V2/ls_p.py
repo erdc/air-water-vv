@@ -1,3 +1,4 @@
+from builtins import object
 from proteus import *
 from proteus.default_p import *
 from sharp_crested_weir import *
@@ -20,7 +21,7 @@ dirichletConditions = {0:getDBC_ls}
 advectiveFluxBoundaryConditions =  {}
 diffusiveFluxBoundaryConditions = {0:{}}
 
-class PerturbedSurface_phi:       
+class PerturbedSurface_phi(object):       
     def uOfXT(self,x,t):
         return signedDistance(x)
     

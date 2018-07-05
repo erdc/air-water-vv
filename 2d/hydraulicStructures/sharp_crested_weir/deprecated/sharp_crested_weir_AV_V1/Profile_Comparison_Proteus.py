@@ -1,5 +1,10 @@
+from __future__ import print_function
+from __future__ import division
 ##!/usr/bin/env python
 ## -*- coding: cp1252 -*-
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from pylab import *
 import pylab as p 
 import numpy
@@ -65,7 +70,7 @@ for i in range(0,int(NumCases)):
      a.append(b1[kk,12]-2.5)
      b.append(b1[kk,13])
    NN+=n-1
-   print j
+   print(j)
   #print a
  
   #print b
@@ -142,11 +147,11 @@ for i in range(0,int(NumCases)):
        H2new.append(H2[j])  
        P2new.append(P2[j])
 
- Error1 = abs((f1(H2new)-P2new)/(f1(H2new)))*100
+ Error1 = abs(old_div((f1(H2new)-P2new),(f1(H2new))))*100
 
  AverageError=average(Error1)
- print 'Average Error Lower Profile (%)' 
- print AverageError
+ print('Average Error Lower Profile (%)') 
+ print(AverageError)
 #-----------------------------------------------------
  fig2 = figure(2,figsize = (8,6),dpi = 25)
  line1=plot(H2new,Error1,'ks',ms=5, lw=0.5, alpha=1.0)
@@ -182,10 +187,10 @@ for i in range(0,int(NumCases)):
        H2new.append(H2[j])  
        P2new.append(P2[j])
 
- Error2 = abs((f1(H2new)-P2new)/(f1(H2new)))*100
+ Error2 = abs(old_div((f1(H2new)-P2new),(f1(H2new))))*100
  AverageError=average(Error2)
- print 'Average Error Upper Profile (%)' 
- print AverageError
+ print('Average Error Upper Profile (%)') 
+ print(AverageError)
 #----------------------------------------------------
  fig3 = figure(3,figsize = (8,6),dpi = 25)
  line1=plot(H2new,Error2,'ks',ms=5, lw=0.5, alpha=1.0)

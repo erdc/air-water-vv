@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -24,15 +27,15 @@ useRANS = 0 # 0 -- None
 openTop = True
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()    
     
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print("INVALID: useRBLES" + useRBLES) 
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
     
 #  Discretization   
@@ -69,7 +72,7 @@ obst_x_end = obst_x_start + obst_portions[0] # end x coordinate of the obstacle;
 obst = (obst_x_start,obst_portions[1],obst_x_end) #coordinates of the obstacle to be used to define the boundary
 
 #Background refinement
-he = L[0]/float(4*Refinement-1)
+he = old_div(L[0],float(4*Refinement-1))
 
 
 # Refinement parameters
@@ -214,7 +217,7 @@ T=10.0
 dt_fixed = 0.02
 dt_init = min(0.1*dt_fixed,0.001)
 runCFL=0.9
-nDTout = int(round(T/dt_fixed))
+nDTout = int(round(old_div(T,dt_fixed)))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True

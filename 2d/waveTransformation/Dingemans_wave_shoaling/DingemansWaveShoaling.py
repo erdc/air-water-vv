@@ -1,6 +1,10 @@
 """
 Dingemans Wave Shoaling
 """
+from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
@@ -38,7 +42,7 @@ opts=Context.Options([
     ("he_max_water", 10, "Set maximum characteristic in water phase"),
     ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_caisson", 0.,"Set area of constant refinement (Box) around caisson (+/- value)"),
-    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
+    ("refinement_grading", old_div(np.sqrt(1.1*4./np.sqrt(3.)),np.sqrt(1.*4./np.sqrt(3))), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
@@ -261,13 +265,13 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = 10.0/nu_0#Re
+weak_bc_penalty_constant = old_div(10.0,nu_0)#Re
 dt_init = opts.dt_init
 T = opts.T
 nDTout = int(opts.T*opts.nsave)
 timeIntegration = opts.timeIntegration
 if nDTout > 0:
-    dt_out= (T-dt_init)/nDTout
+    dt_out= old_div((T-dt_init),nDTout)
 else:
     dt_out = 0
 runCFL = opts.cfl
@@ -290,15 +294,15 @@ useRANS = opts.useRANS # 0 -- None
             # 3 -- K-Omega, 1988
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 #  Discretization

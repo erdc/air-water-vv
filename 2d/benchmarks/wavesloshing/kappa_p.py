@@ -1,3 +1,4 @@
+from builtins import object
 from proteus.default_p import *
 from proteus.mprans import Kappa
 from proteus import Context
@@ -43,7 +44,7 @@ dirichletConditions = {0: lambda x, flag: domain.bc[flag].k_dirichlet.init_cytho
 advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].k_advective.init_cython()}
 diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].k_diffusive.init_cython()}}
 
-class ConstantIC:
+class ConstantIC(object):
     def __init__(self,cval=0.0):
         self.cval=cval
     def uOfXT(self,x,t):

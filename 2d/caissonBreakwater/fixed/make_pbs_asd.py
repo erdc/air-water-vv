@@ -1,3 +1,7 @@
+from __future__ import print_function
+from builtins import map
+from builtins import str
+from builtins import range
 import os
 import numpy as np
 import time
@@ -10,8 +14,8 @@ for test in ff:
     test = test.replace('"',"")
     test = test.replace('\n',"")
     test = test.split(",")
-    test = map(str.strip,test)
-    test = map(np.float,test)
+    test = list(map(str.strip,test))
+    test = list(map(np.float,test))
     i = int(test[0])-1
     T = test[1]
     H = test[2]
@@ -57,4 +61,4 @@ aprun -n {2} parun {3} -O {4} -l 2 -v -C "{5}"
     os.system("qsub "+pbs_name)
     time.sleep(1)
     os.chdir(master_folder)
-    print Bc
+    print(Bc)

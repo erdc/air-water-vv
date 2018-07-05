@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from proteus import Domain, Context, Comm
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
@@ -48,7 +53,7 @@ opts=Context.Options([
     ("he_max_water", 10, "Set maximum characteristic in water"),
     ("refinement_freesurface", 0.25,"Set area of constant refinement around free surface (+/- value)"),
     ("refinement_caisson", 0.75,"Set area of constant refinement (Box) around caisson (+/- value)"),
-    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
+    ("refinement_grading", old_div(np.sqrt(1.1*4./np.sqrt(3.)),np.sqrt(1.*4./np.sqrt(3))), "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
@@ -100,7 +105,7 @@ if opts.waves is True:
             for line in f:
                 if 'Wave period' in line:
                     words = line.split()
-                    period = float(words[5])/np.sqrt(9.81/depth)
+                    period = old_div(float(words[5]),np.sqrt(old_div(9.81,depth)))
                 if 'Wave length' in line:
                     words = line.split()
                     wavelength = float(words[5])*depth
@@ -139,16 +144,16 @@ if opts.caisson is True:
     dim = opts.caisson_dim
     VCG = opts.VCG
     if VCG is None:
-        VCG = dim[1]/2.
+        VCG = old_div(dim[1],2.)
     free_x = opts.free_x
     free_r = opts.free_r
     rotation = np.radians(opts.rotation_angle)
     coords = [0,0]
-    coords[0] = opts.caisson_xcoord or tank_dim[0]/2.
-    coords[1] = opts.caisson_ycoord or tank_dim[1]/2.
-    barycenter = (0, -dim[1]/2.+VCG, 0.)
+    coords[0] = opts.caisson_xcoord or old_div(tank_dim[0],2.)
+    coords[1] = opts.caisson_ycoord or old_div(tank_dim[1],2.)
+    barycenter = (0, old_div(-dim[1],2.)+VCG, 0.)
     width = opts.caisson_width
-    inertia = opts.caisson_inertia/width
+    inertia = old_div(opts.caisson_inertia,width)
 
 
     caisson_coords = coords
@@ -177,7 +182,7 @@ if opts.caisson is True:
             return vertices, segments
 
 
-        nb = int((np.pi*2*radius/4.)/(2*he_caisson))
+        nb = int(old_div((np.pi*2*radius/4.),(2*he_caisson)))
         #nb = int(np.pi/2/(np.arcsin(he_caisson/2./radius)*2))
         vertices = []
         vertexFlags = []
@@ -185,20 +190,20 @@ if opts.caisson is True:
         segmentFlags = []
         dim = opts.caisson_dim
         if opts.caisson_corner_side == 'bottom':
-            angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
-            angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
-            centers = [[dim[0]/2., dim[1]/2.], 
-                       [-dim[0]/2., dim[1]/2.],
-                       [-dim[0]/2.+radius, -dim[1]/2.+radius],
-                       [dim[0]/2.-radius, -dim[1]/2.+radius]]
+            angle0 = [old_div(np.pi,2.), 0., 3*np.pi/2, np.pi]
+            angle1 = [old_div(-np.pi,2.), old_div(-np.pi,2.), old_div(-np.pi,2.), old_div(-np.pi,2.)]
+            centers = [[old_div(dim[0],2.), old_div(dim[1],2.)], 
+                       [old_div(-dim[0],2.), old_div(dim[1],2.)],
+                       [old_div(-dim[0],2.)+radius, old_div(-dim[1],2.)+radius],
+                       [old_div(dim[0],2.)-radius, old_div(-dim[1],2.)+radius]]
             p_nb = [0, 0, nb, nb]
         else:
-            angle0 = [np.pi/2., 0., 3*np.pi/2, np.pi]
-            angle1 = [-np.pi/2., -np.pi/2., -np.pi/2., -np.pi/2.]
-            centers = [[dim[0]/2.-radius, dim[1]/2.-radius],
-                       [-dim[0]/2.+radius, dim[1]/2.-radius],
-                       [-dim[0]/2.+radius, -dim[1]/2.+radius],
-                       [dim[0]/2.-radius, -dim[1]/2.+radius]]
+            angle0 = [old_div(np.pi,2.), 0., 3*np.pi/2, np.pi]
+            angle1 = [old_div(-np.pi,2.), old_div(-np.pi,2.), old_div(-np.pi,2.), old_div(-np.pi,2.)]
+            centers = [[old_div(dim[0],2.)-radius, old_div(dim[1],2.)-radius],
+                       [old_div(-dim[0],2.)+radius, old_div(dim[1],2.)-radius],
+                       [old_div(-dim[0],2.)+radius, old_div(-dim[1],2.)+radius],
+                       [old_div(dim[0],2.)-radius, old_div(-dim[1],2.)+radius]]
             p_nb = [nb, nb, nb, nb]
         center = [0., 0.]
         flag = 1
@@ -240,7 +245,7 @@ if opts.caisson is True:
     caisson.holes_ind = np.array([0])
     # system = crb.System(np.array([0., -9.81, 0.]))
     # rotation = np.array([1, 0., 0., 0.])
-    rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
+    rotation_init = np.array([np.cos(old_div(ang,2.)), 0., 0., np.sin(old_div(ang,2.))*1.])
     caisson.rotate(ang, pivot=caisson.barycenter)
     system = crb.ProtChSystem(np.array([0., -9.81, 0.]))
     system.setTimeStep(opts.chrono_dt)
@@ -269,7 +274,7 @@ if opts.caisson is True:
     
     def prescribed_motion(t):
         new_x = np.array(caisson_coords)
-        new_x[1] = caisson_coords[1]+0.01*cos(2*np.pi*(t/4)+np.pi/2)
+        new_x[1] = caisson_coords[1]+0.01*cos(2*np.pi*(old_div(t,4))+old_div(np.pi,2))
         return new_x
 
     #body.setPrescribedMotion(prescribed_motion)
@@ -281,7 +286,7 @@ tank = st.Tank2D(domain, tank_dim)
 if opts.waves is True:
     dragAlpha = 5*(2*np.pi/period)
 else:
-    dragAlpha = 0.5/1.004e-6
+    dragAlpha = old_div(0.5,1.004e-6)
 tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 left = right = False
 if tank_sponge[0]: left = True
@@ -324,10 +329,10 @@ tank.BC['y-'].setTank()  #sliding mesh nodes
 
 if opts.gauge_output:
     if left or right:
-        gauge_dx = tank_sponge[0]/10.
+        gauge_dx = old_div(tank_sponge[0],10.)
     else:
-        gauge_dx = tank_dim[0]/10.
-    probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], (tank_sponge[0]+tank_dim[0]+tank_sponge[1])/gauge_dx+1)
+        gauge_dx = old_div(tank_dim[0],10.)
+    probes=np.linspace(-tank_sponge[0], tank_dim[0]+tank_sponge[1], old_div((tank_sponge[0]+tank_dim[0]+tank_sponge[1]),gauge_dx)+1)
     PG=[]
     PG2=[]
     LIG = []
@@ -534,13 +539,13 @@ freezeLevelSet=True
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = opts.weak_factor/nu_0#Re
+weak_bc_penalty_constant = old_div(opts.weak_factor,nu_0)#Re
 dt_init = opts.dt_init
 T = opts.T
 nDTout = int(opts.T*opts.nsave)
 timeIntegration = opts.timeIntegration
 if nDTout > 0:
-    dt_out= (T-dt_init)/nDTout
+    dt_out= old_div((T-dt_init),nDTout)
 else:
     dt_out = 0
 runCFL = opts.cfl
@@ -563,15 +568,15 @@ useRANS = opts.useRANS # 0 -- None
             # 3 -- K-Omega, 1988
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 #  Discretization

@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import map
+from builtins import range
+from past.utils import old_div
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -44,15 +49,15 @@ useRANS = 0 # 0 -- None
             # 2 -- K-Omega
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()    
     
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print("INVALID: useRBLES" + useRBLES) 
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
     
 #  Discretization   
@@ -91,7 +96,7 @@ airvent_y2=3.0*obst_portions[1]/4.0
 
 #Background refinement
 Refinement = 50
-he = L[0]/float(4*Refinement-1)
+he = old_div(L[0],float(4*Refinement-1))
 
 # Refinement parameters
 x_refine = (0.5 , 1.0 , 3.5) #end of zone 1, end of zone 2, end of zone 3 (zone 4 is up to the right wall)
@@ -102,12 +107,12 @@ GenerationZoneLength = 0.5
 AbsorptionZoneLength= 0.5
 spongeLayer = True
 xSponge = GenerationZoneLength
-xRelaxCenter = xSponge/2.0
-epsFact_solid = xSponge/2.0
+xRelaxCenter = old_div(xSponge,2.0)
+epsFact_solid = old_div(xSponge,2.0)
 #zone 2
 xSponge_2 = L[0]-AbsorptionZoneLength
 xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-epsFact_solid_2=AbsorptionZoneLength/2.0
+epsFact_solid_2=old_div(AbsorptionZoneLength,2.0)
 
 weak_bc_penalty_constant = 100.0
 nLevels = 1
@@ -120,7 +125,7 @@ structured=False
 gauge_dx=0.5
 PGL=[]
 LGL=[]
-for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact 
+for i in range(0,int(old_div(L[0],gauge_dx)+1)): #+1 only if gauge_dx is an exact 
   PGL.append([gauge_dx*i,0.5,0])
   LGL.append([(gauge_dx*i,0.0,0),(gauge_dx*i,L[1],0)])
  
@@ -135,8 +140,8 @@ pointGauges = PointGauges(gauges=((('u','v'), gaugeLocations),
                   sampleRate = 0,
                   fileName = 'combined_gauge_0_0.5_sample_all.txt')
 
-print gaugeLocations
-print columnLines
+print(gaugeLocations)
+print(columnLines)
 
 fields = ('vof',)
 
@@ -149,16 +154,16 @@ columnGauge = LineIntegralGauges(gauges=((fields, columnLines),),
 
 
 if useHex:   
-    nnx=ceil(L[0]/he)+1
-    nny=ceil(L[1]/he)+1
+    nnx=ceil(old_div(L[0],he))+1
+    nny=ceil(old_div(L[1],he))+1
     hex=True    
     domain = Domain.RectangularDomain(L)
 else:
     boundaries=['left','right','bottom','top','front','back','airvent']
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     if structured:
-        nnx=ceil(L[0]/he)+1
-        nny=ceil(L[1]/he)+1
+        nnx=ceil(old_div(L[0],he))+1
+        nny=ceil(old_div(L[1],he))+1
     elif spongeLayer:
         vertices=[[0.0,0.0],#0
                   [obst[0],0.0], #1
@@ -272,8 +277,8 @@ else:
                                           1.0,
                                           1.0])
         dragAlphaTypes = numpy.array([0.0,
-                                      0.5/1.004e-6,
-                                      0.5/1.004e-6,
+                                      old_div(0.5,1.004e-6),
+                                      old_div(0.5,1.004e-6),
                                       0.0,
                                       0.0,
                                       0.0])
@@ -316,7 +321,7 @@ else:
         domain.writePoly("mesh")
         domain.writePLY("mesh")
         domain.writeAsymptote("mesh")
-        triangleOptions="VApq30Dena%8.8f" % ((he**2)/2.0,)
+        triangleOptions="VApq30Dena%8.8f" % (old_div((he**2),2.0),)
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
@@ -324,7 +329,7 @@ T=30.0
 dt_fixed = 0.25
 dt_init = min(0.1*dt_fixed,0.1)
 runCFL=0.75
-nDTout = int(round(T/dt_fixed))
+nDTout = int(round(old_div(T,dt_fixed)))
 
 # Numerical parameters
 ns_forceStrongDirichlet = True
@@ -512,7 +517,7 @@ class RelaxationZoneWaveGenerator(AV_base):
         for l,m in enumerate(self.model.levelModelList):
             for eN in range(m.coefficients.q_phi.shape[0]):
                 mType = m.mesh.elementMaterialTypes[eN]
-                if self.zones.has_key(mType):
+                if mType in self.zones:
                     for k in range(m.coefficients.q_phi.shape[1]):
                         t = m.timeIntegration.t
                         x = m.q['x'][eN,k]

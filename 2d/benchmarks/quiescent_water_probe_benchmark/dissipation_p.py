@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import object
+from past.utils import old_div
 from proteus.default_p import *
 from proteus.mprans import Dissipation
 from proteus import Context
@@ -48,8 +51,8 @@ diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].dissip
 
 dissipationInflow = coefficients.c_mu*kInflow**(1.5)/(0.03*L[1])
 if ct.useRANS >= 2:
-    dissipationInflow = dissipationInflow/(kInflow+1.0e-12)
-class ConstantIC:
+    dissipationInflow = old_div(dissipationInflow,(kInflow+1.0e-12))
+class ConstantIC(object):
     def __init__(self,cval=0.0):
         self.cval=cval
     def uOfXT(self,x,t):

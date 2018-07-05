@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import map
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -12,7 +18,7 @@ from proteus.Gauges import PointGauges,LineGauges,LineIntegralGauges
 windVelocity = (0.0,0.0,0.0)
 inflowHeightMean = 1.0
 currentVelocity=0.5
-inflowVelocityMean = (cos(math.pi/4.0)*currentVelocity,cos(math.pi/4.0)*currentVelocity,0.0)
+inflowVelocityMean = (cos(old_div(math.pi,4.0))*currentVelocity,cos(old_div(math.pi,4.0))*currentVelocity,0.0)
 period = 1.94
 omega = 2.0*math.pi/period
 #waveheight = 0.020  #=0.025 without the current
@@ -22,7 +28,7 @@ k = 2.0*math.pi/wavelength
 rampTime=2.0*period
 meanFrameVelocity= 2.694 #calculated from FFT
 outflowHeight=inflowHeightMean
-netcurrentVelocity=wavelength/period-meanFrameVelocity
+netcurrentVelocity=old_div(wavelength,period)-meanFrameVelocity
 
 #print inflowVelocityMean
 
@@ -46,15 +52,15 @@ useRANS = 0 # 0 -- None
             # 2 -- K-Omega
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()    
     
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print("INVALID: useRBLES" + useRBLES) 
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
     
 #  Discretization   
@@ -83,7 +89,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 L = (float(6.0*wavelength), float(3.0*wavelength), 1.50)
 
-he = wavelength/100
+he = old_div(wavelength,100)
 
 GenerationZoneLength = wavelength*0.5
 AbsorptionZoneLength= wavelength*1.0
@@ -95,12 +101,12 @@ ySponge_1 = GenerationZoneLength
 ySponge_2 = L[1]-GenerationZoneLength
 xSponge_1 = L[0]-AbsorptionZoneLength
 
-yRelaxCenter_1 = ySponge_1/2.0
-yRelaxCenter_2 = (ySponge_2+L[1])/2.0
-xRelaxCenter_1 = (xSponge_1+L[0])/2.0
+yRelaxCenter_1 = old_div(ySponge_1,2.0)
+yRelaxCenter_2 = old_div((ySponge_2+L[1]),2.0)
+xRelaxCenter_1 = old_div((xSponge_1+L[0]),2.0)
 
-epsFact_solid = GenerationZoneLength/2.0
-epsFact_solid_2 = AbsorptionZoneLength/2.0
+epsFact_solid = old_div(GenerationZoneLength,2.0)
+epsFact_solid_2 = old_div(AbsorptionZoneLength,2.0)
 
 nLevels = 1
 weak_bc_penalty_constant = 100.0
@@ -114,12 +120,12 @@ nLayersOfOverlapForParallel = 0
 
 structured=False  
 
-gauge_dx=float(wavelength/10)
+gauge_dx=float(old_div(wavelength,10))
 PGL=[]
 LGL=[]
-for i in range(0,int(L[0]/gauge_dx)): #+1 only if gauge_dx is an exact 
-  PGL.append([gauge_dx*i,(ySponge_1+ySponge_2)/2.0,0.5])
-  LGL.append([(gauge_dx*i,(ySponge_1+ySponge_2)/2.0,0),(gauge_dx*i,(ySponge_1+ySponge_2)/2.0,L[2])])
+for i in range(0,int(old_div(L[0],gauge_dx))): #+1 only if gauge_dx is an exact 
+  PGL.append([gauge_dx*i,old_div((ySponge_1+ySponge_2),2.0),0.5])
+  LGL.append([(gauge_dx*i,old_div((ySponge_1+ySponge_2),2.0),0),(gauge_dx*i,old_div((ySponge_1+ySponge_2),2.0),L[2])])
  
 
 gaugeLocations=tuple(map(tuple,PGL)) 
@@ -219,7 +225,7 @@ else:
         facetFlags=[]
         #print int(len(vertices))
         for s,sF in zip(segments,segmentFlags):
-            facets.append([[s[0],s[1],s[1]+int(len(vertices)/2),s[0]+int(len(vertices)/2)]])
+            facets.append([[s[0],s[1],s[1]+int(old_div(len(vertices),2)),s[0]+int(old_div(len(vertices),2))]])
             facetFlags.append(sF)
 
         bf=[[0,1,10,9],[1,2,3,10],[10,3,4,11],[11,4,5,6],[8,11,6,7],[9,10,11,8]]
@@ -227,7 +233,7 @@ else:
  
         for i in range(0,int(len(bf))):
          facets.append([bf[i]])
-         tf=[ss + int(len(vertices)/2) for ss in bf[i]]
+         tf=[ss + int(old_div(len(vertices),2)) for ss in bf[i]]
          facets.append([tf])
 
         for i in range(0,int(len(bf))):
@@ -258,7 +264,7 @@ else:
         domain.writePoly("mesh")
         domain.writePLY("mesh")
         domain.writeAsymptote("mesh")
-        triangleOptions="KVApq1.4q12feena%21.16e" % ((he**3)/6.0,)
+        triangleOptions="KVApq1.4q12feena%21.16e" % (old_div((he**3),6.0),)
 
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
@@ -275,14 +281,14 @@ else:
                                           1.0])
 
         dragAlphaTypes = numpy.array([0.0,
-                                      0.5/1.004e-6,
-                                      0.5/1.004e-6,
+                                      old_div(0.5,1.004e-6),
+                                      old_div(0.5,1.004e-6),
                                       0.0,
-                                      0.5/1.004e-6,
+                                      old_div(0.5,1.004e-6),
                                       0.0,
-                                      0.5/1.004e-6,
+                                      old_div(0.5,1.004e-6),
                                       0.0,
-                                      0.5/1.004e-6,
+                                      old_div(0.5,1.004e-6),
                                       0.0])
 
         dragBetaTypes = numpy.array([0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0])
@@ -294,7 +300,7 @@ T=40.0*period
 dt_fixed = T
 dt_init = min(0.1*dt_fixed,0.1*he)
 runCFL=0.90
-nDTout = int(round(T/dt_fixed))
+nDTout = int(round(old_div(T,dt_fixed)))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
@@ -392,7 +398,7 @@ def signedDistance(x):
     return phi_z
 
 def theta(x,t):
-    return k*x[0] - omega*t + math.pi/2.0
+    return k*x[0] - omega*t + old_div(math.pi,2.0)
 
 def z(x):
     return x[2] - inflowHeightMean
@@ -417,16 +423,16 @@ def waveHeight(x,t):
 B = [0.01089188,     0.00014504,     0.00000206,     0.00000003]  #Velocities Fourier coefficients for non-dimensionalised solution, calculated from FFT
 
 def waveVelocity_u(x,t):
-   wu = wavelength/period-meanFrameVelocity
+   wu = old_div(wavelength,period)-meanFrameVelocity
    for i in range(0,int(len(B))): 
-     wu += sqrt(abs(g[2])/k)*(i+1)*B[i]*cosh((i+1)*k*(z(x)+h))/cosh((i+1)*k*h)*cos((i+1)*theta(x,t))
+     wu += sqrt(old_div(abs(g[2]),k))*(i+1)*B[i]*cosh((i+1)*k*(z(x)+h))/cosh((i+1)*k*h)*cos((i+1)*theta(x,t))
     
    return wu*ramp(t)
 
 def waveVelocity_v(x,t):
    wv=0
    for i in range(0,int(len(B))): 
-     wv += sqrt(abs(g[2])/k)*(i+1)*B[i]*sinh((i+1)*k*(z(x)+h))/cosh((i+1)*k*h)*sin((i+1)*theta(x,t)) 
+     wv += sqrt(old_div(abs(g[2]),k))*(i+1)*B[i]*sinh((i+1)*k*(z(x)+h))/cosh((i+1)*k*h)*sin((i+1)*theta(x,t)) 
 
    return wv*ramp(t)
    
@@ -511,7 +517,7 @@ class RelaxationZoneWaveGenerator(AV_base):
         for l,m in enumerate(self.model.levelModelList):
             for eN in range(m.coefficients.q_phi.shape[0]):
                 mType = m.mesh.elementMaterialTypes[eN]
-                if self.zones.has_key(mType):
+                if mType in self.zones:
                     for k in range(m.coefficients.q_phi.shape[1]):
                         t = m.timeIntegration.t
                         x = m.q['x'][eN,k]

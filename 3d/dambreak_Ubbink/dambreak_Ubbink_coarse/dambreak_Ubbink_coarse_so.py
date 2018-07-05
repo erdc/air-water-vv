@@ -1,3 +1,5 @@
+from builtins import str
+from builtins import range
 from proteus.default_so import *
 import dambreak_Ubbink_coarse
 

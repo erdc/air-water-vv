@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -25,15 +28,15 @@ useRANS = 0 # 0 -- None
             # 2 -- K-Omega
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()    
     
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print("INVALID: useRBLES" + useRBLES) 
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
     
 #  Discretization   
@@ -69,7 +72,7 @@ obst_y_end=obst_y_start+obst_portions[1] # end y coordinate of the obstacle; cau
 obst = (obst_x_start,obst_x_end,obst_y_start,obst_y_end,obst_portions[2]) #coordinates of the obstacle to be used to define the boundary
 
 
-he = L[0]/float(4*Refinement-1)
+he = old_div(L[0],float(4*Refinement-1))
 nLevels = 1
 weak_bc_penalty_constant = 100.0
 quasi2D=False
@@ -344,7 +347,7 @@ else:
         domain.writePoly("mesh")
         domain.writePLY("mesh")
         domain.writeAsymptote("mesh")
-        triangleOptions="KVApq1.4q12feena%21.16e" % ((he**3)/6.0,)
+        triangleOptions="KVApq1.4q12feena%21.16e" % (old_div((he**3),6.0),)
 
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
@@ -353,7 +356,7 @@ T=0.8
 dt_fixed = 0.05
 dt_init = min(0.1*dt_fixed,0.1*he)
 runCFL=0.33
-nDTout = int(round(T/dt_fixed))
+nDTout = int(round(old_div(T,dt_fixed)))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True

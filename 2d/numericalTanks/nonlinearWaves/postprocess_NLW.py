@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import collections as cll
 import csv
@@ -35,7 +41,7 @@ def readProbeFile(filename):
             probex.append(float(header[ii+1]))
             probey.append(float(header[ii+2]))
             probez.append(float(header[ii+3]))
-        probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+        probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
         datalist = [probeType,probeCoord,time,data]
         return datalist
 
@@ -49,7 +55,7 @@ vof = data_vof[3]
 eta_num = []
 tank_dim = nlw.opts.tank_dim
 waterLevel = nlw.opts.water_level
-i_mid = len(vof[0])/2-1
+i_mid = old_div(len(vof[0]),2)-1
 for i in range(0, len(vof)):
     eta_num.append(tank_dim[1]-vof[i][i_mid]-waterLevel)
 eta_num = np.array(eta_num)
@@ -87,7 +93,7 @@ iend = np.where(time>=18.)[0][0]
 for i in range(istart,iend):
     c = c + 1.
     S = S + (eta_th[i]-eta_num[i])**2
-err = np.sqrt(S/c)
+err = np.sqrt(old_div(S,c))
 err = 100*err/(nlw.opts.wave_height+waterLevel)
 val = open('validation_eta_NLW.txt', 'w')
 val.write('Eta in the middle of the tank.'+'\n')
@@ -102,16 +108,16 @@ val.close()
 dataW = readProbeFile('column_gauges.csv')
 time = dataW[2]
 L = nlw.opts.wave_wavelength
-Nwaves = (nlw.opts.tank_dim[0]+nlw.opts.tank_sponge[0]+nlw.opts.tank_sponge[1])/L
+Nwaves = old_div((nlw.opts.tank_dim[0]+nlw.opts.tank_sponge[0]+nlw.opts.tank_sponge[1]),L)
 T = nlw.opts.wave_period
 Tend = time[-1]
 Tstart = Tend-Nwaves*T
-i_mid = len(dataW[3][0])/2-1
+i_mid = old_div(len(dataW[3][0]),2)-1
 time_int = np.linspace(time[0],Tend,len(time))
 data1 = np.zeros((len(time),len(dataW[3][0])),"d")
 bf = 1.2
 minf = 1./bf/T
-maxf = bf / T
+maxf = old_div(bf, T)
 dx_array = nlw.opts.gauge_dx
 Narray = int(round(L/6/dx_array))
 data = np.zeros((len(data1),3))
@@ -125,4 +131,4 @@ H2 = zc[1][1]
 H3 = zc[2][1]
 HH = reflStat(H1,H2,H3,Narray*dx_array,L)[0]
 RR = reflStat(H1,H2,H3,Narray*dx_array,L)[2]
-print "RR = ", RR
+print("RR = ", RR)

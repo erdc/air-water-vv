@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from numpy import *
 from scipy import *
 from pylab import *
@@ -60,7 +64,7 @@ with open (filename, 'rb') as csvfile:
     s = 0
     for i in range(1,len(pressure2)):
         s = s+pressure2[i]
-    averagePressure = s/len(pressure2)
+    averagePressure = old_div(s,len(pressure2))
     val = open('validation.txt', 'w')
     val.write('Only for gauges taken at (x,y)=(0.292,0.04)'+'\n')
     val.write('Maximum pressure [Pa]'+'\t'+'Average pressure [Pa]'+'\n')

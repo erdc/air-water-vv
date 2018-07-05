@@ -1,4 +1,9 @@
+from __future__ import print_function
+from __future__ import division
 #from scipy import *
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from pylab import *
 import numpy 
 import collections as cll
@@ -14,7 +19,7 @@ if Datasource!=3:
 
  NumberOfCases=1
  x_loc=[]
- for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact 
+ for i in range(0,int(old_div(L[0],gauge_dx)+1)): #+1 only if gauge_dx is an exact 
    x_loc.append(gauge_dx*i)
    y_loc=-0.5 #y=0 in the mean free surface
  if Datasource==1 or Datasource==2:
@@ -76,18 +81,18 @@ if Datasource!=3:
     D = fid.readlines()
     header = D[:headerline]
     n=len(D)
-    print n
+    print(n)
     b1 = numpy.array(zeros((int(n-1.0),int(NumCol))))
     for i in range (1,int(n)):
      b1[i-1,:]=D[i].split(',')
     b1 = numpy.array(b1,dtype=float32)
-    print ss
+    print(ss)
     p_PR[:]=b1[:,int(2*NumLocations+1+ss)] 
     u_PR[:]=b1[:,int(1+ss)]
     v_PR[:]=b1[:,int(NumLocations+1+ss)]
     time_P[:]=b1[:,0]
     a=p_PR[:]  - mean(p_PR)
-    print  mean(p_PR)
+    print(mean(p_PR))
     y_p_PR[:,ss] = a[:]
     y_p_PR[:,ss] /=float(rho_0)*9.81*(float(inflowHeightMean))
     if Variable==0:
@@ -108,7 +113,7 @@ if Datasource!=3:
     D = fid.readlines()
     header = D[:headerline]
     n=len(D)
-    print n
+    print(n)
     b2 = numpy.array(zeros((int(n-1.0),19)))
     for i in range (1,int(n)):
      b2[i-1,:]=D[i].split(',')
@@ -138,7 +143,7 @@ if Datasource!=3:
     D = fid.readlines()
     header = D[:headerline]
     n=len(D)
-    print n
+    print(n)
     b3 = numpy.array(zeros((int(n-1.0),int(NumLocations+1))))
     for i in range (1,int(n)):
       b3[i-1,:]=D[i].split(',')

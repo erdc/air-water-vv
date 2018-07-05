@@ -1,6 +1,9 @@
 """
 Dambreak flow - Ubbink (1997)
 """
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import numpy as np
 from math import sqrt
 from proteus import (Domain, Context,
@@ -136,7 +139,7 @@ T = opts.T
 dt_fixed = opts.dt_fixed
 dt_init = min(0.1 * dt_fixed, opts.dt_init)
 runCFL = opts.cfl
-nDTout = int(round(T / dt_fixed))
+nDTout = int(round(old_div(T, dt_fixed)))
 
 # ----- DOMAIN ----- #
 
@@ -172,7 +175,7 @@ tank.BC['x-'].setFreeSlip()
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / float(4 * refinement - 1)
+he = old_div(tank_dim[0], float(4 * refinement - 1))
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 

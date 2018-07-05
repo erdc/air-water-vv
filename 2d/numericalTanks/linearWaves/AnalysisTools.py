@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import numpy as np
 
 def readProbeFile(filename):
@@ -21,7 +26,7 @@ def readProbeFile(filename):
             probex.append(float(header[ii+1]))
             probey.append(float(header[ii+2]))
             probez.append(float(header[ii+3]))
-        probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+        probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
         datalist = [probeType,probeCoord,time,data]
         return datalist
     
@@ -29,10 +34,10 @@ def costapValue(f,tail):
     return 0.5*(1.-np.cos(np.pi*float(tail-f)/float(tail)))
     
 def signalFilter(time,data,minfreq,maxfreq, cutoffMax, cutoffMin):
-    dt = (time[-1]-time[0])/(len(time)-1)
+    dt = old_div((time[-1]-time[0]),(len(time)-1))
     doInterp = False
     nfft = len(time)
-    dt = (time[-1]-time[0])/(len(time)-1)
+    dt = old_div((time[-1]-time[0]),(len(time)-1))
     freq = np.fft.fftfreq(nfft,dt)
     fft_x = np.fft.fft(data[:],nfft)
     ii = -1
@@ -40,7 +45,7 @@ def signalFilter(time,data,minfreq,maxfreq, cutoffMax, cutoffMin):
     tailMin = minfreq - cutoffMin
 
     if(tailMax < 0 or tailMin < 0):
-        print "cutoffMax is less than maxfreq or cutoffMin larger than minfreq, this should not be the case"
+        print("cutoffMax is less than maxfreq or cutoffMin larger than minfreq, this should not be the case")
     
     for ff in freq:
         ii+=1
@@ -103,15 +108,15 @@ def zeroCrossing(time,data,up=True):
 
 def reflStat(H1,H2,H3,dx,wavelength):
     D = 2*np.pi*dx/wavelength
-    Amp =np.array([H1/2.,H2/2.,H3/2.])
+    Amp =np.array([old_div(H1,2.),old_div(H2,2.),old_div(H3,2.)])
     A1 = Amp[0]*Amp[0]
     A2 = Amp[1]*Amp[1]
     A3 = Amp[2]*Amp[2]
-    Lamda = (A1 + A3 - 2.*A2*np.cos(2*D))/(4.*np.sin(D)*np.sin(D))
+    Lamda = old_div((A1 + A3 - 2.*A2*np.cos(2*D)),(4.*np.sin(D)*np.sin(D)))
     Gamma = 0.5*np.sqrt(
-        ((2*A2-A1-A3)/(2.*np.sin(D)*np.sin(D)))**2+((A1-A3)/np.sin(2*D))**2)
+        (old_div((2*A2-A1-A3),(2.*np.sin(D)*np.sin(D))))**2+(old_div((A1-A3),np.sin(2*D)))**2)
     
     Hi = np.sqrt(Lamda + Gamma) + np.sqrt(Lamda - Gamma)
     Hr = np.sqrt(Lamda + Gamma) - np.sqrt(Lamda - Gamma)
-    Rf = Hr/(Hi+1e-15)
+    Rf = old_div(Hr,(Hi+1e-15))
     return [Hi,Hr,Rf]

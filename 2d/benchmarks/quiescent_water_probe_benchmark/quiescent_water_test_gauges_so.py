@@ -1,6 +1,8 @@
 """
 Split operator module for quiescant water
 """
+from builtins import str
+from builtins import range
 import os
 from proteus.default_so import *
 from proteus import Context

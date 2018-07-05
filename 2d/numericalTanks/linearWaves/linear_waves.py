@@ -1,6 +1,9 @@
 """
 Linear Wave Theory
 """
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import numpy as np
 import math
 from proteus import (Domain, Context,
@@ -152,12 +155,12 @@ g = opts.g
 runCFL = opts.cfl
 T = opts.T
 dt_init = opts.dt_init
-dt_out = opts.wave_period / opts.nperiod
-nDTout = int(round(T / dt_out))
+dt_out = old_div(opts.wave_period, opts.nperiod)
+nDTout = int(round(old_div(T, dt_out)))
 
 # ----- MISC ----- #
 
-weak_bc_penalty_constant = 10 / nu_0
+weak_bc_penalty_constant = old_div(10, nu_0)
 nLevels = 1
 backgroundDiffusionFactor = 0.01
 
@@ -187,7 +190,7 @@ else:
     domain = Domain.PlanarStraightLineGraphDomain()
 
 #refinement
-he = opts.wavelength / refinement_level
+he = old_div(opts.wavelength, refinement_level)
 smoothing = he*3.
 
 # ----- TANK ------ #
@@ -234,7 +237,7 @@ point_gauge_locations = []
 
 if opts.point_gauge_output or opts.column_gauge_output:
     gauge_y = waterLevel - 0.5 * depth
-    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
+    number_of_gauges = old_div(tank_dim[0], opts.gauge_dx) + 1
     for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
         point_gauge_locations.append((gauge_x, gauge_y, 0), )
         column_gauge_locations.append(((gauge_x, 0., 0.),

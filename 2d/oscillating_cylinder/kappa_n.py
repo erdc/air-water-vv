@@ -1,5 +1,9 @@
+from __future__ import absolute_import
 from proteus import *
-from kappa_p import *
+try:
+    from .kappa_p import *
+except:
+    from kappa_p import *
 from proteus import Context
 
 ct = Context.get()

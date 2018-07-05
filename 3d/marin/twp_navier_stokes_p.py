@@ -1,3 +1,4 @@
+from builtins import object
 from proteus import *
 from proteus.default_p import *
 from marin import *
@@ -112,7 +113,7 @@ fluxBoundaryConditions = {0:'mixedFlow',
                           2:'mixedFlow',
                           3:'mixedFlow'}
 
-class PerturbedSurface_p:
+class PerturbedSurface_p(object):
     def __init__(self,waterLevel):
         self.waterLevel=waterLevel
     def uOfXT(self,x,t):
@@ -121,7 +122,7 @@ class PerturbedSurface_p:
         else:
             return -(L[2] - self.waterLevel)*rho_1*g[2]
 
-class AtRest:
+class AtRest(object):
     def __init__(self):
         pass
     def uOfXT(self,x,t):

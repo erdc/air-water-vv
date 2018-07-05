@@ -1,6 +1,9 @@
 """
 Quiescent Water Test
 """
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import numpy as np
 from math import sqrt
 from proteus import (Domain, Context,
@@ -133,7 +136,7 @@ T = opts.T
 dt_fixed = opts.dt_fixed
 dt_init = min(0.1 * dt_fixed, opts.dt_init)
 runCFL = opts.cfl
-nDTout = int(round(T / dt_fixed))
+nDTout = int(round(old_div(T, dt_fixed)))
 
 # ----- DOMAIN ----- #
 
@@ -166,18 +169,18 @@ tank = Tank2D(domain, tank_dim)
 
 tank.attachPointGauges(
     'twp',
-    gauges = ((('p',), ((tank_dim[0], opts.water_level/2.0, 0.),)),),
+    gauges = ((('p',), ((tank_dim[0], old_div(opts.water_level,2.0), 0.),)),),
     activeTime=(0, opts.T),
     sampleRate=0,
     fileName='pressure_PointGauge.csv')
 
-column_p = [((tank_dim[0]/2.0,0.,0.),(tank_dim[0]/2.0,opts.water_level,0.))]
+column_p = [((old_div(tank_dim[0],2.0),0.,0.),(old_div(tank_dim[0],2.0),opts.water_level,0.))]
 tank.attachLineGauges(
     'twp',
     gauges = ((('p',), column_p),),
     fileName = 'pressure_LineGauge.csv')
 
-column_vof = [((tank_dim[0]/2.0,0.,0.),(tank_dim[0]/2.0,tank_dim[1],0.))]
+column_vof = [((old_div(tank_dim[0],2.0),0.,0.),(old_div(tank_dim[0],2.0),tank_dim[1],0.))]
 tank.attachLineIntegralGauges(
     'vof',
     gauges = (((('vof'),), column_vof),),
@@ -192,7 +195,7 @@ tank.BC['x-'].setFreeSlip()
 
 # ----- MESH CONSTRUCTION ----- #
 
-he = tank_dim[0] / float(4 * refinement - 1)
+he = old_div(tank_dim[0], float(4 * refinement - 1))
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 

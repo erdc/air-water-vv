@@ -1,3 +1,4 @@
+from builtins import object
 from proteus.default_p import *
 from proteus import Context
 from proteus.ctransportCoefficients import smoothedHeaviside
@@ -34,7 +35,7 @@ dirichletConditions = {0: lambda x, flag: domain.bc[flag].vof_dirichlet.init_cyt
 advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].vof_advective.init_cython()}
 diffusiveFluxBoundaryConditions = {0: {}}
 
-class PerturbedSurface_H:
+class PerturbedSurface_H(object):
     def uOfXT(self,x,t):
         return smoothedHeaviside(ct.ecH * ct.he, ct.signedDistance(x))
 	    

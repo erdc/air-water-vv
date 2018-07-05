@@ -1,3 +1,5 @@
+from builtins import zip
+from builtins import str
 import sys
 import os.path
 from matplotlib import pyplot as plt

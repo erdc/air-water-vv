@@ -1,3 +1,4 @@
+from builtins import object
 from proteus import *
 from proteus.default_p import *
 from marin import *
@@ -55,7 +56,7 @@ diffusiveFluxBoundaryConditions = {0:{0:getDFBC_k}}
 
 
 
-class ConstantIC:
+class ConstantIC(object):
     def __init__(self,cval=0.0):
         self.cval=cval
     def uOfXT(self,x,t):

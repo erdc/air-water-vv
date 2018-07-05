@@ -1,4 +1,7 @@
 #! /usr/bin/env python
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import proteus
 from proteus import Domain
 
@@ -22,7 +25,7 @@ def test_cylinder(nx,ntheta):
 
     x = numpy.zeros((nx,ntheta),'d'); y = numpy.zeros((nx,ntheta),'d'); z = numpy.zeros((nx,ntheta),'d')
 
-    dx = cyl_length/float(nx-1)
+    dx = old_div(cyl_length,float(nx-1))
     dtheta = 2.0*pi/float(ntheta)
     theta = numpy.arange(ntheta,dtype='d')
     theta *= dtheta
@@ -247,7 +250,7 @@ def darpa2gen(nx,ntheta):
     xc   = 14.291667
     cb1  = 1.126395191
     cb2  = 0.442874707
-    cb3  = 1.0/2.1
+    cb3  = old_div(1.0,2.1)
     rh   = 0.1175
     k0   = 10.0
     k1   = 44.6244
@@ -285,7 +288,7 @@ def darpa2gen(nx,ntheta):
             else: #goto 400
                 if (xx < xa): #otherwise goto 600
                     #afterbody equation
-                    xi = (13.979167 - xx)/3.333333
+                    xi = old_div((13.979167 - xx),3.333333)
                     c1 = rh*rh
                     xipow = xi*xi
                     c2 = rh*k0*xipow                  
@@ -350,7 +353,7 @@ def darpa2gen_orig(npoints):
     xc   = 14.291667
     cb1  = 1.126395191
     cb2  = 0.442874707
-    cb3  = 1.0/2.1
+    cb3  = old_div(1.0,2.1)
     rh   = 0.1175
     k0   = 10.0
     k1   = 44.6244
@@ -381,7 +384,7 @@ def darpa2gen_orig(npoints):
             else: #goto 400
                 if (xx < xa): #otherwise goto 600
                     #afterbody equation
-                    xi = (13.979167 - xx)/3.333333
+                    xi = old_div((13.979167 - xx),3.333333)
                     c1 = rh*rh
                     xipow = xi*xi
                     c2 = rh*k0*xipow                  

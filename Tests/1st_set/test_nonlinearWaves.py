@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
+from builtins import object
 import os
 #os.chdir('/home/travis/build/erdc/proteus/air-water-vv/2d/numericalTanks/nonlinearWaves')
 import pytest
@@ -20,7 +23,7 @@ from proteus.defaults import (load_physics as load_p,
 modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../2d/numericalTanks/nonlinearWaves')
 petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../../inputTemplates/petsc.options.asm")
 
-class NumericResults:
+class NumericResults(object):
 
     @staticmethod
     def _read_log(file_name):
@@ -90,15 +93,15 @@ class TestNonLinearWavesTetgen(TestTools.AirWaterVVTest):
             while i < len(all):
                 if i < len(all)-1:
                     if all[i+1][0]!='-':
-                        print "setting ", all[i].strip(), all[i+1]
+                        print("setting ", all[i].strip(), all[i+1])
                         OptDB.setValue(all[i].strip('-'),all[i+1])
                         i=i+2
                     else:
-                        print "setting ", all[i].strip(), "True"
+                        print("setting ", all[i].strip(), "True")
                         OptDB.setValue(all[i].strip('-'),True)
                         i=i+1
                 else:
-                    print "setting ", all[i].strip(), "True"
+                    print("setting ", all[i].strip(), "True")
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
         so.tnList=[0.0,0.001,0.011]            

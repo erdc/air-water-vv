@@ -1,6 +1,9 @@
 """
 Crump Weir
 """
+from __future__ import division
+from builtins import str
+from past.utils import old_div
 import numpy as np
 from math import sqrt
 from proteus import (Domain, Context,
@@ -167,7 +170,7 @@ T = opts.T
 dt_fixed = opts.dt_fixed
 dt_init = min(0.1 * dt_fixed, opts.dt_init)
 runCFL = opts.cfl
-nDTout = int(round(T / dt_fixed))
+nDTout = int(round(old_div(T, dt_fixed)))
 
 ##########################################
 #              Mesh & Domain             #
@@ -176,7 +179,7 @@ nDTout = int(round(T / dt_fixed))
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
-he = tank_dim[0] / float(4 * refinement - 1)
+he = old_div(tank_dim[0], float(4 * refinement - 1))
 
 # ----- TANK ----- #
 
@@ -253,7 +256,7 @@ point_gauge_locations = []
 
 if opts.point_gauge_output or opts.column_gauge_output:
 
-    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
+    number_of_gauges = old_div(tank_dim[0], opts.gauge_dx) + 1
 
     for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
 
@@ -283,8 +286,8 @@ if opts.column_gauge_output:
                                   gauges=((('vof',), column_gauge_locations),),
                                   fileName='column_gauge.csv')
     column_over_crest = []
-    column_over_crest.append(((opts.obstacle_x_start+opts.obstacle_dim[0]/3.0,opts.obstacle_dim[1],0.0),
-                              (opts.obstacle_x_start+opts.obstacle_dim[0]/3.0,opts.tank_dim[1],0.0)))
+    column_over_crest.append(((opts.obstacle_x_start+old_div(opts.obstacle_dim[0],3.0),opts.obstacle_dim[1],0.0),
+                              (opts.obstacle_x_start+old_div(opts.obstacle_dim[0],3.0),opts.tank_dim[1],0.0)))
     tank.attachLineGauges('twp',
                           gauges=((('u'), column_over_crest),),
                           fileName='u_over_crest.csv')                          

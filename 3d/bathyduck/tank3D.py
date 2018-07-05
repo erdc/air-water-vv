@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -17,7 +22,7 @@ opts=Context.Options([
     ("wave_type", 'single-peaked', "type of waves generated: 'linear', 'Nonlinear', 'single-peaked', 'double-peaked', 'time-series'"),
     ("depth", 7.25, "water depth [m]"),
     ("wave_height", 4.0, "wave height [m]"),
-    ("peak_period", 1.0/0.09, "Peak period [s]"),
+    ("peak_period", old_div(1.0,0.09), "Peak period [s]"),
     ("peak_period2", 6.0, "Second peak period (only used in double-peaked case)[s]"),
     ("peak_wavelength",10.0,"Peak wavelength in [m]"),
     ("parallel", True, "Run in parallel"),
@@ -30,7 +35,7 @@ inflowVelocityMean = [0., 0., 0.]
 period = opts.peak_period
 omega = 2.0*math.pi/period
 waveheight = opts.wave_height
-amplitude = waveheight/2.0
+amplitude = old_div(waveheight,2.0)
 wavelength = opts.peak_wavelength
 k = -2.0*math.pi/wavelength
 
@@ -56,15 +61,15 @@ useRANS = 0 # 0 -- None
 
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 
@@ -145,7 +150,7 @@ if genMesh:
 
         #now adaptively refine 2D mesh to interpolate bathy to desired accuracy
         mesh2D = InterpolatedBathymetryMesh(domain2D,
-                                            triangleOptions="gVApq30Dena%8.8f" % ((1000.0**2)/2.0,),
+                                            triangleOptions="gVApq30Dena%8.8f" % (old_div((1000.0**2),2.0),),
                                             atol=1.0e-1,
                                             rtol=1.0e-1,
                                             maxLevels=25,
@@ -162,7 +167,7 @@ if genMesh:
         nN_start = fineMesh.nodeArray.shape[0]
         nN = nN_start
         zTop = max(fineMesh.nodeArray[:,2].max(),fineMesh.nodeArray[:,2].min()+depth+2*waveheight)
-        for nN_bottom, n,f in zip(range(nN_start), fineMesh.nodeArray, fineMesh.nodeMaterialTypes):
+        for nN_bottom, n,f in zip(list(range(nN_start)), fineMesh.nodeArray, fineMesh.nodeMaterialTypes):
             if f > 0:
                 newNodes[nN] = (n[0],n[1],zTop)
                 verticalEdges[nN_bottom] = nN
@@ -184,11 +189,11 @@ if genMesh:
                                   n11,
                                   n01]])
                 newFacetFlags.append(edgeF)
-                if topConnectivity.has_key(n11):
+                if n11 in topConnectivity:
                     topConnectivity[n11].append(n01)
                 else:
                     topConnectivity[n11] = [n01]
-                if topConnectivity.has_key(n01):
+                if n01 in topConnectivity:
                     topConnectivity[n01].append(n11)
                 else:
                     topConnectivity[n01] = [n11]
@@ -210,7 +215,7 @@ if genMesh:
                 newVertexFlags.append(nF)
             else:
                 newVertexFlags.append(6)
-        for nN in range(len(newNodes.keys())):
+        for nN in range(len(list(newNodes.keys()))):
             newVertices.append(newNodes[nN+nN_start])
             newVertexFlags.append(5)
         xmin_new = fineMesh.nodeArray[:,0].min()
@@ -233,7 +238,7 @@ if genMesh:
                                               units="m")
         domain.writePoly("frfDomain3D")
         domain.writePLY("frfDomain3D")
-        triangleOptions="KVApq1.4q12feena%21.16e" % ((he**3)/6.0,)
+        triangleOptions="KVApq1.4q12feena%21.16e" % (old_div((he**3),6.0),)
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
         porosityTypes = numpy.array([1.0])
         dragAlphaTypes = numpy.array([0.0])
@@ -257,7 +262,7 @@ T = 70.
 dt_fixed = 1.
 dt_init = 0.001
 runCFL=0.33
-nDTout = int(round(T/dt_fixed))
+nDTout = int(round(old_div(T,dt_fixed)))
 
 
 # Numerical parameters
@@ -355,7 +360,7 @@ def signedDistance(x):
 
 
 def theta(x,t):
-    return k*x[0] - omega*t + math.pi/2.0
+    return k*x[0] - omega*t + old_div(math.pi,2.0)
 
 
 def z(x):
@@ -365,7 +370,7 @@ def z(x):
 def ramp(t):
   t0=.1 #ramptime
   if t<t0:
-    return t/t0
+    return old_div(t,t0)
   else:
     return 1
 

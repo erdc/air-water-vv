@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import collections as cll
 import csv
@@ -58,7 +64,7 @@ for folder in folders:
                 probex.append(float(header[ii+1]))
                 probey.append(float(header[ii+2]))
                 probez.append(float(header[ii+3]))
-            probeCoord = zip(np.array(probex),np.array(probey),np.array(probez))
+            probeCoord = list(zip(np.array(probex),np.array(probey),np.array(probez)))
             datalist = [probeType,probeCoord,time,data]
             return datalist
 
@@ -76,7 +82,7 @@ for folder in folders:
     for i in range(0, len(vof)):
         eta_num.append(tank_dim[1]-vof[i][i_mid]-waterLevel)
     eta_num = np.array(eta_num)
-    fp = 1./period[ifo]
+    fp = old_div(1.,period[ifo])
     minf = 0.75*fp
     maxf = 1.1*band[ifo]*fp
     time_int = np.linspace(time[0],time[-1],len(time))
@@ -115,7 +121,7 @@ for folder in folders:
     for i in range(istart,iend):
         c = c + 1.
         S = S + (eta_th[i]-eta_num[i])**2
-    err = np.sqrt(S/c)
+    err = np.sqrt(old_div(S,c))
     err = 100*err/(height[ifo]+0.4)
     val = open('validation_eta_NLW.txt', 'w')
     val.write('Eta in the middle of the tank.'+'\n')
@@ -134,15 +140,15 @@ for folder in folders:
     T = period[ifo]
     Tend = time[-1]
     Tstart = Tend-Nwaves*T
-    i_mid = len(dataW[3][0])/2-1
+    i_mid = old_div(len(dataW[3][0]),2)-1
     time_int = np.linspace(time[0],Tend,len(time))
     data1 = np.zeros((len(time),len(dataW[3][0])),"d")
     dx_array = 0.25
     Narray = int(round(L/6./dx_array))
     data = np.zeros((len(data1),3))
     zc = []
-    minf = 0.8/period[ifo]
-    maxf = 1.2/period[ifo]
+    minf = old_div(0.8,period[ifo])
+    maxf = old_div(1.2,period[ifo])
     for ii in range(0,3):
         data1[:,i_mid+ii*Narray] = np.interp(time_int,time,dataW[3][:,i_mid+ii*Narray])
         data[:,ii] = signalFilter(time,data1[:,i_mid+ii*Narray],minf, maxf, 1.1*maxf, 0.9*minf)
@@ -152,5 +158,5 @@ for folder in folders:
     H3 = zc[2][1]
     HH = reflStat(H1,H2,H3,Narray*dx_array,L)[0]
     RR = reflStat(H1,H2,H3,Narray*dx_array,L)[2]
-    print "RR = ", RR
+    print("RR = ", RR)
     os.chdir("../")

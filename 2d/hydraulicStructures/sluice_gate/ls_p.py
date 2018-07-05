@@ -1,3 +1,4 @@
+from builtins import object
 from proteus.default_p import *
 from proteus import Context
 from proteus.mprans import NCLS
@@ -35,7 +36,7 @@ dirichletConditions = {0: getDBC_ls}
 advectiveFluxBoundaryConditions =  {0: lambda x, flag: None}
 diffusiveFluxBoundaryConditions = {0: {}}
 
-class PerturbedSurface_phi:       
+class PerturbedSurface_phi(object):       
     def uOfXT(self,x,t):
         return ct.signedDistance(x)
     

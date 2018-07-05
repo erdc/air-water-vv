@@ -1,3 +1,9 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import map
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 from math import *
 import proteus.MeshTools
 from proteus import Domain
@@ -15,7 +21,7 @@ inflowVelocityMean = (0.0,0.0,0.0)
 period = 1.94
 omega = 2.0*math.pi/period
 waveheight = 0.025
-amplitude = waveheight/ 2.0
+amplitude = old_div(waveheight, 2.0)
 wavelength = 5.0
 k = 2.0*math.pi/wavelength
  
@@ -40,15 +46,15 @@ useRANS = 0 # 0 -- None
             # 2 -- K-Omega
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()    
     
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES 
+    print("INVALID: useRBLES" + useRBLES) 
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
     
 #  Discretization   
@@ -77,7 +83,7 @@ elif spaceOrder == 2:
 # Domain and mesh
 L = (float(6.0*wavelength), 2.0, 1.50)
 
-he = wavelength/20
+he = old_div(wavelength,20)
 
 GenerationZoneLength = wavelength*1.0
 AbsorptionZoneLength= wavelength*2.0
@@ -85,13 +91,13 @@ spongeLayer = True #False
 levee=spongeLayer
 slopingSpongeLayer=spongeLayer
 xSponge = GenerationZoneLength
-xRelaxCenter = xSponge/2.0
-epsFact_solid = xSponge/2.0
+xRelaxCenter = old_div(xSponge,2.0)
+epsFact_solid = old_div(xSponge,2.0)
 #zone 2
 xSponge_2 = L[0]-AbsorptionZoneLength
 ySponge_3= L[1]-AbsorptionZoneLength
 xRelaxCenter_2 = 0.5*(xSponge_2+L[0])
-epsFact_solid_2 = AbsorptionZoneLength/2.0
+epsFact_solid_2 = old_div(AbsorptionZoneLength,2.0)
 
 nLevels = 1
 weak_bc_penalty_constant = 100.0
@@ -108,9 +114,9 @@ structured=False
 gauge_dx=5.0
 PGL=[]
 LGL=[]
-for i in range(0,int(L[0]/gauge_dx+1)): #+1 only if gauge_dx is an exact 
-  PGL.append([gauge_dx*i,L[1]/2.0,0.5])
-  LGL.append([(gauge_dx*i,L[1]/2.0,0),(gauge_dx*i,L[1]/2.0,L[2])])
+for i in range(0,int(old_div(L[0],gauge_dx)+1)): #+1 only if gauge_dx is an exact 
+  PGL.append([gauge_dx*i,old_div(L[1],2.0),0.5])
+  LGL.append([(gauge_dx*i,old_div(L[1],2.0),0),(gauge_dx*i,old_div(L[1],2.0),L[2])])
  
 
 gaugeLocations=tuple(map(tuple,PGL)) 
@@ -171,8 +177,8 @@ else:
             vertices.append([v[0],v[1],L[2]])
             vertexFlags.append(boundaryTags['top'])
 
-        print vertices
-        print vertexFlags
+        print(vertices)
+        print(vertexFlags)
 
         segments=[[0,1],
                   [1,2],
@@ -215,8 +221,8 @@ else:
          facetFlags.append(boundaryTags['bottom'])
          facetFlags.append(boundaryTags['top'])
 
-        print facets
-        print facetFlags
+        print(facets)
+        print(facetFlags)
 
         regions=[[xRelaxCenter, 0.5*L[1],0.0],
                  [xRelaxCenter_2, 0.5*L[1], 0.0],
@@ -235,7 +241,7 @@ else:
         domain.writePoly("mesh")
         domain.writePLY("mesh")
         domain.writeAsymptote("mesh")
-        triangleOptions="KVApq1.4q12feena%21.16e" % ((he**3)/6.0,)
+        triangleOptions="KVApq1.4q12feena%21.16e" % (old_div((he**3),6.0),)
 
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
@@ -245,8 +251,8 @@ else:
                                           1.0,
                                           1.0])
         dragAlphaTypes = numpy.array([0.0,
-                                      0.5/1.004e-6,
-                                      0.5/1.004e-6,
+                                      old_div(0.5,1.004e-6),
+                                      old_div(0.5,1.004e-6),
                                       0.0])
 
         dragBetaTypes = numpy.array([0.0,0.0,0.0,0.0])
@@ -317,7 +323,7 @@ else:
         domain.writePoly("mesh")
         domain.writePLY("mesh")
         domain.writeAsymptote("mesh")
-        triangleOptions="KVApq1.4q12feena%21.16e" % ((he**3)/6.0,)
+        triangleOptions="KVApq1.4q12feena%21.16e" % (old_div((he**3),6.0),)
 
 
         logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
@@ -327,7 +333,7 @@ T=20.0*period
 dt_fixed = T
 dt_init = min(0.1*dt_fixed,0.1*he)
 runCFL=0.90
-nDTout = int(round(T/dt_fixed))
+nDTout = int(round(old_div(T,dt_fixed)))
 
 # Numerical parameters
 ns_forceStrongDirichlet = False#True
@@ -425,7 +431,7 @@ def signedDistance(x):
     return phi_z
 
 def theta(x,t):
-    return k*x[0] - omega*t + math.pi/2.0
+    return k*x[0] - omega*t + old_div(math.pi,2.0)
 
 def z(x):
     return x[2] - inflowHeightMean
@@ -510,7 +516,7 @@ class RelaxationZoneWaveGenerator(AV_base):
         for l,m in enumerate(self.model.levelModelList):
             for eN in range(m.coefficients.q_phi.shape[0]):
                 mType = m.mesh.elementMaterialTypes[eN]
-                if self.zones.has_key(mType):
+                if mType in self.zones:
                     for k in range(m.coefficients.q_phi.shape[1]):
                         t = m.timeIntegration.t
                         x = m.q['x'][eN,k]

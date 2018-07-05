@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
 from proteus import Gauges as ga
@@ -31,8 +34,8 @@ opts=Context.Options([
     # rubble mound
     ('porousMedia', True, 'Enable porus media region'),
     ("hs", 0.175, "Height of the breakwater"),
-    ("slope1", 1./3., "Slope1 of the breakwater"),
-    ("slope2", 1./2., "Slope2 of the breakwater"),
+    ("slope1", old_div(1.,3.), "Slope1 of the breakwater"),
+    ("slope2", old_div(1.,2.), "Slope2 of the breakwater"),
     ('porosity', 0.4, "Porosity of the medium"),
     ('d50', 0.030, "Mean diameter of the medium"),
     ('d15', None, "15% grading curve diameter of the medium"),
@@ -50,7 +53,7 @@ opts=Context.Options([
     ('dimx', 0.300, 'X-dimension of the caisson2D'),
     ('dimy', 0.385, 'Y-dimension of the caisson2D'),
     ('width', 1.0, 'Z-dimension of the caisson2D'),
-    ('mass', 64.8/0.4, 'Mass of the caisson2D [kg]'),
+    ('mass', old_div(64.8,0.4), 'Mass of the caisson2D [kg]'),
     ('caissonBC', 'FreeSlip', 'caisson2D boundaries: NoSlip or FreeSlip'),
     ("rotation", False, "Initial position for free oscillation"),
     ("friction", True, "Switch on/off friction module for sliding"),
@@ -132,7 +135,7 @@ wl = waveinput.wavelength
 
 #---------MESH SIZE
 if opts.he == 0.0:
-    he = wl/opts.refinement_level
+    he = old_div(wl,opts.refinement_level)
 else:
     he = opts.he 
 
@@ -157,14 +160,14 @@ if opts.caisson2D:
 #-Tank
     x1=L_leftSpo
     x2=x1+opts.Ls*wl
-    x3=x2+(hs/slope1)
+    x3=x2+(old_div(hs,slope1))
 
     xc1=x3+0.20
     xc2=xc1+b
     yc1=yc2=hs
 
     x4=xc2+0.20
-    x5=x4+(hs/slope2)
+    x5=x4+(old_div(hs,slope2))
     x6=x5+opts.Lend*wl
     x7=x6+L_rightSpo
     tank_dim = [x7, 1.0]
@@ -219,12 +222,12 @@ if opts.caisson2D:
     dimx=dimx
     dimy=dimy
     dim=(dimx,dimy)
-    coords=[xc1+b/2., hs+dimy/2.] # For bodyDimensions and barycenter
-    VCG=dim[1]/2.                 # For barycenter
+    coords=[xc1+old_div(b,2.), hs+old_div(dimy,2.)] # For bodyDimensions and barycenter
+    VCG=old_div(dim[1],2.)                 # For barycenter
     width=opts.width                     # The 3rd dimension
     mass=opts.mass #kg
     volume=float(dimx*dimy*width)
-    density=float(mass/volume) #kg/m3
+    density=float(old_div(mass,volume)) #kg/m3
     I=mass*(dimx**2.+dimy**2.)/12.
     # It=(dimx**2.+dimy**2.)/12.
 
@@ -249,7 +252,7 @@ if opts.caisson2D:
     caisson2D.setMass(mass)
     caisson2D.setConstraints(free_x=free_x, free_r=free_r)
     caisson2D.setFriction(friction=opts.friction, m_static=m_static, m_dynamic=m_dynamic,
-                          tolerance=he/(float(10**6)), grainSize=opts.d50)
+                          tolerance=old_div(he,(float(10**6))), grainSize=opts.d50)
     overturning=opts.overturning
     caisson2D.setOverturning(overturning)
     if opts.rotation==True: # Initial position for free oscillation
@@ -384,18 +387,18 @@ d50=opts.d50
 if d50==None:
     d15=opts.d15
 else:
-    d15=d50/1.2
+    d15=old_div(d50,1.2)
 
 #----- SHIH
 if opts.Resistance=='Shih':
     term1=3.12*(10**-3.)
-    term2=(gAbs/(nu_0**2.))**(2./3.)
+    term2=(old_div(gAbs,(nu_0**2.)))**(old_div(2.,3.))
     term3=(d15**2.)
     Alpha1=1684+term1*term2*term3 #Shih
     Alpha=Alpha1*nu_0*(voidFrac**2)/((porosity**3)*(d15**2))
 
     term1=-5.10*(10**-3.)
-    term2=(gAbs/(nu_0**2.))**(1./3.)
+    term2=(old_div(gAbs,(nu_0**2.)))**(old_div(1.,3.))
     term3=(d15)
     Beta1=1.72+1.57*exp(term1*term2*term3) #Shih
     Beta=Beta1*voidFrac/((porosity**3)*d15)
@@ -482,14 +485,14 @@ if opts.caisson2D:
 
 # Waves and Generation zone
 if opts.GenZone and opts.wave:
-    tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
-                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+    tank.setGenerationZones(flags=1, epsFact_solid=float(old_div(L_leftSpo,2.)),
+                        orientation=[1., 0.], center=(float(old_div(L_leftSpo,2.)), 0., 0.),
                         waves=waveinput, smoothing=3.0*he, dragAlpha=10.*omega/nu_0)
 
 # Only Generation zone                        
 elif opts.GenZone:
-    tank.setAbsorptionZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
-                        orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
+    tank.setAbsorptionZones(flags=1, epsFact_solid=float(old_div(L_leftSpo,2.)),
+                        orientation=[1., 0.], center=(float(old_div(L_leftSpo,2.)), 0., 0.),
                         dragAlpha=10.*omega/nu_0)
 
 # Porous zone
@@ -501,12 +504,12 @@ if opts.porousMedia:
 # Absorption zone
 if opts.AbsZone:
     if opts.caisson2D:
-        tank.setAbsorptionZones(flags=4, epsFact_solid=float(L_rightSpo/2.),
-                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+        tank.setAbsorptionZones(flags=4, epsFact_solid=float(old_div(L_rightSpo,2.)),
+                        orientation=[-1., 0.], center=(float(tank_dim[0]-old_div(L_rightSpo,2.)), 0., 0.),
                         dragAlpha=10.*omega/nu_0)
     else:
-        tank.setAbsorptionZones(flags=3, epsFact_solid=float(L_rightSpo/2.),
-                        orientation=[-1., 0.], center=(float(tank_dim[0]-L_rightSpo/2.), 0., 0.),
+        tank.setAbsorptionZones(flags=3, epsFact_solid=float(old_div(L_rightSpo,2.)),
+                        orientation=[-1., 0.], center=(float(tank_dim[0]-old_div(L_rightSpo,2.)), 0., 0.),
                         dragAlpha=10.*omega/nu_0)       
 
 
@@ -518,7 +521,7 @@ T = opts.duration
 
 gauge_dx=0.25
 tank_dim_x=int(tank_dim[0])
-nprobes=int(tank_dim_x/gauge_dx)+1
+nprobes=int(old_div(tank_dim_x,gauge_dx))+1
 probes=np.linspace(0., tank_dim_x, nprobes)
 PG=[]
 if opts.caisson2D:
@@ -535,7 +538,7 @@ if opts.caisson2D:
     i_point_f += -tol #to avoid floating point error
     i_point_b=np.array([caisson.vertices[1][0],caisson.vertices[1][1],0.])
     i_point_b += tol #to avoid floating point error
-    yProbes = np.linspace(i_point_f[1],i_point_f[1]+dimy, int(dimy/gauge_dy)+1)
+    yProbes = np.linspace(i_point_f[1],i_point_f[1]+dimy, int(old_div(dimy,gauge_dy))+1)
     LG1=[]
     LG2=[]
     for j in yProbes:
@@ -585,11 +588,11 @@ st.assembleDomain(domain)
 #----------------------------------------------------
 # Time stepping and velocity
 #----------------------------------------------------
-weak_bc_penalty_constant = 10.0/nu_0 #100
+weak_bc_penalty_constant = old_div(10.0,nu_0) #100
 dt_fixed = 1
 dt_init = min(0.1*dt_fixed,0.001)
 T = T
-nDTout= int(round(T/dt_fixed))
+nDTout= int(round(old_div(T,dt_fixed)))
 runCFL = opts.cfl
 
 #----------------------------------------------------
@@ -629,15 +632,15 @@ useVF = opts.useVF # used in the smoothing functions as (1.0-useVF)*smoothedHeav
 
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 #  Discretization

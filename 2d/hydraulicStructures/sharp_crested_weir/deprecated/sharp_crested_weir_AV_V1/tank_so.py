@@ -1,3 +1,4 @@
+from builtins import range
 import tank
 from proteus.default_so import *
 
