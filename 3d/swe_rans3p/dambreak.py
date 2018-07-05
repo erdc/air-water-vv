@@ -77,7 +77,7 @@ elif pspaceOrder == 2:
 # Domain and mesh
 #L = (0.584,0.350)
 #L = (3.22 , 1.8)
-L = (1.0,1.0)
+L = (1.0,0.25)
 x0 = (1.0,0.0)
 he = L[0]/float(4*Refinement-1)
 he*=0.5
@@ -278,8 +278,8 @@ sigma_01 = 0.0
 g = [0.0, -9.8]
 
 # Initial condition
-waterLine_x = 1.2
-waterLine_z = 0.6
+waterLine_x = 1.5
+waterLine_z = 0.125
 
 
 def signedDistance(x):

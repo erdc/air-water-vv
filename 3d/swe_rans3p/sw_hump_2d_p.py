@@ -8,7 +8,7 @@ nd=2
 T=5.
 L=(1.0,0.01)
 g = 9.81
-hl=0.5
+hl=0.125
 xc=0.5
 domain = RectangularDomain(L=L)
 
