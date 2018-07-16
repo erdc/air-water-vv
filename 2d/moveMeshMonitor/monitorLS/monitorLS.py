@@ -40,8 +40,11 @@ opts=Context.Options([
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
     ("he", 0.01, "Set characteristic element size"),
-    ("refinement_freesurface", 0.062,"Set area of constant refinement around free surface (+/- value)"),
-    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
+    ("he_max", 100., "Set characteristic element size"),
+    ("refinement_freesurface", 0.,"Set area of constant refinement around free surface (+/- value)"),
+    ("grading", 1.1, "Grading of refinement/coarsening (default: 10% volume)"),
+    ("grading_type", 2, "Grading of refinement/coarsening (default: 10% volume)"),
+    ("fixedBoundaries", True, "fix boundaries"),
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("nSmoothIn", 0, "smoothing steps"),
@@ -59,12 +62,17 @@ opts=Context.Options([
     ("useRANS", 0, "RANS model"),
     ("ns_closure", 0, "ns closure"),
     ("ELLIPTIC_REDISTANCING_TYPE", 0, "Elliptic redistancing type for redist"),
+    ("ArchiveAllSteps", False, "archive all steps or only nsave"),
     ])
 
 ntimes = 1
 
-he_max = 1.
+he_max = opts.he_max
 he_min = opts.he
+grading_mesh = opts.grading
+grading_gmsh = np.sqrt(grading_mesh)
+grading_type = opts.grading_type
+#grading_mesh = grading_gmsh
 r = 0.1
 nSmoothIn = opts.nSmoothIn
 nSmoothOut = opts.nSmoothOut
@@ -147,7 +155,7 @@ def my_func(x, t):
     dist = abs(np.sqrt((x[0]-center1[0])**2+(x[1]-center1[1])**2)-r)
     dist = abs(np.sqrt((x[1]-0.5)**2))
     dist = abs(water_level-x[1])
-    dist = 10
+    #dist = 10.
     return dist
 
 # domain
@@ -227,12 +235,13 @@ if opts.caisson is True:
 # tank
 tank = st.Tank2D(domain, tank_dim)
 tank.setSponge(x_n=sponges['x-'], x_p=sponges['x+'])
+
 # ----- BOUNDARY CONDITIONS ----- #
 
 tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()
-tank.BC['x+'].setNoSlip()
-tank.BC['x-'].setNoSlip()
+tank.BC['x+'].setFreeSlip()
+tank.BC['x-'].setFreeSlip()
 tank.BC['sponge'].setNonMaterial()
 
 tank.BC['x-'].setFixedNodes()
@@ -249,11 +258,14 @@ boundaryNormals = {tank.boundaryTags['x-']: np.array([-1.,0.,0.]),
 boundaryNormals_array = np.zeros((5,3))
 for key, val in boundaryNormals.iteritems():
     boundaryNormals_array[key,:] = val
-fixedNodes = np.zeros(5, dtype=np.int32)
-#fixedNodes[1] = 1
-#fixedNodes[2] = 1
-#fixedNodes[3] = 1
-#fixedNodes[4] = 1
+fixedNodes = np.zeros(10, dtype=np.int32)
+if opts.fixedBoundaries:
+    fixedNodes[1] = 1
+    fixedNodes[2] = 1
+    fixedNodes[3] = 1
+    fixedNodes[4] = 1
+    fixedNodes[5] = 1
+
 
 
 #boundaryNormals = None
@@ -344,9 +356,7 @@ if opts.use_gmsh:
     import py2gmsh
     from MeshRefinement import geometry_to_gmsh
     mesh = geometry_to_gmsh(domain)
-    grading = opts.refinement_grading
-    he = opts.he
-    he_max = 10.
+    grading = grading_gmsh
     ecH = 3.
     if opts.refinement_freesurface > 0:
         box = opts.refinement_freesurface
@@ -367,39 +377,12 @@ if opts.use_gmsh:
     dist_x = dist_plane(xn=-sponges['x-'], xp=tank_dim[0]+sponges['x+'], plane='x')
     dist = 'sqrt(({dist_x})^2+({dist_z})^2)'.format(dist_x=dist_x, dist_z=dist_z)
     #dist = 'sqrt(({dist_z})^2)'.format(dist_z=dist_z)
-    me1.F = mesh_grading(start=dist, he=he, grading=grading)
-    #me1.F = '{he}*{grading}^({dist}/{he})'.format(dist=dist, he=he, grading=grading)
+    if grading_type == 2:
+        me1.F = mesh_grading(start=dist, he=he, grading=grading)
+    elif grading_type == 1:
+        me1.F = '{he}*{grading}^({dist}/{he})'.format(dist=dist, he=he, grading=grading)
     field_list += [me1]
 
-
-    if opts.caisson is True:
-        me1 = py2gmsh.Fields.MathEval(mesh=mesh)
-        maxv = max(caisson.vertices[:,1])
-        minv = min(caisson.vertices[:,1])
-        dist_z = dist_plane(xn=minv, xp=maxv, plane='y')
-        maxv = max(caisson.vertices[:,0])
-        minv = min(caisson.vertices[:,0])
-        dist_x = dist_plane(xn=minv, xp=maxv, plane='x')
-        dist = 'sqrt(({dist_x})^2+({dist_z})^2)'.format(dist_x=dist_x, dist_z=dist_z)
-        #dist = 'sqrt(({dist_z})^2)'.format(dist_z=dist_z)
-        me1.F = mesh_grading(start=dist, he=he, grading=grading)
-        #me1.F = '{he}*{grading}^({dist}/{he})'.format(dist=dist, he=he, grading=grading)
-        field_list += [me1]
-
-        #for s in caisson.segments:
-        #    v1 = caisson.vertices[s[0]]
-        #    v2 = caisson.vertices[s[1]]
-        #    vv = v2-v1
-        #    print("VV", vv)
-        #    dist = '((({vx})*x-({vy})*y+{v2x}*{v1y}-{v2y}*{v1x})/sqrt(({vx})^2+({vy})^2))'.format(vx=vv[1], vy=vv[0], v1x=v1[0], v1y=v1[1], v2x=v2[0], v2y=v2[1])
-        #    me = py2gmsh.Fields.MathEval(mesh=mesh)
-        #    #dist_z = dist_plane(xn=water_level-box, xp=water_level+box, plane='y')
-        #    #dist_x = dist_plane(xn=-sponges['x-'], xp=tank_dim[0]+sponges['x+'], plane='x')
-        #    #dist = 'sqrt(({dist_x})^2+({dist_z})^2)'.format(dist_x=dist_x, dist_z=dist_z)
-        #    #dist = 'sqrt(({dist_z})^2)'.format(dist_z=dist_z)
-        #    me.F = mesh_grading(start=dist, he=he, grading=grading)
-        #    #me1.F = '{he}*{grading}^({dist}/{he})'.format(dist=dist, he=he, grading=grading)
-        #    field_list += [me]
 
     # background field
     fmin = py2gmsh.Fields.Min(mesh=mesh)
@@ -470,7 +453,7 @@ freezeLevelSet=True
 weak_bc_penalty_constant = 10./nu_0#Re
 dt_init = opts.dt_init
 T = opts.T
-nDTout = int(opts.T*opts.nsave)
+nDTout = max(int(opts.T*opts.nsave), 1)
 timeIntegration = opts.timeIntegration
 if nDTout > 0:
     dt_out= (T-dt_init)/nDTout

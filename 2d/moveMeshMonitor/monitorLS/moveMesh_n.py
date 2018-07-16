@@ -4,9 +4,13 @@ from proteus import (FemTools,
                      TimeIntegration,
                      NumericalFlux,
                      NonlinearSolvers,
-                     LinearSolvers)
+                     LinearSolvers,
+                     StepControl,
+                     LinearAlgebraTools)
 import moveMesh_p as physics
 from proteus import Context
+from proteus.mprans import AddedMass
+
 ct = Context.get()
 domain = ct.domain
 nd = ct.domain.nd
@@ -17,10 +21,7 @@ timeIntegration = TimeIntegration.NoIntegration
 
 # mesh options
 nLevels = ct.nLevels
-parallelPartitioningType = mesh.parallelPartitioningType
-nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
-triangleOptions = mesh.triangleOptions
 nn = ct.nn
 
 from petsc4py import PETSc
@@ -33,32 +34,43 @@ elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 femSpaces = {0: ct.basis}
 
-massLumping       = False
-numericalFluxType = None
-conservativeFlux  = None
+#stepController=StepControl.FixedStep
 
-subgridError = None
-shockCapturing = None
+#massLumping       = False
+numericalFluxType = NumericalFlux.Diffusion_SIPG_exterior
+#numericalFluxType = NumericalFlux.DoNothing
+#numericalFluxType = AddedMass.NumericalFlux
+#conservativeFlux = {0: 'pwl-bdm'}
 
-fullNewtonFlag = True
-multilevelNonlinearSolver  = NonlinearSolvers.Newton
-levelNonlinearSolver       = NonlinearSolvers.Newton
+matrix = LinearAlgebraTools.SparseMatrix
 
-nonlinearSmoother = None
-linearSmoother = None
+#subgridError = None
+#shockCapturing = None
+
+#fullNewtonFlag = True
 
 multilevelLinearSolver = LinearSolvers.KSP_petsc4py
 levelLinearSolver      = LinearSolvers.KSP_petsc4py
+parallelPartitioningType = mesh.parallelPartitioningType
+nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
+nonlinearSmoother = NonlinearSolvers.Newton
+linearSmoother = LinearSolvers.NavierStokesPressureCorrection
 
-linear_solver_options_prefix = 'mesh_'
-levelNonlinearSolverConvergenceTest = 'r'
-linearSmoother = None
-linearSolverConvergenceTest = 'r-true'
+linear_solver_options_prefix = 'mesh2_'
 
-tolFac = 0.0
-linTolFac = 0.001
+multilevelNonlinearSolver  = NonlinearSolvers.Newton
+levelNonlinearSolver       = NonlinearSolvers.Newton
+
+linTolFac = 0.0
 l_atol_res = 1.0e-8
+tolFac = 0.0
 nl_atol_res = 1.0e-8
-maxNonlinearIts = 50#should be linear
-maxLinearIts = 50#should be linear
+
+nonlinearSolverConvergenceTest = 'r'
+levelNonlinearSolverConvergenceTest = 'r'
+linearSolverConvergenceTest = 'r-true'
+maxNonLinearIts = 1
 maxLineSearches = 0
+periodicDirichletCOnditions = None
+conservativeFlux = None
+

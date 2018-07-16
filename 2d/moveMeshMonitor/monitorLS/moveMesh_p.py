@@ -24,17 +24,17 @@ coefficients = MoveMeshMonitor.Coefficients(ct.my_func,
                                             he_min=ct.he_min,
                                             LS_MODEL=3,
                                             ME_MODEL=0,
-                                            boundaryNormals=ct.boundaryNormals_array,
-                                            fixedNodes=ct.fixedNodes,
+                                            fixedNodeMaterialTypes=ct.fixedNodes,
                                             nSmoothIn=ct.nSmoothIn,
                                             nSmoothOut=ct.nSmoothOut,
                                             epsTimeStep=ct.epsTimeStep,
                                             epsFact_density=ct.epsFact_density,
+                                            grading=ct.grading_mesh,
+                                            grading_type=ct.grading_type
                                             )
 
 def getDBC(x,flag):
-    if flag != 0:
-        return None
+    return None
 
 dirichletConditions = {0:getDBC}
 
