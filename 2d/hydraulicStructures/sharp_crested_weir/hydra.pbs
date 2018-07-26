@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH -p highp              #name of the queue
 #SBATCH -J cas1234_pom        #job_name
-#SBATCH -N 4                   #num of nodes
-#SBATCH --ntasks-per-node 12   #cores per node
+#SBATCH -N 2                   #num of nodes
+#SBATCH --ntasks-per-node 16   #cores per node
 
 
 
@@ -19,6 +19,6 @@ module load gcc/6.1.0 openmpi/1.10.2/gcc/6.1.0
 
 cd $SLURM_SUBMIT_DIR
 
-export NCPUS="48"
-mpirun -n $NCPUS parun sharp_crested_weir_so.py -F -l 2 -D results_hydra_today_1
+export NCPUS="32"
+mpirun -n $NCPUS parun sharp_crested_weir_so.py -F -l 2 -D results_hydra_32
 

@@ -9,6 +9,9 @@ from proteus import (Domain, Context,
                      WaveTools as wt)
 from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
+from proteus.ctransportCoefficients import smoothedHeaviside
+
+
 
 opts = Context.Options([
     # test options
@@ -44,7 +47,7 @@ opts = Context.Options([
                                    " (should have 1 more value than "
                                    "variable_refine_borders as a result)."),
     # run time
-    ("T", 2.5, "Simulation time in s"),
+    ("T", 2., "Simulation time in s"),
     ("dt_fixed", 0.02, "Fixed time step in s"),
     ("dt_init", 0.001, "Minimum initial time step (otherwise dt_fixed/10) in s"),
     # run details
@@ -80,6 +83,11 @@ if opts.air_vent:
     airvent_y2 = airvent_y1 + opts.airvent_dim
 else:
     air_vent = False
+
+
+
+
+tank_sponge = opts.tank_sponge    
 
 ##########################################
 #     Discretization Input Options       #
@@ -318,7 +326,8 @@ if air_vent:
     tank.BC['airvent'].v_dirichlet.uOfXT = lambda x, t: 0.0
     tank.BC['airvent'].vof_dirichlet.uOfXT = lambda x, t: 1.0
     tank.BC['airvent'].u_diffusive.uOfXT = lambda x, t: 0.0
-    
+    tank.BC['airvent'].v_diffusive.uOfXT = lambda x, t: 0.0
+ 
 # ----- MESH CONSTRUCTION ----- #
 
 he = he
@@ -353,8 +362,8 @@ if useMetrics:
                     = epsFact_vof = ecH = epsFact_consrv_dirac \
                     = 1.5 
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 15.0
-    redist_Newton = not False
+    epsFact_consrv_diffusion = 10.0
+    redist_Newton = False
     kappa_shockCapturingFactor = 0.1
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
@@ -395,12 +404,12 @@ else:
 # ----- NUMERICS: TOLERANCES ----- #
 
 ns_nl_atol_res = max(1.0e-12, 1.0e-1 * he ** 2)
-vof_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
-ls_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
+vof_nl_atol_res = max(1.0e-12, 1.0e-1 * he ** 2)
+ls_nl_atol_res = max(1.0e-12, 1.0e-1 * he ** 2)
 rd_nl_atol_res = max(1.0e-12, 1.0e-1 * he)
-mcorr_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
-kappa_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
-dissipation_nl_atol_res = max(1.0e-12, 1.0e-5 * he ** 2)
+mcorr_nl_atol_res = max(1.0e-12, 1.0e-1 * he ** 2)
+kappa_nl_atol_res = max(1.0e-12, 1.0e-1 * he ** 2)
+dissipation_nl_atol_res = max(1.0e-12, 1.0e-1 * he ** 2)
 
 # ----- TURBULENCE MODELS ----- #
 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -417,6 +426,15 @@ else:
 #            Signed Distance             #
 ##########################################
 
+
+def outflowPhi(x,t):
+    return x[1] - outflow_level
+
+def twpflowVelocity_u_D(x, t):
+    waterspeed = outflow_velocity
+    H = smoothedHeaviside(ecH * he, outflowPhi(x, t) - ecH * he)
+    u = H * windVelocity[0] + (1.0 - H) * waterspeed
+    return u
 
 def signedDistance(x):
     phi_x = x[0] - waterLine_x

@@ -10,12 +10,12 @@ import numpy as np
 
 opts=Context.Options([
     # predefined test cases
-    ("water_level", 1.425, "Height of free surface above bottom"), # Choose waterLevels=[0.425, 0.463]
+    ("water_level", 1.9, "Height of free surface above bottom"), # Choose waterLevels=[0.425, 0.463]
     # waves
-    ('waveType', 'Linear', 'Wavetype for regular waves, Linear or Fenton'),
-    ("wave_period", 5, "Period of the waves"), # Choose periods=[0.5, 0.8, 1.1, 1.5, 2.8, 3.9, 4.0]
-    ("wave_height", 0.34, "Height of the waves"), # # Choose for d=0.425-->[0.025, 0.075, 0.125, 0.234]. Choose for d=0.463-->[0.025, 0.075, 0.125, 0.254].
-    ('wavelength', 9, 'Wavelength only if Fenton is activated'), # Choose for d=0.425-->[0.4, 1.0, 1.8, 2.9]. Choose for d=0.463-->[0.4, 1.0, 1.8, 2.9, 3.0, 5.7, 5.9, 8.8, 9.4].
+    ('waveType', 'RandomWaves', 'Wavetype for regular waves, Linear or Fenton'),
+    ("wave_period", 1.94, "Period of the waves"), # Choose periods=[0.5, 0.8, 1.1, 1.5, 2.8, 3.9, 4.0]
+    ("wave_height", 0.15, "Height of the waves"), # # Choose for d=0.425-->[0.025, 0.075, 0.125, 0.234]. Choose for d=0.463-->[0.025, 0.075, 0.125, 0.254].
+    ('wavelength', 5, 'Wavelength only if Fenton is activated'), # Choose for d=0.425-->[0.4, 1.0, 1.8, 2.9]. Choose for d=0.463-->[0.4, 1.0, 1.8, 2.9, 3.0, 5.7, 5.9, 8.8, 9.4].
     ('Ycoeff', [0.19167938     ,  0.01943414     ,  0.00299676     ,  0.00055096     ,  0.00011165  ,  0.00002413     ,  0.00000571     ,  0.00000251], 'Ycoeff only if Fenton is activated'), 
     ('Bcoeff', [0.19063009     ,  0.00072851     ,  0.00002905     ,  0.00000131     ,  0.00000006  ,  0.00000000     ,  0.00000000     ,  0.00000000], 'Bcoeff only if Fenton is activated'), 
     # Geometry of the tank - left lower boundary at (0.,0.,0.)
@@ -25,7 +25,11 @@ opts=Context.Options([
     ("Labs", 2., "Length of absorption zone in wavelegths"),
     ("h", 1.0, "Height of domain in meters"),
     ("use_gmsh",False, "use_gmsh"),
-    ("he", 0.01, "he"),# this is not the he used
+    ("he", 0.05, "he"),
+    ("T", 10.0, "Simulation time in s"),
+    ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
+
+
     
     # numerical options
     ("refinement_level", 10. ,"he=walength/refinement_level"),
@@ -57,6 +61,7 @@ inflowHeightMean=waterLevel
 inflowVelocityMean =np.array([0.,0.,0.])
 windVelocity = np.array([0.,0.,0.])
 
+phi = np.loadtxt("phases.txt") 
 
 # ----- Phisical constants ----- #
 
@@ -69,54 +74,48 @@ g =np.array([0.,-9.8,0.])
 gAbs=sqrt(sum(g**2))
 
 
-data_wave = np.loadtxt("TimeSeries.txt")
-#data_wave = data_wave.transpose()
-
-data_wave = np.array(data_wave)
-data_wave = data_wave/8
 
 
- #----- WAVE input ----- #
-if opts.waveType=='Linear' or 'Fenton':
-    waveinput = wt.MonochromaticWaves(period=period,
-                                  waveHeight=waveHeight,
-                                  mwl=mwl,
-                                  depth=waterLevel,
-                                  g=g,
-                                  Nf=8,
-                                  Ycoeff=np.zeros(8),
-                                  Bcoeff=np.zeros(8),
-                                  waveDir=waveDir,
-                                  wavelength=None, # if wave is linear I can use None
-                                  waveType=opts.waveType)
+# ----- WAVE input ----- #
 
 
-#if opts.waveType=='TimeSeries':
-#    waveinput = wt.TimeSeries(timeSeriesFile = "TimeSeries_output.txt",
-#                              skiprows = 0,
-#                              timeSeriesPosition = np.array([0,0,0]),
-#                              depth = waterLevel,
-#                              N = 32,
-#                              mwl = waterLevel,
-#                              waveDir = np.array([1,0,0]),
-#                              g = np.array([0,-9.81,0]),
-#                              arrayData = True,
-#                              seriesArray = data_wave,
-#                              Lgen = np.array([10.,0,0]),
-#                              #rec_direct = False,
-#                              fast =not False)
-                              
 
 
-#---------Domain Dimension2
+   
+
+
+waveinput = wt.RandomWavesFast(Tstart = 0.,
+                             Tend=300,
+                             x0=np.array([0.,0.,0.]),
+                             Tp=period,
+                             Hs=waveHeight,
+                             mwl=mwl,
+                             depth=mwl,
+                             waveDir=waveDir,
+                             g=g,
+                             N=2000,
+                             bandFactor=2.,
+                             spectName= "JONSWAP",
+                             spectral_params=None,
+                             phi=phi,
+                             Lgen = np.array([5.,0.,0.]),
+                             Nfreq = 32,
+                             Nwaves = 15,
+                               checkAcc = True)
+                               
+
+
+
+#---------Domain Dimension
 nd = 2
-wl = waveinput.wavelength
+#wl = waveinput.wavelength
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # ----- SHAPES ----- #
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-L_leftSpo  = 10.0
+#L_leftSpo  = opts.Lgen*wl
+L_leftSpo = 5
 #L_rightSpo = opts.Labs*wl
 
 
@@ -158,9 +157,12 @@ for i in range(0, len(data)):
 
 #vertices.append((max(data[:,0])+L_leftSpo,min(data[:,1])))
 
-vertices.append((min(data[:,0])+L_leftSpo,max(data[:,1])))
+vertices.append((max(data[:,0])+L_leftSpo,max(data[:,1])+0.5))
 
-vertices.append((min(data[:,0]),max(data[:,1])))
+
+vertices.append((min(data[:,0])+L_leftSpo,max(data[:,1])+0.5))
+
+vertices.append((min(data[:,0]),max(data[:,1])+0.5))
 
 vertices.append((min(data[:,0]),min(data[:,1])))
 
@@ -168,7 +170,7 @@ vertices.append((min(data[:,0]),min(data[:,1])))
 vertexFlags = np.array(np.ones(len(data)))
 vertexFlags = vertexFlags *6
 
-vertexFlags = np.append(vertexFlags, [3, 3, 1])
+vertexFlags = np.append(vertexFlags, [3, 3, 3, 1])
 
 segments = []
 
@@ -177,21 +179,21 @@ for i in range(0, len(data)-1):
 
 
 segments.append((1295,1296))
-segments.append((1296,0))
 segments.append((1296,1297))
-#segments.append((1297,0))
+#segments.append((1296,1297))
+segments.append((1297,0))
 segments.append((1297,1298))
-#segments.append((1298,1299))
-segments.append((1298,0))
+segments.append((1298,1299))
+segments.append((1299,0))
 
 
 segmentFlags = np.array(np.ones(len(data)-1))
 segmentFlags = segmentFlags *6
 
-segmentFlags = np.append(segmentFlags, [3, 5, 3, 4, 1])
+segmentFlags = np.append(segmentFlags, [2, 3, 5, 3, 4, 1])
 
 regions = [ [ 0.1 , 0.10 ],
-            [ 15 , 1 ]
+            [ 45 , 1 ]
             ]
 
 regionFlags=np.array([1, 2])
@@ -238,12 +240,12 @@ tank.setGenerationZones(flags=1, epsFact_solid=float(L_leftSpo/2.),
                         orientation=[1., 0.], center=(float(L_leftSpo/2.), 0., 0.),
                         waves=waveinput, smoothing= 3*opts.he, dragAlpha=10.*omega/nu_0)
                         
-
+#tank.setGenerationZones(x_n=True, waves=waveinput, dragAlpha=10.*omega/nu_0, smoothing= 3*opts.he)
 
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
 ############################################################################################################################################################################
-T = 7.*period
+T = opts.T
 
 PG=[]
 LG=[]
@@ -259,7 +261,7 @@ LG4=[]
 ######################################################################################################################################################################################################################
 
 #he = waveinput.wavelength/opts.refinement_level
-he = 0.1
+he = opts.he 
 domain.MeshOptions.he = he 
 domain.use_gmsh = opts.use_gmsh
 domain.MeshOptions.use_gmsh = opts.use_gmsh
@@ -282,10 +284,18 @@ st.assembleDomain(domain)
 # Time stepping and velocity
 #----------------------------------------------------
 weak_bc_penalty_constant = 10.0/nu_0 #100
-dt_fixed = 0.1
-dt_init = min(0.1*dt_fixed,0.001)
+dt_fixed = None
+dt_init = 0.001
+#dt_init = min(0.1*dt_fixed,0.001)
 T = T
-nDTout= int(round(T/dt_fixed))
+nDTout = int(opts.T*5)
+timeIntegration = opts.timeIntegration
+
+if nDTout > 0:
+    dt_out= (T-dt_init)/nDTout
+else:
+    dt_out = 0
+#nDTout= int(round(T/dt_fixed))
 runCFL = opts.cfl
 
 #----------------------------------------------------
@@ -296,7 +306,7 @@ checkMass=False
 applyCorrection=True
 applyRedistancing=True
 freezeLevelSet=opts.freezeLevelSet
-useOnlyVF = False # if TRUE  proteus uses only these modules --> twp_navier_stokes_p + twp_navier_stokes_n
+useOnlyVF =  False # if TRUE  proteus uses only these modules --> twp_navier_stokes_p + twp_navier_stokes_n
                   #                                              vof_p + vof_n
 movingDomain=opts.movingDomain
 useRANS = 0 # 0 -- None
@@ -423,7 +433,7 @@ ns_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 vof_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 ls_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 mcorr_nl_atol_res = max(1.0e-12,0.0001*domain.MeshOptions.he**2)
-rd_nl_atol_res = max(1.0e-12,0.01*domain.MeshOptions.he)
+rd_nl_atol_res = max(1.0e-12,0.1*domain.MeshOptions.he)
 kappa_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 dissipation_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)
 mesh_nl_atol_res = max(1.0e-12,0.001*domain.MeshOptions.he**2)

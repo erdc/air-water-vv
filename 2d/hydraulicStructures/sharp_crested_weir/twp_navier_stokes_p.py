@@ -46,7 +46,8 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    eb_adjoint_sigma=1.0,
                                    eb_penalty_constant=ct.weak_bc_penalty_constant,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
-                                   turbulenceClosureModel=ct.ns_closure)
+                                   turbulenceClosureModel=ct.ns_closure,
+                                   NONCONSERVATIVE_FORM=0)
 
 dirichletConditions = {
     0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
@@ -86,6 +87,22 @@ class AtRest:
         return 0.0
 
 
+
+
+
+class initialVelocity_u:
+    def __init__(self, waterLevel):
+        self.waterLevel = waterLevel
+    def uOfXT(self,x,t):
+        if x[0]<ct.waterLine_x and x[nd-1]<self.waterLevel:
+            return ct.opts.inflow_velocity
+        elif x[0] < ct.tank_dim[0]+ct.tank_sponge[1]:
+            return ct.twpflowVelocity_u_D(x, 0)
+        else: 
+            return 0.0
+
+
+
 initialConditions = {0: PerturbedSurface_p(ct.waterLine_z),
-                     1: AtRest(),
+                     1: initialVelocity_u(ct.waterLine_z),
                      2: AtRest()}

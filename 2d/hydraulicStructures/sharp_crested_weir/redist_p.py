@@ -22,7 +22,8 @@ coefficients = RDLS.Coefficients(applyRedistancing=ct.applyRedistancing,
                                  nModelId=2,
                                  rdModelId=3,
 		                         useMetrics=ct.useMetrics,
-                                 backgroundDiffusionFactor=ct.backgroundDiffusionFactor)
+                                 backgroundDiffusionFactor=ct.backgroundDiffusionFactor
+                                ) 
 
 def getDBC_rd(x,flag):
     pass
