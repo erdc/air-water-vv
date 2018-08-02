@@ -35,12 +35,12 @@ opts=Context.Options([
     ("circle2D", False, "switch on/off cylinder"),
     ("circleBC", 'NoSlip','circle BC'),
     # sediment parameters
-    ('cSed', 0.6,'Sediment concentration'),
+    ('cSed', 0.62,'Sediment concentration'),
     # numerical options
     ("he", 0.04,"he"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop",  True, "Enable open atmosphere for air phase on the top"),
-    ("cfl", 0.1 ,"Target cfl"),
+    ("cfl", 0.5 ,"Target cfl"),
     ("duration", 1.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
@@ -85,7 +85,7 @@ nd = 2
 
 steady_current = wt.SteadyCurrent(U=np.array([opts.inflow_vel,0.,0.]),mwl=opts.waterLevel,rampTime=0.1)
 I = 0.03
-kInflow = 1.5*(opts.inflow_vel*I)
+kInflow = 1.5*abs(opts.inflow_vel*I)
 dissipationInflow = 0.09*(kInflow**1.5)*opts.waterLevel
 
 
@@ -306,13 +306,13 @@ tank.BC['y-'].setNoSlip()
 ################################## y+ ######################
 tank.BC['y+'].setFreeSlip()
 if opts.openTop:
-    tank.BC['y+'].setAtmosphere(orientation=np.array([0,1,0]),kInflow=kInflow)
+    tank.BC['y+'].setAtmosphere(orientation=np.array([0,1,0]))
 
 ####################################### x- ########################
 
 
 
-tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current, smoothing = 3*he, vert_axis=1, kInflow = kInflow)
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current, smoothing = 3*he, vert_axis=1, kInflow = kInflow, dInflow = dissipationInflow)
     
 
     
