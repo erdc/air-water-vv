@@ -298,9 +298,8 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=outflow_level,
                                                     rhoDown=rho_0,
                                                     g=g,
                                                     refLevel=tank_dim[1],
-                                                    smoothing=3.0*he,
-                                                    U=[0.,0.,0.],
-                                                    )
+                                                    smoothing=3.0*he
+                                                     )
 
 tank.BC['x-'].setTwoPhaseVelocityInlet(U=[inflow_velocity,0.,0.],
                                        waterLevel=inflow_level,
