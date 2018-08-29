@@ -6,10 +6,8 @@ ct = Context.get()
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
-
-
-genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
+genMesh = ct.genMesh
 T = ct.T
 
 LevelModelType = MCorr.LevelModel
@@ -20,9 +18,9 @@ coefficients = MCorr.Coefficients(LSModel_index=int(ct.movingDomain)+2,
                                   VOFModel_index=int(ct.movingDomain)+1,
                                   applyCorrection=ct.applyCorrection,
                                   nd=nd,
-                                  checkMass=False,
+                                  checkMass=True,
                                   useMetrics=ct.useMetrics,
-                                  epsFactHeaviside=ct.ecH,
+                                  epsFactHeaviside=ct.epsFact_consrv_heaviside,
                                   epsFactDirac=ct.epsFact_consrv_dirac,
                                   epsFactDiffusion=ct.epsFact_consrv_diffusion)
 class zero_phi:

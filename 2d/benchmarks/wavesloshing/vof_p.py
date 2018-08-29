@@ -7,6 +7,9 @@ ct = Context.get()
 domain = ct.domain
 nd = domain.nd
 mesh = domain.MeshOptions
+movingDomain = ct.movingDomain
+genMesh = ct.genMesh
+T = ct.T
 
 LevelModelType = VOF.LevelModel
 if ct.useOnlyVF:
@@ -19,7 +22,7 @@ coefficients = VOF.Coefficients(LS_model=int(ct.movingDomain)+LS_model,
                                 V_model=int(ct.movingDomain)+0,
                                 RD_model=int(ct.movingDomain)+RD_model,
                                 ME_model=int(ct.movingDomain)+1,
-                                checkMass=False,
+                                checkMass=True,
                                 useMetrics=ct.useMetrics,
                                 epsFact=ct.epsFact_vof,
                                 sc_uref=ct.vof_sc_uref,
@@ -35,5 +38,5 @@ diffusiveFluxBoundaryConditions = {0: {}}
 class PerturbedSurface_H:
     def uOfXT(self,x,t):
         return smoothedHeaviside(ct.ecH * ct.he, ct.signedDistance(x, 0.))
-	    
+
 initialConditions  = {0:PerturbedSurface_H()}

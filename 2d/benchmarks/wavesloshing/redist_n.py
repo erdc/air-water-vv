@@ -24,13 +24,10 @@ nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
 triangleOptions = mesh.triangleOptions
 
+femSpaces = {0:ct.basis}
+
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
-
-nl_atol_res = ct.rd_nl_atol_res
-tolFac = 0.0
-linTolFac = 0.0
-l_atol_res = 0.001*ct.rd_nl_atol_res
 
 if ct.redist_Newton:
     timeIntegration = TimeIntegration.NoIntegration
@@ -40,7 +37,6 @@ if ct.redist_Newton:
     nonlinearSolverConvergenceTest = 'r'
     levelNonlinearSolverConvergenceTest = 'r'
     linearSolverConvergenceTest = 'r-true'
-    useEisenstatWalker = True
 else:
     timeIntegration = TimeIntegration.BackwardEuler_cfl
     stepController = RDLS.PsiTC
@@ -58,8 +54,6 @@ else:
     levelNonlinearSolverConvergenceTest = 'rits'
     linearSolverConvergenceTest = 'r-true'
 
-femSpaces = {0:ct.basis}
-       
 massLumping       = False
 numericalFluxType = NumericalFlux.DoNothing
 conservativeFlux  = None
@@ -89,5 +83,13 @@ if ct.useSuperlu:
     levelLinearSolver      = LinearSolvers.LU
 
 linear_solver_options_prefix = 'rdls_'
+
+useEisenstatWalker = False#True
+
+nl_atol_res = ct.rd_nl_atol_res
+tolFac = 0.0
+linTolFac = 0.001
+l_atol_res = 0.001*ct.rd_nl_atol_res
+
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['redist']

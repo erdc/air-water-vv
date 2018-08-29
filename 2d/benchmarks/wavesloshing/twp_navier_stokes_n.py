@@ -16,7 +16,6 @@ mesh = domain.MeshOptions
 if ct.useHex or ct.structured:
     nnx = ct.nnx
     nny = ct.nny
-
     if ct.useHex:
         quad = True
 
@@ -50,10 +49,15 @@ elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 femSpaces = {0:ct.basis,
              1:ct.basis,
              2:ct.basis}
+if nd == 3:
+    femSpaces[3] = ct.basis
 
 massLumping       = False
-
 numericalFluxType = RANS2P.NumericalFlux
+if ct.useHex:
+    pass
+else:
+    conservativeFlux = {0:'pwl-bdm-opt'}
 subgridError = RANS2P.SubgridError(coefficients=physics.coefficients,
                                    nd=nd,
                                    lag=ct.ns_lag_subgridError,
@@ -68,7 +72,10 @@ levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
 
-linearSmoother    = LinearSolvers.SimpleNavierStokes2D
+if nd == 2:
+    linearSmoother    = LinearSolvers.SimpleNavierStokes2D
+elif nd == 3:
+    linearSmoother    = LinearSolvers.SimpleNavierStokes3D
 
 matrix = LinearAlgebraTools.SparseMatrix
 
@@ -88,14 +95,11 @@ levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest             = 'r-true'
 
 tolFac = 0.0
+linTolFac = 0.00001
 l_atol_res = 0.001*ct.ns_nl_atol_res
 nl_atol_res = ct.ns_nl_atol_res
 useEisenstatWalker = True
 maxNonlinearIts = 50
 maxLineSearches = 0
-if ct.useHex:
-    pass
-else:
-    conservativeFlux = {0:'pwl-bdm-opt'}
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['twp']
