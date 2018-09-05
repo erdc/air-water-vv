@@ -31,7 +31,7 @@ opts=Context.Options([
     ("column_gauge_output", True, "Produce column gauge output"),
     ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges in m"),
     # mesh refinement
-    ("refinement", True, "Gradual refinement"),
+    ("refinement", False, "Gradual refinement"),
     ("he", 0.02, "Set characteristic element size in m"),
     ("he_max", 10, "Set maximum characteristic element size in m"),
     ("he_max_water", 10, "Set maximum characteristic in water phase in m"),
@@ -78,7 +78,7 @@ tank_sponge = opts.tank_sponge
 domain = Domain.PlanarStraightLineGraphDomain()
 
 # refinement
-smoothing = opts.he*1.5
+smoothing = opts.he*3
 
 # ----- TANK ------ #
 
