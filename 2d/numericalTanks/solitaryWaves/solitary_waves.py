@@ -11,10 +11,10 @@ opts=Context.Options([
     # predefined test cases
     ("water_level", 1.0, "Water level from y=0"),
     # tank
-    ("tank_dim", (10.0, 2.0), "Dimensions of the operational domain of tank (l x h)"),
+    ("tank_dim", (20.0, 2.0), "Dimensions of the operational domain of tank (l x h)"),
     ("generation", True, "Generate waves at the left boundary (True/False)"),
     ("absorption", True, "Absorb waves at the right boundary (True/False)"),
-    ("tank_sponge", (2.0,2.0), "Length of relaxation zones zones in m (left, right)"),
+    ("tank_sponge", (5.0,5.0), "Length of relaxation zones zones in m (left, right)"),
     ("free_slip", True, "Should tank walls have free slip conditions "
                         "(otherwise, no slip conditions will be applied)."),
     # gravity
@@ -64,7 +64,7 @@ if opts.waves is True:
 				depth = depth,
                			g = np.array(opts.g), 
 				waveDir = direction,
-				trans = np.array([-8*opts.tank_sponge[0], 0., 0.]),
+				trans = np.array([-2*opts.tank_sponge[0], 0., 0.]),
                        		fast = opts.fast
 			  )
 
