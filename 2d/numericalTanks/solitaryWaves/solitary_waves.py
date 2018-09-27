@@ -12,8 +12,8 @@ opts=Context.Options([
     ("water_level", 1.0, "Water level from y=0"),
     # tank
     ("tank_dim", (20.0, 2.0), "Dimensions of the operational domain of tank (l x h)"),
-    ("generation", True, "Generate waves at the left boundary (True/False)"),
-    ("absorption", True, "Absorb waves at the right boundary (True/False)"),
+    ("generation", False, "Generate waves at the left boundary (True/False)"),
+    ("absorption", False, "Absorb waves at the right boundary (True/False)"),
     ("tank_sponge", (5.0,5.0), "Length of relaxation zones zones in m (left, right)"),
     ("free_slip", True, "Should tank walls have free slip conditions "
                         "(otherwise, no slip conditions will be applied)."),
@@ -64,7 +64,7 @@ if opts.waves is True:
 				depth = depth,
                			g = np.array(opts.g), 
 				waveDir = direction,
-				trans = np.array([-2*opts.tank_sponge[0], 0., 0.]),
+				trans = np.array([opts.tank_dim[0]/2., 0., 0.]),
                        		fast = opts.fast
 			  )
 
@@ -86,7 +86,7 @@ tank = st.Tank2D(domain, tank_dim)
 
 # ----- GENERATION / ABSORPTION LAYERS ----- #
 
-tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+#tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
 dragAlpha = 5.*omega/1e-6
  
 if opts.generation:
@@ -112,7 +112,7 @@ else:  # no slip
     tank.BC['x+'].setNoSlip()
 
 # sponge
-tank.BC['sponge'].setNonMaterial()
+#tank.BC['sponge'].setNonMaterial()
 
 for bc in tank.BC_list:
     bc.setFixedNodes()
@@ -165,7 +165,7 @@ if opts.refinement:
         box = opts.refinement_freesurface
     else:
         box = ecH*he2
-    tank.MeshOptions.refineBox(he2, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], waterLevel-box, waterLevel+box)
+#    tank.MeshOptions.refineBox(he2, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], waterLevel-box, waterLevel+box)
     tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-box), he=he2, grading=grading))
     tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+box), he=he2, grading=grading))
     domain.MeshOptions.LcMax = he_max #coarse grid
@@ -174,7 +174,7 @@ if opts.refinement:
     else:
         domain.MeshOptions.he = he2 #coarse grid
         domain.MeshOptions.LcMax = he2 #coarse grid
-    tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
+#    tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
 else:
     domain.MeshOptions.LcMax = opts.he
 mr._assembleRefinementOptions(domain)
