@@ -449,7 +449,9 @@ class ChronoModel(AuxiliaryVariables.AV_base):
                 m_gravity=g_chrono,
                 m_particles_diameter=particle_diameter,
                 m_particles_density=particle_density,
-                dt_init=dt_init):
+                 dt_init=dt_init,
+                 nRKPM_nodes):
+        #write Python code to gnerate RKPM particles for grain
         self.mtime=0
         self.dt_init=dt_init
         self.chmodel = Chrono.MBDModel(
@@ -492,6 +494,10 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         assert(flagMax <= 7)
         self.nForces=flagMax+1
         assert(self.nForces <= 8)
+        #initialize RKPM test functions
+        #m.q['x'] is a nElements x nQuad x nd array of points
+        #we want rkpm_test[i,eN,k] to be value of i-th test function at
+        #quadrature point eN,k with physical location m.q['x'][eN,k]
         return self
 
 
@@ -565,7 +571,10 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         #     if (self.mtime>0.0001):
         #         if (abs(self.mtime-writeTime)<0.0001):
         #             self.chmodel.writeFrame()
-
+        #
+        #write Python code to evaluate RKPM test functions at quadrature points 
+        #
+        
 myChModel = ChronoModel(timeStep=dT_Chrono,
                     m_container_center=container_cent,
                     m_container_dims=container_dim,
