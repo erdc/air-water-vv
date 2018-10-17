@@ -451,7 +451,6 @@ class ChronoModel(AuxiliaryVariables.AV_base):
                 m_particles_density=particle_density,
                  dt_init=dt_init,
                  n_rkpm_nodes=0):
-        #write Python code to gnerate RKPM particles for grain
         self.mtime=0
         self.dt_init=dt_init
         self.chmodel = Chrono.MBDModel(
@@ -480,8 +479,102 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         self.proteus_dt = self.dt_init
 
         self.solidForces = np.zeros((nParticle,3),'d')
+
+##--------------------------------------------------------------------------
         #rkpm
+#        self.n_rkpm_nodes = n_rkpm_nodes
+        #now add the Python code that generates the list of rkpm nodes here
+        #(OUTPUT : n_rkpm_nodes)
+
+        particle_diameter=0.25
+        r=particle_diameter/2
+        nodes_th=36
+        nodes_r=10
+        n_rkpm_nodes = nodes_th*nodes_r+1
         self.n_rkpm_nodes = n_rkpm_nodes
+        node_x = np.zeros((2, n_rkpm_nodes)) #node_x=[x;y]
+        dr = r/nodes_r
+        PI = np.pi
+        dtheta = np.linspace(0.0, 360, nodes_th)
+        dR=np.linspace(dr, r, nodes_r)
+
+        ###### need center of the particl
+        node_x[0][0] = center_x
+        node_x[1][0] = center_y
+        c = 1
+        for drr in dR:
+            for theta in dtheta:
+                node_x[0[c] = drr * np.cos(theta/180*PI) + center_x
+                node_x[1][c] = drr * np.sin(theta/180*PI) + center_y
+                c += 1
+        import matplotlib.pylot as plt
+        plt.plot(node_x[0][:],node_x[1][:],'bo',zorder=1)
+
+        #self.rkpm_nodes
+#------------------------------------------------------------------
+        #RKPM shape function (INPUT: X1(Node),GCOO(Points); OUTPUT: SHP)
+
+        DEG = 1 #linear basis
+        MSIZE = 3 # linear basis function [1,x,y]
+        CONT = 3 # C3 conti
+        support = 2 
+        h = dr #nodal spacing
+        dilation = h * support
+        #####################################
+        ##need coordinates of nodes and points, total_nodes(N)
+        XMXI_OA[I] = (X1[0] - GCOO[0][I]) / dilation
+        YMXI_OA[I] = (X1[1] - GCOO[1][I]) / dilation
+               
+       # initialization 
+        H_FULL = np.zeros(MSIZE)
+        XMXI_OA = np.zeros(N)
+        YMXI_OA = np.zeros(N)
+        M_FULL = np.zeros((MSIZE,MSIZE))
+        PHI = np.zeros(N)
+        H0 = np.zeros(MSIZE)
+        SPH = np.zeros(N) 
+        B = np.zeros(MSIZE)
+
+        H_FULL[0] = 1.0
+        H_FULL[1] = XMXI_OA[I]
+        H_FULL[2] = YMXI_OA[I]
+       
+        # kernel function
+        (PHIX) = MLS_KERNEL0(abs(XMXI_OA[I]),dilation,CONT)
+        (PHIY) = MLS_KERNEL0(abs(YMXI_OA[I]),dilation,CONT)   
+        PHI[I] = PHIX * PHIY
+        
+        for J in range(MSIZE):
+            for K in range(MSIZE):
+                M_FULL[J,K] += H_FULL[J] * H_FULL[K] * PHI[I]
+
+        MINT = np.linalg.pinv(M_FULL)
+        H0[0] = 1.0
+        B = np.matmul(H0,MINV)
+
+        for I in range (N): #loop over nodes
+            H_FULL[0] = 1
+            H_FULL[1] = XMXI_OA[I]
+            H_FULL[2] = YMXI_OA[I]
+            C =np.matmul(B,H_FULL)
+            SHP[I] = C * PHI[I] #RK shape function
+                             
+
+    def MLS_KERNEL(XSA,AJ,ISPLINE):
+        if XSA <0.5:
+           PHI = 2.0/3 - 4*XSA**2 - 4*XSA**3
+        elif XSA <1:
+           PHI = 4.0/3 -4*XSA + 4*XSA**2 -4.0/3*XSA**3
+        else:
+           PHI = 0
+
+        return (PHI)                     
+
+#-----------------------------------------------------------
+
+        #self.get_rkpm_v(node_x, x) -> v_n(x)
+
+#----------------------------------------------------------
     def attachModel(self,model,ar):
         self.chmodel.attachModel(model,ar)
         self.model=model
@@ -499,7 +592,11 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         #m.q['x'] is a nElements x nQuad x nd array of points
         #we want rkpm_test[i,eN,k] to be value of i-th test function at
         #quadrature point eN,k with physical location m.q['x'][eN,k]
-        self.rkpm_test = np.zeros((self.n_rkpm_node,m.q['x'].shape[:2]),'d')
+        self.rkpm_test = np.zeros((self.n_rkpm_nodes, m.q['x'].shape[:2]),'d')
+        for i in range(self.n_rkpm_nodes):
+            for eN in range(m.q['x'].shape[0]):
+                for k in range(m.q['x'].shape[1]):
+                    self.rkpm_test[i,eN,k] = self.get_rkpm_v(self.rkpm_nodes[i], q.['x'][eN, k])
         return self
 
 
