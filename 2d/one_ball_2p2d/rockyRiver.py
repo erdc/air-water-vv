@@ -450,7 +450,7 @@ class ChronoModel(AuxiliaryVariables.AV_base):
                 m_particles_diameter=particle_diameter,
                 m_particles_density=particle_density,
                  dt_init=dt_init,
-                 nRKPM_nodes):
+                 n_rkpm_nodes=0):
         #write Python code to gnerate RKPM particles for grain
         self.mtime=0
         self.dt_init=dt_init
@@ -480,7 +480,8 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         self.proteus_dt = self.dt_init
 
         self.solidForces = np.zeros((nParticle,3),'d')
- 
+        #rkpm
+        self.n_rkpm_nodes = n_rkpm_nodes
     def attachModel(self,model,ar):
         self.chmodel.attachModel(model,ar)
         self.model=model
@@ -498,6 +499,7 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         #m.q['x'] is a nElements x nQuad x nd array of points
         #we want rkpm_test[i,eN,k] to be value of i-th test function at
         #quadrature point eN,k with physical location m.q['x'][eN,k]
+        self.rkpm_test = np.zeros((self.n_rkpm_node,m.q['x'].shape[:2]),'d')
         return self
 
 
