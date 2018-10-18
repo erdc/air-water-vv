@@ -482,39 +482,63 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         #now add the Python code that generates the list of rkpm nodes here
         #(OUTPUT : n_rkpm_nodes)
 
-        #particle_diameter=0.25
+        particle_diameter=0.25
         r=particle_diameter/2
-        nodes_th=36
-        nodes_r=10
-        n_rkpm_nodes = nodes_th*nodes_r+1
+        #nodes_th=36
+        #nodes_r=10
+        #n_rkpm_nodes = nodes_th*nodes_r+1
+        #self.n_rkpm_nodes = n_rkpm_nodes
+        #rkpm_nodes = np.zeros((n_rkpm_nodes,2)) #node_x=[x;y]
+        
+        
+        nodes_r = 7
+        dr = r / nodes_r
+        dR = np.linspace(dr, r, nodes_r)
+        nR = len(dR)
+        nT = np.zeros(nR)
+
+        for i in range (nR):
+            nT[i] = int(10*(i+1))
+        
+        n_rkpm_nodes = int(sum(nT)+1)
         self.n_rkpm_nodes = n_rkpm_nodes
+        
         rkpm_nodes = np.zeros((n_rkpm_nodes,2)) #node_x=[x;y]
-        dr = r/nodes_r
-        PI = np.pi
-        dtheta = np.linspace(0.0, 360, nodes_th)
-        dR=np.linspace(dr, r, nodes_r)
+        #rkpm_nodes[0][0] = center_x
+        #rkpm_nodes[1][0] = center_y
+        
+        #PI = np.pi
+        #dtheta = np.linspace(0.0, 360, nodes_th)
+        #dR=np.linspace(dr, r, nodes_r)
 
         ###### need center of the particle
         rkpm_nodes[0][0] = center_x = ball_center[0,0]
         rkpm_nodes[0][1] = center_y = ball_center[0,1]
         
         c = 1
-        
-        for drr in dR:
-            for theta in dtheta:
-                rkpm_nodes[c][0] = drr * np.cos(theta/180*PI) + center_x #X
-                rkpm_nodes[c][1] = drr * np.sin(theta/180*PI) + center_y #Y
-                c += 1
+        for r, t in rtpairs(dR, nT):
+            rkpm_nodes[c][0]=r * np.cos(t) + center_x #X
+            rkpm_nodes[c][1]=r * np.sin(t) + center_y #Y
+            c+=1
+#        for drr in dR:
+#            for theta in dtheta:
+#                rkpm_nodes[c][0] = drr * np.cos(theta/180*PI) + center_x #X
+#                rkpm_nodes[c][1] = drr * np.sin(theta/180*PI) + center_y #Y
+#                c += 1
         import matplotlib.pyplot as plt
         plt.scatter(rkpm_nodes[:,0],rkpm_nodes[:,1])
         self.rkpm_nodes = rkpm_nodes
         plt.savefig("rkpm_nodes.png")
+        
+    def rtpairs(r, n):
+
+        for i in range(len(r)):
+            for j in range(int(n[i])):    
+                yield r[i], j*(2 * np.pi / n[i])
         #------------------------------------------------------------------
         #RKPM shape function (INPUT: X1(Node),GCOO(Points); OUTPUT: SHP)
 
     def RKPM_shape(self, X1,GCOO):
-        import pdb
-        pdb.set_trace()
         #DEG = 1 #linear basis
         MSIZE = 3 # linear basis function [1,x,y]
         CONT = 3 # C3 conti
@@ -551,7 +575,7 @@ class ChronoModel(AuxiliaryVariables.AV_base):
             for K in range(MSIZE):
                 M_FULL[J,K] += H_FULL[J] * H_FULL[K] * PHI
 
-        MINT = np.linalg.pinv(M_FULL)
+        MINV = np.linalg.pinv(M_FULL)
         H0[0] = 1.0
         B = np.matmul(H0,MINV)
 
@@ -574,33 +598,33 @@ class ChronoModel(AuxiliaryVariables.AV_base):
 
         return (PHI)
 
-    def neighbor_list(self,XCOO,YCOO, xg, yg, dm):
-        # get a neighbor list and a Length ID
-        #XCOO,YCOO: Nodes
-        #xg,yg: Points
-        #dm: dilation
-        
-        np_x = len[xg]
-        np_y = len[yg]
-        nnodes_x = len[XCOO]
-        nnodes_y = len[YCOO]
-        nnodes=nnodes_x*nnodes_y
-        np=np_x*np_y
-        neighor_list=np.zeros[nnodes,50]
-        LengthID=np.zeros[1,nnodes]
-
-        for j in range(nnodes):
-            m=0
-            for i in range(np):
-                rx  = abs(XCOO[j]-xg[i])/dm
-                ry  = abs(YCOO[j]-yg[i])/dm
-                if (rx < 1.0 & ry < 1.0 ):
-                    m = m+1
-                    neighor_list[j][m]= i
-                else:
-                    pass
-            LengthID[j]= m
-        return (neighor_list, LengthID)
+#    def neighbor_list(self,XCOO,YCOO, xg, yg, dm):
+#        # get a neighbor list and a Length ID
+#        #XCOO,YCOO: Nodes
+#        #xg,yg: Points
+#        #dm: dilation
+#        
+#        np_x = len[xg]
+#        np_y = len[yg]
+#        nnodes_x = len[XCOO]
+#        nnodes_y = len[YCOO]
+#        nnodes=nnodes_x*nnodes_y
+#        np=np_x*np_y
+#        neighor_list=np.zeros[nnodes,50]
+#        LengthID=np.zeros[1,nnodes]
+#
+#        for j in range(nnodes):
+#            m=0
+#            for i in range(np):
+#                rx  = abs(XCOO[j]-xg[i])/dm
+#                ry  = abs(YCOO[j]-yg[i])/dm
+#                if (rx < 1.0 & ry < 1.0 ):
+#                    m = m+1
+#                    neighor_list[j][m]= i
+#                else:
+#                    pass
+#            LengthID[j]= m
+#        return (neighor_list, LengthID)
         #self.get_rkpm_v(node_x, x) -> v_n(x)
 
     def attachModel(self,model,ar):
@@ -628,9 +652,7 @@ class ChronoModel(AuxiliaryVariables.AV_base):
                     #RKPM_shape(X1,GCOO)
 #                    self.rkpm_test[i,eN,k] = self.get_rkpm_v(self.rkpm_nodes[:][i], 
 #                                  m.q['x'][eN, k])
-                    import pdb
-                    pdb.set_trace()
-                    self.rkpm_test[i,eN,k] = self.RKPM_shape(self.rkpm_nodes[i][:], m.q['x'][eN, k])
+                   self.rkpm_test[i,eN,k] = self.RKPM_shape(self.rkpm_nodes[i][:], m.q['x'][eN, k])
             fig = plt.figure()
             plt.scatter(m.q['x'][:,:,0].flatten(),m.q['x'][:,:,1].flatten(), self.rkpm_test[i])
             plt.savefig("rkpm_test_i={0}.png".format(i))
