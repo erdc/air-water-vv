@@ -492,73 +492,83 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         nodes_r=10
         n_rkpm_nodes = nodes_th*nodes_r+1
         self.n_rkpm_nodes = n_rkpm_nodes
-        node_x = np.zeros((2, n_rkpm_nodes)) #node_x=[x;y]
+        rkpm_nodes = np.zeros((n_rkpm_nodes,2)) #node_x=[x;y]
         dr = r/nodes_r
         PI = np.pi
         dtheta = np.linspace(0.0, 360, nodes_th)
         dR=np.linspace(dr, r, nodes_r)
 
         ###### need center of the particl
-        node_x[0][0] = center_x
-        node_x[1][0] = center_y
+        ball_center = np.array([[0.25,9.6,0.0],
+                        ],'d')
+            
+        rkpm_nodes[0][0] = center_x
+        rkpm_nodes[1][0] = center_y
+        
         c = 1
+        
         for drr in dR:
             for theta in dtheta:
-                node_x[0[c] = drr * np.cos(theta/180*PI) + center_x
-                node_x[1][c] = drr * np.sin(theta/180*PI) + center_y
+                rkpm_nodes[0][c] = drr * np.cos(theta/180*PI) + center_x #X
+                rkpm_nodes[1][c] = drr * np.sin(theta/180*PI) + center_y #Y
                 c += 1
-        import matplotlib.pylot as plt
-        plt.plot(node_x[0][:],node_x[1][:],'bo',zorder=1)
+#        import matplotlib.pylot as plt
+#        plt.plot(rkpm_nodes[0][:],rkpm_nodes[1][:],'bo',zorder=1)
 
-        #self.rkpm_nodes
+        self.rkpm_nodes = rkpm_nodes
 #------------------------------------------------------------------
         #RKPM shape function (INPUT: X1(Node),GCOO(Points); OUTPUT: SHP)
 
-        DEG = 1 #linear basis
-        MSIZE = 3 # linear basis function [1,x,y]
-        CONT = 3 # C3 conti
-        support = 2 
-        h = dr #nodal spacing
-        dilation = h * support
-        #####################################
-        ##need coordinates of nodes and points, total_nodes(N)
-        XMXI_OA[I] = (X1[0] - GCOO[0][I]) / dilation
-        YMXI_OA[I] = (X1[1] - GCOO[1][I]) / dilation
-               
-       # initialization 
-        H_FULL = np.zeros(MSIZE)
-        XMXI_OA = np.zeros(N)
-        YMXI_OA = np.zeros(N)
-        M_FULL = np.zeros((MSIZE,MSIZE))
-        PHI = np.zeros(N)
-        H0 = np.zeros(MSIZE)
-        SPH = np.zeros(N) 
-        B = np.zeros(MSIZE)
+        def RKPM_shape(X1,GCOO):
+            #DEG = 1 #linear basis
+            MSIZE = 3 # linear basis function [1,x,y]
+            CONT = 3 # C3 conti
+            support = 2 
+            h = 0.25/2/10 #dr #nodal spacing
+            dilation = h * support
 
-        H_FULL[0] = 1.0
-        H_FULL[1] = XMXI_OA[I]
-        H_FULL[2] = YMXI_OA[I]
+            XMXI_OA = (X1[0] - GCOO[0]) / dilation
+            YMXI_OA = (X1[1] - GCOO[1]) / dilation
+#            XMXI_OA[I] = (X1[0] - GCOO[0][I]) / dilation
+#            YMXI_OA[I] = (X1[1] - GCOO[1][I]) / dilation      
+            
+            # initialization 
+            H_FULL = np.zeros(MSIZE)
+            XMXI_OA = np.zeros(N)
+            YMXI_OA = np.zeros(N)
+            M_FULL = np.zeros((MSIZE,MSIZE))
+            PHI = np.zeros(N)
+            H0 = np.zeros(MSIZE)
+            SPH = np.zeros(N) 
+            B = np.zeros(MSIZE)
+
+            H_FULL[0] = 1.0
+            H_FULL[1] = XMXI_OA#[I]
+            H_FULL[2] = YMXI_OA#[I]
        
-        # kernel function
-        (PHIX) = MLS_KERNEL0(abs(XMXI_OA[I]),dilation,CONT)
-        (PHIY) = MLS_KERNEL0(abs(YMXI_OA[I]),dilation,CONT)   
-        PHI[I] = PHIX * PHIY
-        
-        for J in range(MSIZE):
-            for K in range(MSIZE):
-                M_FULL[J,K] += H_FULL[J] * H_FULL[K] * PHI[I]
+            # kernel function
+            (PHIX) = MLS_KERNEL0(abs(XMXI_OA),dilation,CONT)
+            (PHIY) = MLS_KERNEL0(abs(YMXI_OA),dilation,CONT)   
+            PHI = PHIX * PHIY
+            #PHI[I] = PHIX * PHIY
+            
+            for J in range(MSIZE):
+                for K in range(MSIZE):
+                    M_FULL[J,K] += H_FULL[J] * H_FULL[K] * PHI[I]
 
-        MINT = np.linalg.pinv(M_FULL)
-        H0[0] = 1.0
-        B = np.matmul(H0,MINV)
+            MINT = np.linalg.pinv(M_FULL)
+            H0[0] = 1.0
+            B = np.matmul(H0,MINV)
 
-        for I in range (N): #loop over nodes
-            H_FULL[0] = 1
-            H_FULL[1] = XMXI_OA[I]
-            H_FULL[2] = YMXI_OA[I]
+#            for I in range (N): #loop over nodes
+#                H_FULL[0] = 1
+#                H_FULL[1] = XMXI_OA#[I]
+#                H_FULL[2] = YMXI_OA#[I]
             C =np.matmul(B,H_FULL)
-            SHP[I] = C * PHI[I] #RK shape function
-                             
+            SHP = C * PHI #RK shape function
+                #SHP[I] = C * PHI[I] #RK shape function
+
+        return (SHP)
 
     def MLS_KERNEL(XSA,AJ,ISPLINE):
         if XSA <0.5:
@@ -568,7 +578,40 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         else:
            PHI = 0
 
-        return (PHI)                     
+        return (PHI) 
+
+       
+    def neighbor_list(XCOO,YCOO, xg, yg, dm):
+        # get a neighbor list and a Length ID
+        #XCOO,YCOO: Nodes
+        #xg,yg: Points
+        #dm: dilation
+        
+        np_x = len[xg]
+        np_y = len[yg]
+        nnodes_x = len[XCOO]
+        nnodes_y = len[YCOO]
+        nnodes=nnodes_x*nnodes_y
+        np=np_x*np_y
+        neighor_list=np.zeros[nnodes,50]
+        LengthID=np.zeros[1,nnodes]
+
+        for j in range(nnodes):
+            m=0
+
+            for i in range(np):
+        
+                rx  = abs(XCOO[j]-xg[i])/dm
+                ry  = abs(YCOO[j]-yg[i])/dm
+            
+                if (rx < 1.0 & ry < 1.0 ):
+                    m = m+1
+                    neighor_list[j][m]= i
+                else:
+                    pass
+
+            LengthID[j]= m 
+        return (neighor_list, LengthID)             
 
 #-----------------------------------------------------------
 
@@ -596,7 +639,14 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         for i in range(self.n_rkpm_nodes):
             for eN in range(m.q['x'].shape[0]):
                 for k in range(m.q['x'].shape[1]):
-                    self.rkpm_test[i,eN,k] = self.get_rkpm_v(self.rkpm_nodes[i], q.['x'][eN, k])
+                    #RKPM_shape(X1,GCOO)
+#                    self.rkpm_test[i,eN,k] = self.get_rkpm_v(self.rkpm_nodes[:][i], 
+#                                  m.q['x'][eN, k])
+                    self.rkpm_test[i,eN,k] = self.RKPM_shape(self.rkpm_nodes[i][:], m.q['x'][eN, k])
+        
+        #check consistency
+        assert abs(sum(rkpm_test[i])-1.0) > 1.0e-5, 'Shape function Error'
+        
         return self
 
 
