@@ -645,7 +645,7 @@ class ChronoModel(AuxiliaryVariables.AV_base):
                     self.rkpm_test[i,eN,k] = self.RKPM_shape(self.rkpm_nodes[i][:], m.q['x'][eN, k])
         
         #check consistency
-            assert abs(sum(rkpm_test[i])-1.0) > 1.0e-5, 'Shape function Error'
+            assert abs(sum(self.rkpm_test[i])-1.0) > 1.0e-5, 'The sum of shape functions is not the 1'
         
         return self
 
