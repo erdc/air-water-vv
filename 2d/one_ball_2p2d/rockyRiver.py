@@ -636,7 +636,7 @@ class ChronoModel(AuxiliaryVariables.AV_base):
             plt.savefig("rkpm_test_i={0}.png".format(i))
 
         #check consistency
-        assert abs(sum(rkpm_test[i])-1.0) > 1.0e-5, 'Shape function Error'
+        assert abs(sum(self.rkpm_test[i])-1.0) > 1.0e-5, 'The sum of shape functions is not the 1'
         return self
 
     def get_u(self):
