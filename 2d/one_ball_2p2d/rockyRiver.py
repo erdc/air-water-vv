@@ -444,26 +444,24 @@ stiffness_wall = 0.5e-5
 import Chrono
 class ChronoModel(AuxiliaryVariables.AV_base):
     def __init__(self,timeStep=1e-3,
-                m_container_center=container_cent,
-                m_container_dims=container_dim,
-                m_gravity=g_chrono,
-                m_particles_diameter=particle_diameter,
-                m_particles_density=particle_density,
-                 dt_init=dt_init,
-                 n_rkpm_nodes=0):
+                 m_container_center=container_cent,
+                 m_container_dims=container_dim,
+                 m_gravity=g_chrono,
+                 m_particles_diameter=particle_diameter,
+                 m_particles_density=particle_density,
+                 dt_init=dt_init):
         self.mtime=0
         self.dt_init=dt_init
         self.chmodel = Chrono.MBDModel(
-                                        m_timeStep=timeStep,
-                                        m_container_center=np.array(m_container_center,dtype="d"),
-                                        m_container_dims=np.array(m_container_dims,dtype="d"),
-                                        m_particles_diameter=particle_diameter,
-                                        m_particles_density=particle_density,
-                                        m_gravity=np.array(m_gravity,dtype="d"),
-                                        nParticle = nParticle,
-                                        ball_center=ball_center,
-                                        ball_radius=ball_radius,
-                                        )
+            m_timeStep=timeStep,
+            m_container_center=np.array(m_container_center,dtype="d"),
+            m_container_dims=np.array(m_container_dims,dtype="d"),
+            m_particles_diameter=particle_diameter,
+            m_particles_density=particle_density,
+            m_gravity=np.array(m_gravity,dtype="d"),
+            nParticle = nParticle,
+            ball_center=ball_center,
+            ball_radius=ball_radius)
         self.nnodes = self.chmodel.getNumParticles()
         self.solidPosition = np.zeros((self.nnodes,3), 'd')
         self.solidVelocity = np.zeros((self.nnodes,3), 'd')
@@ -480,13 +478,11 @@ class ChronoModel(AuxiliaryVariables.AV_base):
 
         self.solidForces = np.zeros((nParticle,3),'d')
 
-##--------------------------------------------------------------------------
         #rkpm
-#        self.n_rkpm_nodes = n_rkpm_nodes
         #now add the Python code that generates the list of rkpm nodes here
         #(OUTPUT : n_rkpm_nodes)
 
-        particle_diameter=0.25
+        #particle_diameter=0.25
         r=particle_diameter/2
         nodes_th=36
         nodes_r=10
@@ -498,79 +494,77 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         dtheta = np.linspace(0.0, 360, nodes_th)
         dR=np.linspace(dr, r, nodes_r)
 
-        ###### need center of the particl
-        ball_center = np.array([[0.25,9.6,0.0],
-                        ],'d')
-            
-        rkpm_nodes[0][0] = center_x
-        rkpm_nodes[1][0] = center_y
+        ###### need center of the particle
+        rkpm_nodes[0][0] = center_x = ball_center[0,0]
+        rkpm_nodes[0][1] = center_y = ball_center[0,1]
         
         c = 1
         
         for drr in dR:
             for theta in dtheta:
-                rkpm_nodes[0][c] = drr * np.cos(theta/180*PI) + center_x #X
-                rkpm_nodes[1][c] = drr * np.sin(theta/180*PI) + center_y #Y
+                rkpm_nodes[c][0] = drr * np.cos(theta/180*PI) + center_x #X
+                rkpm_nodes[c][1] = drr * np.sin(theta/180*PI) + center_y #Y
                 c += 1
-#        import matplotlib.pylot as plt
-#        plt.plot(rkpm_nodes[0][:],rkpm_nodes[1][:],'bo',zorder=1)
-
+        import matplotlib.pyplot as plt
+        plt.scatter(rkpm_nodes[:,0],rkpm_nodes[:,1])
         self.rkpm_nodes = rkpm_nodes
-#------------------------------------------------------------------
+        plt.savefig("rkpm_nodes.png")
+        #------------------------------------------------------------------
         #RKPM shape function (INPUT: X1(Node),GCOO(Points); OUTPUT: SHP)
 
-        def RKPM_shape(X1,GCOO):
-            #DEG = 1 #linear basis
-            MSIZE = 3 # linear basis function [1,x,y]
-            CONT = 3 # C3 conti
-            support = 2 
-            h = 0.25/2/10 #dr #nodal spacing
-            dilation = h * support
+    def RKPM_shape(self, X1,GCOO):
+        import pdb
+        pdb.set_trace()
+        #DEG = 1 #linear basis
+        MSIZE = 3 # linear basis function [1,x,y]
+        CONT = 3 # C3 conti
+        support = 2
+        h = 0.25/2/10 #dr #nodal spacing
+        dilation = h * support
 
-            XMXI_OA = (X1[0] - GCOO[0]) / dilation
-            YMXI_OA = (X1[1] - GCOO[1]) / dilation
-#            XMXI_OA[I] = (X1[0] - GCOO[0][I]) / dilation
-#            YMXI_OA[I] = (X1[1] - GCOO[1][I]) / dilation      
-            
-            # initialization 
-            H_FULL = np.zeros(MSIZE)
-            XMXI_OA = np.zeros(N)
-            YMXI_OA = np.zeros(N)
-            M_FULL = np.zeros((MSIZE,MSIZE))
-            PHI = np.zeros(N)
-            H0 = np.zeros(MSIZE)
-            SPH = np.zeros(N) 
-            B = np.zeros(MSIZE)
+        XMXI_OA = (X1[0] - GCOO[0]) / dilation
+        YMXI_OA = (X1[1] - GCOO[1]) / dilation
+        #            XMXI_OA[I] = (X1[0] - GCOO[0][I]) / dilation
+        #            YMXI_OA[I] = (X1[1] - GCOO[1][I]) / dilation
+        
+        # initialization
+        H_FULL = np.zeros(MSIZE)
+        #XMXI_OA = np.zeros(N)
+        #YMXI_OA = np.zeros(N)
+        M_FULL = np.zeros((MSIZE,MSIZE))
+        PHI = np.zeros(N)
+        H0 = np.zeros(MSIZE)
+        SPH = np.zeros(N)
+        B = np.zeros(MSIZE)
 
-            H_FULL[0] = 1.0
-            H_FULL[1] = XMXI_OA#[I]
-            H_FULL[2] = YMXI_OA#[I]
-       
-            # kernel function
-            (PHIX) = MLS_KERNEL0(abs(XMXI_OA),dilation,CONT)
-            (PHIY) = MLS_KERNEL0(abs(YMXI_OA),dilation,CONT)   
-            PHI = PHIX * PHIY
-            #PHI[I] = PHIX * PHIY
-            
-            for J in range(MSIZE):
-                for K in range(MSIZE):
-                    M_FULL[J,K] += H_FULL[J] * H_FULL[K] * PHI[I]
+        H_FULL[0] = 1.0
+        H_FULL[1] = XMXI_OA#[I]
+        H_FULL[2] = YMXI_OA#[I]
 
-            MINT = np.linalg.pinv(M_FULL)
-            H0[0] = 1.0
-            B = np.matmul(H0,MINV)
+        # kernel function
+        (PHIX) = self.MLS_KERNEL(abs(XMXI_OA),dilation,CONT)
+        (PHIY) = self.MLS_KERNEL(abs(YMXI_OA),dilation,CONT)
+        PHI = PHIX * PHIY
+        #PHI[I] = PHIX * PHIY
 
-#            for I in range (N): #loop over nodes
-#                H_FULL[0] = 1
-#                H_FULL[1] = XMXI_OA#[I]
-#                H_FULL[2] = YMXI_OA#[I]
-            C =np.matmul(B,H_FULL)
-            SHP = C * PHI #RK shape function
-                #SHP[I] = C * PHI[I] #RK shape function
+        for J in range(MSIZE):
+            for K in range(MSIZE):
+                M_FULL[J,K] += H_FULL[J] * H_FULL[K] * PHI
 
+        MINT = np.linalg.pinv(M_FULL)
+        H0[0] = 1.0
+        B = np.matmul(H0,MINV)
+
+        #            for I in range (N): #loop over nodes
+        #                H_FULL[0] = 1
+        #                H_FULL[1] = XMXI_OA#[I]
+        #                H_FULL[2] = YMXI_OA#[I]
+        C =np.matmul(B,H_FULL)
+        SHP = C * PHI #RK shape function
+        #SHP[I] = C * PHI[I] #RK shape function
         return (SHP)
 
-    def MLS_KERNEL(XSA,AJ,ISPLINE):
+    def MLS_KERNEL(self,XSA,AJ,ISPLINE):
         if XSA <0.5:
            PHI = 2.0/3 - 4*XSA**2 - 4*XSA**3
         elif XSA <1:
@@ -578,10 +572,9 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         else:
            PHI = 0
 
-        return (PHI) 
+        return (PHI)
 
-       
-    def neighbor_list(XCOO,YCOO, xg, yg, dm):
+    def neighbor_list(self,XCOO,YCOO, xg, yg, dm):
         # get a neighbor list and a Length ID
         #XCOO,YCOO: Nodes
         #xg,yg: Points
@@ -598,26 +591,18 @@ class ChronoModel(AuxiliaryVariables.AV_base):
 
         for j in range(nnodes):
             m=0
-
             for i in range(np):
-        
                 rx  = abs(XCOO[j]-xg[i])/dm
                 ry  = abs(YCOO[j]-yg[i])/dm
-            
                 if (rx < 1.0 & ry < 1.0 ):
                     m = m+1
                     neighor_list[j][m]= i
                 else:
                     pass
-
-            LengthID[j]= m 
-        return (neighor_list, LengthID)             
-
-#-----------------------------------------------------------
-
+            LengthID[j]= m
+        return (neighor_list, LengthID)
         #self.get_rkpm_v(node_x, x) -> v_n(x)
 
-#----------------------------------------------------------
     def attachModel(self,model,ar):
         self.chmodel.attachModel(model,ar)
         self.model=model
@@ -635,20 +620,24 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         #m.q['x'] is a nElements x nQuad x nd array of points
         #we want rkpm_test[i,eN,k] to be value of i-th test function at
         #quadrature point eN,k with physical location m.q['x'][eN,k]
-        self.rkpm_test = np.zeros((self.n_rkpm_nodes, m.q['x'].shape[:2]),'d')
+        self.rkpm_test = np.zeros((self.n_rkpm_nodes,)+ m.q['x'].shape[:2],'d')
+        import matplotlib.pyplot as plt
         for i in range(self.n_rkpm_nodes):
             for eN in range(m.q['x'].shape[0]):
                 for k in range(m.q['x'].shape[1]):
                     #RKPM_shape(X1,GCOO)
 #                    self.rkpm_test[i,eN,k] = self.get_rkpm_v(self.rkpm_nodes[:][i], 
 #                                  m.q['x'][eN, k])
+                    import pdb
+                    pdb.set_trace()
                     self.rkpm_test[i,eN,k] = self.RKPM_shape(self.rkpm_nodes[i][:], m.q['x'][eN, k])
-        
+            fig = plt.figure()
+            plt.scatter(m.q['x'][:,:,0].flatten(),m.q['x'][:,:,1].flatten(), self.rkpm_test[i])
+            plt.savefig("rkpm_test_i={0}.png".format(i))
+
         #check consistency
         assert abs(sum(rkpm_test[i])-1.0) > 1.0e-5, 'Shape function Error'
-        
         return self
-
 
     def get_u(self):
         return 0.
