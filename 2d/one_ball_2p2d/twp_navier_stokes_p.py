@@ -33,7 +33,8 @@ class My_Coefficients(RANS2P.Coefficients):
                                     MOMENTUM_SGE=ct.use_supg,
                                     PRESSURE_SGE=ct.use_supg,
                                     VELOCITY_SGE=ct.use_supg,
-                                    PRESSURE_PROJECTION_STABILIZATION=0.0)
+                                     PRESSURE_PROJECTION_STABILIZATION=0.0,
+                                     rkpm_force = myChModel.rkpm_force)
     def preStep(self, t, firstStep=False):
         self.model.dt_last = self.model.timeIntegration.dt
 

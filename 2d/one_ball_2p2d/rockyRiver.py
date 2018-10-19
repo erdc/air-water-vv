@@ -504,6 +504,7 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         self.n_rkpm_nodes = n_rkpm_nodes
         
         rkpm_nodes = np.zeros((n_rkpm_nodes,2)) #node_x=[x;y]
+        self.rkpm_force = np.zeros((n_rkpm_nodes,3))
         #rkpm_nodes[0][0] = center_x
         #rkpm_nodes[1][0] = center_y
         
@@ -631,6 +632,8 @@ class ChronoModel(AuxiliaryVariables.AV_base):
     def attachModel(self,model,ar):
         self.chmodel.attachModel(model,ar)
         self.model=model
+        self.rkpm_test = np.zeros((self.n_rkpm_nodes,)+ self.model.levelModelList[-1].q['x'].shape[:2],'d')
+        self.model.levelModelList[-1].coefficients.rkpm_test = self.rkpm_test
         self.ar=ar
         self.writer = Archiver.XdmfWriter()
         self.nd = model.levelModelList[-1].nSpace_global
@@ -645,7 +648,6 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         #m.q['x'] is a nElements x nQuad x nd array of points
         #we want rkpm_test[i,eN,k] to be value of i-th test function at
         #quadrature point eN,k with physical location m.q['x'][eN,k]
-        self.rkpm_test = np.zeros((self.n_rkpm_nodes,)+ m.q['x'].shape[:2],'d')
         import matplotlib.pyplot as plt
         for i in range(self.n_rkpm_nodes):
             for eN in range(m.q['x'].shape[0]):
@@ -740,13 +742,12 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         #
         #write Python code to evaluate RKPM test functions at quadrature points 
         #
-        
 myChModel = ChronoModel(timeStep=dT_Chrono,
-                    m_container_center=container_cent,
-                    m_container_dims=container_dim,
-                    m_particles_diameter=particle_diameter,
-                    m_particles_density=particle_density,
-                    m_gravity=(g_chrono[0],g_chrono[1],g_chrono[2]))
+                        m_container_center=container_cent,
+                        m_container_dims=container_dim,
+                        m_particles_diameter=particle_diameter,
+                        m_particles_density=particle_density,
+                        m_gravity=(g_chrono[0],g_chrono[1],g_chrono[2]))
 
 numPars=myChModel.chmodel.getNumParticles()
 print(numPars)
