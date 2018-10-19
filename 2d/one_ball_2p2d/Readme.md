@@ -1,5 +1,5 @@
 ## Purpose
-rans2p + one falling particles 
+Use rans2p to simulate one falling ball 
 
 
 
@@ -8,6 +8,6 @@ rans2p + one falling particles
 
 `make a`
 `make b`
-`parun -v -l 5  -p rockyRiver_so.py  -D ibm-1`
+`parun -v -l 5  -p oneball_so.py  -D ibm-1`
 
 

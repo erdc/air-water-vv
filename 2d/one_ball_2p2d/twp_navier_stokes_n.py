@@ -1,6 +1,6 @@
 from proteus import *
 from twp_navier_stokes_p import *
-from rockyRiver import *
+from oneball import *
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
