@@ -5,9 +5,7 @@ from proteus.mprans import RANS2P
 
 name = "momentum"
 LevelModelType = RANS2P.LevelModel
-class My_Coefficients(RANS2P.Coefficients):
-    def __init__(self):
-        RANS2P.Coefficients.__init__(self,
+coefficients = RANS2P.Coefficients( self,
                                     epsFact=epsFact_viscosity,
                                     rho_0=rho_0,
                                     nu_0=nu_0,
@@ -34,9 +32,6 @@ class My_Coefficients(RANS2P.Coefficients):
                                     PRESSURE_SGE=ct.use_supg,
                                     VELOCITY_SGE=ct.use_supg,
                                     PRESSURE_PROJECTION_STABILIZATION=0.0)
-    def preStep(self, t, firstStep=False):
-        self.model.dt_last = self.model.timeIntegration.dt
-
 
 coefficients = My_Coefficients()
 #===============================================================================
