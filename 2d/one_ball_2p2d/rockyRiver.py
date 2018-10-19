@@ -52,7 +52,7 @@ g_chrono = [0.0, -981, 0.0]
 g = [0.0, -981, 0.0]
 
 # Domain and mesh
-L = [1.0, 10.0, 0.6]
+L = [1.0, 1.0, 0.6] #1.0 10.0 0.6
 # Initial condition
 container_dim=[L[0],L[1],L[2]] #Dimensions of the container (Height/Width/depth)
 container_cent=[L[0]/2,L[1]/2,0.0] #Position of the center of the container"
@@ -65,8 +65,8 @@ dT_Chrono=ct.dt_fixed/1000.0
 #===============================================================================
 # Use balls as particles
 #===============================================================================
-ball_center = np.array([[0.25,9.6,0.0],
-                        ],'d')
+ball_center = np.array([[0.25,0.6,0.0],
+                        ],'d') #0.25,9.6,0.0
 nParticle = ball_center.shape[0]
 ball_radius = np.array([particle_diameter*0.5]*nParticle,'d')
 ball_velocity = np.zeros((nParticle, 3),'d')
@@ -482,7 +482,7 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         #now add the Python code that generates the list of rkpm nodes here
         #(OUTPUT : n_rkpm_nodes)
 
-        particle_diameter=0.25
+#        particle_diameter=0.25
         r=particle_diameter/2
         #nodes_th=36
         #nodes_r=10
@@ -491,7 +491,7 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         #rkpm_nodes = np.zeros((n_rkpm_nodes,2)) #node_x=[x;y]
         
         
-        nodes_r = 7
+        nodes_r = 3
         dr = r / nodes_r
         dR = np.linspace(dr, r, nodes_r)
         nR = len(dR)
@@ -514,6 +514,14 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         ###### need center of the particle
         rkpm_nodes[0][0] = center_x = ball_center[0,0]
         rkpm_nodes[0][1] = center_y = ball_center[0,1]
+
+        def rtpairs(r, n):
+            
+            for i in range(len(r)):
+                for j in range(int(n[i])):    
+                    yield r[i], j*(2 * np.pi / n[i])
+        #------------------------------------------------------------------
+        #RKPM shape function (INPUT: X1(Node),GCOO(Points); OUTPUT: SHP)
         
         c = 1
         for r, t in rtpairs(dR, nT):
@@ -530,19 +538,12 @@ class ChronoModel(AuxiliaryVariables.AV_base):
         self.rkpm_nodes = rkpm_nodes
         plt.savefig("rkpm_nodes.png")
         
-    def rtpairs(r, n):
-
-        for i in range(len(r)):
-            for j in range(int(n[i])):    
-                yield r[i], j*(2 * np.pi / n[i])
-        #------------------------------------------------------------------
-        #RKPM shape function (INPUT: X1(Node),GCOO(Points); OUTPUT: SHP)
 
     def RKPM_shape(self, X1,GCOO):
         #DEG = 1 #linear basis
         MSIZE = 3 # linear basis function [1,x,y]
         CONT = 3 # C3 conti
-        support = 2
+        support = 3
         h = 0.25/2/10 #dr #nodal spacing
         dilation = h * support
 
@@ -654,11 +655,16 @@ class ChronoModel(AuxiliaryVariables.AV_base):
 #                                  m.q['x'][eN, k])
                    self.rkpm_test[i,eN,k] = self.RKPM_shape(self.rkpm_nodes[i][:], m.q['x'][eN, k])
             fig = plt.figure()
-            plt.scatter(m.q['x'][:,:,0].flatten(),m.q['x'][:,:,1].flatten(), self.rkpm_test[i])
-            plt.savefig("rkpm_test_i={0}.png".format(i))
+            plt.scatter(self.rkpm_nodes[:,0],self.rkpm_nodes[:,1],marker='x')
+            #if self.rkpm_test[i]>0.0:
+            plt.scatter(m.q['x'][...,0],m.q['x'][...,1], c=self.rkpm_test[i,...],marker='o',s=10)
+            plt.colorbar()  # show color scale
+            #plt.scatter(m.q['x'][...,0],m.q['x'][...,1], c=self.rkpm_test[i,...],marker='o')
+            plt.savefig("rkpm_test_i_{0}.png".format(i))
 
         #check consistency
-        assert abs(sum(self.rkpm_test[i])-1.0) > 1.0e-5, 'The sum of shape functions is not the 1'
+        #assert abs(sum(self.rkpm_test[i])-1.0) > 1.0e-5, 'The sum of shape functions is not the 1'
+        
         return self
 
     def get_u(self):
