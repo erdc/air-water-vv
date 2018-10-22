@@ -12,19 +12,9 @@ mesh = domain.MeshOptions
 
 LevelModelType = VOS3P.LevelModel
 
-
-if ct.sedimentDynamics:
-    V_model=6
-    SED_model=5
-else:
-    V_model=4
-    SED_model=None
-
-coefficients = VOS3P.Coefficients(LS_model=None,
-                                  V_model=V_model,
-                                  SED_model=SED_model,
-                                  RD_model=None,
-                                  ME_model=0,
+coefficients = VOS3P.Coefficients(V_model=ct.V_model,
+                                  SED_model=ct.SED_model,
+                                  ME_model=ct.VOS_model,
                                   checkMass=False,
                                   useMetrics=ct.useMetrics,
                                   epsFact=ct.epsFact_vos,

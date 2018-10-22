@@ -8,42 +8,6 @@ ct = Context.get()
 
 LevelModelType = RANS3PSed.LevelModel
 
-if ct.sedimentDynamics:
-    VOS_model=0
-    VOF_model=1
-    LS_model=2
-    RD_model=3
-    MCORR_model=4
-    SED_model=5
-    V_model=6
-    PINC_model=7
-    PRESSURE_model=8
-    PINIT_model=9
-else:
-    VOS_model=None
-    SED_model=None
-    VOF_model=0
-    LS_model=1
-    RD_model=2
-    MCORR_model=3
-    V_model=4
-    PINC_model=5
-    PRESSURE_model=6
-    PINIT_model=7
-
-if useOnlyVF:
-    LS_model = None
-else:
-    LS_model = 2
-if useRANS >= 1:
-    Closure_0_model = 5; Closure_1_model=6
-    if useOnlyVF:
-        Closure_0_model=2; Closure_1_model=3
-    if movingDomain:
-        Closure_0_model += 1; Closure_1_model += 1
-else:
-    Closure_0_model = None
-    Closure_1_model = None
 
 coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                       sigma=0.0,
@@ -52,17 +16,16 @@ coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                       rho_1 = rho_1,
                                       nu_1 = nu_1,
                                       rho_s = rho_s,
-                                      nu_s = nu_s,
                                       g=g,
                                       nd=nd,
-                                      ME_model=SED_model,
-                                      PRESSURE_model=PRESSURE_model,
-                                      FLUID_model=V_model,
-                                      VOS_model=VOS_model,
-                                      VOF_model=VOF_model,
-                                      LS_model=LS_model,
-                                      Closure_0_model=Closure_0_model,
-                                      Closure_1_model=Closure_1_model,
+                                      ME_model=ct.SED_model,
+                                      PRESSURE_model=ct.P_model,
+                                      FLUID_model=ct.V_model,
+                                      VOS_model=ct.VOS_model,
+                                      VOF_model=ct.VOF_model,
+                                      LS_model=ct.LS_model,
+                                      Closure_0_model=ct.K_model,
+                                      Closure_1_model=ct.EPS_model,
                                       epsFact_density=epsFact_density,
                                       stokes=False,
                                       useVF=True,
@@ -93,7 +56,7 @@ coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                     staticSediment = False,
                                     vos_limiter = ct.sedClosure.vos_limiter,
                                     mu_fr_limiter = ct.sedClosure.mu_fr_limiter,
-                                    )
+                                      packPenalty = opts.packPenalty,)
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].us_dirichlet.init_cython(),
                        1: lambda x, flag: domain.bc[flag].vs_dirichlet.init_cython()}

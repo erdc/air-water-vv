@@ -16,18 +16,9 @@ T = ct.T
 
 LevelModelType = NCLS3P.LevelModel
 
-if ct.sedimentDynamics:
-    LS_model=2
-    RD_model=3
-    V_model=6
-else:
-    LS_model=1
-    RD_model=2
-    V_model=4
-
-coefficients = NCLS3P.Coefficients(V_model=V_model,
-                                   RD_model=RD_model,
-                                   ME_model=LS_model,
+coefficients = NCLS3P.Coefficients(V_model=ct.V_model,
+                                   RD_model=ct.RD_model,
+                                   ME_model=ct.LS_model,
                                    checkMass=False,
                                    useMetrics=ct.useMetrics,
                                    epsFact=ct.epsFact_consrv_heaviside,

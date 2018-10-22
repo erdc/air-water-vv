@@ -54,7 +54,7 @@ l_atol_res = 0.001*ct.kappa_nl_atol_res
 nl_atol_res = ct.kappa_nl_atol_res
 useEisenstatWalker = False
 
-maxNonlinearIts = 50
+maxNonlinearIts = 10
 maxLineSearches = 0
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['kappa']

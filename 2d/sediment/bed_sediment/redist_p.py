@@ -21,18 +21,12 @@ T = ct.T
 
 LevelModelType = RDLS3P.LevelModel
 
-if ct.sedimentDynamics:
-    LS_model=2
-    RD_model=3
-else:
-    LS_model=1
-    RD_model=2
 
 
 coefficients = RDLS3P.Coefficients(applyRedistancing=ct.applyRedistancing,
                                    epsFact=ct.epsFact_redistance,
-                                   nModelId=LS_model,
-                                   rdModelId=RD_model,
+                                   nModelId=ct.LS_model,
+                                   rdModelId=ct.RD_model,
                                    useMetrics=ct.useMetrics,
                                    backgroundDiffusionFactor=ct.backgroundDiffusionFactor)
 
