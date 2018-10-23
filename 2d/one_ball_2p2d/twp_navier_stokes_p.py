@@ -5,8 +5,7 @@ from proteus.mprans import RANS2P
 
 name = "momentum"
 LevelModelType = RANS2P.LevelModel
-coefficients = RANS2P.Coefficients( self,
-                                    epsFact=epsFact_viscosity,
+coefficients = RANS2P.Coefficients( epsFact=epsFact_viscosity,
                                     rho_0=rho_0,
                                     nu_0=nu_0,
                                     rho_1=rho_1,
@@ -32,8 +31,6 @@ coefficients = RANS2P.Coefficients( self,
                                     PRESSURE_SGE=ct.use_supg,
                                     VELOCITY_SGE=ct.use_supg,
                                     PRESSURE_PROJECTION_STABILIZATION=0.0)
-
-coefficients = My_Coefficients()
 #===============================================================================
 # BC
 #===============================================================================
