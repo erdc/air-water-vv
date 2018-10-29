@@ -46,11 +46,11 @@ opts=Context.Options([
     ('vos_limiter', 0.62, 'Weak limiter for vos'),
     ('mu_fr_limiter', 1e-3,'Hard limiter for contact stress friction coeff'),
      # numerical options
-    ("refinement", 25.,"L[0]/refinement"),
+    ("refinement", 10.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("cfl", 0.25 ,"Target cfl"),
+    ("cfl", 0.1 ,"Target cfl"),
     ("duration", 5.0 ,"Duration of the simulation"),
-    ("PSTAB", 1.0, "Affects subgrid error"),
+    ("PSTAB", 0.0, "Affects subgrid error"),
     ("res", 1.0e-8, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
@@ -108,7 +108,7 @@ sedClosure = HsuSedStress(aDarcy =  opts.alphaSed,
                           angFriction =  opts.angFriction,
                           vos_limiter = opts.vos_limiter,
                           mu_fr_limiter = opts.mu_fr_limiter,
-                          packPenalty = opts.packPenalty
+                          #packPenalty = opts.packPenalty
                           )
 
 # ----- DOMAIN ----- #
@@ -176,7 +176,8 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 
 tank.BC['y-'].setFreeSlip()
 
-tank.BC['y+'].setAtmosphere()
+#tank.BC['y+'].setAtmosphere()
+tank.BC['y+'].setFreeSlip()
 
 tank.BC['x-'].setFreeSlip()
 
@@ -269,15 +270,15 @@ genMesh = True
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = False
+useSuperlu = True#False
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
-spaceOrder = 1
+spaceOrder = 2
 pspaceOrder = 1
 useHex = False
 useRBLES = 0.0
 useMetrics = 1.0
 applyCorrection = True
-useVF = 1.0
+useVF = 0.0
 useOnlyVF = False
 useRANS = opts.useRANS  # 0 -- None
                         # 1 -- K-Epsilon
@@ -285,7 +286,7 @@ useRANS = opts.useRANS  # 0 -- None
 
 
 KILL_PRESSURE_TERM = False
-fixNullSpace_PresInc = True
+fixNullSpace_PresInc = False
 INTEGRATE_BY_PARTS_DIV_U_PresInc = True
 CORRECT_VELOCITY = True
 STABILIZATION_TYPE = 0 #0: SUPG, 1: EV via weak residual, 2: EV via strong residual
@@ -324,8 +325,8 @@ elif spaceOrder == 2:
         elementBoundaryQuadrature = CubeGaussQuadrature(nd - 1, 4)
     else:
         basis = C0_AffineQuadraticOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd, 4)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 4)
+        elementQuadrature = SimplexGaussQuadrature(nd, 5)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 5)
 
 if pspaceOrder == 1:
     if useHex:
@@ -357,16 +358,16 @@ if useMetrics:
     ls_shockCapturingFactor = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
+    vof_sc_beta = 1.5
     vos_shockCapturingFactor =  opts.vos_SC # <------------------------------------- 
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
-    vos_sc_beta = 1.0
-    rd_shockCapturingFactor = 0.5
+    vos_sc_beta = 1.5
+    rd_shockCapturingFactor = 0.9
     rd_lag_shockCapturing = False
     epsFact_vos =opts.epsFact_density
     epsFact_density = opts.epsFact_density # 1.5
@@ -377,11 +378,11 @@ if useMetrics:
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
+    kappa_sc_beta = 1.5
     dissipation_shockCapturingFactor = 0.25
     dissipation_lag_shockCapturing = True  #False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = 1.5
 else:
     ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True
@@ -417,8 +418,8 @@ else:
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.0
 
-ns_nl_atol_res = max(opts.res, 0.001 * he ** 2)
-ns_sed_nl_atol_res = max(opts.res, 0.001 * he ** 2)
+ns_nl_atol_res = 1.0e-3#max(opts.res, 0.001 * he ** 2)
+ns_sed_nl_atol_res = 1.0e-3#max(opts.res, 0.001 * he ** 2)
 vof_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
 vos_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
 ls_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
