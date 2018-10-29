@@ -32,7 +32,9 @@ coefficients = VOS3P.Coefficients(LS_model=None,
                                   sc_beta=ct.vos_sc_beta,
                                   movingDomain=ct.movingDomain,
                                   vos_function=ct.vos_function,
-                                  )
+                                  STABILIZATION_TYPE=0,
+                                  FCT=False,
+                                  LUMPED_MASS_MATRIX=False)
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].vos_dirichlet.init_cython()}
 
