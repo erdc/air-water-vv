@@ -18,7 +18,7 @@ mesh = domain.MeshOptions
 # time stepping
 runCFL = ct.runCFL
 timeIntegration = TimeIntegration.BackwardEuler_cfl
-#timeIntegration = VOS3P.RKEV#TimeIntegration.BackwardEuler_cfl
+timeIntegration = VOS3P.RKEV#TimeIntegration.BackwardEuler_cfl
 stepController  = StepControl.Min_dt_controller
 
 # mesh options
@@ -34,7 +34,7 @@ elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 
-femSpaces = {0:ct.basis}
+femSpaces = {0:ct.pbasis}
 
 massLumping       = False
 numericalFluxType = VOS3P.NumericalFlux
@@ -45,7 +45,7 @@ shockCapturing    = VOS3P.ShockCapturing(physics.coefficients,nd,shockCapturingF
 fullNewtonFlag = True
 multilevelNonlinearSolver = NonlinearSolvers.Newton
 levelNonlinearSolver      = NonlinearSolvers.Newton
-#levelNonlinearSolver      = NonlinearSolvers.ExplicitConsistentMassMatrixForVOF#Newton
+levelNonlinearSolver      = NonlinearSolvers.ExplicitConsistentMassMatrixForVOF#Newton
 #levelNonlinearSolver      = NonlinearSolvers.ExplicitLumpedMassMatrix
 
 nonlinearSmoother = None
