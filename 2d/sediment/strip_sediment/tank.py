@@ -23,8 +23,8 @@ opts=Context.Options([
     # numerical options
     ("refinement", 50.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("cfl", 0.33 ,"Target cfl"),
-    ("duration", 10.0 ,"Duration of the simulation"),
+    ("cfl", 0.1 ,"Target cfl"),
+    ("duration", 2.0 ,"Duration of the simulation"),
     ("PSTAB", 0.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
@@ -36,7 +36,8 @@ opts=Context.Options([
     #====Sed properties
     ("grain", 0.0001,"grain size"),
     ("vos_limiter", 0.633,"Limit for VOS through contact pressure"),
-     ("mu_fr_limiter",1.,"Limit for mu friction")
+    ("mu_fr_limiter",1.,"Limit for mu friction"),
+    ("STABILIZATION_TYPE",0,"0: supg, 4: vos limited")
     ])
 
 
@@ -242,7 +243,6 @@ KILL_PRESSURE_TERM = False
 fixNullSpace_PresInc = False
 INTEGRATE_BY_PARTS_DIV_U_PresInc = True
 CORRECT_VELOCITY = True
-STABILIZATION_TYPE = 0 #0: SUPG, 1: EV via weak residual, 2: EV via strong residual
 
 # Input checks
 if spaceOrder not in [1, 2]:
