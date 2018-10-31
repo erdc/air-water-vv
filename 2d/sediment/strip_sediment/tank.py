@@ -12,14 +12,14 @@ from proteus.mprans.SedClosure import  HsuSedStress
 
 opts=Context.Options([
     # predefined test cases
-    ("waterLine_vos_z", 1., "Column height"),
+    ("waterLine_vos_z", 0.5, "Column height"),
     ("waterLine_z", 1.2, "Heigth of free surface above bottom"),
     ("stripThickness", 0.2, "Heigth of free surface above bottom"),
     ("Lx", 0.5, "Length of the numerical domain"),
     ("Ly", 1.5, "Heigth of the numerical domain"),
     ("dtout", 0.05, "Time interval for output"),
     # sediment parameters
-    ('cSed', 0.55,'Sediment concentration'),
+    ('cSed', 0.25,'Sediment concentration'),
     # numerical options
     ("refinement", 50.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
