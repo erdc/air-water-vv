@@ -19,10 +19,9 @@ from proteus import WaveTools as wt
 opts= Context.Options([
     ('sw_model',0,"sw_model = {0,1} for {SWEs,DSWEs}"),
     ("final_time",1.0,"Final time for simulation"),
-    ("dt_output",0.05,"Time interval to output solution"),
+    ("dt_output",0.1,"Time interval to output solution"),
     ("cfl",0.33,"Desired CFL restriction"),
-    ("refinement",5,"Refinement level"),
-    # gravity #changed from g to grav to not use same variable as below
+    ("refinement",4,"Refinement level"),
     ("grav", [0, -9.81, 0], "Gravity vector in m/s^2"),
     # waves
     ("water_level", 1., "Water level from y=0"),
@@ -30,16 +29,17 @@ opts= Context.Options([
     ("wave_height", 0.025, "Height of the waves in m"),
     ("depth", 1., "Wave depth in m"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
-    ("wavelength", 5., "Wavelength in m"),
+    ("wavelength", 3., "Wavelength in m"),
     ])
 
 ###################
 # DOMAIN AND MESH #
 ###################
-L=(15.0,1.5)
+L=(25.0,1.5)
+coord = [0,0,0]
 refinement = opts.refinement
-domain = RectangularDomain(L=L,x=[0,0,0])
-inlet_x_position = 0.0 # this is assuming domain is created starting at (0,0)
+domain = RectangularDomain(L=L,x=coord)
+inlet_x_position = coord[0]
 outlet_x_position = L[0]
 
 
@@ -65,7 +65,7 @@ mwl = opts.water_level
 depth = opts.depth
 direction = opts.wave_dir
 # define wave as the Monochromiatic wave from WaveTools
-wave = wt.MonochromaticWaves(period, height, mwl, depth, np.array(opts.grav), direction,"Linear")
+wave = wt.MonochromaticWaves(period, height, mwl, depth, np.array(opts.grav), direction)
 
 #####################################
 # DEFINE SOME NEEDED FUNCTIONS HERE #
@@ -93,23 +93,16 @@ class momV_at_t0(object):
 ##### BOUNDARY CONDITIONS #####
 ###############################
 def water_height_DBC(X,flag):
-    # if X[0]==0:
-    #     eta = (depth + wave.eta(X,t))
-    #     # this is water height = eta - bathymetry eta - bathymetry(X)
-    #     return lambda x,t: eta - bathymetry(X)
     if X[0]==outlet_x_position:
         # here we set outlet to have same depth as initial depth
         return lambda x,t: depth
 def x_mom_DBC(X,flag):
     if X[0]==inlet_x_position:
         # here we set momentum (waterHeight * vel_x) flow at the inlet
-        return lambda X,t: ((depth + wave.eta(X,t)) - bathymetry(X)) * wave.u(X,t)[0]
+        return lambda X,t: depth * wave.u(X,t)[0]
 def y_mom_DBC(X,flag):
-    # no vel_y flow for now
-    if X[0]==inlet_x_position:
-        return lambda X,t: 0.0
-    elif X[0]==outlet_x_position:
-        return lambda X,t: 0.0
+        # no vel_y flow for now
+        return lambda x,t: 0.0
 
 
 
@@ -122,7 +115,7 @@ initialConditions = {'water_height': water_height_at_t0(),
                      'y_mom': momV_at_t0()}
 boundaryConditions = {'water_height': water_height_DBC,
                       'x_mom': x_mom_DBC,
-                      'y_mom': lambda x,flag: lambda x,t: 0.0}
+                      'y_mom': y_mom_DBC}
 mySWFlowProblem = SWFlowProblem.SWFlowProblem(sw_model=0,
                                               cfl=0.33,
                                               outputStepping=outputStepping,
