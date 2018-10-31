@@ -244,8 +244,10 @@ if opts.caisson is True:
     caisson.rotate(ang, pivot=caisson.barycenter)
     system = crb.ProtChSystem(np.array([0., -9.81, 0.]))
     system.setTimeStep(opts.chrono_dt)
-    body = crb.ProtChBody(shape=caisson,
-                        system=system)
+    #body = crb.ProtChBody(shape=caisson,
+    body = crb.ProtChBody(system=system)
+    body.attachShape(caisson)
+
     from proteus.mbd import pyChronoCore as pych
     x, y, z = caisson.barycenter
     pos = pych.ChVector(x, y, z)
@@ -414,7 +416,7 @@ if opts.refinement is True:
     field_list = []
 
     # refinement free surface
-    box1 = py2gmsh.Fields.Box(mesh=mesh)
+    box1 = py2gmsh.Field.Box(mesh=mesh)
     box1.VIn = he
     box1.VOut = he_max
     box1.XMin = -tank_sponge[0]
@@ -430,14 +432,14 @@ if opts.refinement is True:
     l1 = py2gmsh.Entity.Line([p0, p1], mesh=mesh)
     l2 = py2gmsh.Entity.Line([p2, p3], mesh=mesh)
 
-    bl2 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+    bl2 = py2gmsh.Field.BoundaryLayer(mesh=mesh)
     bl2.hwall_n = he
     bl2.ratio = grading
     bl2.EdgesList = [l1, l2]
     field_list += [bl2]
 
     # max element size in water phase
-    box2 = py2gmsh.Fields.Box(mesh=mesh)
+    box2 = py2gmsh.Field.Box(mesh=mesh)
     box2.VIn = he_max_water
     box2.VOut = he_max
     box2.XMin = -tank_sponge[0]
@@ -448,7 +450,7 @@ if opts.refinement is True:
 
     if opts.caisson:
         # boundary layer on caisson
-        bl1 = py2gmsh.Fields.BoundaryLayer()
+        bl1 = py2gmsh.Field.BoundaryLayer()
         bl1.hwall_n = he_caisson
         bl1.ratio = grading
         bl1.EdgesList = mesh.getLinesFromIndex([i+1 for i in range(len(caisson.segments))])
@@ -466,7 +468,7 @@ if opts.refinement is True:
         c2 = py2gmsh.Entity.Circle(p2, p0, p3, nb=101, mesh=mesh)
 
         # refined circle around caisson
-        b1 = py2gmsh.Fields.Ball(mesh=mesh)
+        b1 = py2gmsh.Field.Ball(mesh=mesh)
         b1.VIn = he
         b1.VOut = he_max
         b1.Radius = refinement_caisson
@@ -476,14 +478,14 @@ if opts.refinement is True:
         field_list += [b1]
 
         # boundary layer on circle around caisson
-        bl3 = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+        bl3 = py2gmsh.Field.BoundaryLayer(mesh=mesh)
         bl3.hwall_n = he
         bl3.ratio = grading
         bl3.EdgesList = [c1, c2]
         field_list += [bl3]
 
     # background field
-    fmin = py2gmsh.Fields.Min(mesh=mesh)
+    fmin = py2gmsh.Field.Min(mesh=mesh)
     fmin.FieldsList = field_list
     mesh.setBackgroundField(fmin)
 
