@@ -23,7 +23,7 @@ opts=Context.Options([
     # numerical options
     ("refinement", 50.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("cfl", 0.1 ,"Target cfl"),
+    ("cfl", 0.5 ,"Target cfl"),
     ("duration", 2.0 ,"Duration of the simulation"),
     ("PSTAB", 0.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
