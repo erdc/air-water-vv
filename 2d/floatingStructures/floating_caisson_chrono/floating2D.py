@@ -53,7 +53,7 @@ opts=Context.Options([
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", True, "True/False"),
-    ("T", 10.0, "Simulation time"),
+    ("T", 1.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed", None, "Fixed (maximum) time step"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
@@ -402,8 +402,10 @@ st.assembleDomain(domain)
 he = opts.he
 if opts.refinement is True:
     import py2gmsh
-    from MeshRefinement import geometry_to_gmsh
-    mesh = geometry_to_gmsh(domain)
+    from py2gmsh.Mesh import *
+    from py2gmsh.Entity import *
+    from py2gmsh.Field import *
+    mesh = geometry2mesh(domain)
     grading = opts.refinement_grading
     he = opts.he
     he_max = opts.he_max
@@ -509,8 +511,6 @@ rho_1=1.205
 nu_1 =1.500e-5
 sigma_01=0.0
 g = [0., -9.81]
-
-
 
 
 from math import *
