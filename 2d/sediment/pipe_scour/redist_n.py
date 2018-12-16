@@ -30,7 +30,7 @@ triangleOptions = mesh.triangleOptions
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
-femSpaces = {0: ct.basis}
+femSpaces = {0: ct.pbasis}
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 

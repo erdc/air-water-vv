@@ -25,7 +25,7 @@ opts=Context.Options([
     ("hole_tank", True, "hole"),
     ("waterLevel" , 0.35+0.16, "waterLevel"),
     # current
-    ("inflow_vel", 1e-10, "inflow velocity"),
+    ("inflow_vel", 1.0, "inflow velocity"),
     ("GenZone", not True, "on/off"),
     ("AbsZone", not True, "on/off"),
     # cylinder
@@ -39,15 +39,15 @@ opts=Context.Options([
     # numerical options
     ("he", 0.04,"he"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("openTop",  True, "Enable open atmosphere for air phase on the top"),
-    ("cfl", 0.5 ,"Target cfl"),
-    ("duration", 1.0 ,"Duration of the simulation"),
-    ("PSTAB", 1.0, "Affects subgrid error"),
+    ("openTop",  False, "Enable open atmosphere for air phase on the top"),
+    ("cfl", 0.33 ,"Target cfl"),
+    ("duration", 20.0 ,"Duration of the simulation"),
+    ("PSTAB", 0.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
     ("vos_SC",0.9,"vos shock capturing"),
-    ("useRANS", 1, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
+    ("useRANS", 0, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
@@ -304,7 +304,7 @@ if opts.circle2D:
 tank.BC['y-'].setNoSlip()
 
 ################################## y+ ######################
-tank.BC['y+'].setFreeSlip()
+tank.BC['y+'].setNoSlip()
 if opts.openTop:
     tank.BC['y+'].setAtmosphere(orientation=np.array([0,1,0]))
 
@@ -312,6 +312,7 @@ if opts.openTop:
 
 
 
+#tank.BC['x-'].setNoSlip()
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current, smoothing = 3*he, vert_axis=1, kInflow = kInflow, dInflow = dissipationInflow)
     
 
@@ -319,7 +320,7 @@ tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current, smoothing = 
 
 
 #################################### x+ ###############################
-#tank.BC['x+'].setFreeSlip()
+#tank.BC['x+'].setNoSlip()
 
 
     
@@ -445,15 +446,15 @@ genMesh = True
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = False
+useSuperlu = True#False
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
-spaceOrder = 1
+spaceOrder = 2
 pspaceOrder = 1
 useHex = False
 useRBLES = 0.0
 useMetrics = 1.0
 applyCorrection = True
-useVF = 1.0
+useVF = 0.0
 useOnlyVF = False
 useRANS = opts.useRANS  # 0 -- None
                         # 1 -- K-Epsilon
@@ -461,7 +462,7 @@ useRANS = opts.useRANS  # 0 -- None
 
 
 KILL_PRESSURE_TERM = False
-fixNullSpace_PresInc = True
+fixNullSpace_PresInc = False
 INTEGRATE_BY_PARTS_DIV_U_PresInc = True
 CORRECT_VELOCITY = True
 STABILIZATION_TYPE = 0 #0: SUPG, 1: EV via weak residual, 2: EV via strong residual
@@ -500,8 +501,8 @@ elif spaceOrder == 2:
         elementBoundaryQuadrature = CubeGaussQuadrature(nd - 1, 4)
     else:
         basis = C0_AffineQuadraticOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd, 4)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 4)
+        elementQuadrature = SimplexGaussQuadrature(nd, 5)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 5)
 
 if pspaceOrder == 1:
     if useHex:
@@ -524,25 +525,25 @@ ns_sed_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.5
+    ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ns_sed_shockCapturingFactor = 0.5
+    ns_sed_shockCapturingFactor = 0.9
     ns_sed_lag_shockCapturing = True
     ns_sed_lag_subgridError = True
     ls_shockCapturingFactor = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
+    vof_sc_beta = 1.5
     vos_shockCapturingFactor = opts.vos_SC # <------------------------------------- 
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
-    vos_sc_beta = 1.0
-    rd_shockCapturingFactor = 0.5
+    vos_sc_beta = 1.5
+    rd_shockCapturingFactor = 0.9
     rd_lag_shockCapturing = False
     epsFact_vos =opts.epsFact_density
     epsFact_density = opts.epsFact_density # 1.5
@@ -553,11 +554,11 @@ if useMetrics:
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
+    kappa_sc_beta = 1.5
     dissipation_shockCapturingFactor = 0.25
     dissipation_lag_shockCapturing = True  #False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = 1.5
 else:
     ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True

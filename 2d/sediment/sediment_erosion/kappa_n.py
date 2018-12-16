@@ -20,7 +20,7 @@ elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 timeIntegration = TimeIntegration.BackwardEuler_cfl
 stepController  = StepControl.Min_dt_cfl_controller
 
-femSpaces = {0:ct.basis}
+femSpaces = {0:ct.pbasis}
 
 massLumping       = False
 numericalFluxType = Kappa.NumericalFlux

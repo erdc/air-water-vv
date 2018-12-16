@@ -349,10 +349,10 @@ ns_sed_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.5
+    ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ns_sed_shockCapturingFactor = 0.5
+    ns_sed_shockCapturingFactor = 0.9
     ns_sed_lag_shockCapturing = True
     ns_sed_lag_subgridError = True
     ls_shockCapturingFactor = 0.5
@@ -398,7 +398,7 @@ else:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor = 5.
+    vos_shockCapturingFactor = 2.
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0
@@ -418,8 +418,8 @@ else:
     dissipation_sc_uref = 1.0
     dissipation_sc_beta = 1.0
 
-ns_nl_atol_res = 1.0e-3#max(opts.res, 0.001 * he ** 2)
-ns_sed_nl_atol_res = 1.0e-3#max(opts.res, 0.001 * he ** 2)
+ns_nl_atol_res = max(opts.res, 0.001 * he ** 2)
+ns_sed_nl_atol_res = max(opts.res, 0.001 * he ** 2)
 vof_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
 vos_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
 ls_nl_atol_res =  max(opts.res, 0.001 * he ** 2)

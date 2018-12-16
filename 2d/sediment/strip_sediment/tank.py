@@ -21,7 +21,7 @@ opts=Context.Options([
     # sediment parameters
     ('cSed', 0.55,'Sediment concentration'),
     # numerical options
-    ("refinement", 50.,"L[0]/refinement"),
+    ("refinement", 25.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("cfl", 0.33 ,"Target cfl"),
     ("duration", 10.0 ,"Duration of the simulation"),

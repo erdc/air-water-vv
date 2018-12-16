@@ -43,7 +43,8 @@ coefficients=PresInc.Coefficients(rho_f_min = (1.0-1.0e-8)*rho_1,
                                   VOF_model= VOF_model,
                                   VOS_model= VOS_model,
                                   fixNullSpace=False, 
-                                  INTEGRATE_BY_PARTS_DIV_U=True)
+                                  INTEGRATE_BY_PARTS_DIV_U=True,
+                                  nullSpace='ConstantNullSpace')
 
 
 #pressure increment should be zero on any pressure dirichlet boundaries

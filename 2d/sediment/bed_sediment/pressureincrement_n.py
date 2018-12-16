@@ -25,16 +25,22 @@ matrix = LinearAlgebraTools.SparseMatrix
 
 linear_solver_options_prefix = 'phi_'
 
-#if ct.useSuperlu:
-#    multilevelLinearSolver = LinearSolvers.LU
-#    levelLinearSolver      = LinearSolvers.LU
-#else:
+if ct.useSuperlu:
+    multilevelLinearSolver = LinearSolvers.LU
+    levelLinearSolver      = LinearSolvers.LU
+else:
+    multilevelLinearSolver = KSP_petsc4py
+    levelLinearSolver      = KSP_petsc4py
+    parallelPartitioningType    = parallelPartitioningType
+    nLayersOfOverlapForParallel = nLayersOfOverlapForParallel
+    nonlinearSmoother = None
+    linearSmoother    = None
+
 multilevelLinearSolver = KSP_petsc4py
 levelLinearSolver      = KSP_petsc4py
 parallelPartitioningType    = parallelPartitioningType
 nLayersOfOverlapForParallel = nLayersOfOverlapForParallel
-#nonlinearSmoother = None
-#linearSmoother    = None
+nonlinearSmoother = None
 linearSmoother         = LinearSolvers.NavierStokesPressureCorrection # pure neumann laplacian solver
 
 
