@@ -160,7 +160,7 @@ elif usePUMI and not genMesh:
     hmax = he*2.0;
     hmin = he/2.0;
     hPhi = he/2.0;#/4.0
-    domain.PUMIMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, hPhi = hPhi, adaptMesh=adaptMeshFlag, numIter=adaptMesh_numIter, numAdaptSteps=adaptMesh_nSteps, sfConfig="isotropic",targetError=1.0,logType="off",reconstructedFlag=2,gradingFact=1.2)
+    domain.PUMIMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, hPhi = hPhi, adaptMesh=adaptMeshFlag, numIter=adaptMesh_numIter, numAdaptSteps=adaptMesh_nSteps, sfConfig="combined",targetError=1.0,logType="off",reconstructedFlag=2,gradingFact=1.2)
     #read the geometry and mesh
     parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.element
     domain.MeshOptions.setParallelPartitioningType('element')
