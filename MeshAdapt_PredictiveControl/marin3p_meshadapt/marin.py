@@ -12,7 +12,7 @@ name = "marin"
 opts = Context.Options([
     ("strong", False, "Use strong BC for NSE"),
     ("openTop", True, "Open the top of the tank to the atmosphere"),
-    ("he", 0.05, "Maximum mesh element diameter"),
+    ("he", 0.1, "Maximum mesh element diameter"),
     ("genMesh", False, "Generate a new mesh"),
     ("T", 7.4, "Simulate over over the interval [0,T]"),
     ("dt_out", 0.01, "Save the solution every dt_out steps"),
@@ -20,7 +20,10 @@ opts = Context.Options([
     ("cfl",0.33, "CFL number to use for time stepping"),
     ("rans3p",False, "Use RANS3P model insteady of RANS2P"),
     ("useOnlyVF",False, "Turn off CLSVOF"),
-    ("usePUMI", True, "usePUMI workflow")
+    ("usePUMI", True, "usePUMI workflow"),
+    ("adapt",0,"adapt mesh?"),
+    ("model", 'Reconstructed.dmg',"what is the geometric model"),
+    ("mesh", 'Reconstructed.smb', "what is the mesh")
     ])
 
 if opts.rans3p:
@@ -151,17 +154,18 @@ elif usePUMI and not genMesh:
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     domain = Domain.PUMIDomain() #initialize the domain
     he = opts.he*float(spaceOrder)
-    adaptMeshFlag = 1
-    adaptMesh_nSteps =5
+    adaptMeshFlag = opts.adapt
+    adaptMesh_nSteps =10
     adaptMesh_numIter = 10
     hmax = he*2.0;
-    hmin = he/4.0;
-    hPhi = he/4.0;#/4.0
+    hmin = he/2.0;
+    hPhi = he/2.0;#/4.0
     domain.PUMIMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, hPhi = hPhi, adaptMesh=adaptMeshFlag, numIter=adaptMesh_numIter, numAdaptSteps=adaptMesh_nSteps, sfConfig="isotropic",targetError=1.0,logType="off",reconstructedFlag=2,gradingFact=1.2)
     #read the geometry and mesh
     parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.element
     domain.MeshOptions.setParallelPartitioningType('element')
-    domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "Reconstructed.smb")
+    #domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "Reconstructed.smb") #serial run
+    domain.PUMIMesh.loadModelAndMesh(opts.model, opts.mesh) #parallel run
     #he = hPhi #for solver tolerance
     he = hmin #for solver tolerance
 else:
