@@ -1,5 +1,5 @@
 ## Purpose
-To generate a proper interface of particles
+To generate a proper interface of the class `Particles`
 
 ## How to run it
 1. Use `make` to generate `Chrono.so` in the folder `chrono-2d` 
