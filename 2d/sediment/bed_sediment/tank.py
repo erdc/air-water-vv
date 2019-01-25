@@ -60,7 +60,6 @@ opts=Context.Options([
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
-    ("packPenalty", 1e6, "Cmu coefficient for the turbulence model"),
     ])
 
 # SO Models
@@ -108,7 +107,6 @@ sedClosure = HsuSedStress(aDarcy =  opts.alphaSed,
                           angFriction =  opts.angFriction,
                           vos_limiter = opts.vos_limiter,
                           mu_fr_limiter = opts.mu_fr_limiter,
-                          packPenalty = opts.packPenalty
                           )
 
 # ----- DOMAIN ----- #
@@ -176,7 +174,7 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 
 tank.BC['y-'].setFreeSlip()
 
-tank.BC['y+'].setAtmosphere()
+tank.BC['y+'].setAtmosphere(orientation=np.array([0., +1.,0.]))
 
 tank.BC['x-'].setFreeSlip()
 
