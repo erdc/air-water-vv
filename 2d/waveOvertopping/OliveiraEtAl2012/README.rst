@@ -10,7 +10,7 @@ The domain is fitted with an absorption zone behind the paddle to prevent energy
    :align: center
 
 .. figure:: ./Paddle.png
-   :width: 100%
+   :width: 50%
    :align: center
 
 
