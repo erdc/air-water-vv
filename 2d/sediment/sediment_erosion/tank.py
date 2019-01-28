@@ -18,7 +18,7 @@ from proteus import WaveTools as wt
 
 
 opts=Context.Options([
-    ("dtout", 0.05, "Time interval for output"),
+    ("dtout", 0.1, "Time interval for output"),
     ("Refiment", 4, "refinement"),
     ("tank_dim_x", 1.6, "x_dim"),
     ("tank_dim_y", 0.6, "y_dim"),
@@ -37,17 +37,17 @@ opts=Context.Options([
     # sediment parameters
     ('cSed', 0.62,'Sediment concentration'),
     # numerical options
-    ("he", 0.04,"he"),
+    ("he", 0.02,"he"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop",  True, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.5 ,"Target cfl"),
-    ("duration", 1.0 ,"Duration of the simulation"),
+    ("duration", 10.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
     ("vos_SC",0.9,"vos shock capturing"),
-    ("useRANS", 1, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
+    ("useRANS", True, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
@@ -85,8 +85,8 @@ nd = 2
 
 steady_current = wt.SteadyCurrent(U=np.array([opts.inflow_vel,0.,0.]),mwl=opts.waterLevel,rampTime=0.1)
 I = 0.03
-kInflow = 1.5*abs(opts.inflow_vel*I)
-dissipationInflow = 0.09*(kInflow**1.5)*opts.waterLevel
+kInflow = 1e-15#.5*(opts.inflow_vel*I)
+dissipationInflow =1e-15# 0.09*(kInflow**1.5)*opts.waterLevel
 
 
 # ----- Sediment stress ----- #

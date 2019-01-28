@@ -31,11 +31,9 @@ opts=Context.Options([
     ("waterLevel" , 0.35+0.16, "waterLevel"),
     # current
     ("current",True, "yes or no"),
-    ("inflow_vel", 0.3, "inflow velocity"),
+    ("inflow_vel", 1e-10, "inflow velocity"),
     ("GenZone", not True, "on/off"),
     ("AbsZone", not True, "on/off"),
-    #opentop
-    ("openTop", True, "Enable open atmosphere"),
     # cylinder
     ("cylinder_radius", 0.05, "radius of cylinder"),
     ("cylinder_pos_x", 0.8, "x position of cylinder"),
@@ -43,17 +41,18 @@ opts=Context.Options([
     ("circle2D", True, "switch on/off cylinder"),
     ("circleBC", 'NoSlip','circle BC'),
     # sediment parameters
-    ('cSed', 0.63,'Sediment concentration'),
+    ('cSed', 0.6,'Sediment concentration'),
     # numerical options
-    ("refinement", 25.,"L[0]/refinement"),
+    ("he", 0.04,"he"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop",  True, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.25 ,"Target cfl"),
-    ("duration", 30.0 ,"Duration of the simulation"),
+    ("duration", 1.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
+    ("vos_SC",0.9,"vos shock capturing"),
     ("useRANS", 0, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
@@ -81,8 +80,8 @@ sedClosure = HsuSedStress(aDarcy =  150.0,
                           mContact =  3.0,
                           nContact =  5.0,
                           angFriction =  pi/6.,
-                          vos_limiter = opts.cSed,
-                          mu_fr_limiter = 1e-1,
+                          vos_limiter = 0.62,
+                          mu_fr_limiter = 1e-3,
                           )
 
 # ----- DOMAIN ----- #
@@ -102,9 +101,7 @@ rho_0 = 998.2
 nu_0 = 1.004e-6
 
 # Air
-#rho_1 = rho_0
-#nu_1 = nu_0
-rho_1 =  rho_0 #1.205 #rho_0
+rho_1 = rho_0 # 1.205 #
 nu_1 =  nu_0 #1.500e-5 # 
 
 # Sediment
@@ -131,7 +128,7 @@ waterLevel = opts.waterLevel
 
 #L = (opts.Lx, opts.Ly)
 #he = L[0]/opts.refinement
-he = 0.010 
+he = opts.he
 #dim = dimx, dimy = L
 #coords = [ dimx/2., dimy/2. ]
 
@@ -282,20 +279,6 @@ tank.BC['y-'].setFreeSlip()
 
 ################################## y+ ######################
 tank.BC['y+'].setFreeSlip()
-if opts.openTop:
-    tank.BC['y+'].reset()
-    tank.BC['y+'].setAtmosphere()
-    #tank.BC['y+'].v_dirichlet.uOfXT = None
-    tank.BC['y+'].p_advective.setConstantBC(0.0)
-    tank.BC['y+'].p_dirichlet.setConstantBC(0.0)
-    tank.BC['y+'].pInc_dirichlet.setConstantBC(0.0)
-    #tank.BC['y+'].pInc_advective.setConstantBC(0.0)
-    #tank.BC['y+'].pInc_diffusive.setConstantBC(0.0)
-    tank.BC['y+'].pInit_dirichlet.setConstantBC(0.0)
-    tank.BC['y+'].u_advective.setConstantBC(0.0)
-    tank.BC['y+'].v_advective.setConstantBC(0.0)
-    tank.BC['y+'].u_diffusive.setConstantBC(0.0)
-    tank.BC['y+'].v_diffusive.setConstantBC(0.0)
 
 ####################################### x- ########################
 tank.BC['x-'].setFreeSlip()
@@ -439,7 +422,6 @@ nDTout= int(round(T/dt_fixed))
 runCFL = opts.cfl
 
 sedimentDynamics=opts.sedimentDynamics
-openTop=opts.openTop
 
 #----------------------------------------------------
 #  Discretization -- input options
@@ -449,7 +431,7 @@ genMesh = True
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = not True
+useSuperlu = False
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
 pspaceOrder = 1
@@ -542,7 +524,7 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor = 2. # <------------------------------------- 
+    vos_shockCapturingFactor = opts.vos_SC # <------------------------------------- 
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0
@@ -577,7 +559,7 @@ else:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor = 10.
+    vos_shockCapturingFactor = 2.
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0

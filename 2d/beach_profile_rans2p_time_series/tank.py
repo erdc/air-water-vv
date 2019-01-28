@@ -12,12 +12,10 @@ opts=Context.Options([
     # predefined test cases
     ("water_level", 1.425, "Height of free surface above bottom"), # Choose waterLevels=[0.425, 0.463]
     # waves
-    ('waveType', 'Fenton', 'Wavetype for regular waves, Linear or Fenton'),
+    ('waveType', 'TimeSeries', 'Wavetype for regular waves,  Linear or Fenton for regular waves, TimeSeries for importing field data'),
     ("wave_period", 10, "Period of the waves"), # Choose periods=[0.5, 0.8, 1.1, 1.5, 2.8, 3.9, 4.0]
     ("wave_height", 0.234, "Height of the waves"), # # Choose for d=0.425-->[0.025, 0.075, 0.125, 0.234]. Choose for d=0.463-->[0.025, 0.075, 0.125, 0.254].
     ('wavelength', 9, 'Wavelength only if Fenton is activated'), # Choose for d=0.425-->[0.4, 1.0, 1.8, 2.9]. Choose for d=0.463-->[0.4, 1.0, 1.8, 2.9, 3.0, 5.7, 5.9, 8.8, 9.4].
-    ('Ycoeff', [0.19167938     ,  0.01943414     ,  0.00299676     ,  0.00055096     ,  0.00011165  ,  0.00002413     ,  0.00000571     ,  0.00000251], 'Ycoeff only if Fenton is activated'), 
-    ('Bcoeff', [0.19063009     ,  0.00072851     ,  0.00002905     ,  0.00000131     ,  0.00000006  ,  0.00000000     ,  0.00000000     ,  0.00000000], 'Bcoeff only if Fenton is activated'), 
     # Geometry of the tank - left lower boundary at (0.,0.,0.)
     ("Ls",   2.0, "Distance of the front toe of the structure end from generation zone in wavelengths"),
     ("Lend", 2.0, "Distance of the back toe of the structure end from absorption zone in wavelengths"),
@@ -69,14 +67,11 @@ g =np.array([0.,-9.8,0.])
 gAbs=sqrt(sum(g**2))
 
 
-data_wave = np.loadtxt("TimeSeries.txt")
-#data_wave = data_wave.transpose()
-
-data_wave = np.array(data_wave)
 
 
 # ----- WAVE input ----- #
-if opts.waveType=='Linear' or 'Fenton':
+
+if opts.waveType=='Fenton' or opts.waveType=='Linear' :
     waveinput = wt.MonochromaticWaves(period=period,
                                   waveHeight=waveHeight,
                                   mwl=mwl,
@@ -91,7 +86,7 @@ if opts.waveType=='Linear' or 'Fenton':
 
 
 if opts.waveType=='TimeSeries':
-    waveinput = wt.TimeSeries(timeSeriesFile = "TimeSeries_output.txt",
+    waveinput = wt.TimeSeries(timeSeriesFile = "TimeSeries.txt",
                               skiprows = 0,
                               timeSeriesPosition = np.array([0,0,0]),
                               depth = waterLevel,
@@ -99,11 +94,8 @@ if opts.waveType=='TimeSeries':
                               mwl = waterLevel,
                               waveDir = np.array([1,0,0]),
                               g = np.array([0,-9.81,0]),
-                              arrayData = True,
-                              seriesArray = data_wave,
                               Lgen = np.array([10,0,0]),
-                              #rec_direct = False,
-                              fast = not False)
+                              )
                               
 
 

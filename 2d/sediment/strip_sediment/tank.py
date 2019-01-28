@@ -18,8 +18,32 @@ opts=Context.Options([
     ("Lx", 0.5, "Length of the numerical domain"),
     ("Ly", 1.5, "Heigth of the numerical domain"),
     ("dtout", 0.05, "Time interval for output"),
+    #fluid parameters
+    ("rho_0", 998.2, "water density"),
+    ("rho_1", 1.205, "air density"),
+    ("nu_0", 1e-6, "water kin viscosity"),
+    ("nu_1", 1.5e-5, "air kin viscosity"),
+    ('g',np.array([0.0, -9.8, 0.0]),'Gravitational acceleration'),    
     # sediment parameters
     ('cSed', 0.55,'Sediment concentration'),
+    ('rho_s',2600 ,'sediment material density'),
+    ('alphaSed', 150.,'laminar drag coefficient'),
+    ('betaSed', 1.72,'turbulent drag coefficient'),
+    ('grain',0.0001, 'Grain size'),
+    ('packFraction',0.2,'threshold for loose / packed sediment'),
+    ('packMargin',0.01,'transition margin for loose / packed sediment'),
+    ('maxFraction',0.635,'fraction at max  sediment packing'),
+    ('frFraction',0.57,'fraction where contact stresses kick in'),
+    ('sigmaC',0.57,'Schmidt coefficient for turbulent diffusion'),
+    ('C3e',1.2,'Dissipation coefficient '),
+    ('C4e',1.2,'Dissipation coefficient'),
+    ('eR', 0.8, 'Collision stress coefficient (module not functional)'),
+    ('fContact', 0.05,'Contact stress coefficient'),
+    ('mContact', 3.0,'Contact stress coefficient'),
+    ('nContact', 5.0,'Contact stress coefficient'),
+    ('angFriction', pi/6., 'Angle of friction'),
+    ('vos_limiter', 0.633, 'Weak limiter for vos'),
+    ('mu_fr_limiter', 1.,'Hard limiter for contact stress friction coeff'),
     # numerical options
     ("refinement", 50.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
@@ -30,33 +54,50 @@ opts=Context.Options([
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
     ("useRANS", 0, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
+    ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
-    ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
-    #====Sed properties
-    ("grain", 0.0001,"grain size"),
-    ("vos_limiter", 0.633,"Limit for VOS through contact pressure"),
-     ("mu_fr_limiter",1.,"Limit for mu friction")
+    ("packPenalty", 1e6, "Cmu coefficient for the turbulence model"),
     ])
 
 
 # ----- Sediment stress ----- #
+# SO Models
 
-sedClosure = HsuSedStress(aDarcy =  150.0,
-                          betaForch =  1.75,
+VOS_model = 0
+VOF_model = 1
+LS_model = 2
+RD_model = 3
+MCORR_model =4
+SED_model =5
+V_model =6
+DP_model = 7
+P_model = 8
+if opts.useRANS:
+    K_model = 9
+    EPS_model = 10
+    PI_model = 11
+else:
+    K_model = None
+    EPS_model = None   
+    PI_model = 9
+
+
+sedClosure = HsuSedStress(aDarcy =  opts.alphaSed,
+                          betaForch =  opts.betaSed,
                           grain =  opts.grain,
-                          packFraction =  0.2,
-                          packMargin =  0.01,
-                          maxFraction =  0.635,
-                          frFraction =  0.57,
-                          sigmaC =  1.1,
-                          C3e =  1.2,
-                          C4e =  1.0,
-                          eR =  0.8,
-                          fContact =  0.05,
-                          mContact =  3.0,
-                          nContact =  5.0,
-                          angFriction =  pi/6.,
+                          packFraction =  opts.packFraction,
+                          packMargin =  opts.packMargin,
+                          maxFraction =  opts.maxFraction,
+                          frFraction =  opts.frFraction,
+                          sigmaC =  opts.sigmaC,
+                          C3e =  opts.C3e,
+                          C4e =  opts.C34,
+                          eR =  opts.eR,
+                          fContact =  opts.fContact,
+                          mContact =  opts.mContact,
+                          nContact =  opts.nContact,
+                          angFriction =  opts.angFriction,
                           vos_limiter = opts.vos_limiter,
                           mu_fr_limiter = opts.mu_fr_limiter)
 
