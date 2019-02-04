@@ -75,10 +75,29 @@ plt.savefig('eta.png')
 
 #####################################################################################
 
+
+#print time[300:]
+
+time1 = time[900:]
+ETA1 = ETA[1]
+ETA2 = ETA1[900:]
+
+ETA3 = ETA[16]
+ETA4 = ETA3[900:]
+
+
+#a = len(ETA)
 # Transmission coefficient
 zc = []
-for i in range(len(ETA)):
-    zc.append(zeroCrossing(time,ETA[i]))
+#for i in range(len(ETA)):
+zc=zeroCrossing(time1,ETA2)
+zc1=zeroCrossing(time1,ETA4)
 zc = np.array(zc)
-K = np.mean(zc[2:][:,1])/sbw.opts.wave_height
+zc1 = np.array(zc1)
+K = zc1[1]/zc[1]
+#K = np.mean(zc1[1])/sbw.opts.wave_height
 print 'Transmission coefficient'+'\t'+'='+'\t'+str(K)
+print zc
+print zc1
+#print ETA[17,7]
+#print len(time)

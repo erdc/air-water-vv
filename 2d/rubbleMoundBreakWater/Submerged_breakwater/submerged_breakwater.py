@@ -217,49 +217,49 @@ st.assembleDomain(domain)
 
 # ----- REFINEMENT OPTIONS ----- #
 
-import py2gmsh 
-from MeshRefinement import geometry_to_gmsh 
-mesh = geometry_to_gmsh(domain)
+#import py2gmsh 
+#from MeshRefinement import geometry_to_gmsh 
+#mesh = geometry_to_gmsh(domain)
 
 field_list = []
 box_size = 0.07
 
-box = py2gmsh.Fields.Box(mesh=mesh)
-box.VIn = 0.02 #he-he/4.
-box.VOut = he
-box.XMin = -opts.Lgen*wavelength
-box.XMax = tank_dim[0]+opts.Labs*wavelength
-box.YMin = waterLevel-box_size
-box.YMax = waterLevel+box_size
-field_list += [box]
+#box = py2gmsh.Fields.Box(mesh=mesh)
+#box.VIn = 0.02 #he-he/4.
+#box.VOut = he
+#box.XMin = -opts.Lgen*wavelength
+#box.XMax = tank_dim[0]+opts.Labs*wavelength
+#box.YMin = waterLevel-box_size
+#box.YMax = waterLevel+box_size
+#field_list += [box]
 
-p0 = py2gmsh.Entity.Point([-opts.Lgen*wavelength, waterLevel+box_size, 0.], mesh=mesh)
-p1 = py2gmsh.Entity.Point([tank_dim[0]+opts.Labs*wavelength, waterLevel+box_size, 0.], mesh=mesh)
-p2 = py2gmsh.Entity.Point([-opts.Lgen*wavelength, waterLevel-box_size, 0.], mesh=mesh)
-p3 = py2gmsh.Entity.Point([tank_dim[0]+opts.Labs*wavelength, waterLevel-box_size, 0.], mesh=mesh)
-l1 = py2gmsh.Entity.Line([p0, p1], mesh=mesh)
-l2 = py2gmsh.Entity.Line([p2, p3], mesh=mesh)
+#p0 = py2gmsh.Entity.Point([-opts.Lgen*wavelength, waterLevel+box_size, 0.], mesh=mesh)
+#p1 = py2gmsh.Entity.Point([tank_dim[0]+opts.Labs*wavelength, waterLevel+box_size, 0.], mesh=mesh)
+#p2 = py2gmsh.Entity.Point([-opts.Lgen*wavelength, waterLevel-box_size, 0.], mesh=mesh)
+#p3 = py2gmsh.Entity.Point([tank_dim[0]+opts.Labs*wavelength, waterLevel-box_size, 0.], mesh=mesh)
+#l1 = py2gmsh.Entity.Line([p0, p1], mesh=mesh)
+#l2 = py2gmsh.Entity.Line([p2, p3], mesh=mesh)
 
-grading = 1.05
-bl = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
-bl.hwall_n = 0.02 #he-he/4.
-bl.ratio = grading
-bl.EdgesList = [l1, l2]
-field_list += [bl]
+#grading = 1.05
+#bl = py2gmsh.Fields.BoundaryLayer(mesh=mesh)
+#bl.hwall_n = 0.02 #he-he/4.
+#bl.ratio = grading
+#bl.EdgesList = [l1, l2]
+#field_list += [bl]
 
-fmin = py2gmsh.Fields.Min(mesh=mesh)
-fmin.FieldsList = field_list
-mesh.setBackgroundField(fmin)
+#fmin = py2gmsh.Fields.Min(mesh=mesh)
+#fmin.FieldsList = field_list
+#mesh.setBackgroundField(fmin)
 
-mesh.Options.Mesh.CharacteristicLengthMax = he
+#mesh.Options.Mesh.CharacteristicLengthMax = he
 
-domain.MeshOptions.genMesh = opts.gen_mesh
-domain.MeshOptions.use_gmsh = opts.use_gmsh
-domain.use_gmsh = opts.use_gmsh
+#domain.MeshOptions.genMesh = opts.gen_mesh
+#domain.MeshOptions.use_gmsh = opts.use_gmsh
+#domain.use_gmsh = opts.use_gmsh
 
-geofile = 'mesh'
-mesh.writeGeo(geofile+'.geo')
-domain.geofile = geofile
+#geofile = 'mesh'
+#mesh.writeGeo(geofile+'.geo')
+#domain.geofile = geofile
 
 
 ##########################################

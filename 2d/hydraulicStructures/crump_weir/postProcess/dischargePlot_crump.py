@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 #####################################################################################
 
 ## Reading probes into the file
-folder = "../output"
+#folder = "../output"
+folder = "../results_delete"
 os.chdir(folder)
 file_vof='column_gauge.csv'
 file_u='u_over_crest.csv'
@@ -109,8 +110,8 @@ plt.show()
 # Validation of the result
 Q_th = 2.0175 #Theoretical discharge between 20 s and 30 s
 T = time.tolist()
-T_20 = T.index(20.0)
-T_30 = T.index(30.0)
+T_20 = T.index(0.1)
+T_30 = T.index(0.8)
 T_20_to_30 = []
 for i in range(T_20,T_30):
     T_20_to_30.append(Q[i])
