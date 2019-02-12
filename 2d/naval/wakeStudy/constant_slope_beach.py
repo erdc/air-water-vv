@@ -70,7 +70,7 @@ for fname in ["Time_series_short.txt", "Time_series_long.txt"]:
 wave1 = wt.TimeSeries(
     timeSeriesFile="Time_series_short.txt",
     skiprows=0,
-    timeSeriesPosition=np.array([0.,0.,0.]),
+    timeSeriesPosition=np.array([-1.,0.,0.]),
     depth = opts.water_level,
     N = N,
     mwl=opts.water_level,
@@ -84,7 +84,7 @@ wave1 = wt.TimeSeries(
 wave2 = wt.TimeSeries(
     timeSeriesFile="Time_series_long.txt",
     skiprows=0,
-    timeSeriesPosition=np.array([0.,0.,0.]),
+    timeSeriesPosition=np.array([-1.,0.,0.]),
     depth = opts.water_level,
     N = N,
     mwl=opts.water_level,
@@ -94,7 +94,7 @@ wave2 = wt.TimeSeries(
     Lgen = np.array([1,0,0])
     )
     
-wave = wt.CombineWaves([wave1,wave2])
+wave = wave1 # wt.CombineWaves([wave1,wave2])
 
    
 
