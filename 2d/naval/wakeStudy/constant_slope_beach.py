@@ -60,8 +60,13 @@ overl = 0.7
 cutoff = 0.1
 #wave = wt.MonochromaticWaves(period, height, mwl, depth, g, direction)
 
+#Unit conversion
+for fname in ["Time_series_short.txt", "Time_series_long.txt"]:
+    data1 = np.loadtxt(fname)
+    data1[:,1:] *=0.01 
+    np.savetxt(fname,data1)
 
-
+#Class loading
 wave1 = wt.TimeSeries(
     timeSeriesFile="Time_series_short.txt",
     skiprows=0,
@@ -89,7 +94,7 @@ wave2 = wt.TimeSeries(
     Lgen = np.array([1,0,0])
     )
     
-wave = wt.CombineWaves([w1,w2])
+wave = wt.CombineWaves([wave1,wave2])
 
    
 
@@ -389,17 +394,6 @@ waterLine_x = 2*tank_dim[0]
 waterLine_z = opts.water_level
 
 
-def waveHeight(x,t):
-    waterDepth = waveinput.eta(x, t) + waveinput.mwl
-    return waterDepth
-
-
-def wavePhi(x,t):
-    [nd-1]- waveHeight(x,t)
-
-
-def waveVF(x,t):
-    return smoothedHeaviside(epsFact_consrv_heaviside*he,wavePhi(x,t))
 
 
 def signedDistance(x):
