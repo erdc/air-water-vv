@@ -18,6 +18,7 @@ opts=Context.Options([
     ("Tp", 3.5 , "Peak wave period"),
     ("Hs", 0.096, "Significant wave height"), 
     ("wave_dir", (1.,0.,0.),"Direction of the waves"),
+    ("seed", 420,"Seed for random phases"),
     # numerical options
     ("refinement_level", 0.0,"he=walength/refinement_level"),
     ("he", 0.02,"he=walength/refinement_level"),
@@ -62,9 +63,10 @@ waveDir = np.array(opts.wave_dir)
 N = 2000
 bandFactor = 2.0
 spectName = 'JONSWAP'
-phi = np.loadtxt("phases.txt")
+#phi = np.loadtxt("phases.txt")
 Lgen = np.array([tank_sponge[0],0.,0.])
-
+np.random.seed(opts.seed)
+phi = 2*np.pi*rand(N)
 
 wave = wt.RandomWavesFast(0,Tend, x0,Tp,Hs,mwl,depth,waveDir,g,N,bandFactor,spectName, spectral_params=None, phi=phi, Lgen=Lgen, Nfreq=32, Nwaves=15, checkAcc=True)
 
