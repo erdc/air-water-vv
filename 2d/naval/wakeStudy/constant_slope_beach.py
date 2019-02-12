@@ -89,7 +89,7 @@ wave2 = wt.TimeSeries(
     Lgen = np.array([1,0,0])
     )
     
-wave = wave1
+wave = wt.CombineWaves([w1,w2])
 
    
 
