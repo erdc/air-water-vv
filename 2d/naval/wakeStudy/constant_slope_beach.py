@@ -55,16 +55,10 @@ mwl = opts.water_level
 depth = opts.water_level
 direction = opts.wave_dir
 N = 32
-Nwaves = 16
+Nwaves = 5
 overl = 0.7
 cutoff = 0.1
 #wave = wt.MonochromaticWaves(period, height, mwl, depth, g, direction)
-
-#Unit conversion
-for fname in ["Time_series_short.txt", "Time_series_long.txt"]:
-    data1 = np.loadtxt(fname)
-    data1[:,1:] *=0.01 
-    np.savetxt(fname,data1)
 
 #Class loading
 wave1 = wt.TimeSeries(
@@ -80,6 +74,7 @@ wave1 = wt.TimeSeries(
     window_params = {"Nwaves":Nwaves,"Tm":opts.period,"Window":"costap","Overlap":overl,"Cutoff":cutoff},
     Lgen = np.array([1,0,0])
     )
+
     
 wave2 = wt.TimeSeries(
     timeSeriesFile="Time_series_long.txt",
@@ -93,8 +88,17 @@ wave2 = wt.TimeSeries(
     rec_direct=True,
     Lgen = np.array([1,0,0])
     )
-    
-wave = wave1 # wt.CombineWaves([wave1,wave2])
+   
+wave =  wt.CombineWaves([wave1,wave2])
+
+time = np.loadtxt("Time_series_short.txt")[:,0]
+time = time 
+data = time.copy()
+x0 = np.array([-1.,0.,0.])
+for i,t in enumerate(time):
+    data[i] = wave.eta(x0,t)
+
+np.savetxt("out_short.txt",zip(time,data))
 
    
 
