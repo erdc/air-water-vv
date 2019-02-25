@@ -15,6 +15,7 @@ opts=Context.Options([
     ("waterLine_x", 10.00, "Width of free surface from left to right"),
     ("waterLine_z", 2., "Heigth of free surface above bottom"),
     ("sediment_level", 1., "Height of the sediment column"),
+    ("sediment_bottom", -20., "Height of the sediment column"),
     ("Lx", 1.50, "Length of the numerical domain"),
     ("Ly", 3., "Heigth of the numerical domain"),
     ("dtout", 0.05, "Time interval for output"),
@@ -141,6 +142,7 @@ gamma_0 = abs(g[1])*rho_0
 waterLine_x = opts.waterLine_x
 waterLine_z = opts.waterLine_z
 sediment_level = opts.sediment_level
+sediment_bottom = opts.sediment_bottom
 waterLevel = waterLine_z
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
@@ -449,7 +451,12 @@ def signedDistance(x):
     return phi_z
 
 def vos_signedDistance(x):
-    phi_z = x[1] - sediment_level
+    phi_z1 = x[1] - sediment_level
+    phi_z2 = sediment_bottom - x[1]
+    if abs(phi_z1) < abs(phi_z2):
+        phi_z = phi_z1
+    else:
+        phi_z = phi_z2
     return phi_z
 
 class Suspension_class:
