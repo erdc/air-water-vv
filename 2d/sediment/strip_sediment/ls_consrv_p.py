@@ -16,24 +16,11 @@ T = ct.T
 
 LevelModelType = MCorr3P.LevelModel
 
-if ct.sedimentDynamics:
-    VOS_model=0
-    VOF_model=1
-    LS_model=2
-    MCORR_model=4
-    V_model=6
-else:
-    VOS_model=None
-    VOF_model=0
-    LS_model=1
-    MCORR_model=3
-    V_model=4
-
-coefficients = MCorr3P.Coefficients(LS_model=LS_model,
-                                    V_model=V_model,
-                                    ME_model=MCORR_model,
-                                    VOF_model=VOF_model,
-                                    VOS_model=VOS_model,
+coefficients = MCorr3P.Coefficients(LS_model=ct.LS_model,
+                                    V_model=ct.V_model,
+                                    ME_model=ct.MCORR_model,
+                                    VOF_model=ct.VOF_model,
+                                    VOS_model=ct.VOS_model,
                                     applyCorrection=ct.applyCorrection,
                                     nd=nd,
                                     checkMass=False,

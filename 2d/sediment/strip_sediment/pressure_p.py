@@ -10,19 +10,9 @@ name = "pressure"
 
 LevelModelType = Pres.LevelModel
 
-if ct.sedimentDynamics:
-    V_model=6
-    PINC_model=7
-    PRESSURE_model=8
-
-else:
-    V_model=4
-    PINC_model=5
-    PRESSURE_model=6
-
-coefficients=Pres.Coefficients(modelIndex=PRESSURE_model,
-                               fluidModelIndex=V_model,
-                               pressureIncrementModelIndex=PINC_model,
+coefficients=Pres.Coefficients(modelIndex=ct.P_model,
+                               fluidModelIndex=ct.V_model,
+                               pressureIncrementModelIndex=ct.DP_model,
                                useRotationalForm=True)
 
 
@@ -41,4 +31,4 @@ class getIBC_p:
 initialConditions = {0:getIBC_p(waterLine_z)}
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython() } # pressure bc are explicitly set
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].p_advective.init_cython()}
+advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pInit_advective.init_cython()}

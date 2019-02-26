@@ -7,34 +7,27 @@ from proteus import Context
 ct = Context.get()
 
 LevelModelType = Kappa.LevelModel
-if useOnlyVF:
-    RD_model = None
-    LS_model = None
-    dissipation_model = 3
-    ME_model = 2
-else:
-    RD_model = 3
-    LS_model = 2
-    ME_model = 5
-    dissipation_model = 6
 
 dissipation_model_flag = 1
 if ct.useRANS >= 2:
     dissipation_model_flag=2
 
-coefficients = Kappa.Coefficients(V_model=0+int(ct.movingDomain),
-                                  ME_model=ME_model+int(ct.movingDomain),
-                                  LS_model=LS_model+int(ct.movingDomain),
-                                  RD_model=RD_model+int(ct.movingDomain),
-                                  dissipation_model=dissipation_model+int(ct.movingDomain),
+coefficients = Kappa.Coefficients(V_model=ct.V_model,
+                                  ME_model=ct.K_model,
+                                  LS_model=ct.LS_model,
+                                  RD_model=ct.RD_model,
+                                  dissipation_model=ct.EPS_model,
+                                  SED_model=ct.SED_model,
                                   dissipation_model_flag=dissipation_model_flag+int(ct.movingDomain),#1 -- K-epsilon, 2 -- K-omega
                                   useMetrics=useMetrics,
                                   rho_0=rho_0,nu_0=nu_0,
                                   rho_1=rho_1,nu_1=nu_1,
                                   g=g,
+                                  nd = ct.nd,
                                   c_mu=ct.opts.Cmu,sigma_k=ct.opts.sigma_k, 
                                   sc_uref=kappa_sc_uref,
-                                  sc_beta=kappa_sc_beta)
+                                  sc_beta=kappa_sc_beta,
+                                  closure = ct.sedClosure)
 
 kInflow=ct.kInflow
 

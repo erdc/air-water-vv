@@ -7,35 +7,30 @@ from proteus import Context
 ct = Context.get()
 
 LevelModelType = Dissipation.LevelModel
-if useOnlyVF:
-    RD_model = None
-    LS_model = None
-    dissipation_model = 3
-    ME_model = 2
-else:
-    RD_model = 3
-    LS_model = 2
-    ME_model = 6
-    kappa_model = 5
 
 dissipation_model_flag = 1
 if ct.useRANS >= 2:
     dissipation_model_flag=2
-coefficients = Dissipation.Coefficients(V_model=0+int(ct.movingDomain),
-                                        ME_model=ME_model+int(ct.movingDomain),
-                                        LS_model=LS_model+int(ct.movingDomain),
-                                        RD_model=RD_model+int(ct.movingDomain),
-                                        kappa_model=kappa_model+int(ct.movingDomain),
+coefficients = Dissipation.Coefficients(V_model=ct.V_model,
+                                        ME_model=ct.EPS_model,
+                                        LS_model=ct.LS_model,
+                                        RD_model=ct.RD_model,
+                                        kappa_model=ct.K_model,
+                                        SED_model=ct.SED_model,
                                         dissipation_model_flag=dissipation_model_flag+int(ct.movingDomain),#1 -- K-epsilon, 2 -- K-omega
-                                  useMetrics=useMetrics,
-                                  rho_0=rho_0,nu_0=nu_0,
-                                  rho_1=rho_1,nu_1=nu_1,
-                                  g=g,
-                                  c_mu=ct.opts.Cmu,sigma_e=ct.opts.sigma_e,
-                                  sc_uref=dissipation_sc_uref,
-                                  sc_beta=dissipation_sc_beta)
+                                        useMetrics=useMetrics,
+                                        rho_0=rho_0,
+                                        nu_0=nu_0,
+                                        rho_1=rho_1,
+                                        nu_1=nu_1,
+                                        g=g,
+                                        c_mu=ct.opts.Cmu,sigma_e=ct.opts.sigma_e,
+                                        nd = ct.nd,
+                                        sc_uref=dissipation_sc_uref,
+                                        sc_beta=dissipation_sc_beta,
+                                        closure = ct.sedClosure )
 
-kInflow=ct.kInflow
+kInflow=ct.dissipationInflow
 
 dissipationInflow=ct.dissipationInflow
 

@@ -14,24 +14,11 @@ movingDomain = ct.movingDomain
 T = ct.T
 LevelModelType = VOF3P.LevelModel
 
-if ct.sedimentDynamics:
-    LS_model=2
-    V_model=6
-    RD_model=3
-    VOF_model=1
-    VOS_model=0
-else:
-    VOS_model=None
-    VOF_model=0
-    LS_model=1
-    RD_model=2
-    V_model=4
-
-coefficients = VOF3P.Coefficients(LS_model=LS_model,
-                                  V_model=V_model,
-                                  RD_model=RD_model,
-                                  ME_model=VOF_model,
-                                  VOS_model=VOS_model,
+coefficients = VOF3P.Coefficients(LS_model=ct.LS_model,
+                                  V_model=ct.V_model,
+                                  RD_model=ct.RD_model,
+                                  ME_model=ct.VOF_model,
+                                  VOS_model=ct.VOS_model,
                                   checkMass=True,
                                   useMetrics=ct.useMetrics,
                                   epsFact=ct.epsFact_vof,
