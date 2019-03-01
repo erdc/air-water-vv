@@ -8,6 +8,55 @@ ct = Context.get()
 
 LevelModelType = RANS3PF.LevelModel
 
+if ct.sedimentDynamics:
+    if ct.useCLSVOF:
+        VOS_model=0
+        CLSVOF_model=1
+        VOF_model=None
+        LS_model=None
+        RD_model=None
+        MCORR_model=None
+        SED_model=2
+        V_model=3
+        PINC_model=4
+        PRESSURE_model=5
+        PINIT_model=6
+    else:
+        VOS_model=0
+        VOF_model=1
+        LS_model=2
+        RD_model=3
+        MCORR_model=4
+        SED_model=5
+        V_model=6
+        PINC_model=7
+        PRESSURE_model=8
+        PINIT_model=9
+else:
+    VOS_model=None
+    SED_model=None
+    VOF_model=0
+    LS_model=1
+    RD_model=2
+    MCORR_model=3
+    V_model=4
+    PINC_model=5
+    PRESSURE_model=6
+    PINIT_model=7
+if useOnlyVF:
+    LS_model = None
+else:
+    LS_model = 2
+if useRANS >= 1:
+    Closure_0_model = 5; Closure_1_model=6
+    if useOnlyVF:
+        Closure_0_model=2; Closure_1_model=3
+    if movingDomain:
+        Closure_0_model += 1; Closure_1_model += 1
+else:
+    Closure_0_model = None
+    Closure_1_model = None
+
 coefficients = RANS3PF.Coefficients(epsFact=epsFact_viscosity,
                                     sigma=0.0,
                                     rho_0 = rho_0,
@@ -16,14 +65,15 @@ coefficients = RANS3PF.Coefficients(epsFact=epsFact_viscosity,
                                     nu_1 = nu_1,
                                     g=g,
                                     nd=nd,
-                                    ME_model=ct.V_model,
-                                    PRESSURE_model=ct.P_model,
-                                    SED_model=ct.SED_model,
-                                    VOF_model=ct.VOF_model,
-                                    VOS_model=ct.VOS_model,
-                                    LS_model=ct.LS_model,
-                                    Closure_0_model=ct.K_model,
-                                    Closure_1_model=ct.EPS_model,
+                                    ME_model=V_model,
+                                    PRESSURE_model=PRESSURE_model,
+                                    SED_model=SED_model,
+                                    CLSVOF_model=CLSVOF_model,
+                                    VOF_model=VOF_model,
+                                    VOS_model=VOS_model,
+                                    LS_model=LS_model,
+                                    Closure_0_model=Closure_0_model,
+                                    Closure_1_model=Closure_1_model,
                                     epsFact_density=epsFact_density,
                                     stokes=False,
                                     useVF=useVF,
@@ -53,9 +103,9 @@ coefficients = RANS3PF.Coefficients(epsFact=epsFact_viscosity,
                                     vos_function = ct.vos_function,
                                     vos_limiter = ct.sedClosure.vos_limiter,
                                     mu_fr_limiter = ct.sedClosure.mu_fr_limiter,
-                                    CORRECT_VELOCITY=True)
+                                    USE_SUPG=0,
+                                    ARTIFICIAL_VISCOSITY=2
                                     )
->>>>>>> 4ae825f2e4a2aad37de63a89f67913654bd60043
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
                        1: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()}
@@ -76,56 +126,6 @@ class AtRest:
         pass
     def uOfXT(self,x,t):
         return 0.0
-
-
-smoothing = 3*he
-
-
-class U_IC:
-
-
-    def uOfXT(self,x,t):
-        if ct.signedDistance(x) <= -0.28:
-            H = 1
-            speed = 0
-        elif -0.278 < ct.signedDistance(x) < -0.28 + smoothing:
-            H = 1-(smoothedHeaviside(smoothing/2. , ct.signedDistance(x)+0.28 - smoothing/2.))
-            speed = ct.opts.inflow_vel
-
-        elif  (ct.signedDistance(x) <= 0): 
-        #and ct.signedDistance(x)>= -0.27+smoothing):
-            H = 0
-            speed = ct.opts.inflow_vel
-        
-        elif 0 < ct.signedDistance(x) <= smoothing:
-            H = smoothedHeaviside(smoothing/2. , ct.signedDistance(x) - smoothing/2.)
-            speed = ct.opts.inflow_vel
-        else:
-            H = 1
-            speed = 0
-        
-        u = H * 0.0 + (1-H)*speed
-
-        return u
-
-
-class V_IC:
-    def uOfXT(self,x,t):
-                
-        v = 0.0
-
-        return v
-
-
-
-
-#if ct.opts.current:
-#    initialConditions = {0: U_IC(),
-#                         1: V_IC()}
-#
-#else:    
-#    initialConditions = {0:AtRest(),
-#                         1:AtRest()}
 
 initialConditions = {0:AtRest(),
                      1:AtRest()}

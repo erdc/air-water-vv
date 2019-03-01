@@ -5,7 +5,7 @@ from proteus import (StepControl,
                      NonlinearSolvers,
                      LinearSolvers,
                      LinearAlgebraTools)
-import vof_p as physics
+import vos_p as physics
 from proteus import Context
 from proteus.mprans import VOS3P
 
@@ -16,7 +16,13 @@ mesh = domain.MeshOptions
 
 # time stepping
 runCFL = ct.runCFL
-timeIntegration = VOS3P.RKEV#BackwardEuler_cfl
+if ct.opts.STABILIZATION_TYPE==0:
+    timeIntegration = TimeIntegration.BackwardEuler_cfl
+    levelNonlinearSolver      = NonlinearSolvers.Newton
+else:
+    timeIntegration = VOS3P.RKEV#TimeIntegration.BackwardEuler_cfl
+    levelNonlinearSolver      = NonlinearSolvers.ExplicitLumpedMassMatrix
+#
 stepController  = StepControl.Min_dt_controller
 
 # mesh options
@@ -39,7 +45,6 @@ shockCapturing    = VOS3P.ShockCapturing(physics.coefficients,nd,shockCapturingF
 
 fullNewtonFlag = True
 multilevelNonlinearSolver = NonlinearSolvers.Newton
-levelNonlinearSolver      = NonlinearSolvers.ExplicitLumpedMassMatrix
 
 nonlinearSmoother = None
 linearSmoother    = None
