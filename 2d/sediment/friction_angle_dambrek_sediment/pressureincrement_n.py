@@ -36,6 +36,13 @@ else:
     nonlinearSmoother = None
     linearSmoother    = None
 
+multilevelLinearSolver = KSP_petsc4py
+levelLinearSolver      = KSP_petsc4py
+parallelPartitioningType    = parallelPartitioningType
+nLayersOfOverlapForParallel = nLayersOfOverlapForParallel
+nonlinearSmoother = None
+linearSmoother         = LinearSolvers.NavierStokesPressureCorrection # pure neumann laplacian solver
+
 
 multilevelNonlinearSolver = NonlinearSolvers.Newton
 levelNonlinearSolver      = NonlinearSolvers.Newton
@@ -52,5 +59,5 @@ linearSolverConvergenceTest             = 'r-true'
 maxLineSearches=0
 periodicDirichletConditions=None
 
-conservativeFlux = {0:'point-eval'} #'point-eval','pwl-bdm-opt'
+#conservativeFlux = {0:'point-eval'} #'point-eval','pwl-bdm-opt'
 #conservativeFlux=None

@@ -68,12 +68,7 @@ class Sequential_MinAdaptiveModelStepPS(Sequential_MinAdaptiveModelStep):
     def __init__(self,modelList,system=defaultSystem,stepExact=True):
         Sequential_MinAdaptiveModelStep.__init__(self,modelList,system,stepExact)
         self.modelList = modelList[:len(pnList)-1]
-
-#class Sequential_MinAdaptiveModelStepPS(Sequential_FixedStep):
-#    def __init__(self,modelList,system=defaultSystem,stepExact=True):
-#        Sequential_FixedStep.__init__(self,modelList,system,stepExact)
-#        self.modelList = modelList[:len(pnList)-1]
-#dt_system_fixed = ct.dt_fixed
+systemStepExact = False
 
 systemStepControllerType = Sequential_MinAdaptiveModelStepPS
 

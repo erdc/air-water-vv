@@ -33,7 +33,6 @@ LevelModelType = PresInc.LevelModel
 #                               nd = nd,
 #                               modelIndex=PINC_model,
 #                               fluidModelIndex=V_model)
-from proteus.mprans import PresInc
 coefficients=PresInc.Coefficients(rho_f_min = (1.0-1.0e-8)*rho_1,
                                   rho_s_min = (1.0-1.0e-8)*rho_s,
                                   nd = nd,
@@ -42,8 +41,9 @@ coefficients=PresInc.Coefficients(rho_f_min = (1.0-1.0e-8)*rho_1,
                                   sedModelIndex= SED_model,
                                   VOF_model= VOF_model,
                                   VOS_model= VOS_model,
-                                  fixNullSpace=fixNullSpace_PresInc, 
-                                  INTEGRATE_BY_PARTS_DIV_U=ct.INTEGRATE_BY_PARTS_DIV_U_PresInc)
+                                  fixNullSpace=False, 
+                                  INTEGRATE_BY_PARTS_DIV_U=True,
+                                  nullSpace='ConstantNullSpace')
 
 
 #pressure increment should be zero on any pressure dirichlet boundaries
