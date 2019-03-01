@@ -19,7 +19,6 @@ opts=Context.Options([
     ("Lx", 1.50, "Length of the numerical domain"),
     ("Ly", 3., "Heigth of the numerical domain"),
     ("dtout", 0.05, "Time interval for output"),
-    
     #fluid parameters
     ("rho_0", 998.2, "water density"),
     ("rho_1", 1.205, "air density"),
@@ -56,7 +55,6 @@ opts=Context.Options([
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
     ("useRANS", 0, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
-    ("vos_SC",0.9,"vos shock capturing"),
     # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),

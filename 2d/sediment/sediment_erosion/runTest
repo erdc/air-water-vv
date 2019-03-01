@@ -1,9 +1,2 @@
-mpirun -np 12 parun tank_so.py   -l 12 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -D e1 -C "dtout=0.05 duration=5. cSed=0.62 openTop=False he=0.02 vos_SC=0.9 inflow_vel=0.1"
-
-mpirun -np 12 parun tank_so.py   -l 12 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -D e2 -C "dtout=0.05 duration=5. cSed=0.62 openTop=False he=0.02 vos_SC=0.9 inflow_vel=0.2"
-
-mpirun -np 12 parun tank_so.py   -l 12 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -D e3 -C "dtout=0.05 duration=5. cSed=0.62 openTop=False he=0.02 vos_SC=0.9 inflow_vel=0.3"
-
-mpirun -np 12 parun tank_so.py   -l 12 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -D e4 -C "dtout=0.05 duration=5. cSed=0.62 openTop=False he=0.02 vos_SC=0.9 inflow_vel=0.4"
-
-mpirun -np 12 parun tank_so.py   -l 12 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -D e5 -C "dtout=0.05 duration=2. cSed=0.62 openTop=False he=0.02 vos_SC=0.9 inflow_vel=0.5"
+# Single phase
+parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=0.1 rho_1=998.2 nu_1=1e-6 cSed=0.634" -D case_A1
