@@ -14,6 +14,7 @@ domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
 
+
 # time stepping
 runCFL = ct.runCFL
 timeIntegration = VOS3P.RKEV#BackwardEuler_cfl
@@ -26,8 +27,11 @@ nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 restrictFineSolutionToAllMeshes = mesh.restrictFineSolutionToAllMeshes
 triangleOptions = mesh.triangleOptions
 
+
+
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
+
 
 femSpaces = {0:ct.pbasis}
 

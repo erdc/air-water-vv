@@ -286,6 +286,7 @@ KILL_PRESSURE_TERM = False
 fixNullSpace_PresInc = False
 INTEGRATE_BY_PARTS_DIV_U_PresInc = True
 CORRECT_VELOCITY = True
+STABILIZATION_TYPE = 0 #0: SUPG, 1: EV via weak residual, 2: EV via strong residual
 
 # Input checks
 if spaceOrder not in [1, 2]:

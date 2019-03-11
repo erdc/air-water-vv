@@ -54,8 +54,6 @@ coefficients = RANS3PF.Coefficients(epsFact=epsFact_viscosity,
                                     vos_limiter = ct.sedClosure.vos_limiter,
                                     mu_fr_limiter = ct.sedClosure.mu_fr_limiter,
                                     CORRECT_VELOCITY=True)
-                                    )
->>>>>>> 4ae825f2e4a2aad37de63a89f67913654bd60043
 
 dirichletConditions = {0: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
                        1: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()}
