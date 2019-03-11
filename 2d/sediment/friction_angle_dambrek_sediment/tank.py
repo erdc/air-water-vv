@@ -23,12 +23,12 @@ opts=Context.Options([
     # numerical options
     ("refinement", 50.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("cfl", 0.33 ,"Target cfl"),
-    ("duration", 2.0 ,"Duration of the simulation"),
-    ("PSTAB", 0.0, "Affects subgrid error"),
-    ("res", 1.0e-8, "Residual tolerance"),
-    ("epsFact_density", 1.5, "Control width of water/air transition zone"),
-    ("epsFact_consrv_diffusion", 10.0, "Affects smoothing diffusion in mass conservation"),
+    ("cfl", 0.25 ,"Target cfl"),
+    ("duration", 1.0 ,"Duration of the simulation"),
+    ("PSTAB", 1.0, "Affects subgrid error"),
+    ("res", 1.0e-10, "Residual tolerance"),
+    ("epsFact_density", 3.0, "Control width of water/air transition zone"),
+    ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
     ("useRANS", 0, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"), # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
@@ -122,18 +122,18 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 # ----- BOUNDARY CONDITIONS ----- #
 #############################################################################################################################################################################################################################################################################################################################################################################################
 
-tank.BC['y-'].setNoSlip()
+tank.BC['y-'].setFreeSlip()
 
 
-tank.BC['y+'].setNoSlip()
+tank.BC['y+'].setFreeSlip()
 
 
-tank.BC['x-'].setNoSlip()
+tank.BC['x-'].setFreeSlip()
 
 
-tank.BC['x+'].setNoSlip()
+tank.BC['x+'].setFreeSlip()
 
-#tank.BC['y-'].vos_dirichlet.setConstantBC(0.635)
+tank.BC['y-'].vos_dirichlet.setConstantBC(0.635)
 
 
 
@@ -223,13 +223,13 @@ applyRedistancing = True
 useOldPETSc = False
 useSuperlu = True
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
-spaceOrder = 2
+spaceOrder = 1
 pspaceOrder = 1
 useHex = False
 useRBLES = 0.0
 useMetrics = 1.0
 applyCorrection = True
-useVF = 0.0
+useVF = 1.0
 useOnlyVF = False
 useRANS = opts.useRANS  # 0 -- None
                         # 1 -- K-Epsilon
@@ -237,7 +237,7 @@ useRANS = opts.useRANS  # 0 -- None
 
 
 KILL_PRESSURE_TERM = False
-fixNullSpace_PresInc = False
+fixNullSpace_PresInc = True
 INTEGRATE_BY_PARTS_DIV_U_PresInc = True
 CORRECT_VELOCITY = True
 STABILIZATION_TYPE = 0 #0: SUPG, 1: EV via weak residual, 2: EV via strong residual
@@ -276,8 +276,8 @@ elif spaceOrder == 2:
         elementBoundaryQuadrature = CubeGaussQuadrature(nd - 1, 4)
     else:
         basis = C0_AffineQuadraticOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd, 5)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 5)
+        elementQuadrature = SimplexGaussQuadrature(nd, 4)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 4)
 
 if pspaceOrder == 1:
     if useHex:
@@ -300,25 +300,25 @@ ns_sed_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.9
+    ns_shockCapturingFactor = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ns_sed_shockCapturingFactor = 0.9
+    ns_sed_shockCapturingFactor = 0.5
     ns_sed_lag_shockCapturing = True
     ns_sed_lag_subgridError = True
     ls_shockCapturingFactor = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.5
+    ls_sc_beta = 1.0
     vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    vos_shockCapturingFactor = 0.9 # <-------------------------------------
+    vof_sc_beta = 1.0
+    vos_shockCapturingFactor = 2. # <------------------------------------- 
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
-    vos_sc_beta = 1.5
-    rd_shockCapturingFactor = 0.9
+    vos_sc_beta = 1.0
+    rd_shockCapturingFactor = 0.5
     rd_lag_shockCapturing = False
     epsFact_vos =opts.epsFact_density
     epsFact_density = opts.epsFact_density # 1.5
@@ -329,11 +329,11 @@ if useMetrics:
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.5
+    kappa_sc_beta = 1.0
     dissipation_shockCapturingFactor = 0.25
     dissipation_lag_shockCapturing = True  #False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.5
+    dissipation_sc_beta = 1.0
 else:
     ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True
@@ -349,7 +349,7 @@ else:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor = 2.
+    vos_shockCapturingFactor = 0.9
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0

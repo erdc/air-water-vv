@@ -24,7 +24,7 @@ opts=Context.Options([
     #("Lx", 1.50, "Length of the numerical domain"),
     #("Ly", 1.5, "Heigth of the numerical domain"),
     ("dtout", 0.05, "Time interval for output"),
-    ("Refiment", 1, "refinement"),
+    ("Refiment", 4, "refinement"),
     ("tank_dim_x", 1.6, "x_dim"),
     ("tank_dim_y", 0.6, "y_dim"),
     ("hole_tank", True, "hole"),
@@ -47,8 +47,8 @@ opts=Context.Options([
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop",  True, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.25 ,"Target cfl"),
-    ("duration", 30.0 ,"Duration of the simulation"),
-    ("PSTAB", 0.0, "Affects subgrid error"),
+    ("duration", 1.0 ,"Duration of the simulation"),
+    ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-10, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
@@ -128,7 +128,6 @@ waterLevel = opts.waterLevel
 
 #L = (opts.Lx, opts.Ly)
 #he = L[0]/opts.refinement
-
 he = opts.he
 #dim = dimx, dimy = L
 #coords = [ dimx/2., dimy/2. ]
@@ -434,13 +433,13 @@ applyRedistancing = True
 useOldPETSc = False
 useSuperlu = False
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
-spaceOrder = 2
+spaceOrder = 1
 pspaceOrder = 1
 useHex = False
 useRBLES = 0.0
 useMetrics = 1.0
 applyCorrection = True
-useVF = 0.0
+useVF = 1.0
 useOnlyVF = False
 useRANS = opts.useRANS  # 0 -- None
                         # 1 -- K-Epsilon
@@ -448,7 +447,7 @@ useRANS = opts.useRANS  # 0 -- None
 
 
 KILL_PRESSURE_TERM = False
-fixNullSpace_PresInc = False
+fixNullSpace_PresInc = True
 INTEGRATE_BY_PARTS_DIV_U_PresInc = True
 CORRECT_VELOCITY = True
 STABILIZATION_TYPE = 0 #0: SUPG, 1: EV via weak residual, 2: EV via strong residual
@@ -487,8 +486,8 @@ elif spaceOrder == 2:
         elementBoundaryQuadrature = CubeGaussQuadrature(nd - 1, 4)
     else:
         basis = C0_AffineQuadraticOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd, 5)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 5)
+        elementQuadrature = SimplexGaussQuadrature(nd, 4)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd - 1, 4)
 
 if pspaceOrder == 1:
     if useHex:
@@ -511,25 +510,25 @@ ns_sed_forceStrongDirichlet = False
 backgroundDiffusionFactor=0.01
 
 if useMetrics:
-    ns_shockCapturingFactor = 0.9
+    ns_shockCapturingFactor = 0.5
     ns_lag_shockCapturing = True
     ns_lag_subgridError = True
-    ns_sed_shockCapturingFactor = 0.9
+    ns_sed_shockCapturingFactor = 0.5
     ns_sed_lag_shockCapturing = True
     ns_sed_lag_subgridError = True
     ls_shockCapturingFactor = 0.5
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.5
+    ls_sc_beta = 1.0
     vof_shockCapturingFactor = 0.5
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.5
-    vos_shockCapturingFactor = 0.9 # <-------------------------------------
+    vof_sc_beta = 1.0
+    vos_shockCapturingFactor = opts.vos_SC # <------------------------------------- 
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
-    vos_sc_beta = 1.5
-    rd_shockCapturingFactor = 0.9
+    vos_sc_beta = 1.0
+    rd_shockCapturingFactor = 0.5
     rd_lag_shockCapturing = False
     epsFact_vos =opts.epsFact_density
     epsFact_density = opts.epsFact_density # 1.5
@@ -540,11 +539,11 @@ if useMetrics:
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.5
+    kappa_sc_beta = 1.0
     dissipation_shockCapturingFactor = 0.25
     dissipation_lag_shockCapturing = True  #False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.5
+    dissipation_sc_beta = 1.0
 else:
     ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True

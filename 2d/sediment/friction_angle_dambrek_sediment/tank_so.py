@@ -62,7 +62,7 @@ name = "tank"
 modelSpinUpList = [PINIT_model]
 
 class Sequential_MinAdaptiveModelStepPS(Sequential_MinAdaptiveModelStep):
-    def __init__(self,modelList,system=defaultSystem,stepExact=False):
+    def __init__(self,modelList,system=defaultSystem,stepExact=True):
         Sequential_MinAdaptiveModelStep.__init__(self,modelList,system,stepExact)
         self.modelList = modelList[:len(pnList)-1]
 

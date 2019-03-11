@@ -41,7 +41,7 @@ levelNonlinearSolver      = NonlinearSolvers.Newton
 
 nonlinearSmoother = None
 
-linearSmoother    = None
+linearSmoother    = None #SimpleNavierStokes2D
 
 matrix = SparseMatrix
 

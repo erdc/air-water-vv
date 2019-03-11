@@ -13,7 +13,7 @@ LevelModelType = Pres.LevelModel
 coefficients=Pres.Coefficients(modelIndex=ct.P_model,
                                fluidModelIndex=ct.V_model,
                                pressureIncrementModelIndex=ct.DP_model,
-                               useRotationalForm=False)
+                               useRotationalForm=True)
 
 
 class getIBC_p:

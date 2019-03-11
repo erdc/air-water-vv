@@ -23,7 +23,7 @@ else:
 coefficients=Pres.Coefficients(modelIndex=PRESSURE_model,
                                fluidModelIndex=V_model,
                                pressureIncrementModelIndex=PINC_model,
-                               useRotationalForm=False)
+                               useRotationalForm=True)
 
 
 class getIBC_p:

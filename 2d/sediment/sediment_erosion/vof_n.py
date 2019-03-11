@@ -30,7 +30,7 @@ triangleOptions = mesh.triangleOptions
 elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
-femSpaces = {0:ct.pbasis}
+femSpaces = {0:ct.basis}
 
 massLumping       = False
 numericalFluxType = VOF3P.NumericalFlux

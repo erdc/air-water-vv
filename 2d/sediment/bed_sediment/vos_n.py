@@ -33,7 +33,7 @@ elementQuadrature = ct.elementQuadrature
 elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 
 
-femSpaces = {0:ct.pbasis}
+femSpaces = {0:ct.basis}
 
 massLumping       = False
 numericalFluxType = VOS3P.NumericalFlux
