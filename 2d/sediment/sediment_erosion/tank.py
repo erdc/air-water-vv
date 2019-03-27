@@ -8,39 +8,30 @@ from proteus.mprans import SpatialTools as st
 from proteus import Gauges as ga
 from proteus import WaveTools as wt
 from proteus.mprans.SedClosure import  HsuSedStress
-
+from proteus.mprans import BoundaryConditions as bc
 
 opts=Context.Options([
     # Geometry and sed parameters
-    ("waterLine_x", 10.00, "Width of free surface from left to right"),
-    ("waterLine_z", 0.4, "Heigth of free surface above bottom"),
-    ("sediment_level", 0., "Height of the sediment column"),
+    ("waterLine_x", 20., "Width of free surface from left to right"),
+    ("waterLine_z", .5, "Heigth of free surface above bottom"),
+    ("sediment_level", 0.24, "Height of the sediment column"),
     ("sediment_bottom", -20., "Height of the sediment column"),
-    ("Lx", 1.6, "Length of the numerical domain"),
-    ("Ly", 0.6,"Heigth of the numerical domain"),
-    ("dtout", 0.05, "Time interval for output"),  
-    # cylinder
-    ("cylinder_radius", 0.05, "radius of cylinder"),
-    ("cylinder_pos_x", 0.8, "x position of cylinder"),
-    ("cylinder_pos_y", 0.085+0.05+0.16, "y position of cylinder"),
-    ("circle2D", False, "switch on/off cylinder"),
-    ("circleBC", 'NoSlip','circle BC'),
-    # hole
-    ("xHole", 0.3, "Distance of hole from inlet"),
-    ("dHole",0.24, " Hole depth"),
-    ("wHole",1.,"Hole width"),
-    # current
-    ("U", 1e-1, "inflow velocity"),
-    ("GenZone", not True, "on/off"),
-    ("AbsZone", not True, "on/off"),
+    ("Lx", 12., "Length of the numerical domain"),
+    ("Ly", 1., "Heigth of the numerical domain"),
+    ("wHole", 2., "Width of hole"),
+    ("dtout", 0.05, "Time interval for output"),
+    #Current
+    ("inflow_vel", 0.1, "Inflow velocity (at x direction)"),
+    ("ramp",1.,"Ramping time"),
+    ("I",0.03,"Turbulence intensity"),
     #fluid parameters
     ("rho_0", 998.2, "water density"),
-    ("rho_1", 1.205, "air density"),
+    ("rho_1", 998.2, "air density"),
     ("nu_0", 1e-6, "water kin viscosity"),
-    ("nu_1", 1.5e-5, "air kin viscosity"),
+    ("nu_1", 1e-6, "air kin viscosity"),
     ('g',np.array([0.0, -9.8, 0.0]),'Gravitational acceleration'),    
     # sediment parameters
-    ('cSed', 0.55,'Initial sediment concentration'),
+    ('cSed', 0.6,'Initial sediment concentration'),
     ('rho_s',2600 ,'sediment material density'),
     ('alphaSed', 150.,'laminar drag coefficient'),
     ('betaSed', 1.72,'turbulent drag coefficient'),
@@ -57,22 +48,25 @@ opts=Context.Options([
     ('mContact', 3.0,'Contact stress coefficient'),
     ('nContact', 5.0,'Contact stress coefficient'),
     ('angFriction', pi/6., 'Angle of friction'),
-    ('vos_limiter', 0.62, 'Weak limiter for vos'),
+    ('vos_limiter', 0.6, 'Weak limiter for vos'),
     ('mu_fr_limiter', 1e-3,'Hard limiter for contact stress friction coeff'),
      # numerical options
-    ("he", 0.02,"element size"),
+    ("refinement", 25.,"Ly/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
-    ("cfl", 0.25 ,"Target cfl"),
-    ("duration", 5.0 ,"Duration of the simulation"),
+    ("cfl", 0.5 ,"Target cfl"),
+    ("duration", 1.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-8, "Residual tolerance"),
+    ("kres", 1.0e-2, "Residual tolerance for k-epsilon"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
-    ("useRANS", False, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
+    ("useRANS", True, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
     ("vos_SC",0.9,"vos shock capturing"),
     # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
+    ("K", 0.41, "von Karman coefficient for the turbulence model"),
+    ("B", 5.57, "Wall coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
     ])
 
@@ -102,6 +96,28 @@ else:
 
 nd = 2
 
+
+
+
+# Turbulence and wall functions
+
+
+steady_current = wt.SteadyCurrent(U=np.array([opts.inflow_vel,0.,0.]),mwl=1e6,rampTime=opts.ramp)
+I = opts.I
+kInflow = 0.5*(opts.inflow_vel*I)**2
+Lturb = opts.Ly/6.
+dissipationInflow = (opts.Cmu**0.75) *(kInflow**1.5)/Lturb
+
+#Wall functions
+
+he = opts.Ly/opts.refinement
+Re = opts.inflow_vel*opts.Ly/opts.nu_0
+Y_ = he
+cf = 0.045*(Re**(-1./4.))
+Ut = opts.inflow_vel*sqrt(cf/2.)
+Yplus = Y_*Ut/opts.nu_0
+kappaP = (Ut**2)/sqrt(opts.Cmu)
+dissipationP = (Ut**3)/(opts.K*Y_)
 # ----- Sediment stress ----- #
 
 sedClosure = HsuSedStress(aDarcy =  opts.alphaSed,
@@ -161,14 +177,38 @@ waterLevel = waterLine_z
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # Domain and mesh
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-##TANK
-tank_dim = L = (opts.Lx, opts.Ly)
-he = opts.he
-dim = dimx, dimy = L
-coords = [ dimx/2., dimy/2. ]
+
+#L = (opts.Lx, opts.Ly)
+#he = L[0]/opts.refinement
+
+#dim = dimx, dimy = L
+#coords = [ dimx/2., dimy/2. ]
+
+############ TANK ###################
+
+
+
+tank_dim = (opts.Lx, opts.Ly)
+
+xHoleCenter = opts.Lx/2.
+wHole = opts.wHole
+xHoleStart = xHoleCenter - wHole /2.
+xHoleEnd = xHoleStart+wHole
+x1 = xHoleCenter / 8.
+x2 = opts.Lx - xHoleCenter / 8.
+dHole = opts.Ly/4.
+
+
+
+
 ### CYLINDER #####
-cylinder_pos = np.array([opts.cylinder_pos_x, opts.cylinder_pos_y, 0.])
-cylinder_radius = opts.cylinder_radius
+#cylinder_pos = np.array([opts.cylinder_pos_x, opts.cylinder_pos_y, 0.])
+#cylinder_radius = opts.cylinder_radius
+
+
+
+
+"""
 if opts.circle2D:
     circle = st.Circle(domain=domain, radius=cylinder_radius, coords=(cylinder_pos[0],cylinder_pos[1]), barycenter=(cylinder_pos[0],cylinder_pos[1]), nPoints=28)
 
@@ -178,13 +218,16 @@ if opts.circle2D:
     circle2D.setConstraints(free_x=free_x,free_r=free_r)
     circle2D.setNumericalScheme(None)
     circle2D.setRecordValues(filename='circle2D',all_values=True)
+"""
+
+
+
 
 boundaryOrientations = {'y-': np.array([0., -1.,0.]),
                         'x+': np.array([+1, 0.,0.]),
                         'y+': np.array([0., +1.,0.]),
                         'x-': np.array([-1., 0.,0.]),
                         'sponge': None,
-                        'circle': None,
                         'hole_x-': np.array([-1., 0.,0.]),
                         'hole_x+': np.array([+1., 0.,0.]),
                         'hole_y-': np.array([0., -1.,0.]),
@@ -196,68 +239,69 @@ boundaryTags = {'y-': 1,
                     'y+': 3,
                     'x-': 4,
                     'sponge': 5,
-                    'circle':6,
-                    'hole_x-':7,
-                    'hole_x+':8,
-                    'hole_y-':9,
+                    'hole_x-':6,
+                    'hole_x+':7,
+                    'hole_y-':8,
                        }
 
 
 
-vertices=[[0.0, 0.0  ],#0
-          [opts.xHole/2,  0.],#1
-          [opts.xHole,  0.],#2
-          [opts.xHole,  -opts.dHole],#3
-          [opts.xHole+opts.wHole,  -opts.dHole],#4
-          [opts.xHole+opts.wHole,  0.],#5
-          [opts.xHole+opts.wHole+opts.xHole/2,  0.],#6
-          [tank_dim[0],0.],#7
-          [tank_dim[0],tank_dim[1]], #8
-          [opts.xHole+opts.wHole+opts.xHole/2, tank_dim[1]], #9
-          [opts.xHole/2, tank_dim[1]], #10
-          [0.0, tank_dim[1]], #11
+
+
+vertices=[[0.0, dHole],#0
+              [x1,  dHole],#1
+              [xHoleStart,  dHole],#2
+              [xHoleStart,  0.0],#3
+              [xHoleEnd,  0.0],#4
+              [xHoleEnd,  dHole],#5
+              [x2,  dHole],#6
+              [tank_dim[0],dHole],#7
+              [tank_dim[0],tank_dim[1]], #8
+              [x2, tank_dim[1]], #9
+              [x1, tank_dim[1]], #10
+              [0.0, tank_dim[1]], #11
               ]
 
-vertexFlags=np.array([1, 1, 1,
-                          9, 9,
-                          1, 1, 1,
-                          3, 3, 3, 3,
+vertexFlags=np.array([4, 1, 1,
+                          8, 8,
+                          1, 1, 2,
+                          2, 3, 3, 4,
                           ])
 segments=[[0,1],
-          [1,2],
-          
-          [2,3],
-          [3,4],
-          [4,5],
-          
-          [5,6],
-          [6,7],
-          
-          [7,8],
+              [1,2],
 
-          [8,9],
-          [9,10],
-          [10,11],
-          
-          [11,0],
-          
-          [1,10],
-          [6,9],
-           ]
+              [2,3],
+              [3,4],
+              [4,5],
 
-segmentFlags=np.array([ 1, 1, 
-                        7, 9, 8,
-                        1, 1,
-                        2,
-                        3, 3, 3, 
-                        4,
-                        5, 5,
-                        ])
+              [5,6],
+              [6,7],
+
+              [7,8],
+
+              [8,9],
+              [9,10],
+              [10,11],
+
+              [11,0],
+
+              [1,10],
+              [6,9],
+             ]
+
+segmentFlags=np.array([ 1, 1,
+                            6, 8, 7,
+                            1, 1,
+                            2,
+                            3, 3, 3,
+                            4,
+                            5, 5,
+                         ])
 
 
-regions = [ [ 0.000001 , 0.50*tank_dim[1] ],
-            [ opts.xHole+opts.wHole/2 , 0.50*tank_dim[1] ],
-            [ 0.9999*tank_dim[0] , 0.50*tank_dim[1] ] ]
+regions = [ [ 0.90*x1 , 0.50*tank_dim[1] ],
+            [ 0.7 , 0.50*tank_dim[1] ],
+            [ 0.95*tank_dim[0] , 0.50*tank_dim[1] ] ]
 
 regionFlags=np.array([1, 2, 3])
 
@@ -267,45 +311,36 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       segments=segments, segmentFlags=segmentFlags,
                       regions=regions, regionFlags=regionFlags,
                       boundaryTags=boundaryTags, boundaryOrientations=boundaryOrientations)
-    
 
+kWallWall = bc.kWall(Y=Y_, Yplus=Yplus, b_or=boundaryOrientations['y-'], nu=nu_0)
+kWalls = [kWallWall]
+wallWall = bc.WallFunctions(turbModel='ke', kWall=kWallWall, b_or=boundaryOrientations['y-'], Y=Y_, Yplus=Yplus, U0=[opts.inflow_vel, 0. , 0.], nu=nu_0, Cmu=opts.Cmu, K=opts.K, B=opts.B)
+walls = [wallWall]
 
 
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #############################################################################################################################################################################################################################################################################################################################################################################################
+tank.setTurbulentWall(walls)
+tank.setTurbulentKWall(kWalls)
+#tank.BC['y-'].setFreeSlip()
+tank.BC['y-'].setWallFunction(walls[0])
+tank.BC['y+'].setFreeSlip()#.setAtmosphere(orientation=np.array([0., +1.,0.]),kInflow=kInflow,dInflow=dissipationInflow)
 
-tank.BC['y-'].setFreeSlip()
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current, smoothing = 3*he, vert_axis=1, kInflow = kInflow, dInflow = dissipationInflow)
+#tank.BC['x-'].setFreeSlip()
 
-tank.BC['y+'].setFreeSlip()
-#tank.BC['y+'].setAtmosphere(orientation=np.array([0,1,0]))
-tank.BC['x-'].setFreeSlip()
-tank.BC['x+'].setFreeSlip()
-
-tank.BC['x+'].setHydrostaticPressureOutletWithDepth_stressFree(seaLevel=1e10,
-                                                               rhoUp=rho_1,
-                                                               rhoDown=rho_0,
-                                                               nuUp=nu_1,
-                                                               nuDown=nu_0,
-                                                               g=g,
-                                                               refLevel=opts.Ly,
-                                                               smoothing=opts.epsFact_density*opts.he)
-
-if opts.circle2D:
-    
-    for bc in circle.BC_list:
-        if opts.circleBC == 'FreeSlip':
-            bc.setFreeSlip()
-        if opts.circleBC == 'NoSlip':
-            bc.setNoSlip()
-
-tank.BC['hole_x+'].setFreeSlip()
+tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLine_z,
+                                                    rhoUp=rho_1,
+                                                    rhoDown=rho_0,
+                                                    g=g,
+                                                    refLevel=opts.Ly,
+                                                    smoothing=opts.epsFact_density*he,
+                                                    kInflow=kInflow, dissipationInflow=dissipationInflow,
+                                                    kInflowAir=kInflow, dissipationInflowAir=dissipationInflow)
+#tank.BC['x+'].setFreeSlip()
 
 
-tank.BC['hole_x-'].setFreeSlip()
-
-
-tank.BC['hole_y-'].setFreeSlip()
 
 
 
@@ -315,13 +350,16 @@ tank.BC['hole_y-'].setFreeSlip()
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
 
-if opts.useRANS:
-    kInflow = 1e-6
-    dissipationInflow = 1e-6
-    tank.BC['x-'].setTurbulentZeroGradient()
-    tank.BC['x+'].setTurbulentZeroGradient()
-    tank.BC['y-'].setTurbulentZeroGradient()
-    tank.BC['y+'].setTurbulentZeroGradient()
+
+
+tank.BC['hole_x+'].setNoSlip()
+
+
+tank.BC['hole_x-'].setNoSlip()
+
+
+tank.BC['hole_y-'].setNoSlip()
+
 
 
 ######################################################################################################################################################################################################################
@@ -331,11 +369,11 @@ if opts.useRANS:
 T=opts.duration
 PG = []
 gauge_dy=0.01
-tank_dim_y=dimy
+tank_dim_y=opts.Ly
 nprobes=int(tank_dim_y/gauge_dy)+1
 probes=np.linspace(0., tank_dim_y, nprobes)
 for i in probes:
-    PG.append((dimx/2., i, 0.),)
+    PG.append((opts.Lx/2., i, 0.),)
 v_output = ga.PointGauges(gauges=((('u',), PG),
                                   (('v',), PG),),
                           activeTime = (0., T),
@@ -497,14 +535,14 @@ if useMetrics:
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = opts.epsFact_consrv_diffusion # 0.1
     redist_Newton = True
-    kappa_shockCapturingFactor = 0.25
-    kappa_lag_shockCapturing = True  #False
+    kappa_shockCapturingFactor = 0.5
+    kappa_lag_shockCapturing = True #False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.25
-    dissipation_lag_shockCapturing = True  #False
+    kappa_sc_beta = 1.5
+    dissipation_shockCapturingFactor = 0.5
+    dissipation_lag_shockCapturing = True #False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = 1.5
 else:
     ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True
@@ -520,7 +558,7 @@ else:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor = 5.
+    vos_shockCapturingFactor = .9
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0
@@ -531,14 +569,14 @@ else:
     epsFact_redistance = 0.33
     epsFact_consrv_diffusion = opts.epsFact_consrv_diffusion # 1.0
     redist_Newton = False
-    kappa_shockCapturingFactor = 0.9
+    kappa_shockCapturingFactor = 0.5
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
-    dissipation_shockCapturingFactor = 0.9
+    kappa_sc_beta = 1.5
+    dissipation_shockCapturingFactor = 0.5
     dissipation_lag_shockCapturing = True  #False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = 1.5
 
 ns_nl_atol_res = max(opts.res, 0.001 * he ** 2)
 ns_sed_nl_atol_res = max(opts.res, 0.001 * he ** 2)
@@ -547,8 +585,10 @@ vos_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
 ls_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
 rd_nl_atol_res =  max(opts.res, 0.005 * he)
 mcorr_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
-kappa_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
-dissipation_nl_atol_res =  max(opts.res, 0.001 * he ** 2)
+kappa_nl_atol_res = max(1.0e-12,0.001*he**2)
+dissipation_nl_atol_res = max(1.0e-12,0.001*he**2)
+#kappa_nl_atol_res =  max(opts.kres, 0.01 * he ** 2)
+#dissipation_nl_atol_res =  max(opts.kres, 0.01 * he ** 2)
 phi_nl_atol_res = max(opts.res, 0.001 * he ** 2)
 pressure_nl_atol_res = max(opts.res, 0.001 * he ** 2)
 
@@ -580,6 +620,9 @@ def vos_signedDistance(x):
         phi_z = phi_z1
     else:
         phi_z = phi_z2
+    Lsed  =   xHoleCenter - wHole/2.
+    if (x[0] <Lsed or  (x[0] > opts.Lx - Lsed)):
+        phi_z = 1
     return phi_z
 
 class Suspension_class:

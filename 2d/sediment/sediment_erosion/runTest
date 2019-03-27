@@ -1,2 +1,3 @@
 # Single phase
-parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=0.1 rho_1=998.2 nu_1=1e-6 cSed=0.634" -D case_A1
+parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=.01 rho_1=998.2 nu_1=1e-6 cSed=0.6 inflow_vel=.1" -D caseTest
+

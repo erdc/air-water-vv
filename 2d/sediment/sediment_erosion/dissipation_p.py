@@ -30,7 +30,7 @@ coefficients = Dissipation.Coefficients(V_model=ct.V_model,
                                         sc_beta=dissipation_sc_beta,
                                         closure = ct.sedClosure )
 
-kInflow=ct.dissipationInflow
+kInflow=ct.kInflow
 
 dissipationInflow=ct.dissipationInflow
 

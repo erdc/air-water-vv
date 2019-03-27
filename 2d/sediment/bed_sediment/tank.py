@@ -44,7 +44,7 @@ opts=Context.Options([
     ('mContact', 3.0,'Contact stress coefficient'),
     ('nContact', 5.0,'Contact stress coefficient'),
     ('angFriction', pi/6., 'Angle of friction'),
-    ('vos_limiter', 0.62, 'Weak limiter for vos'),
+    ('vos_limiter', 0.6, 'Weak limiter for vos'),
     ('mu_fr_limiter', 1e-3,'Hard limiter for contact stress friction coeff'),
      # numerical options
     ("refinement", 25.,"L[0]/refinement"),
