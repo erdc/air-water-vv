@@ -42,7 +42,7 @@ levelNonlinearSolver = NonlinearSolvers.AddedMassNewton
 #linear solve rtolerance
 
 linTolFac = 0.0
-l_atol_res = 0.001*ct.am_nl_atol_res
+l_atol_res = 1.0e-10#0.001*ct.am_nl_atol_res
 tolFac = 0.0
 nl_atol_res = ct.am_nl_atol_res
 

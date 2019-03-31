@@ -67,8 +67,8 @@ if ct.redist_Newton:
     stepController = StepControl.Newton_controller
     maxNonlinearIts = 25
     maxLineSearches = 0
-    nonlinearSolverConvergenceTest = 'rits'
-    levelNonlinearSolverConvergenceTest = 'rits'
+    nonlinearSolverConvergenceTest = 'r'
+    levelNonlinearSolverConvergenceTest = 'r'
     linearSolverConvergenceTest = 'r-true'
 else:
     timeIntegration = TimeIntegration.BackwardEuler_cfl

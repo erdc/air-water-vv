@@ -3,7 +3,7 @@ from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
 from proteus.Profiling import logEvent
 #import ChRigidBody as crb
-from proteus.mbd import ChRigidBody as crb
+from proteus.mbd import CouplingFSI as crb
 from math import *
 import numpy as np
 
@@ -27,7 +27,7 @@ opts=Context.Options([
     ("caisson_mass", 125., "Mass of the caisson"),
     ("caisson_inertia", 4.05, "Inertia of the caisson"),
     ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
-    ("chrono_dt", 0.00001, "time step of chrono"),
+    ("chrono_dt", 0.001, "time step of chrono"),
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
     ("he", 0.03, "Set characteristic element size"),
@@ -45,8 +45,7 @@ opts=Context.Options([
     ("useRANS", 0, "RANS model"),
     ("sc", 0.25, "shockCapturing factor"),
     ("weak_factor", 10., "weak bc penalty factor"),
-    ("strong_dir", False, "strong dirichlet (True/False)"),
-    ])
+    ("strong_dir", False, "strong dirichlet (True/False)")])
 
 
 
@@ -265,7 +264,7 @@ if opts.caisson is True:
             for i in range(int(n)):
                 theta = (i+1)*DT/dt
                 body.t = body.last_t + DT
-                logEvent("6DOF theta "+`theta`)
+                logEvent("6DOF theta {0}".format(theta))
                 u = np.zeros((18,),'d')
                 u[:] = body.last_u
                 r = np.zeros((18,),'d')
@@ -276,8 +275,8 @@ if opts.caisson is True:
                     u -= np.linalg.solve(J,r)
                     r,J = F(u,theta)
                     its+=1
-                logEvent("6DOF its "+`its`)
-                logEvent("6DOF res "+`np.linalg.norm(r)`)
+                logEvent("6DOF its {0}".format(its))
+                logEvent("6DOF res {0}".format(np.linalg.norm(r)))
                 body.last_Aij[:]=body.Aij
                 body.last_FT[:] = body.FT
                 body.last_Omega[:] = body.Omega
@@ -299,14 +298,14 @@ if opts.caisson is True:
             body.barycenter[:] = body.Shape.barycenter
             body.position[:] = body.Shape.barycenter
             #logEvent("6DOF its = " + `its` + " residual = "+`r`)
-            logEvent("6DOF time "+`body.t`)
-            logEvent("6DOF DT "+`DT`)
-            logEvent("6DOF n "+`n`)
-            logEvent("6DOF force "+`body.FT[1]`)
-            logEvent("displacement, h = "+`body.h`)
-            logEvent("rotation, Q = "+`body.Q`)
-            logEvent("velocity, v = "+`body.velocity`)
-            logEvent("angular acceleration matrix, Omega = "+`body.Omega`)
+            logEvent("6DOF time {0}".format(body.t))
+            logEvent("6DOF DT {0}".format(DT))
+            logEvent("6DOF n {0}".format(n))
+            logEvent("6DOF force {0}".format(body.FT[1]))
+            logEvent("displacement, h = {0}".format(body.h))
+            logEvent("rotation, Q = {0}".format(body.Q))
+            logEvent("velocity, v = {0}".format(body.velocity))
+            logEvent("angular acceleration matrix, Omega = {0}".format(body.Omega))
 
         body.step = step
         #body.scheme = 'Forward_Euler'
@@ -454,7 +453,7 @@ dt_fixed = opts.dt_fixed
 
 #  Discretization -- input options
 useOldPETSc=False
-useSuperlu = not True
+useSuperlu = True
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
@@ -467,15 +466,15 @@ useRANS = opts.useRANS # 0 -- None
             # 3 -- K-Omega, 1988
 # Input checks
 if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
+    print("INVALID: spaceOrder" + spaceOrder)
     sys.exit()
 
 if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
+    print("INVALID: useRBLES" + useRBLES)
     sys.exit()
 
 if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
+    print("INVALID: useMetrics")
     sys.exit()
 
 #  Discretization
@@ -483,22 +482,22 @@ nd = 2
 if spaceOrder == 1:
     hFactor=1.0
     if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
+        basis=C0_AffineLinearOnCubeWithNodalBasis
+        elementQuadrature = CubeGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
     else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
-         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
+        basis=C0_AffineLinearOnSimplexWithNodalBasis
+        elementQuadrature = SimplexGaussQuadrature(nd,3)
+        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
+        #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
 elif spaceOrder == 2:
     hFactor=0.5
     if useHex:
-	basis=C0_AffineLagrangeOnCubeWithNodalBasis
+        basis=C0_AffineLagrangeOnCubeWithNodalBasis
         elementQuadrature = CubeGaussQuadrature(nd,4)
         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
     else:
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
+        basis=C0_AffineQuadraticOnSimplexWithNodalBasis
         elementQuadrature = SimplexGaussQuadrature(nd,4)
         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
 
@@ -529,7 +528,7 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = sc_beta
-    rd_shockCapturingFactor  = 0.75
+    rd_shockCapturingFactor  = 0.9
     rd_lag_shockCapturing = False
     epsFact_density    = 1.5
     epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
@@ -578,7 +577,7 @@ ns_nl_atol_res = max(1.0e-8,tolfac*he**2)
 vof_nl_atol_res = max(1.0e-8,tolfac*he**2)
 ls_nl_atol_res = max(1.0e-8,tolfac*he**2)
 mcorr_nl_atol_res = max(1.0e-8,tolfac*he**2)
-rd_nl_atol_res = max(1.0e-8,tolfac*he)
+rd_nl_atol_res = max(1.0e-8,0.01*he)
 kappa_nl_atol_res = max(1.0e-8,tolfac*he**2)
 dissipation_nl_atol_res = max(1.0e-8,tolfac*he**2)
 mesh_nl_atol_res = max(1.0e-8,mesh_tol*he**2)
