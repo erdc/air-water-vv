@@ -1,3 +1,4 @@
+import math
 from proteus import Domain, Context, Comm
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
@@ -76,7 +77,8 @@ if opts.caisson is True:
         caisson_name+='_am'
     if opts.nc_form:
         caisson_name+='_nc'
-    caisson = st.Rectangle(domain, dim=opts.caisson_dim, coords=[0.,0.], barycenter=np.zeros(3))
+#    caisson = st.Rectangle(domain, dim=opts.caisson_dim, coords=[0.,0.], barycenter=np.zeros(3))
+    caisson = st.Circle(domain, radius=opts.caisson_dim[0]/2., coords=[0.,0.], barycenter=np.zeros(3), nPoints=int(math.ceil(2.*math.pi*opts.caisson_dim[0]/opts.he)))
     caisson.name=caisson_name
     ang = rotation_angle
     caisson.setHoles([[0., 0.]])
@@ -94,7 +96,7 @@ if opts.caisson is True:
     for bc in caisson.BC_list:
         bc.setNoSlip()
     if opts.use_chrono:
-        system = crb.ProtChSystem(np.array([0., -9.81, 0.]))
+        system = crb.ProtChSystem()#np.array([0., -9.81, 0.]))
         system.setTimeStep(opts.chrono_dt)
         system.step_start = 10
         body = crb.ProtChBody(shape=caisson,

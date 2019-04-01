@@ -1,3 +1,4 @@
+import math
 from proteus import Domain, Context, Comm
 from proteus.mprans import SpatialTools as st
 from proteus import WaveTools as wt
@@ -27,7 +28,7 @@ opts=Context.Options([
     ("caisson_mass", 125., "Mass of the caisson"),
     ("caisson_inertia", 4.05, "Inertia of the caisson"),
     ("rotation_angle", 0., "Initial rotation angle (in degrees)"),
-    ("chrono_dt", 0.001, "time step of chrono"),
+    ("chrono_dt", 0.0001, "time step of chrono"),
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
     ("he", 0.03, "Set characteristic element size"),
@@ -35,19 +36,27 @@ opts=Context.Options([
     # numerical options
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
-    ("movingDomain", True, "True/False"),
-    ("T", 10.0, "Simulation time"),
+    ("movingDomain", False, "True/False"),
+    ("T", 2.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
-    ("dt_fixed", None, "Fixed (maximum) time step"),
+    ("dt_fixed",0.001, "Fixed (maximum) time step"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
     ("cfl", 0.4 , "Target cfl"),
-    ("nsave", 5, "Number of time steps to save per second"),
+    ("nsave", 10, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
     ("sc", 0.25, "shockCapturing factor"),
     ("weak_factor", 10., "weak bc penalty factor"),
     ("strong_dir", False, "strong dirichlet (True/False)")])
 
-
+eps=1.0e-8
+def onBoundary(x):
+    if(x[0] < 0.0 + eps or
+       x[0] > opts.tank_dim[0] - eps or
+       x[1] < 0.0 + eps or
+       x[1] > opts.tank_dim[1] - eps):
+        return True
+    else:
+        return False
 
 # ----- CONTEXT ------ #
 
@@ -63,7 +72,13 @@ tank_sponge = opts.tank_sponge
 # ----- DOMAIN ----- #
 
 domain = Domain.PlanarStraightLineGraphDomain()
+domainDummy = Domain.PlanarStraightLineGraphDomain()
 # caisson options
+use_ball_as_particle = True
+ball_center=np.zeros((1,3),'d')
+ball_radius=np.array([opts.caisson_dim[0]/2.],'d')
+ball_velocity=np.zeros((1,3),'d')
+ball_angular_velocity=np.zeros((1,3),'d')
 if opts.caisson is True:
     free_x = opts.free_x
     free_r = opts.free_r
@@ -76,13 +91,15 @@ if opts.caisson is True:
         caisson_name+='_am'
     if opts.nc_form:
         caisson_name+='_nc'
-    caisson = st.Rectangle(domain, dim=opts.caisson_dim, coords=[0.,0.], barycenter=np.zeros(3))
+#    caisson = st.Rectangle(domain, dim=opts.caisson_dim, coords=[0.,0.], barycenter=np.zeros(3))
+    caisson = st.Circle(domainDummy, radius=opts.caisson_dim[0]/2., coords=[0.,0.], barycenter=np.zeros(3), nPoints=int(math.ceil(2.*math.pi*opts.caisson_dim[0]/opts.he)))
+    assert(opts.caisson_mass/math.pi*(opts.caisson_dim[0]/2.)**2 < 998.2)
     caisson.name=caisson_name
     ang = rotation_angle
-    caisson.setHoles([[0., 0.]])
-    caisson.holes_ind = np.array([0])
-    print(caisson.regions+np.ones(2))
-    print(caisson.regionFlags)
+    #caisson.setHoles([[0., 0.]])
+    #caisson.holes_ind = np.array([0])
+    #print(caisson.regions+np.ones(2))
+    #print(caisson.regionFlags)
 
     trans = np.array([opts.caisson_coords[0], opts.caisson_coords[1]])
     print(trans+np.ones(2))
@@ -91,8 +108,8 @@ if opts.caisson is True:
     # rotation = np.array([1, 0., 0., 0.])
     rotation_init = np.array([np.cos(ang/2.), 0., 0., np.sin(ang/2.)*1.])
     caisson.rotate(ang, pivot=caisson.barycenter)
-    for bc in caisson.BC_list:
-        bc.setNoSlip()
+#    for bc in caisson.BC_list:
+#        bc.setNoSlip()
     if opts.use_chrono:
         system = crb.ProtChSystem(np.array([0., -9.81, 0.]))
         system.setTimeStep(opts.chrono_dt)
@@ -128,6 +145,7 @@ if opts.caisson is True:
                 pass
         from proteus.mprans import BodyDynamics as bd
         body = bd.RigidBody(shape=caisson)
+        ball_center[0,:]=body.Shape.barycenter
         system = body  # so it is added in twp_navier_stokes_p.py
         bodyAddedMass = BodyAddedMass()
         body.bodyAddedMass = body.ProtChAddedMass = bodyAddedMass
@@ -197,8 +215,7 @@ if opts.caisson is True:
                 I = np.matmul(np.matmul(Q, body.It), Q.transpose())
                 body.Aij = np.zeros((6,6),'d')
                 if opts.addedMass:
-                    for i in range(1,5):#number of rigid body facets
-                        body.Aij += body.bodyAddedMass.model.levelModelList[-1].Aij[i]
+                    body.Aij += body.bodyAddedMass.model.levelModelList[-1].coefficients.particle_Aij[0]
                 avg_Aij=False
                 if avg_Aij:
                     M = body.Aij*theta + body.last_Aij*(1-theta)
@@ -210,8 +227,8 @@ if opts.caisson is True:
                         M[j,i]*=body.free_dof[j]#only allow j added mass forces if j is free
                         body.Aij[i,j]*=body.free_dof[j]#only allow j accelerations to contribute to i force balance if j is free
                         body.Aij[j,i]*=body.free_dof[j]#only allow j added mass forces if j is free
-                body.FT[:3] = body.F
-                body.FT[3:] = body.M
+                body.FT[:3] = opts.caisson_mass*np.array([0.,-9.8,0.]) + body.bodyAddedMass.model.levelModelList[-1].coefficients.flowModel.coefficients.particle_netForces[0]
+                body.FT[3:] = body.bodyAddedMass.model.levelModelList[-1].coefficients.flowModel.coefficients.particle_netMoments[0]
                 #cek debug
                 #body.FT[:] = 0.0
                 #body.FT[1] = body.mass * 0.125*math.pi**2 * math.cos(body.t*math.pi)
@@ -297,6 +314,14 @@ if opts.caisson is True:
             body.Shape.translate(body.h[:nd])
             body.barycenter[:] = body.Shape.barycenter
             body.position[:] = body.Shape.barycenter
+            ball_center[0,:]=body.Shape.barycenter
+            body.bodyAddedMass.model.levelModelList[-1].coefficients.flowModel.coefficients.ball_center[0,:]=ball_center
+            #ball_radius=np.zeros([opts.caisson_dim[0]/2.],'d')
+            ball_velocity[0,:]=body.velocity
+            body.bodyAddedMass.model.levelModelList[-1].coefficients.flowModel.coefficients.ball_radius[0]=opts.caisson_dim[0]/2.
+            body.bodyAddedMass.model.levelModelList[-1].coefficients.flowModel.coefficients.ball_velocity[0,:]=body.velocity
+            body.bodyAddedMass.model.levelModelList[-1].coefficients.flowModel.coefficients.ball_angular_velocity[0,:]=0.0
+            #ball_angular_velocity[0,:]=#hack!
             #logEvent("6DOF its = " + `its` + " residual = "+`r`)
             logEvent("6DOF time {0}".format(body.t))
             logEvent("6DOF DT {0}".format(DT))
@@ -312,10 +337,10 @@ if opts.caisson is True:
 
 # ----- SHAPES ----- #
 tank = st.Tank2D(domain, tank_dim)
-tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
-if opts.caisson:
-    # let gmsh know that the caisson is IN the tank
-    tank.setChildShape(caisson, 0)
+#tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
+#if opts.caisson:
+#    # let gmsh know that the caisson is IN the tank
+#    tank.setChildShape(caisson, 0)
 
 
 # ----- BOUNDARY CONDITIONS ----- #
@@ -324,14 +349,14 @@ tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setNoSlip()
 tank.BC['x+'].setNoSlip()
 tank.BC['x-'].setNoSlip()
-tank.BC['sponge'].setNonMaterial()
+#tank.BC['sponge'].setNonMaterial()
 
 tank.BC['x-'].setFixedNodes()
 tank.BC['x+'].setFixedNodes()
-tank.BC['sponge'].setFixedNodes()
+#tank.BC['sponge'].setFixedNodes()
 tank.BC['y+'].setTank()  # sliding mesh nodes
 tank.BC['y-'].setTank()  #sliding mesh nodes
-
+boundaryTags={'left':4,'right':2,'top':3,'bottom':1,'front':1,'back':3}
 
 
 
@@ -390,13 +415,13 @@ max_flag = max(domain.vertexFlags)
 max_flag = max(domain.segmentFlags+[max_flag])
 max_flag = max(domain.facetFlags+[max_flag])
 flags_rigidbody = np.zeros(max_flag+1, dtype='int32')
-if opts.use_chrono:
-    for s in system.subcomponents:
-        if type(s) is crb.ProtChBody:
-            for i in range(s.i_start, s.i_end):
-                flags_rigidbody[i] = 1
-else:
-    flags_rigidbody[1:5] = 1
+#if opts.use_chrono:
+#    for s in system.subcomponents:
+#        if type(s) is crb.ProtChBody:
+#            for i in range(s.i_start, s.i_end):
+#                flags_rigidbody[i] = 1
+#else:
+#    flags_rigidbody[1:5] = 1
 
 
 ##########################################
@@ -408,6 +433,9 @@ rho_0=998.2
 nu_0 =1.004e-6
 rho_1=1.205
 nu_1 =1.500e-5
+#cek debug
+#rho_1=rho_0
+#nu_1 =nu_0
 sigma_01=0.0
 g = [0., -9.81]
 
@@ -479,27 +507,11 @@ if useMetrics not in [0.0, 1.0]:
 
 #  Discretization
 nd = 2
-if spaceOrder == 1:
-    hFactor=1.0
-    if useHex:
-        basis=C0_AffineLinearOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd,3)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
-    else:
-        basis=C0_AffineLinearOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd,3)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
-        #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
-elif spaceOrder == 2:
-    hFactor=0.5
-    if useHex:
-        basis=C0_AffineLagrangeOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
-    else:
-        basis=C0_AffineQuadraticOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
+hFactor=1.0
+pbasis=basis=C0_AffineLinearOnSimplexWithNodalBasis
+vbasis=C0_AffineQuadraticOnSimplexWithNodalBasis
+elementQuadrature = SimplexGaussQuadrature(nd,5)
+elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,5)
 
 
 # Numerical parameters
