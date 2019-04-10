@@ -67,7 +67,7 @@ if ct.redist_Newton:
     stepController = StepControl.Newton_controller
     maxNonlinearIts = 25
     maxLineSearches = 0
-    nonlinearSolverConvergenceTest = 'r'
+    nonlinearSolverConvergenceTest = 'rits'
     levelNonlinearSolverConvergenceTest = 'r'
     linearSolverConvergenceTest = 'r-true'
 else:

@@ -37,14 +37,14 @@ opts=Context.Options([
     ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
     ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", False, "True/False"),
-    ("T", 2.0, "Simulation time"),
+    ("T", 10.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),
     ("dt_fixed",0.001, "Fixed (maximum) time step"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
     ("cfl", 0.4 , "Target cfl"),
     ("nsave", 10, "Number of time steps to save per second"),
     ("useRANS", 0, "RANS model"),
-    ("sc", 0.25, "shockCapturing factor"),
+    ("sc", 0.5, "shockCapturing factor"),
     ("weak_factor", 10., "weak bc penalty factor"),
     ("strong_dir", False, "strong dirichlet (True/False)")])
 
@@ -589,7 +589,7 @@ ns_nl_atol_res = max(1.0e-8,tolfac*he**2)
 vof_nl_atol_res = max(1.0e-8,tolfac*he**2)
 ls_nl_atol_res = max(1.0e-8,tolfac*he**2)
 mcorr_nl_atol_res = max(1.0e-8,tolfac*he**2)
-rd_nl_atol_res = max(1.0e-8,0.01*he)
+rd_nl_atol_res = max(1.0e-8,0.1*he)
 kappa_nl_atol_res = max(1.0e-8,tolfac*he**2)
 dissipation_nl_atol_res = max(1.0e-8,tolfac*he**2)
 mesh_nl_atol_res = max(1.0e-8,mesh_tol*he**2)
