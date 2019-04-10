@@ -5,13 +5,14 @@ from proteus import WaveTools as wt
 from proteus.Profiling import logEvent
 #import ChRigidBody as crb
 from proteus.mbd import CouplingFSI as crb
+import pychrono
 from math import *
 import numpy as np
 
 opts=Context.Options([
     ("cf",1.0,"Use corrected form of added mass"),
     ("nc_form",True,"Use non-conservative NSE form"),
-    ("use_chrono", False, "use chrono (True) or custom solver"),
+    ("use_chrono", True, "use chrono (True) or custom solver"),
     # predefined test cases
     ("water_level", 1.5, "Height of free surface above bottom"),
     # tank
@@ -111,18 +112,19 @@ if opts.caisson is True:
 #    for bc in caisson.BC_list:
 #        bc.setNoSlip()
     if opts.use_chrono:
-        system = crb.ProtChSystem(np.array([0., -9.81, 0.]))
+        system = crb.ProtChSystem()
+        system.ChSystem.Set_G_acc(pychrono.ChVectorD(0., -9.81, 0.))
         system.setTimeStep(opts.chrono_dt)
-        system.step_start = 10
-        body = crb.ProtChBody(shape=caisson,
-                              system=system)
+        #system.step_start = 10
+        body = crb.ProtChBody(system=system)
+        body.attachShape(caisson)
+        body.setIBM(True)
         chbod = body.ChBody
-        from proteus.mbd import pyChronoCore as pych
         x, y, z = caisson.barycenter
-        pos = pych.ChVector(x, y, z)
+        pos = pychrono.ChVectorD(x, y, z)
         e0, e1, e2, e3 = rotation_init
-        rot = pych.ChQuaternion(e0, e1, e2, e3)
-        inertia = pych.ChVector(1., 1., inertia)
+        rot = pychrono.ChQuaternionD(e0, e1, e2, e3)
+        inertia = pychrono.ChVectorD(1., 1., inertia)
         chbod.SetPos(pos)
         chbod.SetRot(rot)
         chbod.SetMass(opts.caisson_mass)

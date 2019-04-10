@@ -99,6 +99,7 @@ if opts.caisson is True:
         system.step_start = 10
         body = crb.ProtChBody(shape=caisson,
                               system=system)
+        body.setIBM = True
         chbod = body.ChBody
         from proteus.mbd import pyChronoCore as pych
         x, y, z = caisson.barycenter
