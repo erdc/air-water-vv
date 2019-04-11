@@ -244,7 +244,7 @@ m.mcorr.index = 4
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
 ############################################################################################################################################################################
-
+"""
 gauge_x = (2*wave_length+opts.structureCrestLevel*opts.structure_slope+opts.Lback/2)
 
 
@@ -263,7 +263,7 @@ tank.attachLineIntegralGauges('vof',
                               gauges=([['vof'],column_gauge_location]),
                               fileName='column_gauges.csv')    
 
-
+"""
 #assembling domain
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
