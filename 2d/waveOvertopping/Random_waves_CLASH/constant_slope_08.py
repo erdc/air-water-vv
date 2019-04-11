@@ -175,7 +175,14 @@ def signedDistance(x):
             return np.sqrt(phi_x ** 2 + phi_y ** 2)
 
 
-
+class P_IC:
+    def __init__(self,waterLevel):
+        self.waterLevel=opts.mwl
+    def uOfXT(self,x,t):
+        if signedDistance(x) < 0:
+            return -(opts.Ly - self.waterLevel)*opts.rho_1*opts.g[1] - (self.waterLevel - x[1])*opts.rho_0*opts.g[1]
+        else:
+            return -(opts.Ly - self.waterLevel)*opts.rho_1*opts.g[1]
 class AtRest:
     def uOfXT(self, x, t):
         return 0.0
