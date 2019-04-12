@@ -177,21 +177,21 @@ tank.setSponge(x_n=sponges['x-'], x_p=sponges['x+'])
 
 # SPHERE
 eps=2.0;
-coords = np.array([tank_dim[0]/2., tank_dim[1]/2.+eps])
+coords = np.array([tank_dim[0]/2., tank_dim[1]/2.+eps, 0.])
 barycenter = np.array([tank_dim[0]/2., tank_dim[1]/2.+eps])
 radius = 0.5
-sphere = st.Circle(domain,
-                   radius=radius,
-                   coords=coords,
-                   barycenter=barycenter,
-                   nPoints=int(ceil(2.*pi*tank_dim[0]/opts.he)))
-sphere.setHoles([sphere.coords])
-# for gmsh:
-sphere.holes_ind = np.array([0])
-tank.setChildShape(sphere, 0)
+if not opts.useIBM:
+    sphere = st.Circle(domain,
+                    radius=radius,
+                    coords=coords,
+                    barycenter=barycenter,
+                    nPoints=int(ceil(2.*pi*tank_dim[0]/opts.he)))
+    sphere.setHoles([sphere.coords])
+    # for gmsh:
+    sphere.holes_ind = np.array([0])
+    tank.setChildShape(sphere, 0)
 
 domain.MeshOptions.he = 0.5
-st.assembleDomain(domain)  # must be called after defining shapes
 #  ____                        _                   ____                _ _ _   _
 # | __ )  ___  _   _ _ __   __| | __ _ _ __ _   _ / ___|___  _ __   __| (_) |_(_) ___  _ __  ___
 # |  _ \ / _ \| | | | '_ \ / _` |/ _` | '__| | | | |   / _ \| '_ \ / _` | | __| |/ _ \| '_ \/ __|
@@ -200,8 +200,9 @@ st.assembleDomain(domain)  # must be called after defining shapes
 #                                           |___/
 # Boundary Conditions
 
-for key, bc in sphere.BC.items():
-    bc.setNoSlip()
+if not opts.useIBM:
+    for key, bc in sphere.BC.items():
+        bc.setNoSlip()
 
 for key, bc in tank.BC.items():
     # fix the nodes on the wall of tank
@@ -356,12 +357,14 @@ body = cfsi.ProtChBody(system)
 body.setBoundaryFlags([0])
 if opts.useIBM:
     body.setIBM(True)
-body.attachShape(sphere)
+else:
+    body.attachShape(sphere)
 body.setConstraints(free_x=free_x, free_r=free_r)
 #mass = 4*np.pi/3*sphere.radius**3*(opts.rho_0 + 1)
-mass = 4*np.pi/3*sphere.radius*1040.0
-Ixx = Iyy = Izz = 2./5.*mass*sphere.radius**2
+mass = 4*np.pi/3*radius*1040.0
+Ixx = Iyy = Izz = 2./5.*mass*radius**2
 body.ChBody.SetMass(mass)
+body.ChBody.SetPos(pych.ChVectorD(coords[0], coords[1], coords[2]))
 inert = pych.ChVectorD(Ixx, Iyy, Izz)
 body.ChBody.SetInertiaXX(inert)
 body.setRecordValues(all_values=True)
@@ -531,9 +534,10 @@ if opts.use_gmsh and opts.refinement is True:
     field_list += [me1]
 
     me3 = py2gmsh.Field.MathEval(mesh=mesh)
-    dist = 'Sqrt(({x_center}-x)^2+({y_center}-y)^2+({z_center}-z)^2)-radius'.format(x_center=sphere.coords[0],
-                                                                                    y_center=sphere.coords[1],
-                                                                                    z_center=sphere.coords[2])
+    dist = 'Sqrt(({x_center}-x)^2+({y_center}-y)^2+({z_center}-z)^2)-{radius}'.format(x_center=coords[0],
+                                                                                      y_center=coords[1],
+                                                                                      z_center=coords[2],
+                                                                                      radius=radius)
     me3.F = mesh_grading(he=he, start=dist, grading=grading)
     field_list += [me3]
 
