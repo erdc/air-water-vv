@@ -33,7 +33,7 @@ else:
 
 linear_solver_options_prefix = 'dissipation_'
 levelNonlinearSolverConvergenceTest = 'rits'
-linearSolverConvergenceTest         = 'rits'
+linearSolverConvergenceTest         = 'r-true'
 
 tolFac = 0.0
 linTolFac =0.0
