@@ -187,7 +187,7 @@ class AtRest:
     def uOfXT(self, x, t):
         return 0.0
 
-initialConditions = {'pressure': AtRest(),
+initialConditions = {'pressure': P_IC,
                      'vel_u': AtRest(),
                      'vel_v': AtRest(),
                      'vel_w': AtRest()}
