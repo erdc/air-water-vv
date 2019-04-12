@@ -71,6 +71,7 @@ context_options += [
     ("fixStructure", False, "fix structure in place"),
     ("free_x", (1., 1., 0.), "Translational DOFs"),
     ("free_r", (0., 0., 1.), "Rotational DOFs"),
+    ("useIBM", True, "True/False"),
     # waves
     ("waves", False, "Generate waves (True/False)"),
     ("wave_period", 1.2, "Period of the waves"),
@@ -86,11 +87,11 @@ context_options += [
     ("refinement_freesurface", 0.05, "ref"),
     ("refinement_grading", 1.2, "ref"),
     ("movingDomain", True, "True/False"),
-    ("addedMass", False, "True/False"),
+    ("addedMass", True, "True/False"),
     ("chrono_dt", 1e-4, "time step in chrono"),
     ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
     ("useRANS", 0, "RANS model"),
-    ("useSuperlu", True, "RANS model"),
+    ("useSuperlu", False, "RANS model"),
     ]
 # instantiate context options
 opts=Context.Options(context_options)
@@ -178,8 +179,9 @@ tank.setSponge(x_n=sponges['x-'], x_p=sponges['x+'])
 eps=2.0;
 coords = np.array([tank_dim[0]/2., tank_dim[1]/2.+eps])
 barycenter = np.array([tank_dim[0]/2., tank_dim[1]/2.+eps])
+radius = 0.5
 sphere = st.Circle(domain,
-                   radius=0.5,
+                   radius=radius,
                    coords=coords,
                    barycenter=barycenter,
                    nPoints=int(ceil(2.*pi*tank_dim[0]/opts.he)))
@@ -351,6 +353,9 @@ if timestepper == "HHT":
 
 
 body = cfsi.ProtChBody(system)
+body.setBoundaryFlags([0])
+if opts.useIBM:
+    body.setIBM(True)
 body.attachShape(sphere)
 body.setConstraints(free_x=free_x, free_r=free_r)
 #mass = 4*np.pi/3*sphere.radius**3*(opts.rho_0 + 1)
@@ -418,31 +423,46 @@ params.physical.gravity = np.array(opts.g)
 params.physical.surf_tension_coeff = opts.sigma_01
 
 # MODEL PARAMETERS
+m = params.Models
 ind = -1
 if opts.movingDomain:
-    params.Models.moveMeshElastic.index = ind+1
+    m.moveMeshElastic.index = ind+1
     ind += 1
-params.Models.rans2p.index = ind+1
+m.rans2p.index = ind+1
 ind += 1
-params.Models.vof.index = ind+1
+if opts.useIBM:
+    c = m.rans2p.p.CoefficientsOptions
+    c.nParticles = 1
+    c.particle_epsFact = 0.33
+    c.particle_alpha = 0.
+    c.particle_beta = 0.
+    c.particle_penalty_constant = 100.
+    c.use_ball_as_particle = 1
+    c.ball_radius = np.array([radius],'d')
+    c.ball_center = np.zeros((1, 3), 'd')
+    pos = body.ChBody.GetPos()
+    c.ball_center[0] = [pos.x, pos.y, pos.z]
+    c.ball_velocity = np.zeros((1,3),'d')
+    c.ball_angular_velocity = np.zeros((1,3),'d')
+m.vof.index = ind+1
 ind += 1
-params.Models.ncls.index = ind+1
+m.ncls.index = ind+1
 ind += 1
-params.Models.rdls.index = ind+1
+m.rdls.index = ind+1
 ind += 1
-params.Models.mcorr.index = ind+1
+m.mcorr.index = ind+1
 ind += 1
 if opts.addedMass is True:
-    params.Models.addedMass.index = ind+1
+    m.addedMass.index = ind+1
     ind += 1
 
 # auxiliary variables
-params.Models.rans2p.auxiliaryVariables += [system]
-#params.Models.rans2p.weak_bc_penalty_constant = 10./nu_0#Re
+m.rans2p.auxiliaryVariables += [system]
+#m.rans2p.weak_bc_penalty_constant = 10./nu_0#Re
 
 if opts.addedMass is True:
     # passed in added_mass_p.py coefficients
-    params.Models.addedMass.auxiliaryVariables += [system.ProtChAddedMass]
+    m.addedMass.auxiliaryVariables += [system.ProtChAddedMass]
     max_flag = 0
     max_flag = max(domain.vertexFlags)
     max_flag = max(domain.segmentFlags+[max_flag])
@@ -452,7 +472,7 @@ if opts.addedMass is True:
         if type(s) is cfsi.ProtChBody:
             for i in range(s.i_start, s.i_end):
                 flags_rigidbody[i] = 1
-    params.Models.addedMass.flags_rigidbody = flags_rigidbody
+    m.addedMass.p.CoefficientsOptions.flags_rigidbody = flags_rigidbody
 
 #  __  __           _        ___        _   _
 # |  \/  | ___  ___| |__    / _ \ _ __ | |_(_) ___  _ __  ___
