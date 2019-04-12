@@ -176,7 +176,7 @@ def signedDistance(x):
 
 
 class P_IC:
-    def __init__(self,waterLevel):
+    def __init__(self):
         self.waterLevel=opts.mwl
     def uOfXT(self,x,t):
         if signedDistance(x) < 0:
@@ -187,7 +187,7 @@ class AtRest:
     def uOfXT(self, x, t):
         return 0.0
 
-initialConditions = {'pressure': P_IC,
+initialConditions = {'pressure': P_IC(),
                      'vel_u': AtRest(),
                      'vel_v': AtRest(),
                      'vel_w': AtRest()}
@@ -233,13 +233,12 @@ myTpFlowProblem = TpFlow.TwoPhaseFlowProblem(ns_model=None,
 )
 
 params = myTpFlowProblem.Parameters
-
+myTpFlowProblem.useSuperlu=True
 params.physical.densityA = opts.rho_0  # water
 params.physical.densityB = opts.rho_1  # air
 params.physical.kinematicViscosityA = opts.nu_0  # water
 params.physical.kinematicViscosityB = opts.nu_1  # air
 params.physical.surf_tension_coeff = opts.sigma_01
-
 # index in order of
 m = params.Models
 m.rans2p.index = 0
@@ -247,6 +246,7 @@ m.vof.index = 1
 m.ncls.index = 2
 m.rdls.index = 3
 m.mcorr.index = 4
+m.rdls.n.maxLineSearches = 0
 
 ############################################################################################################################################################################
 # ----- Output Gauges ----- #
