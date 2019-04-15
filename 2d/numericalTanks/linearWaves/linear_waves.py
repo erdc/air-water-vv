@@ -37,6 +37,10 @@ opts = Context.Options([
     # refinement
     ("refLevel", 100, "Refinement level (w/respect to wavelength)"),
     ("cfl", 0.33, "Target cfl"),
+    ("use_gmsh", False, "use gmsh switch"),
+    ("gmsh_he", 0.05, "gmsh he around freesurface"),
+    ("gmsh_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "gmsh gradual coarsening value"),
+    ("gmsh_band", 0.0125, "gmsh refinement band +/- around freesurface"),
     # run time
     ("T", 0.1, "Simulation time in s"),
     ("dt_init", 0.001, "Initial time step in s"),
@@ -50,7 +54,7 @@ opts = Context.Options([
 # ----- CONTEXT ------ #
 
 # general options
-waterLevel = opts.water_level
+water_level = waterLevel = opts.water_level
 
 # waves
 period = opts.wave_period
@@ -63,6 +67,8 @@ wave = wt.MonochromaticWaves(period, height, mwl, depth, np.array(opts.g), direc
 # tank options
 tank_dim = opts.tank_dim
 tank_sponge = opts.tank_sponge
+sponges = {'x-': opts.tank_sponge[0],
+           'x+': opts.tank_sponge[1]}
 
 ##########################################
 #     Discretization Input Options       #
@@ -253,8 +259,56 @@ if opts.column_gauge_output:
 # ----- MESH CONSTRUCTION ----- #
 
 
-domain.MeshOptions.he = he
+domain.MeshOptions.use_gmsh = opts.use_gmsh
+domain.MeshOptions.genMesh = genMesh
+if opts.use_gmsh:
+    he = opts.gmsh_he
+    domain.MeshOptions.he = he
 st.assembleDomain(domain)
+domain.use_gmsh = opts.use_gmsh
+geofile='mesh'+str(opts.gmsh_he)
+domain.geofile=geofile
+
+
+# MESH REFINEMENT
+
+if opts.use_gmsh:
+    import py2gmsh
+    from MeshRefinement import geometry_to_gmsh
+    mesh = geometry_to_gmsh(domain)
+    grading = opts.gmsh_grading
+    he = opts.gmsh_he
+    he_max = 10.
+    ecH = 3.
+    box = opts.gmsh_band
+    field_list = []
+
+    def mesh_grading(start, he, grading):
+        return '{he}*{grading}^(1+log((-1/{grading}*(abs({start})-{he})+abs({start}))/{he})/log({grading}))'.format(he=he, start=start, grading=grading)
+
+    def dist_plane(xn, xp, plane='x'):
+        x_range = abs(xp-xn)
+        dist = '0.5*(abs({plane}-({xn}))+abs({plane}-({xp}))-{x_range})'.format(xn=xn, xp=xp, x_range=x_range, plane=plane)
+        return dist
+
+    me1 = py2gmsh.Fields.MathEval(mesh=mesh)
+    dist_z = dist_plane(xn=water_level-box, xp=water_level+box, plane='y')
+    dist_x = dist_plane(xn=-sponges['x-'], xp=tank_dim[0]+sponges['x+'], plane='x')
+    dist = 'sqrt(({dist_x})^2+({dist_z})^2)'.format(dist_x=dist_x, dist_z=dist_z)
+    me1.F = mesh_grading(start=dist, he=he, grading=grading)
+    field_list += [me1]
+
+    # background field
+    fmin = py2gmsh.Fields.Min(mesh=mesh)
+    fmin.FieldsList = field_list
+    mesh.setBackgroundField(fmin)
+
+    # max element size
+    mesh.Options.Mesh.CharacteristicLengthMax = he_max
+
+    mesh.writeGeo(geofile+'.geo')
+
+
 
 # ----- STRONG DIRICHLET ----- #
 
