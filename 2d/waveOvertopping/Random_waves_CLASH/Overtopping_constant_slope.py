@@ -49,6 +49,13 @@ opts=Context.Options([
     ("Nwaves", 15, "Number of waves per window"),
     ("Nfreq",32 , "Number of fourier components per window"),
 
+    # gauges
+    #("gauge_output", True, "Places Gauges in tank (10 per wavelength)"),
+    ("point_gauge_output", True, "Produce point gauge output"),
+    ("column_gauge_output", True, "Produce column gauge output"),
+    ("gauge_dx", 0.3, "Horizontal spacing of point gauges/column gauges before structure [m]"),
+    ("gauge_dx_2", 0.1,"Horizontal spacing of point/column gauges after structure [m]")
+
    # Numerical Options
     ("refinement_level", 200.,"he=walength/refinement_level"),
     ("cfl", 0.5,"Target cfl"),
@@ -86,8 +93,8 @@ wave = wt.RandomWavesFast(Tstart=opts.Tstart,
                          Lgen=opts.Lgen,
                          Nwaves=opts.Nwaves,
                          Nfreq=opts.Nfreq,
-                          checkAcc=True,
-                          fast=True)
+                         checkAcc=True,
+                         fast=True)
 
 
 # Script on wave length
@@ -176,18 +183,18 @@ def signedDistance(x):
 
 
 class P_IC:
-    def __init__(self,waterLevel):
+    def __init__(self):
         self.waterLevel=opts.mwl
     def uOfXT(self,x,t):
         if signedDistance(x) < 0:
-            return -(opts.Ly - self.waterLevel)*opts.rho_1*opts.g[1] - (self.waterLevel - x[1])*opts.rho_0*opts.g[1]
+            return -(opts.Ly - opts.mwl)*opts.rho_1*opts.g[1] - (opts.mwl - x[1])*opts.rho_0*opts.g[1]
         else:
-            return -(opts.Ly - self.waterLevel)*opts.rho_1*opts.g[1]
+            return -(opts.Ly - opts.mwl)*opts.rho_1*opts.g[1]
 class AtRest:
     def uOfXT(self, x, t):
         return 0.0
 
-initialConditions = {'pressure': P_IC,
+initialConditions = {'pressure': P_IC(),
                      'vel_u': AtRest(),
                      'vel_v': AtRest(),
                      'vel_w': AtRest()}
@@ -234,6 +241,7 @@ myTpFlowProblem = TpFlow.TwoPhaseFlowProblem(ns_model=None,
 
 params = myTpFlowProblem.Parameters
 
+myTpFlowProblem.useSuperLu=False#True
 params.physical.densityA = opts.rho_0  # water
 params.physical.densityB = opts.rho_1  # air
 params.physical.kinematicViscosityA = opts.nu_0  # water
@@ -247,30 +255,41 @@ m.vof.index = 1
 m.ncls.index = 2
 m.rdls.index = 3
 m.mcorr.index = 4
-
-############################################################################################################################################################################
-# ----- Output Gauges ----- #
-############################################################################################################################################################################
-"""
-gauge_x = (2*wave_length+opts.structureCrestLevel*opts.structure_slope+opts.Lback/2)
+m.rdls.n.maxLineSearches=0
+m.rdls.n.maxNonlinearIts=50
 
 
+                            # ----- GAUGES ----- #
+column_gauge_locations = []
+point_gauge_locations = []
 
-column_gauge_location = []
+gauge_y = opts.mwl - 0.5 * opts.depth
+number_of_gauges = (2*wave_length+opts.structureCrestLevel*opts.structure_slope) / opts.gauge_dx + 1
+number_of_gauges_2 = opts.Lback / opts.gauge_dx_2 + 1
 
-#column_gauge_location.append(((gauge_x, 0., 0.),
-#                             (gauge_x, tank_dim[1], 0.)))
+for gauge_x in np.linspace(0, 2*wave_length+opts.structureCrestLevel*opts.structure_slope, number_of_gauges):
+    point_gauge_locations.append((gauge_x, gauge_y, 0))
+    column_gauge_locations.append(((gauge_x, 0., 0.),
+                                       (gauge_x, tank_dim[1], 0.)))
+
+for gauge_x in np.linspace(2*wave_length+opts.structureCrestLevel*opts.structure_slope, tank_dim[0], number_of_gauges_2):
+    point_gauge_locations.append((gauge_x, gauge_y, 0))
+    column_gauge_locations.append(((gauge_x, 0., 0.),
+                                       (gauge_x, tank_dim[1], 0.)))
 
 
-column_gauge_location.append(range([0],2*wave_length,[wave_length/10]),
-                            range([2*wave_length+opts.structure_slope*opts.structureCrestLevel],[2*wave_length+opts.structure_slope*opts.structureCrestLevel+15],0.1))
+
+
+tank.attachPointGauges('twp',
+                           gauges=((('p',), point_gauge_locations),),
+                           fileName='pressure_gaugeArray.csv')
 
 
 tank.attachLineIntegralGauges('vof',
-                              gauges=([['vof'],column_gauge_location]),
-                              fileName='column_gauges.csv')    
+                                  gauges=((('vof',), column_gauge_locations),),
+                                  fileName='column_gauges.csv') 
+##################################################################################
 
-"""
 #assembling domain
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
