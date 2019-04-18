@@ -99,6 +99,6 @@ maxLineSearches = 0
 if ct.useHex:
     conservativeFlux = None
 else:
-    conservativeFlux = {0: 'pwl-bdm-opt'}
+    conservativeFlux = None#{0: 'pwl-bdm-opt'}
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['twp']
