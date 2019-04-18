@@ -1,0 +1,28 @@
+This case is to demonstrate the adaptivity + spatial tools workflow.
+
+Setting up the case requires a couple of additional steps:
+
+#1 Generate the SCOREC-compatible mesh
+
+parun dambreak_Colagrossi_so.py -l5 -v -D "R00_Base" -C "gen_mesh=True usePUMI=True"
+
+The -D option is here just to keep the directory a little cleaner. 
+The gen_mesh and usePUMI flags are what are important.
+
+#2 Test run in serial, no adaptivity
+
+parun dambreak_Colagrossi_so.py -l5 -v -D "R00_Base" -C "gen_mesh=False usePUMI=True"
+
+#3 Split the mesh for parallel
+
+mpirun -np 4 zsplit Reconstructed.dmg Reconstructed.smb 4-Proc/ 4
+
+#4 Test run in parallel, no adaptivity
+
+mpirun -np 4 parun dambreak_Colagrossi_so.py -l5 -v -D "R01_parallel" -C "gen_mesh=False usePUMI=True mesh='4-Proc/.smb'"
+
+#5 Run in parallel, with adaptivity
+
+mpirun -np 4 parun dambreak_Colagrossi_so.py -l5 -v -D "R01_parallel" -C "gen_mesh=False usePUMI=True adapt=1 mesh='4-Proc/.smb'"
+
+Once this is running, then you can play around with the inputs to adaptivity to change how it behaves.

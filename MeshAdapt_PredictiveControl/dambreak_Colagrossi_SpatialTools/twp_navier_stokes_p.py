@@ -2,6 +2,7 @@ from proteus.default_p import *
 from proteus.mprans import RANS2P
 import numpy as np
 from proteus import Context
+from dambreak_Colagrossi import rho_0,rho_1,nu_0,nu_1,g,epsFact_density
 
 ct = Context.get()
 domain = ct.domain

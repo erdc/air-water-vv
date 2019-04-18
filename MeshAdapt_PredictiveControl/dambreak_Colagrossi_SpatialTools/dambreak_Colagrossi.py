@@ -29,14 +29,15 @@ opts=Context.Options([
     ("refinement", 32 ,"Refinement level, he = L/(4*refinement - 1), where L is the horizontal dimension"), 
     ("cfl", 0.33 ,"Target cfl"),
     # run time options
-    ("T", 0.09 ,"Simulation time in s"),
+    ("T", 0.1 ,"Simulation time in s"),
     ("dt_fixed", 0.01, "Fixed time step in s"),
     ("dt_init", 0.001 ,"Maximum initial time step in s"),
     ("useHex", False, "Use a hexahedral structured mesh"),
     ("structured", False, "Use a structured triangular mesh"),
     ("gen_mesh", True ,"Generate new mesh"),
     ("usePUMI", False ,"Generate new mesh"),
-    ("adapt",0,"adapt")
+    ("adapt",0,"adapt"),
+    ("mesh",'Reconstructed.smb',"mesh name"),
     ])
 
 
@@ -155,25 +156,25 @@ elif structured:
     nny = 2 * refinement
     domain = Domain.RectangularDomain(tank_dim)
     boundaryTags = domain.boundaryTags
-elif usePUMI and not genMesh:
+elif opts.usePUMI and not opts.gen_mesh:
     from proteus.MeshAdaptPUMI import MeshAdaptPUMI
     domain = Domain.PUMIDomain(dim=nd) #initialize the domain
     adaptMeshFlag = opts.adapt#1
     adaptMesh_nSteps = 50
     adaptMesh_numIter = 5
-    hmax = he;
+    hmax = he*2.0;
     hmin = he/2.0;
     hPhi = he/2.0;#/4.0
     domain.PUMIMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, hPhi = hPhi, adaptMesh=adaptMeshFlag, numIter=adaptMesh_numIter, numAdaptSteps=adaptMesh_nSteps,  sfConfig="combined",targetError=1.0,logType="off",reconstructedFlag=2,gradingFact=1.2)
     #read the geometry and mesh
     parallelPartitioningType = mt.MeshParallelPartitioningTypes.element
     domain.MeshOptions.setParallelPartitioningType('element')
-    domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "Reconstructed.smb")
+    domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", opts.mesh)
 
 else:
     domain = Domain.PlanarStraightLineGraphDomain()
 
-if genMesh and usePUMI:
+if opts.gen_mesh and opts.usePUMI:
   from proteus.MeshAdaptPUMI import MeshAdaptPUMI
   domain.PUMIMesh=MeshAdaptPUMI.MeshAdaptPUMI()
 
