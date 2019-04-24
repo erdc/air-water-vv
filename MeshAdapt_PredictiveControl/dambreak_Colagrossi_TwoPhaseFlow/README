@@ -11,7 +11,7 @@ The gen_mesh and usePUMI flags are what are important.
 
 #2 Test run in serial, no adaptivity
 
-#parun --TwoPhaseFlow -f damBreak.py -D R00_BASE -l5 -v -C "genMesh=True usePUMI=True adapt=0"
+parun --TwoPhaseFlow -f damBreak.py -D R00_BASE -l5 -v -C "genMesh=False usePUMI=True adapt=0"
 
 #3 Split the mesh for parallel
 
@@ -19,7 +19,7 @@ mpirun -np 4 zsplit Reconstructed.dmg Reconstructed.smb 4-Proc/ 4
 
 #4 Test run in parallel, no adaptivity
 
-mpirun -np 4 parun --TwoPhaseFlow -f damBreak.py -O petsc.options.asm -D R01_Parallel -l5 -v -C "genMesh=True usePUMI=False adapt=0 mesh='4-Proc/.smb'"
+mpirun -np 4 parun --TwoPhaseFlow -f damBreak.py -O petsc.options.asm -D R01_Parallel -l5 -v -C "genMesh=False usePUMI=True adapt=0 mesh='4-Proc/.smb'"
 
 #5 Run in parallel, with adaptivity
 

@@ -83,8 +83,7 @@ elif opts.usePUMI and not opts.genMesh:
     #read the geometry and mesh
     parallelPartitioningType = MeshTools.MeshParallelPartitioningTypes.element
     domain.MeshOptions.setParallelPartitioningType('element')
-    #domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "Reconstructed.smb")
-    domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", "4-Proc/.smb")
+    domain.PUMIMesh.loadModelAndMesh("Reconstructed.dmg", opts.mesh)
     nnx = nny = None
 
 else:
