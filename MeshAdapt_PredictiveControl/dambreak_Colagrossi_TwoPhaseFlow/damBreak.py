@@ -58,7 +58,7 @@ pressure_gauges = PointGauges(gauges=((('p',),
 # *************************** #
 # ***** DOMAIN AND MESH ***** #
 # ****************** #******* #
-he = 0.015#0.03
+he = opts.he
 tank_dim = (3.22,1.8)
 refinement = opts.refinement
 structured=False
