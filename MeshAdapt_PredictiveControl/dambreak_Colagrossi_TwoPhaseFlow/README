@@ -1,0 +1,28 @@
+This case is to demonstrate the adaptivity + TwoPhaseFlow workflow.
+
+Setting up the case requires a couple of additional steps:
+
+#1 Generate the SCOREC-compatible mesh
+
+parun --TwoPhaseFlow -f damBreak.py -D R00_BASE -l5 -v -C "genMesh=True usePUMI=True"
+
+The -D option is here just to keep the directory a little cleaner. 
+The gen_mesh and usePUMI flags are what are important.
+
+#2 Test run in serial, no adaptivity
+
+#parun --TwoPhaseFlow -f damBreak.py -D R00_BASE -l5 -v -C "genMesh=True usePUMI=True adapt=0"
+
+#3 Split the mesh for parallel
+
+mpirun -np 4 zsplit Reconstructed.dmg Reconstructed.smb 4-Proc/ 4
+
+#4 Test run in parallel, no adaptivity
+
+mpirun -np 4 parun --TwoPhaseFlow -f damBreak.py -O petsc.options.asm -D R01_Parallel -l5 -v -C "genMesh=True usePUMI=False adapt=0 mesh='4-Proc/.smb'"
+
+#5 Run in parallel, with adaptivity
+
+mpirun -np 4 parun --TwoPhaseFlow -f damBreak.py -O petsc.options.asm -D R02_Adapt -l5 -v -C "genMesh=False usePUMI=True adapt=1 mesh='4-Proc/.smb'"
+
+Once this is running, then you can play around with the inputs to adaptivity to change how it behaves.
