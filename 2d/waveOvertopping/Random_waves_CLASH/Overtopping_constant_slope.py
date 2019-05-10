@@ -17,8 +17,9 @@ opts=Context.Options([
     
     
     # Geometry
-    ("Ly",0.7,"Vertical Dimention of the tank"),
-    ("Lback",15.0,"Horizontal Dimention of overtopping collection tank"),
+    ("Ly",0.8,"Vertical Dimention of the tank"),
+    ("Lback",0.5,"Horizontal Dimention of overtopping collection tank"),
+    ("Labs",14.5,"Horizontal Dimention of overtopping collection tank"),
 
     # Physical Properties
     ("rho_0", 998.2, "Water density"),
@@ -54,7 +55,7 @@ opts=Context.Options([
     ("point_gauge_output", True, "Produce point gauge output"),
     ("column_gauge_output", True, "Produce column gauge output"),
     ("gauge_dx", 0.3, "Horizontal spacing of point gauges/column gauges before structure [m]"),
-    ("gauge_dx_2", 0.1,"Horizontal spacing of point/column gauges after structure [m]")
+    ("gauge_dx_2", 0.1,"Horizontal spacing of point/column gauges after structure [m]"),
 
    # Numerical Options
     ("refinement_level", 200.,"he=walength/refinement_level"),
@@ -115,12 +116,19 @@ obstacle = [
                      
 
 tank = st.TankWithObstacles2D(domain = domain, dim = tank_dim, obstacles = obstacle, hole = True)
+#sponge layer
+tank.setSponge(x_n=wave_length, x_p=opts.Labs)
 
 # Mesh Refinement
-
 he=wave_length/opts.refinement_level
 ecH=opts.ecH
 smoothing=ecH*he
+
+#Assemble domain
+domain.MeshOptions.he = he
+st.assembleDomain(domain)
+
+
 
 # Boundary Conditions
 boundaryTags = {'y-' : 1,
@@ -154,7 +162,6 @@ tank.BC['sponge'].setNonMaterial()
 # -----  ABSORPTION ZONE BEHIND PADDLE  ----- #
 ########################################################################################################################################################################################################################################################################################################################################################
 
-tank.setSponge(x_n=wave_length)
 omega = 2.*np.pi/opts.Tp
 
 dragAlpha = 5.*omega/opts.nu_0
@@ -163,6 +170,8 @@ tank.setGenerationZones(x_n=True,
                         waves=wave,
                         dragAlpha=dragAlpha,
                         smoothing=smoothing)
+tank.setAbsorptionZones(x_p=True,
+                        dragAlpha=dragAlpha)
 
 # Initial Conditions
 
@@ -290,9 +299,6 @@ tank.attachLineIntegralGauges('vof',
                                   fileName='column_gauges.csv') 
 ##################################################################################
 
-#assembling domain
-domain.MeshOptions.he = he
-st.assembleDomain(domain)
 
 
 
