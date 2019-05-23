@@ -8,6 +8,12 @@ if useOnlyVF:
     LS_model = None
 else:
     LS_model = 2
+
+if stabilization=='pressure_projection':
+    mom_sge = 0.; pre_sge=0.; vel_sge=0.;pre_proj=1.0
+elif stabilization=='proteus_full':
+    mom_sge=1.0; pre_sge=1.0; vel_sge=1.;pre_proj=0.0
+
 coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
                                    sigma=0.0,
                                    rho_0 = rho_0,
@@ -24,7 +30,12 @@ coefficients = RANS2P.Coefficients(epsFact=epsFact_viscosity,
 				   useRBLES=useRBLES,
 				   useMetrics=useMetrics,
                                    eb_adjoint_sigma=1.0,
-                                   forceStrongDirichlet=0,
+                                   forceStrongDirichlet=ns_forceStrongDirichlet,
+                                   NONCONSERVATIVE_FORM=1.0,
+                                   MOMENTUM_SGE=mom_sge,
+                                   PRESSURE_SGE=pre_sge,
+                                   VELOCITY_SGE=vel_sge,
+                                   PRESSURE_PROJECTION_STABILIZATION=pre_proj,
                                    turbulenceClosureModel=ns_closure)
 
 def getDBC_p(x,flag):

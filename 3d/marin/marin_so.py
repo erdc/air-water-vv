@@ -1,6 +1,11 @@
 from proteus.default_so import *
+import proteus
 import marin
-from marin import *
+from proteus import Context
+import os
+
+Context.setFromModule(marin)
+ct = Context.get()
 
 if marin.useOnlyVF:
     pnList = [("twp_navier_stokes_p", "twp_navier_stokes_n"),

@@ -1,23 +1,38 @@
 from math import *
 import proteus.MeshTools
 from proteus import Domain
-from proteus.default_n import *   
-from proteus.Profiling import logEvent
+from proteus.default_n import *
+from proteus.default_so import *
+from proteus import Context
+
+opts=Context.Options([
+    ("T", 6.0, "Simulation time in seconds"),
+    ("schur_solver",'two_phase_PCD',"Sets the Schur approximation type"),
+    ("pcd_settings_lumped", True, "PCD lumped setting"),
+    ("A_block_amg", False, "Block preconditioner for A"),    
+    ("ns_forceStrongDirichlet",False,"Determines whether or not to use strong dirichlet conditions"),
+    ("stabilization",'proteus_full',"Stabilization method"),
+    ("useOnlyVF", True, "Sets wether Marin should only use NSE and VOF."),
+    ("Refinement", 8, "Set Marin problem refinement level")
+    ])
 
 #  Discretization -- input options    
 #Refinement=8#4-32 cores
 #Refinement=12
-Refinement=24
+Refinement=opts.Refinement
+ns_forceStrongDirichlet = opts.ns_forceStrongDirichlet
+stabilization = opts.stabilization
 genMesh=True
-useOldPETSc=False
 useSuperlu=False
+usePETSc=True
+useOldPETSc=False
 spaceOrder = 1
 useHex     = False
 useRBLES   = 0.0
 useMetrics = 1.0
 applyCorrection=True
 useVF = 1.0
-useOnlyVF = False
+useOnlyVF = opts.useOnlyVF
 redist_Newton = False#True
 useRANS = 0 # 0 -- None
             # 1 -- K-Epsilon
@@ -82,8 +97,8 @@ else:
     box_L  = [0.161,0.403,0.161]
     box_xy = [2.3955,0.2985]
     #he = L[0]/float(6.5*Refinement)
-    he = L[0]/64.0
-    he*=0.5#256
+    he = L[0]/float(6.5*Refinement)
+#    he*=0.5#256
     boundaries=['left','right','bottom','top','front','back','box_left','box_right','box_top','box_front','box_back',]
     boundaryTags=dict([(key,i+1) for (i,key) in enumerate(boundaries)])
     bt = boundaryTags
@@ -154,16 +169,22 @@ else:
     domain.writePoly("mesh")
     domain.writePLY("mesh")
     domain.writeAsymptote("mesh")
-    triangleOptions="VApq1.25q12ena%e" % ((he**3)/6.0,)
+    triangleOptions="VApq1.25q12feena%e" % ((he**3)/6.0,)
 logEvent("""Mesh generated using: tetgen -%s %s"""  % (triangleOptions,domain.polyfile+".poly"))
 # Time stepping
-T=6.00
+T=opts.T
 dt_init  =0.001
 dt_fixed = 0.1/Refinement
 nDTout = int(round(T/dt_fixed))
 
 # Numerical parameters
-ns_forceStrongDirichlet = False#True
+if opts.ns_forceStrongDirichlet==True:
+    ns_forceStrongDirichlet = True
+    laplace_null_space = False   # Need to think about this more
+else:
+    ns_forceStrongDirichlet = False
+    laplace_null_space = True  # Need to think about this more
+
 if useMetrics:
     ns_shockCapturingFactor  = 0.9
     ns_lag_shockCapturing = True
