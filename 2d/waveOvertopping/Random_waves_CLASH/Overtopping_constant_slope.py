@@ -17,9 +17,12 @@ opts=Context.Options([
     
     
     # Geometry
-    ("Ly",0.8,"Vertical Dimention of the tank"),
-    ("Lback",0.5,"Horizontal Dimention of overtopping collection tank"),
-    ("Labs",14.5,"Horizontal Dimention of overtopping collection tank"),
+    ("tank_height",0.8,"Vertical Dimention of the tank"),
+    ("Lback",4.0,"Horizontal Dimention of overtopping collection tank"),
+    ("tank_depth", 0.5, "depth of the tank below zero level"),
+    ("obs_depth", 0.4,"depth of the structure/obstacle below zero level"),
+    ("tube", 0.1,"tube dimention"),
+    ("deposit_width",5.0, "width of the tank used to collect the overtopped water"),
 
     # Physical Properties
     ("rho_0", 998.2, "Water density"),
@@ -29,12 +32,12 @@ opts=Context.Options([
     ("sigma_01", 0.,"surface tension"),
     ("g", np.array([0., -9.805, 0.]), "gravity"),
 
-    
+
 
     # Waves
     ("Tstart", 0, "Start time"),
     ("fract", 1, "fraction of duration"),
-    ("Ntotalwaves",1000,"totalnumber of waves"),
+    ("Ntotalwaves",500,"totalnumber of waves"),
     ("x0", np.array([0.,0.,0.]), "Position vector for the tinme series"),
     ("Tp", 3.5, "Peak wave period"),
     ("Hs", 0.096, "Significant wave height"),
@@ -46,7 +49,7 @@ opts=Context.Options([
     ("spectName", "JONSWAP","Name of Spectral Distribution"),
     ("spectral_params",{"gamma": 3.3, "TMA":False,"depth": 0.4} ,"Spectral Distribution Characteristics"),
     ("seed", 420,"Seed for random phases"),
-    ("Lgen",np.array([0.,0.,0.,]) , "Length of the generation zone"),
+    ("Lgen",None , "Length of the generation zone"),
     ("Nwaves", 15, "Number of waves per window"),
     ("Nfreq",32 , "Number of fourier components per window"),
 
@@ -57,8 +60,10 @@ opts=Context.Options([
     ("gauge_dx", 0.3, "Horizontal spacing of point gauges/column gauges before structure [m]"),
     ("gauge_dx_2", 0.1,"Horizontal spacing of point/column gauges after structure [m]"),
 
+
+
    # Numerical Options
-    ("refinement_level", 200.,"he=walength/refinement_level"),
+    ("refinement_level", 100.,"he=wavelength/refinement_level"),
     ("cfl", 0.5,"Target cfl"),
     ("ecH", 1.5,"Smoothing Coefficient"),
     ("Np", 10 ," Output points per period Tp/Np" ),
@@ -69,6 +74,10 @@ opts=Context.Options([
     ("structure_slope", 4, "1/slope"),
     ("structureCrestLevel", 0.5, "elevation of structure crest. Equal to Water depth + Rc (crest freeboard)")
     ])
+
+# --- DOMAIN
+domain = Domain.PlanarStraightLineGraphDomain()
+
 
 
 
@@ -99,45 +108,19 @@ wave = wt.RandomWavesFast(Tstart=opts.Tstart,
 
 
 # Script on wave length
-wave_length=wave.wavelength     
-           
+wave_length=wave.wavelength           
 
 # Domain
-domain = Domain.PlanarStraightLineGraphDomain()
-tank_dim=[2*wave_length+opts.structureCrestLevel*opts.structure_slope+opts.Lback,opts.Ly]
+
+tank_dim = (3*wave_length+opts.structureCrestLevel*opts.structure_slope+opts.deposit_width,opts.structureCrestLevel+0.2)
+
+#shapes
+
+tank_sponge = (wave_length, 0)
+L_leftSpo  = tank_sponge[0]
+L_rightSpo = tank_sponge[1]
 
 
-obstacle = [
-           [ [2*wave_length,0.],
-            [2*wave_length+opts.structureCrestLevel*opts.structure_slope,opts.structureCrestLevel],
-            [2*wave_length+opts.structureCrestLevel*opts.structure_slope,0.]
-            ]
-            ]
-                     
-
-tank = st.TankWithObstacles2D(domain = domain, dim = tank_dim, obstacles = obstacle, hole = True)
-#sponge layer
-tank.setSponge(x_n=wave_length, x_p=opts.Labs)
-
-# Mesh Refinement
-he=wave_length/opts.refinement_level
-ecH=opts.ecH
-smoothing=ecH*he
-
-#Assemble domain
-domain.MeshOptions.he = he
-st.assembleDomain(domain)
-
-
-
-# Boundary Conditions
-boundaryTags = {'y-' : 1,
-                'x+' : 2,
-                'y+' : 3,
-                'x-' : 4,
-                'sponge' : 5,
-                'porousLayer' : 6,
-                'moving_porousLayer' : 7}
 
 boundaryOrientations = {'y-': np.array([0., -1.,0.]),
                         'x+': np.array([+1., 0.,0.]),
@@ -145,38 +128,184 @@ boundaryOrientations = {'y-': np.array([0., -1.,0.]),
                         'x-': np.array([-1., 0.,0.]),
                         'sponge': None,
                         'porousLayer': None,
-                        'moving_porousLayer': None}
+                        'moving_porousLayer': None,
+                       }
+
+boundaryTags = {'y-' : 1,
+                'x+' : 2,
+                'y+' : 3,
+                'x-' : 4,
+                'sponge' : 5,
+               }
 
 
-# Tank
+################ TANK OUTLINE GEOMETRY ###########################                        
+
+vertices=[[0.0,0.0], #0
+            [wave_length,0],#1
+            [wave_length,-opts.tank_depth],#2
+            [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1,-opts.tank_depth], #3
+            [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1,0.0], #4 after that abs zone
+            [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1+opts.Lback,0.0], #5
+            [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1+opts.Lback,opts.tank_height], #6
+            [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1,opts.tank_height],#7 abs zone upper boundary
+            [wave_length,opts.tank_height], #8
+            [0.0,opts.tank_height], #9
+            [-wave_length,opts.tank_height], #10
+            [-wave_length,0.], #11
+            ]
+         
+
+vertexFlags=np.array([1, #0 
+                        1, #1 
+                        1, #2
+                        1, #3
+                        1, #4
+                        2, #5
+                        3, #6
+                        3, #7 upper boundary abs zone
+                        4, #8
+                        4, #9
+                        4, #10
+                        4, #11
+                        ])           
+
+segments=[[0,1],
+          [1,2],
+          [2,3],
+          [3,4],
+          [4,5],
+          [5,6],
+          [6,7],
+          [7,8],
+          [8,9],
+          [9,10],
+          [10,11],
+          [11,0],
+          [1,8],
+          [4,7],
+              ]
+
+segmentFlags=np.array([ 1, #[0,1] 
+                        4, #[1,2] 
+                        1, #[2,3]
+                        2, #[3,4]
+                        1, #[4,5]
+                        2, #[5,6]
+                        3, #[6,7]
+                        3, #[7,8]
+                        3, #[8,9]
+                        3, #[9,10]
+                        4, #[10,11]
+                        1, #[11,0]
+                        5, #[1,8]
+                        5, #[4,7]
+                      ])
+
+
+
+regions=[[5,0.3],[-0.5*wave_length,0.3],[3*wave_length+0.2+1+opts.structureCrestLevel*opts.structure_slope+2,0.4]]         
+regionFlags =np.array([1,2,3])        
+
+
+tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
+                      segments=segments, segmentFlags=segmentFlags,
+                      regions=regions, regionFlags=regionFlags,
+                      boundaryTags=boundaryTags, boundaryOrientations=boundaryOrientations)
+
+################# OBSTACLE DEFINITION  ##############################
+                      
+obs_boundaryOrientations = {'obstacle': None}
+
+obs_boundaryTags = {'obstacle' : 1,}
+
+obs_vertices=[
+            [wave_length+opts.tube,0],#0
+            [wave_length+opts.tube,-opts.obs_depth],#1
+            [3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope+1,-opts.obs_depth],#2
+            [3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope+1,0.],#3
+            [3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope,0.],#4
+            [3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope,opts.structureCrestLevel],#5
+            [3*wave_length+opts.tube,0],#6
+            ]  
+
+obs_vertexFlags=np.array([1, #11 
+                        1, #12
+                        1, #13
+                        1, #14
+                        1, #15
+                        1, #16
+                        1, #17
+                        ])           
+
+obs_segments=[[0,1],
+              [1,2],
+              [2,3],
+              [3,4],
+              [4,5],
+              [5,6],
+              [6,0],
+              ]
+
+obs_segmentFlags=np.array([ 1, #[11,12] 
+                            1, #[12,13] 
+                            1, #[13,14]
+                            1, #[14,15]
+                            1, #[15,16]
+                            1, #[16,17]
+                            1, #[17,11]
+                            ])
+
+obs_regions=[[2*wave_length, -0.2]]         
+obs_regionFlags =np.array([1])        
+
+obstacle = st.CustomShape(domain, vertices=obs_vertices, vertexFlags=obs_vertexFlags,
+                      segments=obs_segments, segmentFlags=obs_segmentFlags,
+                      regions=obs_regions, regionFlags=obs_regionFlags,
+                      boundaryTags=obs_boundaryTags, 
+                      boundaryOrientations=obs_boundaryOrientations)
+
+
+obstacle.setHoles([[2*wave_length, -0.2]])
+
+
+# Mesh Refinement
+he=wave_length/opts.refinement_level
+ecH=opts.ecH
+smoothing=ecH*he
+
+                           
+
+# Boundary Conditions
+# --- Tank
 tank.BC['y+'].setAtmosphere()
-tank.BC['y-'].setNoSlip()
-tank.BC['x+'].setNoSlip()
-tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave,
-                                               smoothing=smoothing,
-                                               vert_axis=1)
+tank.BC['y-'].setFreeSlip()
+tank.BC['x+'].setFreeSlip()
+tank.BC['x-'].setFreeSlip()
+
 tank.BC['sponge'].setNonMaterial()
+for bc in obstacle.BC_list:
+    bc.setFreeSlip()
+
 
 
 ########################################################################################################################################################################################################################################################################################################################################################
 # -----  ABSORPTION ZONE BEHIND PADDLE  ----- #
 ########################################################################################################################################################################################################################################################################################################################################################
 
-omega = 2.*np.pi/opts.Tp
+tank_sponge = tank_sponge
+dragAlpha = 5*(2*np.pi/opts.Tp)/1e-6
+left = True
+he=wave_length/opts.refinement_level
+smoothing =he*3.
+tank.setGenerationZones(flags=2, epsFact_solid=wave_length/2., center=(-wave_length/2,0.35), orientation=(1.,0.,0.), waves=wave, dragAlpha=dragAlpha)
+tank.setAbsorptionZones(flags=3, epsFact_solid=wave_length/2., center=(3*wave_length+0.2+1+opts.structureCrestLevel*opts.structure_slope+2,0.4), orientation=(-1.,0.,0.), dragAlpha=dragAlpha)
 
-dragAlpha = 5.*omega/opts.nu_0
+waterLine_x=10000
+waterLine_z = opts.mwl
 
-tank.setGenerationZones(x_n=True,
-                        waves=wave,
-                        dragAlpha=dragAlpha,
-                        smoothing=smoothing)
-tank.setAbsorptionZones(x_p=True,
-                        dragAlpha=dragAlpha)
-
-# Initial Conditions
 
 def signedDistance(x):
-    waterLine_x = 2*wave_length+opts.structure_slope*opts.mwl
     phi_x = x[0]- waterLine_x
     phi_y = x[1] - opts.mwl
     if phi_x < 0.0:
@@ -196,9 +325,9 @@ class P_IC:
         self.waterLevel=opts.mwl
     def uOfXT(self,x,t):
         if signedDistance(x) < 0:
-            return -(opts.Ly - opts.mwl)*opts.rho_1*opts.g[1] - (opts.mwl - x[1])*opts.rho_0*opts.g[1]
+            return -(opts.tank_height - opts.mwl)*opts.rho_1*opts.g[1] - (opts.mwl - x[1])*opts.rho_0*opts.g[1]
         else:
-            return -(opts.Ly - opts.mwl)*opts.rho_1*opts.g[1]
+            return -(opts.tank_height - opts.mwl)*opts.rho_1*opts.g[1]
 class AtRest:
     def uOfXT(self, x, t):
         return 0.0
@@ -246,7 +375,7 @@ myTpFlowProblem = TpFlow.TwoPhaseFlowProblem(ns_model=None,
                                              domain=domain,
                                              initialConditions=initialConditions,
                                              boundaryConditions=None, # set with SpatialTools,
-)
+                                             )
 
 params = myTpFlowProblem.Parameters
 
@@ -267,8 +396,8 @@ m.mcorr.index = 4
 m.rdls.n.maxLineSearches=0
 m.rdls.n.maxNonlinearIts=50
 
-
-                            # ----- GAUGES ----- #
+#Gauges 
+"""
 column_gauge_locations = []
 point_gauge_locations = []
 
@@ -296,7 +425,17 @@ tank.attachPointGauges('twp',
 
 tank.attachLineIntegralGauges('vof',
                                   gauges=((('vof',), column_gauge_locations),),
+
                                   fileName='column_gauges.csv') 
+
+"""
+#Assemble domain
+domain.MeshOptions.he = he
+st.assembleDomain(domain)
+myTpFlowProblem.Parameters.Models.rans2p.auxiliaryVariables += domain.auxiliaryVariables['twp']
+
+
+
 ##################################################################################
 
 
