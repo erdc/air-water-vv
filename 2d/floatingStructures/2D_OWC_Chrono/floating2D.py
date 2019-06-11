@@ -19,8 +19,8 @@ opts=Context.Options([
     ("gauge_fixed", False, "Places Gauges in tank"),
     # waves
     ("waves", True, "Generate waves (True/False)"),
-    ("wave_period", 1.4185, "Period of the waves"),
-    ("wave_height", 0.07, "Height of the waves"),
+    ("wave_period", 1.204, "Period of the waves"),
+    ("wave_height", 0.10, "Height of the waves"),
     ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
     ("wave_type", 'Fenton', "type of wave (Fenton/Linear)"),
     ("eps", 0.5, "eps"),
@@ -53,7 +53,7 @@ opts=Context.Options([
      # mooring
     ("mooring", True, "add moorings"),
     ("mooring_type", 'Chrono_Catenary', "type of moorings"),
-    #Simplie Spring
+    #Simple Spring
     ("mooring_anchor", (0.5,0,0.), "anchor coordinates (x relative to barycenter, y,z global"),
     ("mooring_anchor_2", (-0.5,0,0.), "Anchor coordinates"),
     ("mooring_fairlead", (0.5,-0.18,0.), "fairlead cooridnates (relative coordinates from barycenter)"),
@@ -70,7 +70,7 @@ opts=Context.Options([
     #TBC
     # mesh refinement
     ("refinement", True, "Gradual refinement"),
-    ("he", 0.1, "Set characteristic element size"),
+    ("he", 0.025, "Set characteristic element size"),
     ("he_max", 0.1, "Set maximum characteristic element size"),
     ("he_caisson", 0.1, "Set maximum characteristic element size on caisson boundary"),
     ("he_max_water", 0.1, "Set maximum characteristic in water"),
@@ -79,8 +79,8 @@ opts=Context.Options([
     ("refinement_caisson", 0.75, "Set area of constant refinement (Box) around caisson (+/- value)"),
     ("refinement_grading", 1.1, "Grading of refinement/coarsening (default: 10% volume)"),
     # numerical options
-    ("genMesh", False, "True: generate new mesh every time. False: do not generate mesh if file exists"),
-    ("use_gmsh", True, "True: use Gmsh. False: use Triangle/Tetgen"),
+    ("genMesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
+    ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
     ("movingDomain", True, "True/False"),
     ("T", 10.0, "Simulation time"),
     ("dt_init", 0.001, "Initial time step"),

@@ -16,7 +16,7 @@
 
    -nan	   -nan	   -nan	   -nan	   -nan	   -nan	   -nan	   -nan	   -nan
 
-# X/d =   0.6544, Phase =  180.0°
+# X/d =   1.1120, Phase =  180.0°
 
    -nan	   -nan	   -nan	   -nan	   -nan	   -nan	   -nan	   -nan	   -nan
 
