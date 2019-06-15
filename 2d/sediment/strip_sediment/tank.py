@@ -59,6 +59,7 @@ opts=Context.Options([
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
+	("vos_SC", 5. , "VOS Shock Capturing Factor")
     ])
 
 # SO Models
@@ -360,7 +361,7 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor =  opts.vos_SC # <------------------------------------- 
+    vos_shockCapturingFactor = opts.vos_SC # <------------------------------------- 
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0
