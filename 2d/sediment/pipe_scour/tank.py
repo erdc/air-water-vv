@@ -183,11 +183,7 @@ sediment_level = waterLevel-0.6
 # Domain and mesh
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-#L = (opts.Lx, opts.Ly)
-#he = L[0]/opts.refinement
 he = opts.he
-#dim = dimx, dimy = L
-#coords = [ dimx/2., dimy/2. ]
 
 ############ TANK ###################
 
@@ -232,7 +228,6 @@ boundaryOrientations = {'y-': np.array([0., -1.,0.]),
                         'hole_x+': np.array([+1., 0.,0.]),
                         'hole_y-': np.array([0., -1.,0.]),
 
-
                            }
 boundaryTags = {'y-': 1,
                     'x+': 2,
@@ -244,9 +239,6 @@ boundaryTags = {'y-': 1,
                     'hole_x+':8,
                     'hole_y-':9,
                        }
-
-
-
 
 if opts.hole_tank:
 
@@ -314,10 +306,10 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       regions=regions, regionFlags=regionFlags,
                       boundaryTags=boundaryTags, boundaryOrientations=boundaryOrientations)
 
-
 #############################################################################################################################################################################################################################################################################################################################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #############################################################################################################################################################################################################################################################################################################################################################################################
+
 if opts.circle2D:
     
     for bc in circle.BC_list:
@@ -326,45 +318,18 @@ if opts.circle2D:
         if opts.circleBC == 'NoSlip':
             bc.setNoSlip()
 
-#tank.setTurbulentWall(walls)
-#tank.setTurbulentKWall(kWalls)
 tank.BC['y-'].setFreeSlip()
-#tank.BC['y-'].setWallFunction(walls[0])
 tank.BC['y+'].setFreeSlip()#.setAtmosphere(orientation=np.array([0., +1.,0.]),kInflow=kInflow,dInflow=dissipationInflow)
 
-#tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current, smoothing = 3*he, vert_axis=1, kInflow = kInflow, dInflow = dissipationInflow)
-#tank.BC['x-'].setFreeSlip()
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current, smoothing = 3*he, vert_axis=1)
-
-#tank.BC['x-'].setTwoPhaseVelocityInlet(U=[opts.inflow_vel,0,0], waterLevel = opts.waterLevel,
-                                       #smoothing = 3*he)
-                                       #kInflow=kInflow, dissipationInflow=dissipationInflow,
-                                       #kInflowAir=kInflow, dissipationInflowAir=dissipationInflow)
 tank.BC['x-'].pInit_advective.setConstantBC(0.0)
-#tank.BC['x-'].pInc_advective.setConstantBC(0.0) 
 tank.BC['x-'].pInit_diffusive.setConstantBC(0.0)
 tank.BC['x-'].pInc_diffusive.setConstantBC(0.0)
 tank.BC['x-'].pInc_advective.uOfXT = lambda x,t: -opts.inflow_vel
 tank.BC['x-'].p_advective.setConstantBC(0.0)
 
-
-"""
-tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLine_z,
-                                                    rhoUp=rho_1,
-                                                    rhoDown=rho_0,
-                                                    g=g,
-                                                    refLevel=opts.tank_dim_y,
-                                                    smoothing=opts.epsFact_density*he,
-                                                    kInflow=kInflow, dissipationInflow=dissipationInflow,
-                                                    kInflowAir=kInflow, dissipationInflowAir=dissipationInflow)
-#tank.BC['x+'].setFreeSlip()
-"""
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLevel, rhoUp=rho_1, rhoDown = rho_0, g=g, refLevel= tank_dim[1], smoothing = 3*he)
     
-#tank.BC['x+'].pInit_dirichlet.setConstantBC(0.0)
-#tank.BC['x+'].u_dirichlet.setConstantBC(0.0)
-#tank.BC['x+'].v_dirichlet.setConstantBC(0.0)
-#tank.BC['x+'].p_dirichlet.setConstantBC(0.0)
 tank.BC['x+'].u_dirichlet.uOfXT = None
 tank.BC['x+'].v_dirichlet.uOfXT = None
 tank.BC['x+'].u_advective.setConstantBC(0.0)
@@ -373,19 +338,13 @@ tank.BC['x+'].u_diffusive.setConstantBC(0.0)
 tank.BC['x+'].v_diffusive.setConstantBC(0.0)
 tank.BC['x+'].pInc_dirichlet.setConstantBC(0.0) 
 
-
-
-
-
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # Turbulence
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
-
 tank.BC['hole_x+'].setNoSlip()
 tank.BC['hole_x-'].setNoSlip()
 tank.BC['hole_y-'].setNoSlip()
-
 
 ######################################################################################################################################################################################################################
 # Gauges and probes #
@@ -413,7 +372,6 @@ vos_output = ga.PointGauges(gauges=((('vos',),PG),),
                           activeTime = (0., T),
                           sampleRate=0.,
                           fileName='solidFractionGauges.csv')
-
 
 ######################################################################################################################################################################################################################
 # Numerical Options and other parameters #
