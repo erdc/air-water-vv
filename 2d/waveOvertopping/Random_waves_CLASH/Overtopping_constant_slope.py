@@ -281,7 +281,7 @@ smoothing=ecH*he
 tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()
 tank.BC['x+'].setFreeSlip()
-tank.BC['x-'].setFreeSlip()
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 
 tank.BC['sponge'].setNonMaterial()
 for bc in obstacle.BC_list:
