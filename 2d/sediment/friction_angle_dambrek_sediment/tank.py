@@ -20,7 +20,25 @@ opts=Context.Options([
     ("dtout", 0.05, "Time interval for output"),
     # sediment parameters
     ('cSed', 0.55,'Sediment concentration'),
-    # numerical options
+	('rho_s',2600 ,'sediment material density'),
+    ('alphaSed', 150.,'laminar drag coefficient'),
+    ('betaSed', 0.0,'turbulent drag coefficient'),
+    ('grain',0.0025, 'Grain size'),
+    ('packFraction',0.2,'threshold for loose / packed sediment'),
+    ('packMargin',0.01,'transition margin for loose / packed sediment'),
+    ('maxFraction',0.635,'fraction at max  sediment packing'),
+    ('frFraction',0.57,'fraction where contact stresses kick in'),
+    ('sigmaC',1.1,'Schmidt coefficient for turbulent diffusion'),
+    ('C3e',1.2,'Dissipation coefficient '),
+    ('C4e',1.0,'Dissipation coefficient'),
+    ('eR', 0.8, 'Collision stress coefficient (module not functional)'),
+    ('fContact', 0.05,'Contact stress coefficient'),
+    ('mContact', 3.0,'Contact stress coefficient'),
+    ('nContact', 5.0,'Contact stress coefficient'),
+    ('angFriction', pi/6., 'Angle of friction'),
+    ("vos_limiter", 0.633,"Limit for VOS through contact pressure"),
+    ('mu_fr_limiter', 1.,'Hard limiter for contact stress friction coeff'),
+	# numerical options
     ("refinement", 50.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("cfl", 0.25 ,"Target cfl"),
@@ -33,32 +51,29 @@ opts=Context.Options([
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
-    #====Sed properties
-    ("vos_limiter", 0.633,"Limit for VOS through contact pressure"),
-     ("mu_fr_limiter",1.,"Limit for mu friction")
     ])
 
 
 # ----- Sediment stress ----- #
 
-sedClosure = HsuSedStress(aDarcy =  150.0,
-                          betaForch =  0.0,
-                          grain =  0.0025,
-                          packFraction =  0.2,
-                          packMargin =  0.01,
-                          maxFraction =  0.635,
-                          frFraction =  0.57,
-                          sigmaC =  1.1,
-                          C3e =  1.2,
-                          C4e =  1.0,
-                          eR =  0.8,
-                          fContact =  0.05,
-                          mContact =  3.0,
-                          nContact =  5.0,
-                          angFriction =  pi/6.,
+sedClosure = HsuSedStress(aDarcy =  opts.alphaSed,
+                          betaForch =  opts.betaSed,
+                          grain =  opts.grain,
+                          packFraction =  opts.packFraction,
+                          packMargin =  opts.packMargin,
+                          maxFraction =  opts.maxFraction,
+                          frFraction =  opts.frFraction,
+                          sigmaC =  opts.sigmaC,
+                          C3e =  opts.C3e,
+                          C4e =  opts.C4e,
+                          eR =  opts.eR,
+                          fContact =  opts.fContact,
+                          mContact =  opts.mContact,
+                          nContact =  opts.nContact,
+                          angFriction =  opts.angFriction,
                           vos_limiter = opts.vos_limiter,
-                          mu_fr_limiter = opts.mu_fr_limiter)
-
+                          mu_fr_limiter = opts.mu_fr_limiter,
+						 )
 
 
 # ----- DOMAIN ----- #
@@ -123,20 +138,10 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 #############################################################################################################################################################################################################################################################################################################################################################################################
 
 tank.BC['y-'].setFreeSlip()
-
-
 tank.BC['y+'].setFreeSlip()
-
-
 tank.BC['x-'].setFreeSlip()
-
-
 tank.BC['x+'].setFreeSlip()
-
 tank.BC['y-'].vos_dirichlet.setConstantBC(0.635)
-
-
-
 
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
@@ -392,7 +397,6 @@ if useRANS == 1:
     ns_closure = 3
 elif useRANS == 2:
     ns_closure == 4
-
 
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # Functions for model variables - Initial conditions

@@ -60,7 +60,7 @@ opts=Context.Options([
     ("kres", 1.0e-2, "Residual tolerance for k-epsilon"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
     ("epsFact_consrv_diffusion", 1.0, "Affects smoothing diffusion in mass conservation"),
-    ("useRANS", True, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
+    ("useRANS", 1, "Switch ON turbulence models: 0-None, 1-K-Epsilon, 2-K-Omega1998, 3-K-Omega1988"),
     ("vos_SC",0.9,"vos shock capturing"),
     # ns_closure: 1-classic smagorinsky, 2-dynamic smagorinsky, 3-k-epsilon, 4-k-omega
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
@@ -95,8 +95,6 @@ else:
 # Domain dimensions
 
 nd = 2
-
-
 
 
 # Turbulence and wall functions
@@ -350,16 +348,9 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLine_z,
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 
 
-
-
 tank.BC['hole_x+'].setNoSlip()
-
-
 tank.BC['hole_x-'].setNoSlip()
-
-
 tank.BC['hole_y-'].setNoSlip()
-
 
 
 ######################################################################################################################################################################################################################
