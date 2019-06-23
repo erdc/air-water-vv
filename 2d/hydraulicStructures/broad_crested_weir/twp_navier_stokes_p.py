@@ -47,26 +47,99 @@ coefficients = RANS2P.Coefficients(epsFact=ct.epsFact_viscosity,
                                    eb_penalty_constant=ct.weak_bc_penalty_constant,
                                    forceStrongDirichlet=ct.ns_forceStrongDirichlet,
                                    turbulenceClosureModel=ct.ns_closure,
+                                   #NONCONSERVATIVE_FORM=1.0,
                                    movingDomain=ct.movingDomain)
 
-dirichletConditions = {
-    0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
-    1: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
-    2: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()
-}
+if ct.ns_forceStrongDirichlet:
+    walls = [ct.domain.boundaryTags[f] for f in ['tank2D1_y+','tank2D1_y-','tank2D1_obstacle1']]
+    inflow = [ct.domain.boundaryTags['tank2D1_x-']]
+    outflow = [ct.domain.boundaryTags['tank2D1_x+']]
+    if ct.opts.air_vent:
+        outflow.append(domain.boundaryTags['tank2D1_airvent'])
+    def get_p_Dirichlet(x, flag):
+        from math import fabs
+        if flag in outflow:
+            return lambda x,t: fabs(ct.g[1])*(
+                ct.rho_1*(ct.tank_dim[1] - x[1])
+                +
+                (ct.rho_0 - ct.rho_1)*max(0,ct.opts.outflow_level - x[1]))
 
-advectiveFluxBoundaryConditions = {
-    0: lambda x, flag: domain.bc[flag].p_advective.init_cython(),
-    1: lambda x, flag: domain.bc[flag].u_advective.init_cython(),
-    2: lambda x, flag: domain.bc[flag].v_advective.init_cython()
-}
+    def get_u_Dirichlet(x, flag):
+        if flag in walls:
+            return lambda x,t: 0.0
+        elif flag in inflow:
+            return ct.twpflowVelocity_u
 
-diffusiveFluxBoundaryConditions = {
-    0: {},
-    1: {1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
-    2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}
-}
+    def get_v_Dirichlet(x, flag):
+        if flag in walls:
+            return lambda x,t: 0.0
+        elif flag in inflow:
+            return lambda x,t: 0.0
+        elif flag in outflow:
+            return lambda x,t: 0.0
 
+    dirichletConditions = {
+        0: get_p_Dirichlet,
+        1: get_u_Dirichlet,
+        2: get_v_Dirichlet
+    }
+
+    def get_mass_flux(x, flag):
+        if flag in walls:
+            return lambda x,t: 0.0
+        elif flag in inflow:
+            return lambda x,t: -ct.twpflowVelocity_u(x,t)
+        elif flag == 0:
+            return lambda x,t: 0.0
+
+    def get_mom_u_adv_flux(x, flag):
+        if flag == 0:
+            return lambda x,t: 0.0
+    
+    def get_mom_v_adv_flux(x, flag):
+        if flag == 0:
+            return lambda x,t: 0.0
+
+    advectiveFluxBoundaryConditions = {
+        0: get_mass_flux,
+        1: get_mom_u_adv_flux,
+        2: get_mom_v_adv_flux
+    }
+    
+    def get_mom_u_diff_flux(x, flag):
+        if flag in outflow:
+            return lambda x,t: 0.0
+        elif flag == 0:
+            return lambda x,t: 0.0
+
+    def get_mom_v_diff_flux(x, flag):
+        if flag == 0:
+            return lambda x,t: 0.0
+
+    diffusiveFluxBoundaryConditions = {
+        0: {},
+        1: {1: get_mom_u_diff_flux},
+        2: {2: get_mom_v_diff_flux}
+    }
+else:
+    dirichletConditions = {
+        0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython(),
+        1: lambda x, flag: domain.bc[flag].u_dirichlet.init_cython(),
+        2: lambda x, flag: domain.bc[flag].v_dirichlet.init_cython()
+    }
+    
+    advectiveFluxBoundaryConditions = {
+        0: lambda x, flag: domain.bc[flag].p_advective.init_cython(),
+        1: lambda x, flag: domain.bc[flag].u_advective.init_cython(),
+        2: lambda x, flag: domain.bc[flag].v_advective.init_cython()
+    }
+    
+    diffusiveFluxBoundaryConditions = {
+        0: {},
+        1: {1: lambda x, flag: domain.bc[flag].u_diffusive.init_cython()},
+        2: {2: lambda x, flag: domain.bc[flag].v_diffusive.init_cython()}
+    }
+    
 class PerturbedSurface_p:
     def __init__(self, waterLevel):
         self.waterLevel = waterLevel

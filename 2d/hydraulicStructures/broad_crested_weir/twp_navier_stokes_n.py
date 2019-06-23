@@ -62,6 +62,8 @@ levelNonlinearSolver = NonlinearSolvers.Newton
 nonlinearSmoother = None
 
 linearSmoother = LinearSolvers.SimpleNavierStokes2D
+#linearSmoother=NavierStokes_TwoPhasePCD
+#linearSmootherOptions = (False, True, True, 0) #(density_scaling, numerical_viscosity, lumped, chebyshev_its)
 
 matrix = LinearAlgebraTools.SparseMatrix
 
@@ -86,9 +88,10 @@ nl_atol_res = ct.ns_nl_atol_res
 
 linTolFac = 0.01
 l_atol_res = 0.01 * ct.ns_nl_atol_res
-useEisenstatWalker = False
+useEisenstatWalker = True
 maxNonlinearIts = 50
 maxLineSearches = 0
-conservativeFlux = {0: 'pwl-bdm-opt'}
+if not ct.opts.strong:
+    conservativeFlux = {0: 'pwl-bdm-opt'}
 
 auxiliaryVariables = ct.domain.auxiliaryVariables['twp']
