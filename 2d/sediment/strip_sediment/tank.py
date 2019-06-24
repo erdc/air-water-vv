@@ -360,7 +360,7 @@ if useMetrics:
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
     vof_sc_beta = 1.0
-    vos_shockCapturingFactor =  opts.vos_SC # <------------------------------------- 
+    vos_shockCapturingFactor = 0.9#opts.vos_SC # <------------------------------------- 
     vos_lag_shockCapturing = True
     vos_sc_uref = 1.0
     vos_sc_beta = 1.0

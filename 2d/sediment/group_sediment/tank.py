@@ -16,8 +16,32 @@ opts=Context.Options([
     ("waterLine_z", 0.3, "Heigth of free surface above bottom"),
     ("Lx", 2.00, "Length of the numerical domain"),
     ("Ly", 0.5, "Heigth of the numerical domain"),
+	# fluid paramters
+    ("rho_0", 998.2, "water density"),
+    ("rho_1", 998.2, "air density"),
+    ("nu_0", 1.004e-6, "water kin viscosity"),
+    ("nu_1", 1.004e-6, "air kin viscosity"),
+    ('g',np.array([0.0, -9.8, 0.0]),'Gravitational acceleration'),    
     # sediment parameters
     ('cSed', 0.05,'Sediment concentration'),
+    ('rho_s',2600 ,'sediment material density'),
+    ('alphaSed', 150.,'laminar drag coefficient'),
+    ('betaSed', 0.0,'turbulent drag coefficient'),
+    ('grain',0.0025, 'Grain size'),
+    ('packFraction',0.2,'threshold for loose / packed sediment'),
+    ('packMargin',0.01,'transition margin for loose / packed sediment'),
+    ('maxFraction',0.635,'fraction at max  sediment packing'),
+    ('frFraction',0.57,'fraction where contact stresses kick in'),
+    ('sigmaC',1.1,'Schmidt coefficient for turbulent diffusion'),
+    ('C3e',1.2,'Dissipation coefficient '),
+    ('C4e',1.0,'Dissipation coefficient'),
+    ('eR', 0.8, 'Collision stress coefficient (module not functional)'),
+    ('fContact', 0.05,'Contact stress coefficient'),
+    ('mContact', 3.0,'Contact stress coefficient'),
+    ('nContact', 5.0,'Contact stress coefficient'),
+    ('angFriction', pi/6., 'Angle of friction'),
+    ('vos_limiter', 0.05, 'Weak limiter for vos'),
+    ('mu_fr_limiter', 100.00,'Hard limiter for contact stress friction coeff'),
     # numerical options
     ("refinement", 75.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
@@ -37,23 +61,23 @@ opts=Context.Options([
 
 # ----- Sediment stress ----- #
 
-sedClosure = HsuSedStress(aDarcy =  150.0,
-                          betaForch =  0.0,
-                          grain =  0.0025,
-                          packFraction =  0.2,
-                          packMargin =  0.01,
-                          maxFraction =  0.635,
-                          frFraction =  0.57,
-                          sigmaC =  1.1,
-                          C3e =  1.2,
-                          C4e =  1.0,
-                          eR =  0.8,
-                          fContact =  0.05,
-                          mContact =  3.0,
-                          nContact =  5.0,
-                          angFriction =  pi/6.,
-                          vos_limiter = 0.05,
-                          mu_fr_limiter = 100.00,
+sedClosure = HsuSedStress(aDarcy =  opts.alphaSed,
+                          betaForch =  opts.betaSed,
+                          grain =  opts.grain,
+                          packFraction =  opts.packFraction,
+                          packMargin =  opts.packMargin,
+                          maxFraction =  opts.maxFraction,
+                          frFraction =  opts.frFraction,
+                          sigmaC =  opts.sigmaC,
+                          C3e =  opts.C3e,
+                          C4e =  opts.C4e,
+                          eR =  opts.eR,
+                          fContact =  opts.fContact,
+                          mContact =  opts.mContact,
+                          nContact =  opts.nContact,
+                          angFriction =  opts.angFriction,
+                          vos_limiter = opts.vos_limiter,
+                          mu_fr_limiter = opts.mu_fr_limiter,
                           )
 
 # ----- DOMAIN ----- #
@@ -64,24 +88,23 @@ domain = Domain.PlanarStraightLineGraphDomain()
 # ----- Phisical constants ----- #
   
 # Water
-rho_0 = 998.2
-nu_0 = 1.004e-6
+rho_0 = opts.rho_0
+nu_0 = opts.nu_0
 
 # Air
-rho_1 = rho_0 # 1.205 #
-nu_1 = nu_0 # 1.500e-5 # 
+rho_1 = opts.rho_1 # 1.205 #
+nu_1 = opts.nu_1 # 1.500e-5 # 
 
 # Sediment
-
-rho_s = 2600.0 # rho_0
-nu_s = 1000000.0 # 0.0 # nu_0 # 
+rho_s = opts.rho_s
+nu_s = 1000000
 dragAlpha = 0.0
 
 # Surface tension
 sigma_01 = 0.0
 
 # Gravity
-g = np.array([0.0, -9.8, 0.0])
+g = opts.g
 gamma_0 = abs(g[1])*rho_0
 
 # Initial condition
@@ -118,18 +141,9 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 # ----- BOUNDARY CONDITIONS ----- #
 #############################################################################################################################################################################################################################################################################################################################################################################################
 tank.BC['y-'].setFreeSlip()
-#tank.BC['y-'].setNoSlip()
-#tank.BC['y-'].pInc_advective.setConstantBC(0.)
 tank.BC['y+'].setFreeSlip()
-
-
 tank.BC['x-'].setFreeSlip()
-
-
 tank.BC['x+'].setFreeSlip()
-
-
-
 
 # ----- If open boundary at the top
 if opts.openTop:
@@ -141,13 +155,9 @@ if opts.openTop:
     tank.BC['y+'].pInc_dirichlet.setConstantBC(0.0)
     tank.BC['y+'].pInit_dirichlet.setConstantBC(0.0)
 
-
-
-
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
 # Turbulence
 ####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
-
 
 if opts.useRANS:
     kInflow = 1e-6
@@ -156,7 +166,6 @@ if opts.useRANS:
     tank.BC['x+'].setTurbulentZeroGradient()
     tank.BC['y-'].setTurbulentZeroGradient()
     tank.BC['y+'].setTurbulentZeroGradient()
-
 
 ######################################################################################################################################################################################################################
 # Numerical Options and other parameters #
@@ -475,4 +484,3 @@ def vos_function(x, t=0):
 
 
 Suspension = Suspension_class()
-
