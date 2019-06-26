@@ -66,7 +66,7 @@ opts=Context.Options([
     ("refinement_level", 100.,"he=wavelength/refinement_level"),
     ("cfl", 0.5,"Target cfl"),
     ("ecH", 1.5,"Smoothing Coefficient"),
-    ("Np", 10 ," Output points per period Tp/Np" ),
+    ("Np", 15 ," Output points per period Tp/Np" ),
     ("dt_init", 0.001 , "initial time step" ),
     
     
@@ -139,8 +139,8 @@ boundaryTags = {'y-' : 1,
                }
 
 
-################ TANK OUTLINE GEOMETRY ###########################                        
-
+################ TANK OUTLINE GEOMETRY ###########################   
+                     
 vertices=[[0.0,0.0], #0
             [wave_length,0],#1
             [wave_length,-opts.tank_depth],#2
@@ -157,17 +157,17 @@ vertices=[[0.0,0.0], #0
          
 
 vertexFlags=np.array([1, #0 
-                        1, #1 
+                        1, #1 lower boundary abs zone generation outlet
                         1, #2
                         1, #3
-                        1, #4
-                        2, #5
-                        3, #6
-                        3, #7 upper boundary abs zone
-                        4, #8
-                        4, #9
-                        4, #10
-                        4, #11
+                        1, #4 lower boundary abs zone behind obstacle
+                        1, #5 wall right boundary
+                        3, #6 wall right boundary
+                        3, #7 upper boundary abs zone behind obstacle
+                        3, #8 upper boundary abs zone generation outlet
+                        3, #9
+                        4, #10 upper boundary abs zone generation inlet
+                        4, #11 lower boundary abs zone generation inlet 
                         ])           
 
 segments=[[0,1],
@@ -182,24 +182,24 @@ segments=[[0,1],
           [9,10],
           [10,11],
           [11,0],
-          [1,8],
+          [0,9],
           [4,7],
               ]
 
-segmentFlags=np.array([ 1, #[0,1] 
-                        4, #[1,2] 
-                        1, #[2,3]
-                        2, #[3,4]
-                        1, #[4,5]
-                        2, #[5,6]
-                        3, #[6,7]
-                        3, #[7,8]
-                        3, #[8,9]
-                        3, #[9,10]
-                        4, #[10,11]
-                        1, #[11,0]
-                        5, #[1,8]
-                        5, #[4,7]
+segmentFlags=np.array([ 1, #[0,1] f
+                        1, #[1,2] pipe left side
+                        1, #[2,3] tank floor
+                        1, #[3,4] pipe right side
+                        1, #[4,5] f
+                        2, #[5,6] wall after obstacle /right boundary
+                        3, #[6,7] atm
+                        3, #[7,8] atm
+                        3, #[8,9] atm
+                        3, #[9,10] atm
+                        4, #[10,11]generation inlet
+                        1, #[11,0] f
+                        5, #[0,9] sponge
+                        5, #[4,7] sponge after obstacle
                       ])
 
 
