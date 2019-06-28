@@ -1,0 +1,15 @@
+# Single phase
+#parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.001 grain=0.0001" -D case_A1c
+#parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.001 grain=0.00025" -D case_A2c
+#parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.001 grain=0.0005" -D case_A3c
+parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.001 grain=0.001" -D case_A4c
+parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.001 grain=0.0025" -D case_A5c 
+parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.05 grain=0.0001" -D case_B1c
+parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.05 grain=0.00025" -D case_B2c
+parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.05 grain=0.0005" -D case_B3c
+parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.05 grain=0.001" -D case_B4c
+parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.05 grain=0.0025" -D case_B5c 
+#parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=12.5 rho_1=998.2 nu_1=1e-6 cSed=0.001 grain=0.0001" -D case_A1b
+#parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.001 grain=0.0001" -D case_A1c
+#parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=12.5 rho_1=998.2 nu_1=1e-6 cSed=0.05 grain=0.0001" -D case_B1b
+#parun tank_so.py -l 3 -v -O ~/air-water-vv/inputTemplates/petsc.options.asm -C "duration=2. refinement=50 rho_1=998.2 nu_1=1e-6 cSed=0.05 grain=0.0001" -D case_B1c
