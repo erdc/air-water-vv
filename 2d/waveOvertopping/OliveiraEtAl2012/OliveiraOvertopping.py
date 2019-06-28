@@ -139,7 +139,12 @@ if opts.paddle2D:
     paddle2D = bd.PaddleBody(shape=paddle, substeps=20)
     paddle2D.setConstraints(free_x=opts.free_x, free_r=opts.free_r)
     paddle2D.setRecordValues(filename='paddle2D', all_values=True)    
-    paddle2D.inputMotion(InputMotion=opts.InputMotion, At=opts.stroke*np.array(opts.free_x), Tt=opts.period*np.array(opts.free_x), rampStart=rampS, rampEnd=rampE,Tend=Tpaddle)
+    paddle2D.inputMotion(InputMotion=opts.InputMotion, 
+			 At=opts.stroke*np.array(opts.free_x), 
+			 Tt=opts.period*np.array(opts.free_x), 
+			 rampStart=rampS, 
+			 rampEnd=rampE,
+			 Tend=Tpaddle)
 ##############################################################################################################################################################################################################
 # Tank
 #########################################################################################################################################################################################################
