@@ -1,398 +1,252 @@
-"""
-Random Waves
-"""
 from proteus import Domain, Context
 from proteus.mprans import SpatialTools as st
+from proteus import Gauges as ga
 from proteus import WaveTools as wt
-import math
 import numpy as np
+from proteus.mprans import BodyDynamics as bd
+from proteus.ctransportCoefficients import (smoothedHeaviside,
+                                            smoothedHeaviside_integral)
+import proteus.TwoPhaseFlow.TwoPhaseFlowProblem as TpFlow
+from proteus import Gauges as ga
+
+
+
+# Options (Geometry, Physical Properties, Waves, Numerical Options, Obstacle Dimentions)
 
 opts=Context.Options([
-    # test options
-    ("water_level", 1.,  "Water level from y=0"),
-    # tank
-    ("tank_dim", (15., 1.5,), "Dimensions of the operational domain of the tank in m (l x h)"),
-    ("generation", True, "Generate waves at the left boundary (True/False)"),
-    ("absorption", True, "Absorb waves at the right boundary (True/False)"),
-    ("tank_sponge", (5., 10.), "Length of generation/absorption zone in m (left, right)"),
-    ("free_slip", True, "Should tank walls have free slip conditions "
-                        "(otherwise, no slip conditions will be applied)."),
-    #gravity 
-    ("g", [0, -9.81, 0], "Gravity vector in m/s^2"),
-    # waves
-    ("waves", True, "Generate waves (True/False)"),
-    ("Tp", 1.94, "Peak wave period in s"),
-    ("Hs", 0.05, "Significant wave height in m"),
-    ("depth", 1., "Water depth in m"),
-    ("wave_dir", (1., 0., 0.), "Direction of the waves (from left boundary)"),
-    ("wavelength", 5., "Wavelength of the peak period component in m"),
-    ("fast", True, "switch for fast cosh calculations in WaveTools"),
+    
+    
+    # Geometry
+    ("tank_dim", (15.0, 1.5), "(x,y) dimensions of the tank domain"),
+    
+    # Physical Properties
+    ("rho_0", 998.2, "Water density"),
+    ("nu_0", 1.004e-6,"Water viscosity"),
+    ("rho_1", 1.205, "Air density"),
+    ("nu_1",1.5e-5, "Air viscosity"),
+    ("sigma_01", 0.,"surface tension"),
+    ("g", np.array([0., -9.805, 0.]), "gravity"),
+
+    # Waves
+    ("Tstart", 0, "Start time"),
+    ("fract", 1, "total simulation time/ chosen simulation time"),
+    ("Ntotalwaves",200,"totalnumber of waves"),
+    ("x0", np.array([0.,0.,0.]), "Position vector for the tinme series"),
+    ("Tp", 1.94, "Peak wave period"),
+    ("Hs", 0.15, "Significant wave height"),
+    ("mwl", 0.8, "Mean Water level"),
+    ("depth", 0.8 , "Water depth"),
+    ("waveDir", np.array([1.,0.,0.]),"Direction of the waves"),
+    ("N", 2000, "Number of frequency components"),
+    ("bandFactor", 2.0 ,"Spectal Band Factor"),
+    ("spectName", "JONSWAP","Name of Spectral Distribution"),
+    ("spectral_params",{"gamma": 3.3, "TMA":False,"depth": 0.4} ,"Spectral Distribution Characteristics"),
+    ("seed", 420,"Seed for random phases"),
+    ("Nwaves", 15, "Number of waves per window"),
+    ("Nfreq",32 , "Number of fourier components per window"),
+
+    # Genetation/Absorption zone
+    ("tank_sponge", (5., 5.), "Length of generation/absorption zone in m (left, right)"),
+
     # gauges
-    #("gauge_output", True, "Places Gauges in tank (5 per wavelength)"),
-    ("point_gauge_output", True, "Produce point gauge output"),
+    #("gauge_output", True, "Places Gauges in tank (10 per wavelength)"),
+    ("point_gauge_output", False, "Produce point gauge output"),
     ("column_gauge_output", True, "Produce column gauge output"),
-    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges in m"),
-    # mesh refinement
-    ("refinement", False, "Gradual refinement"),
-    ("he", 0.02, "Set characteristic element size in m"),
-    ("he_max", 0.05, "Set maximum characteristic element size in m"),
-    ("he_max_water", 10, "Set maximum characteristic in water phase"),
-    ("refinement_freesurface", 0.1,"Set area of constant refinement around free surface (+/- value) in m"),
-    ("refinement_caisson", 0.,"Set area of constant refinement (Box) around potential structure (+/- value) in m"),
-    ("refinement_grading", np.sqrt(1.1*4./np.sqrt(3.))/np.sqrt(1.*4./np.sqrt(3)), "Grading of refinement/coarsening (default: 10% volume)"),
-    # numerical options
-    ("gen_mesh", True, "True: generate new mesh every time. False: do not generate mesh if file exists"),
-    ("use_gmsh", False, "True: use Gmsh. False: use Triangle/Tetgen"),
-    ("movingDomain", False, "True/False"),
-    ("T", 250.0, "Simulation time in s"),
-    ("dt_init", 0.001, "Initial time step in s"),
-    ("dt_fixed", None, "Fixed (maximum) time step"),
-    ("timeIntegration", "backwardEuler", "Time integration scheme (backwardEuler/VBDF)"),
-    ("cfl", 0.5 , "Target cfl"),
-    ("nsave",  5, "Number of time steps to save per second"),
-    ("useRANS", 0, "RANS model"),
-    ("parallel", True ,"Run in parallel")])
+    ("gauge_dx", 0.25, "Horizontal spacing of point gauges/column gauges before structure [m]"),
+   
 
-# ----- CONTEXT ------ #
+   # Numerical Options
+    ("refinement_level", 100.,"he=wavelength/refinement_level"),
+    ("cfl", 0.5,"Target cfl"),
+    ("ecH", 3,"Smoothing Coefficient"),
+    ("Np", 15 ," Output points per period Tp/Np" ),
+    ("dt_init", 0.001 , "initial time step" )
+	])
+    
 
-# waves
-omega = 1.
-
-if opts.waves is True:
-    Tp = opts.Tp
-    omega = 2*np.pi/opts.Tp
-    Hs = opts.Hs
-    bandFactor = 2.
-    spectName = "JONSWAP"
-    spectral_params=None
-    mwl = depth = opts.water_level
-    direction = opts.wave_dir
-    Tend = 2.*opts.T
-    x0 = np.array([0., 0. ,0. ])
-    waveDir = np.array(opts.wave_dir) #[1.,0.,0.]
-    g = np.array(opts.g)
-    N = 2000
-    phi = np.loadtxt("phases.txt")
-    Lgen = np.array([opts.tank_sponge[0], 0., 0.])
-    wave = wt.RandomWavesFast(0.,
-                            Tend,
-                            x0,
-                            Tp,
-                            Hs,
-                            mwl,#m significant wave height
-                            depth , #m depth
-                            waveDir,
-                            g, #peak frequency
-                            N,
-                            bandFactor, #accelerationof gravity
-                            spectName ,# random words will result in error and return the available spectra
-                            spectral_params, #JONPARAMS = {"gamma": 3.3, "TMA":True,"depth": depth}
-                            phi,
-                            Lgen = Lgen,
-                            Nfreq = 32,
-                            Nwaves = 15,
-                              checkAcc = True)
-
-# tank options
-waterLevel = opts.water_level
-tank_dim = opts.tank_dim
-tank_sponge = opts.tank_sponge
-
-# ----- DOMAIN ----- #
-
+# Domain
+tank_dim=opts.tank_dim
 domain = Domain.PlanarStraightLineGraphDomain()
 
-# refinement
-smoothing = opts.he*3.
+#Generation/ Absorption
+Lgen = np.array([opts.tank_sponge[0], 0., 0.])
 
-# ----- TANK ------ #
+# Wave Input
 
+np.random.seed(opts.seed)
+phi = 2*np.pi*np.random.rand(opts.N)
+Tend=opts.Ntotalwaves*opts.Tp/1.1
+wave = wt.RandomWavesFast(Tstart=opts.Tstart,
+                         Tend=Tend,
+                         x0=opts.x0,
+                         Tp=opts.Tp,
+                         Hs=opts.Hs,
+                         mwl=opts.mwl,
+                         depth=opts.depth,
+                         waveDir=opts.waveDir,
+                         g=opts.g,
+                         N=opts.N,
+                         bandFactor=opts.bandFactor,
+                         spectName=opts.spectName,
+                         spectral_params=opts.spectral_params,
+                         phi=phi,
+                         Lgen=Lgen,
+                         Nwaves=opts.Nwaves,
+                         Nfreq=opts.Nfreq,
+                         checkAcc=True,
+                         fast=True)
+
+
+# Script on wave length
+wave_length=wave.wavelength           
+
+# Domain
 tank = st.Tank2D(domain, tank_dim)
 
-# ----- GENERATION / ABSORPTION LAYERS ----- #
+#shapes
+tank.setSponge(x_n=opts.tank_sponge[0], x_p=opts.tank_sponge[1])
 
-tank.setSponge(x_n=tank_sponge[0], x_p=tank_sponge[1])
-dragAlpha = 5.*omega/1e-6
- 
-if opts.generation:
-    tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing = smoothing)
-if opts.absorption:
-    tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
-
-# ----- BOUNDARY CONDITIONS ----- #
-
-# Waves
-tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
-
-# open top
+# Mesh Refinement
+he=wave_length/opts.refinement_level
+ecH=opts.ecH
+smoothing=ecH*he
+                  
+# Boundary Conditions
+# Tank
 tank.BC['y+'].setAtmosphere()
-
-if opts.free_slip:
-    tank.BC['y-'].setFreeSlip()
-    tank.BC['x+'].setFreeSlip()
-    if not opts.generation:
-        tank.BC['x-'].setFreeSlip()
-else:  # no slip
-    tank.BC['y-'].setNoSlip()
-    tank.BC['x+'].setNoSlip()
-
-# sponge
+tank.BC['y-'].setFreeSlip()
+tank.BC['x+'].setFreeSlip()
+tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 tank.BC['sponge'].setNonMaterial()
 
-for bc in tank.BC_list:
-    bc.setFixedNodes()
 
-# ----- GAUGES ----- #
+# ABSORPTION ZONE BEHIND PADDLE  
+dragAlpha = 5*(2*np.pi/opts.Tp)/1e-6
 
+tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing = smoothing)
+tank.setAbsorptionZones(x_p=True, dragAlpha = dragAlpha)
+
+waterLine_x=10000
+waterLine_z = opts.mwl
+def signedDistance(x):
+    phi_x = x[0]- waterLine_x
+    phi_y = x[1] - opts.mwl
+    if phi_x < 0.0:
+        if phi_y < 0.0:
+            return max(phi_x, phi_y)
+        else:
+            return phi_y
+    else:
+        if phi_y < 0.0:
+            return phi_x
+        else:
+            return np.sqrt(phi_x ** 2 + phi_y ** 2)
+
+
+class P_IC:
+    def __init__(self):
+        self.mwl=opts.mwl
+    def uOfXT(self,x,t):
+        if signedDistance(x) < 0:
+            return -(opts.tank_dim[1] - opts.mwl)*opts.rho_1*opts.g[1] - (opts.mwl - x[1])*opts.rho_0*opts.g[1]
+        else:
+            return -(opts.tank_dim[1] - opts.mwl)*opts.rho_1*opts.g[1]
+class AtRest:
+    def uOfXT(self, x, t):
+        return 0.0
+
+initialConditions = {'pressure': P_IC(),
+                     'vel_u': AtRest(),
+                     'vel_v': AtRest(),
+                     'vel_w': AtRest()}
+class VOF_IC:
+    def uOfXT(self,x,t):
+        return smoothedHeaviside(opts.ecH * he, signedDistance(x))
+
+class LS_IC:
+    def uOfXT(self,x,t):
+        return signedDistance(x)
+
+initialConditions['vof'] = VOF_IC()
+initialConditions['ncls'] = LS_IC()
+initialConditions['rdls'] = LS_IC()
+
+# Numerics
+
+Duration= Tend/opts.fract
+dt_output = opts.Tp/opts.Np
+
+outputStepping = TpFlow.OutputStepping(final_time=Duration,
+                                       dt_init=opts.dt_init,
+                                       # cfl=cfl,
+                                       dt_output=dt_output,
+                                       nDTout=None,
+                                       dt_fixed=None)
+
+myTpFlowProblem = TpFlow.TwoPhaseFlowProblem(ns_model=None,
+                                             ls_model=None,
+                                             nd=domain.nd,
+                                             cfl=opts.cfl,
+                                             outputStepping=outputStepping,
+                                             structured=False,
+                                             he=he,
+                                             nnx=None,
+                                             nny=None,
+                                             nnz=None,
+                                             domain=domain,
+                                             initialConditions=initialConditions,
+                                             boundaryConditions=None, # set with SpatialTools,
+                                             )
+
+params = myTpFlowProblem.Parameters
+
+myTpFlowProblem.useSuperLu=False#True
+params.physical.densityA = opts.rho_0  # water
+params.physical.densityB = opts.rho_1  # air
+params.physical.kinematicViscosityA = opts.nu_0  # water
+params.physical.kinematicViscosityB = opts.nu_1  # air
+params.physical.surf_tension_coeff = opts.sigma_01
+
+# index in order of
+m = params.Models
+m.rans2p.index = 0
+m.vof.index = 1
+m.ncls.index = 2
+m.rdls.index = 3
+m.mcorr.index = 4
+
+
+#Gauges 
 column_gauge_locations = []
-point_gauge_locations = []
 
-if opts.point_gauge_output or opts.column_gauge_output:
-    gauge_y = waterLevel - 0.5 * depth
-    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
-    for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
-        point_gauge_locations.append((gauge_x, gauge_y, 0), )
-        column_gauge_locations.append(((gauge_x, 0., 0.),
-                                       (gauge_x, tank_dim[1], 0.)))
+#if opts.point_gauge_output or opts.column_gauge_output:
+gauge_y = opts.mwl - 0.5 * opts.depth
+number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
+for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):column_gauge_locations.append(((gauge_x, 0., 0.),
+                                       								(gauge_x, tank_dim[1], 0.)))
+tank.attachLineIntegralGauges('vof',
+                                  gauges=((('vof',), column_gauge_locations),),
 
-if opts.point_gauge_output:
-    tank.attachPointGauges('twp',
-                           gauges=((('p',), point_gauge_locations),),
-                           fileName='pressure_gaugeArray.csv')
+                                  fileName='column_gauges.csv')
 
+"""
 if opts.column_gauge_output:
-    tank.attachLineIntegralGauges('vof',
+tank.attachLineIntegralGauges('vof',
                                   gauges=((('vof',), column_gauge_locations),),
                                   fileName='column_gauges.csv')
 
-# ----- ASSEMBLE DOMAIN ----- #
+"""
 
-domain.MeshOptions.use_gmsh = opts.use_gmsh
-domain.MeshOptions.genMesh = opts.gen_mesh
-domain.MeshOptions.he = opts.he
-domain.use_gmsh = opts.use_gmsh
+#Assemble domain
+domain.MeshOptions.he = he
 st.assembleDomain(domain)
-
-# ----- REFINEMENT OPTIONS ----- #
-
-import MeshRefinement as mr
-#domain.MeshOptions = mr.MeshOptions(domain)
-tank.MeshOptions = mr.MeshOptions(tank)
-if opts.refinement:
-    grading = opts.refinement_grading
-    he2 = opts.he
-    def mesh_grading(start, he, grading):
-        return '{0}*{2}^(1+log((-1/{2}*(abs({1})-{0})+abs({1}))/{0})/log({2}))'.format(he, start, grading)
-    he_max = opts.he_max
-    # he_fs = he2
-    ecH = 3.
-    if opts.refinement_freesurface > 0:
-        box = opts.refinement_freesurface
-    else:
-        box = ecH*he2
-    tank.MeshOptions.refineBox(he2, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], waterLevel-box, waterLevel+box)
-    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel-box), he=he2, grading=grading))
-    tank.MeshOptions.setRefinementFunction(mesh_grading(start='y-{0}'.format(waterLevel+box), he=he2, grading=grading))
-    domain.MeshOptions.LcMax = he_max #coarse grid
-    if opts.use_gmsh is True and opts.refinement is True:
-        domain.MeshOptions.he = he_max #coarse grid
-    else:
-        domain.MeshOptions.he = he2 #coarse grid
-        domain.MeshOptions.LcMax = he2 #coarse grid
-    tank.MeshOptions.refineBox(opts.he_max_water, he_max, -tank_sponge[0], tank_dim[0]+tank_sponge[1], 0., waterLevel)
-else:
-    domain.MeshOptions.LcMax = opts.he
-mr._assembleRefinementOptions(domain)
-from proteus import Comm
-comm = Comm.get()
-if domain.use_gmsh is True:
-    mr.writeGeo(domain, 'mesh', append=False)
-
-
-
-##########################################
-# Numerical Options and other parameters #
-##########################################
-
-rho_0=998.2
-nu_0 =1.004e-6
-rho_1=1.205
-nu_1 =1.500e-5
-sigma_01=0.0
-g = [0., -9.81]
+myTpFlowProblem.Parameters.Models.rans2p.auxiliaryVariables += domain.auxiliaryVariables['twp']
 
 
 
 
-from math import *
-from proteus import MeshTools, AuxiliaryVariables
-import numpy
-import proteus.MeshTools
-from proteus import Domain
-from proteus.Profiling import logEvent
-from proteus.default_n import *
-from proteus.ctransportCoefficients import smoothedHeaviside
-from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
 
-#----------------------------------------------------
-# Boundary conditions and other flags
-#----------------------------------------------------
-movingDomain=opts.movingDomain
-checkMass=False
-applyCorrection=True
-applyRedistancing=True
-freezeLevelSet=True
-
-#----------------------------------------------------
-# Time stepping and velocity
-#----------------------------------------------------
-weak_bc_penalty_constant = 10.0/nu_0#Re
-dt_init = opts.dt_init
-T = opts.T
-nDTout = int(opts.T*opts.nsave)
-timeIntegration = opts.timeIntegration
-if nDTout > 0:
-    dt_out= (T-dt_init)/nDTout
-else:
-    dt_out = 0
-runCFL = opts.cfl
-dt_fixed = opts.dt_fixed
-
-#----------------------------------------------------
-
-#  Discretization -- input options
-useOldPETSc=False
-useSuperlu = not True
-spaceOrder = 1
-useHex     = False
-useRBLES   = 0.0
-useMetrics = 1.0
-useVF = 1.0
-useOnlyVF = False
-useRANS = opts.useRANS # 0 -- None
-            # 1 -- K-Epsilon
-            # 2 -- K-Omega, 1998
-            # 3 -- K-Omega, 1988
-# Input checks
-if spaceOrder not in [1,2]:
-    print "INVALID: spaceOrder" + spaceOrder
-    sys.exit()
-
-if useRBLES not in [0.0, 1.0]:
-    print "INVALID: useRBLES" + useRBLES
-    sys.exit()
-
-if useMetrics not in [0.0, 1.0]:
-    print "INVALID: useMetrics"
-    sys.exit()
-
-#  Discretization
-nd = 2
-if spaceOrder == 1:
-    hFactor=1.0
-    if useHex:
-	 basis=C0_AffineLinearOnCubeWithNodalBasis
-         elementQuadrature = CubeGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,3)
-    else:
-    	 basis=C0_AffineLinearOnSimplexWithNodalBasis
-         elementQuadrature = SimplexGaussQuadrature(nd,3)
-         elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,3)
-         #elementBoundaryQuadrature = SimplexLobattoQuadrature(nd-1,1)
-elif spaceOrder == 2:
-    hFactor=0.5
-    if useHex:
-	basis=C0_AffineLagrangeOnCubeWithNodalBasis
-        elementQuadrature = CubeGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = CubeGaussQuadrature(nd-1,4)
-    else:
-	basis=C0_AffineQuadraticOnSimplexWithNodalBasis
-        elementQuadrature = SimplexGaussQuadrature(nd,4)
-        elementBoundaryQuadrature = SimplexGaussQuadrature(nd-1,4)
 
 
-# Numerical parameters
-sc = 0.5 # default: 0.5. Test: 0.25
-sc_beta = 1.5 # default: 1.5. Test: 1.
-epsFact_consrv_diffusion = 1. # default: 1.0. Test: 0.1
-ns_forceStrongDirichlet = False
-backgroundDiffusionFactor=0.01
-if useMetrics:
-    ns_shockCapturingFactor  = sc
-    ns_lag_shockCapturing = True
-    ns_lag_subgridError = True
-    ls_shockCapturingFactor  = sc
-    ls_lag_shockCapturing = True
-    ls_sc_uref  = 1.0
-    ls_sc_beta  = sc_beta
-    vof_shockCapturingFactor = sc
-    vof_lag_shockCapturing = True
-    vof_sc_uref = 1.0
-    vof_sc_beta = sc_beta
-    rd_shockCapturingFactor  =sc
-    rd_lag_shockCapturing = False
-    epsFact_density    = 3.
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = epsFact_consrv_diffusion
-    redist_Newton = True#False
-    kappa_shockCapturingFactor = sc
-    kappa_lag_shockCapturing = True
-    kappa_sc_uref = 1.0
-    kappa_sc_beta = sc_beta
-    dissipation_shockCapturingFactor = sc
-    dissipation_lag_shockCapturing = True
-    dissipation_sc_uref = 1.0
-    dissipation_sc_beta = sc_beta
-else:
-    ns_shockCapturingFactor  = 0.9
-    ns_lag_shockCapturing = True
-    ns_lag_subgridError = True
-    ls_shockCapturingFactor  = 0.9
-    ls_lag_shockCapturing = True
-    ls_sc_uref  = 1.0
-    ls_sc_beta  = 1.0
-    vof_shockCapturingFactor = 0.9
-    vof_lag_shockCapturing = True
-    vof_sc_uref  = 1.0
-    vof_sc_beta  = 1.0
-    rd_shockCapturingFactor  = 0.9
-    rd_lag_shockCapturing = False
-    epsFact_density    = 1.5
-    epsFact_viscosity  = epsFact_curvature  = epsFact_vof = epsFact_consrv_heaviside = epsFact_consrv_dirac = epsFact_density
-    epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 10.0
-    redist_Newton = False#True
-    kappa_shockCapturingFactor = 0.9
-    kappa_lag_shockCapturing = True#False
-    kappa_sc_uref  = 1.0
-    kappa_sc_beta  = 1.0
-    dissipation_shockCapturingFactor = 0.9
-    dissipation_lag_shockCapturing = True#False
-    dissipation_sc_uref  = 1.0
-    dissipation_sc_beta  = 1.0
 
-ns_nl_atol_res = max(1.0e-6,0.001*domain.MeshOptions.he**2)
-vof_nl_atol_res = max(1.0e-6,0.001*domain.MeshOptions.he**2)
-ls_nl_atol_res = max(1.0e-6,0.001*domain.MeshOptions.he**2)
-mcorr_nl_atol_res = max(1.0e-6,0.0001*domain.MeshOptions.he**2)
-rd_nl_atol_res = max(1.0e-6,0.01*domain.MeshOptions.he)
-kappa_nl_atol_res = max(1.0e-6,0.001*domain.MeshOptions.he**2)
-dissipation_nl_atol_res = max(1.0e-6,0.001*domain.MeshOptions.he**2)
-mesh_nl_atol_res = max(1.0e-6,0.001*domain.MeshOptions.he**2)
-
-#turbulence
-ns_closure=0 #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
-
-if useRANS == 1:
-    ns_closure = 3
-elif useRANS >= 2:
-    ns_closure == 4
-
-def twpflowPressure_init(x, t):
-    p_L = 0.0
-    phi_L = tank_dim[nd-1] - waterLevel
-    phi = x[nd-1] - waterLevel
-    return p_L -g[nd-1]*(rho_0*(phi_L - phi)+(rho_1 -rho_0)*(smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi_L)
-                                                         -smoothedHeaviside_integral(epsFact_consrv_heaviside*opts.he,phi)))
