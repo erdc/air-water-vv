@@ -4,20 +4,24 @@ Regular Wave Generation
 Description
 -----------
 
-Plane regular nonlinear waves are mild and high steepness waves that 
+This class is used for generating regular waves in both linear and nonlinear regimes. 
+
+Water waves with low steepness are considered linear (:math:`H/L` < 0.1%, where :math:`H` is the wave height and :math:`L` is the wavelength). This means that the form of the waves is sinusoidal and high order terms are negligible. 
+The wavelength, wave period and water depth are interdependent through the linear dispersion relation. 
+
+
+Regular nonlinear waves are mild and high steepness waves that 
 propagate in a single direction, in uniform wave fronts.  The wave 
 profile deviates from the sinusoidal shape, and it typically exhibits 
-high and sharp wave crests and low and flat wave troughs.  It is not 
-always accurate to calculate the wave celerity from the linear 
-dispersion theory, especially for highly nonlinear waves. 
+high and sharp wave crests and low and flat wave troughs.
 Fenton (1988) proposes a method for calculating the nonlinear wave 
-properties and profile, which is adopted for the generation of 
+characteristics and profile, which is adopted for the generation of 
 nonlinear waves within Proteus. 
 
-In terms of classification, linear waves are in the right top area of the following diagram (Lé Méhauté 1976), where the vertical axis corresponds to the non dimensional wave height and the horizontal to the non dimensional water depth, with gT\ :sup:`2` being proportional to the wavelength.
+In terms of classification, linear waves are in the lower right corner of the diagram (Lé Méhauté 1976), where the vertical axis corresponds to the non dimensional wave height and the horizontal to the non dimensional water depth, with gT\ :sup:`2` being proportional to the wavelength.
 
 
-.. figure:: ./Mehaute_nonlinear_waves_01.png
+.. figure:: ./Mehaute_nonlinear_waves.png
    :width: 100%
    :align: center
 
