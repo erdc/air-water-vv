@@ -34,19 +34,19 @@ Test case
 The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type:
 
 ```
-parun --TwoPhaseFlow -f monochromatic_waves.py -v -D result_folder
+parun --TwoPhaseFlow -f regular_waves.py -v -D result_folder
 ```
 
 Wave properties can be modified by the commandline, using for example:
 
 ```
-parun --TwoPhaseFlow -f monochromatic_waves.py -v -C -D result_folder "T=2 H=0.05"
+parun --TwoPhaseFlow -f regular_waves.py -v -C -D result_folder "T=2 H=0.05"
 ```
 
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f monochromatic_waves.py -v -C -D result_folder "Tp=2 Hs=0.2"
+mpirun -np 12 parun --TwoPhaseFlow -f regular_waves.py -v -C -D result_folder "Tp=2 Hs=0.2"
 ```
 
 
@@ -64,7 +64,6 @@ References
   
 - Lé Méhauté, B., (1976). “Introduction to Hydrodynamics and water waves”, Springer-Verlag, New York.
 
-- Isaacson (1991), Measurement of regular wave reflection, Journal of Waterway Port Coastal and Ocean Engineering 117(6), 553-569
 
 
 
