@@ -25,7 +25,7 @@ In terms of classification, linear waves are in the lower right corner of the di
    :width: 100%
    :align: center
 
-This case tests demonstrates the ability of PROTEUS to simulate the 
+This case tests demonstrates the ability of Proteus to simulate the 
 generation, propagation and absorption of regular non-linear waves. 
 
 Test case
