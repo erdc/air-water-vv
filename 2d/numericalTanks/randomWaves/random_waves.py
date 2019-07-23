@@ -56,7 +56,7 @@ opts=Context.Options([
    
 
    # Numerical Options
-    ("refinement_level", 100.,"he=wavelength/refinement_level"),
+    ("refinement_level", 50.,"he=wavelength/refinement_level"),
     ("cfl", 0.5,"Target cfl"),
     ("ecH", 3,"Smoothing Coefficient"),
     ("Np", 15 ," Output points per period Tp/Np" ),
