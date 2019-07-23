@@ -40,13 +40,13 @@ parun --TwoPhaseFlow -f regular_waves.py -v -D result_folder
 Wave properties can be modified by the commandline, using for example:
 
 ```
-parun --TwoPhaseFlow -f regular_waves.py -v -C -D result_folder "T=2 H=0.05"
+parun --TwoPhaseFlow -f regular_waves.py -v -D result_folder -C "T=2 H=0.05"
 ```
 
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f regular_waves.py -v -C -D result_folder "Tp=2 Hs=0.2"
+mpirun -np 12 parun --TwoPhaseFlow -f regular_waves.py -v -D result_folder -C "Tp=2 Hs=0.2"
 ```
 
 
