@@ -19,14 +19,34 @@ evolution and forces / pressures on structures, according to data that
 are available in the following references.  For more details, see
 runfiles or references.
 
-Tests
--------
-The python test file named ``test_dambreak_Colagrossi.py`` is made up of 
-two tests:
+Test case
+-----
 
-* The first test is to check that the run is successfully completed.
-* The second test is to validate the results comparing them to reference values. For this case we will compare the numerical and reference maximum pressure for a given point.
-One can run this test file typing ``py.test --boxed test_dambreak_Colagrossi.py``.
+The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type:
+
+```
+parun --TwoPhaseFlow -f dambreak.py -v -D result_folder
+```
+
+Wave properties can be modified by the commandline, using for example:
+
+```
+parun --TwoPhaseFlow -f dambreak.py -v -C -D result_folder "Tp=2 Hs=0.2"
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun --TwoPhaseFlow -f dambreak.py -v -C -D result_folder "Tp=2 Hs=0.2"
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
+
 
 References
 ----------
