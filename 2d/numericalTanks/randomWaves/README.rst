@@ -23,7 +23,8 @@ The test case comprises a simple rectangular tank with generation zone at the le
 parun --TwoPhaseFlow -f random_waves.py -v -D result_folder
 ```
 
-Wave properties can be modified by the commandline, using for example 
+Wave properties can be modified by the commandline, using for example:
+
 ```
 parun --TwoPhaseFlow -f random_waves.py -v -C -D result_folder "Tp=2 Hs=0.2"
 ```
