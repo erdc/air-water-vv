@@ -25,20 +25,36 @@ In terms of classification, linear waves are in the lower right corner of the di
    :width: 100%
    :align: center
 
-The numerical wave flume represents the geometry used in Higuera et al 2013 for their numerical tests. The file nonlinearTest is a batch script that runs all these tests using context options. 
-
 This case tests demonstrates the ability of PROTEUS to simulate the 
 generation, propagation and absorption of regular non-linear waves. 
 
-Tests
-------
-The python test file named ``test_nonlinearWaves.py`` is made up of three tests:
+Test case
+-----
 
-* The first test checks that the run is completed successfully.
-* The second test is to validate the results comparing them to the theory. For this case we will compare the numerical and theoretical wave height in the middle of the tank.
-* The third test evaluates wave reflection and compares to a threshold. The calculation of reflection is performed by applying Isaacson's 3rd method (Isaacson 1991) to the primary harmonic of the signal.
+The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type:
 
-One can run this test file typing ``py.test --boxed test_nonlinearWaves.py``.
+```
+parun --TwoPhaseFlow -f monochromatic_waves.py -v -D result_folder
+```
+
+Wave properties can be modified by the commandline, using for example:
+
+```
+parun --TwoPhaseFlow -f monochromatic_waves.py -v -C -D result_folder "T=2 H=0.05"
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun --TwoPhaseFlow -f monochromatic_waves.py -v -C -D result_folder "Tp=2 Hs=0.2"
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
 
 References
 ----------
