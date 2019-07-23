@@ -31,7 +31,7 @@ References
   
 - Dean and Dalrymple, (1991). Water Wave Mechanics for Engineers and Scientists, World Scientific, Singapore 
 
-- Dimakopoulos A., de Lataillade T. and Kees C., (2019) Fast random wave generation in numerical tanks Available online: https://www.icevirtuallibrary.com/doi/abs/10.1680/jencm.17.00016
+- Dimakopoulos A., de Lataillade T. and Kees C., (2019) Fast random wave generation in numerical tanks. Available online: https://www.icevirtuallibrary.com/doi/abs/10.1680/jencm.17.00016
 
 
 
