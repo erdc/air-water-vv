@@ -17,8 +17,22 @@ The methodology that has been developed and applied herein (Dimakopoulos et al.,
 Test case
 -----
 
-The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type 
-`parun --TwoPhaseFlow -f randomWaves.py -v`. Please also refer to available guidance for parun in order to set other options e.g. context, logfile options, or 
+The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type:
+
+```
+parun --TwoPhaseFlow -f random_waves.py -v -D result_folder
+```
+
+Wave properties can be modified by the commandline, using for example 
+```
+parun --TwoPhaseFlow -f random_waves.py -v -C -D result_folder "Tp=2 Hs=0.2"
+```
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
 
 
 References
