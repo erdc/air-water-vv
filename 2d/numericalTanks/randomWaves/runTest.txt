@@ -1,1 +1,0 @@
-mpirun -np 8 parun --TwoPhaseFlow -f random_waves.py -D test -F -v -l 7 -C "refinement_level=50" 
