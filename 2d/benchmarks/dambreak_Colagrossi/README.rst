@@ -4,7 +4,6 @@ Dambreak flow - Collagrosi and Landrini (2003)
 Description
 -----------
 The problem comprises a 2D tank with dimensions  3.22m x 1.8m  (width x height). 
-
 The boundaries are considered closed, specifically as free slip walls, while the top boundary [y+] is set as atmpospheric.
 The purpose of this case initially published by Collagrosi and Landrini (2003) is to examine a two phase flow in a 2D tank, where the 2 fluids are separated by sharp interfaces.
 The initial condition of the fluid is a water column with dimensions  1.20m x 0.60m  (width x height), that by the time the simulation starts, collapses under the action of gravity and impacts to a wall.
