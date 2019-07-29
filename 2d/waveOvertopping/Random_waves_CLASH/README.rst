@@ -14,7 +14,7 @@ The leeward side of the obstacle is designed as a vertical wall, with zero crest
 This case study corresponds to the geometry of one of the tests encountered in the CLASH database (EuroTop 2018) so there are experimental data available for comparison. 
 
 .. figure:: ./new_flume.jpg
-   :width: 110%
+   :width: 120%
    :align: center
 
 
