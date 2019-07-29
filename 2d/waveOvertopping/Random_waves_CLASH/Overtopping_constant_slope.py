@@ -22,7 +22,9 @@ opts=Context.Options([
     ("tank_depth", 0.5, "depth of the tank below zero level"),
     ("obs_depth", 0.4,"depth of the structure/obstacle below zero level"),
     ("tube", 0.1,"tube dimension"),
-    ("deposit_width",5.0, "width of the tank used to collect the overtopped water"),
+    ("deposit_width",5.0, "width of the tank used to collect the overtopped water"), 
+    ("structure_slope", 4, "1/slope"),
+    ("structureCrestLevel", 0.5, "elevation of structure crest. Equal to Water depth + Rc (crest freeboard)"),
 
     # Physical Properties
     ("rho_0", 998.2, "Water density"),
@@ -67,12 +69,7 @@ opts=Context.Options([
     ("cfl", 0.5,"Target cfl"),
     ("ecH", 1.5,"Smoothing Coefficient"),
     ("Np", 15 ," Output points per period Tp/Np" ),
-    ("dt_init", 0.001 , "initial time step" ),
-    
-    
-    # Obstacle Dimensions 
-    ("structure_slope", 4, "1/slope"),
-    ("structureCrestLevel", 0.5, "elevation of structure crest. Equal to Water depth + Rc (crest freeboard)")
+    ("dt_init", 0.001 , "initial time step" )
     ])
 
 # --- DOMAIN
