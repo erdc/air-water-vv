@@ -5,14 +5,16 @@ Description
 -----------
 This application has been set up to calibrate and evaluate the ability of proteus to calculate overtopping over a constant slope, impermeable dike 
 The boundary areas [x+] and [y-] are defined as free slip walls, the upper boundary [y+] is left open and the [x-] is the velocity inlet.
+
 The areas of the geometry are the generation and absorption zones, the wave propagation zone before the obstacle, 
 the collection tank and a drainage pipe to ensure that the MWL in the landward tank is not decreasing due to the volume of water that overtops. 
-The obstacle can be described as a constant-slope, positive freeboard impermeable dike with crest height Rc=0.1m and slope tanß=1/4. 
-The leeward side of the obstacle is designed as a vertical wall, with zero crest width (sharp-crested structure. 
+
+The obstacle can be described as a constant-slope, positive freeboard impermeable dike with crest height Rc=0.1m and slope tanθ=1/4. 
+The leeward side of the obstacle is designed as a vertical wall, with zero crest width (sharp-crested structure). 
 This case study corresponds to the geometry of one of the tests encountered in the CLASH database (EuroTop 2018) so there are experimental data available for comparison. 
 
 .. figure:: ./new_flume.jpg
-   :width: 100%
+   :width: 110%
    :align: center
 
 
