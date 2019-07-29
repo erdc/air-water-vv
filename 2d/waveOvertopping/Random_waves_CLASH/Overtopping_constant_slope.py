@@ -17,11 +17,11 @@ opts=Context.Options([
     
     
     # Geometry
-    ("tank_height",0.8,"Vertical Dimention of the tank"),
-    ("Lback",4.0,"Horizontal Dimention of overtopping collection tank"),
+    ("tank_height",0.8,"Vertical Dimension of the tank"),
+    ("Lback",4.0,"Horizontal Dimension of overtopping collection tank"),
     ("tank_depth", 0.5, "depth of the tank below zero level"),
     ("obs_depth", 0.4,"depth of the structure/obstacle below zero level"),
-    ("tube", 0.1,"tube dimention"),
+    ("tube", 0.1,"tube dimension"),
     ("deposit_width",5.0, "width of the tank used to collect the overtopped water"),
 
     # Physical Properties
@@ -38,7 +38,7 @@ opts=Context.Options([
     ("Tstart", 0, "Start time"),
     ("fract", 1, "fraction of duration"),
     ("Ntotalwaves",500,"totalnumber of waves"),
-    ("x0", np.array([0.,0.,0.]), "Position vector for the tinme series"),
+    ("x0", np.array([0.,0.,0.]), "Position vector for the time series"),
     ("Tp", 3.5, "Peak wave period"),
     ("Hs", 0.096, "Significant wave height"),
     ("mwl", 0.4, "Mean Water level"),
