@@ -20,15 +20,33 @@ where, a is the amplitude of the sloshing wave.
 This case tests the ability of PROTEUS to simulate the free-surface
 evolution. For more details, see runfiles or references.
 
-Tests
--------
+Test case
+-----
 
-The python test file named ``test_wavesloshing.py`` is made up of 
-two tests:
+The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type:
 
-* The first test is to check that the run is successfully completed.
-* The second test is to validate the results comparing them to the theory. For this case we will compare the numerical and theoretical position of the free surface at the left boundary.
-One can run this test file typing ``py.test --boxed test_wavesloshing.py``.
+```
+parun --TwoPhaseFlow -f wavesloshing.py -v -D result_folder
+```
+
+Wave properties can be modified by the commandline, using for example:
+
+```
+parun --TwoPhaseFlow -f wavesloshing.py -v -D result_folder -C "T=10."
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun --TwoPhaseFlow -f wavesloshing.py -v -D result_folder -C "T=10."
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
 
 References
 ----------
