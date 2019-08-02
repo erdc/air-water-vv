@@ -11,7 +11,7 @@ analytical solution found in Tadjbakhsh and Keller, 1960. The computational doma
 box. The initail conditions of the simulation are shown in the
 following figure.
 
-.. figure:: ./wavesloshing_scheme.png
+.. figure:: ./wavesloshing.png
    :width: 100%
    :align: center
 
