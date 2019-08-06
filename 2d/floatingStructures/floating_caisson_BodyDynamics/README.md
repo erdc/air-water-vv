@@ -11,12 +11,9 @@ This case works with Body Dynamics.
 
 The benchmark can be run using the following command:
 ```
-parun caisson2D_oscillation_so.py -l 2 -v -O petsc_options -D output_folder -C context_options
+parun --TwoPhaseFlow -f floating_caisson2D.py -v -D result_folder
 ```
-where:
-* `petsc_options` must point to the petsc options file
-* `output_folder` is the name of the folder for the output files
-* `context_options` are options for running the benchmark (see section below)
+
 
 ## Context Options
 
@@ -25,12 +22,9 @@ where:
 |----------------|---------------------------------------------------------------------|---------------|
 | water_level    | Height of free surface above bottom                                 | 0.9           |
 | tank_dim       | Dimensions of the tank                                              | (1., 1.2)     |
-| tank_sponge    | Length of absorption zones (left, right)                            | (2., 2.)      |
-| dimx           | X-dimension of the caisson2D                                        | 0.3           |
-| dimy           | Y-dimension of the caisson2D                                        | 0.1           |
+| dim            | X-dimension of the caisson2D,Y-dimension of the caisson2D           | (0.3,0.1)     |
 | center         | Coordinates of caisson center                                       | (0.5, 0.9)    |
 | width          | Width of the caisson                                                | 0.9           |
 | free_x         | Translational degrees of freedom                                    | (0., 0., 0.)  |
 | free_r         | Rotational degrees of freedom                                       | (0., 0., 1.)  |
 | caisson_inertia| Inertia of the caisson [kg.m2]                                      | 0.236         |
-| rotation_angle | Angle of initial rotation (in degrees)                              | 15.           |
