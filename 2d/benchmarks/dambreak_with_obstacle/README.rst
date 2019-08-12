@@ -23,16 +23,33 @@ obstacle.  The results of the simulations can be visually compared
 with screenshots from Ubbink (1997).  For more details, see
 runfiles or references.
 
-Tests
------------
+Test case
+-----
 
-Tests are introduced in the python test file named ``test_dambreak_Ubbink.py`` is made up of 
-two tests:
+To run the test case type:
 
-* The first test is to check that the run is successfully completed.
-* The second test is to assess changes in results by comparing them to reference values. Reference values correspond to average and maximum pressure on a probe located to the obstacle. 
+```
+parun --TwoPhaseFlow -f dambreak_with_obstacle.py -v -D result_folder
+```
 
-Due to lack of validation data, reference values are set by the numerical results of the first commit of this case. One can run this test file typing ``py.test --boxed test_dambreak_Ubbink.py``.
+Dambreak and tank properties can be modified by the commandline, using for example:
+
+```
+parun --TwoPhaseFlow -f dambreak_with_obstacle.py -v -D result_folder -C "tank_dim=(0.8, 0.8)"
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun --TwoPhaseFlow -f dambreak_with_obstacle.py -v -D result_folder -C "tank_dim=(0.8, 0.8)"
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
 
 References
 ----------
