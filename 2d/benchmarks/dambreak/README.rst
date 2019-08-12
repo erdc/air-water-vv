@@ -22,13 +22,13 @@ runfiles or references.
 Test case
 -----
 
-The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type:
+The test case comprises a simple rectangular tank with walls at the side and bottom and atmosphere at the top. To run the test case type:
 
 ```
 parun --TwoPhaseFlow -f dambreak.py -v -D result_folder
 ```
 
-Wave properties can be modified by the commandline, using for example:
+Dambreak and tank properties can be modified by the commandline, using for example:
 
 ```
 parun --TwoPhaseFlow -f dambreak.py -v -D result_folder -C "mwl=0.5"
