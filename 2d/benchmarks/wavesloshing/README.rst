@@ -4,12 +4,9 @@ Wave sloshing
 Description
 -----------
 
-In this case, we use Proteus to model nonlinear free-surface motion due to
-sloshing in a rectangular container. The output of Proteus is compared with the
-analytical solution found in Tadjbakhsh and Keller, 1960. The computational domain is a 2D rectangular box with dimensions
-0.1m x 0.1m and the mean level of the water is in the middle of the
-box. The initail conditions of the simulation are shown in the
-following figure.
+In this case, we use Proteus to model nonlinear free-surface motion due to sloshing in a rectangular container. 
+The computational domain is a 2D rectangular box with dimensions 0.1m x 0.1m and the mean water level is in the middle of the
+box. The output of Proteus can be compared with the analytical solution found in Tadjbakhsh and Keller, 1960. The initial conditions of the simulation are shown in the following figure.
 
 .. figure:: ./wavesloshing.png
    :width: 100%
