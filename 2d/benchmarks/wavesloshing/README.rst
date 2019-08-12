@@ -17,7 +17,7 @@ box. The output of Proteus can be compared with the analytical solution found in
 Test case
 -----
 
-The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type:
+To run the test case type:
 
 ```
 parun --TwoPhaseFlow -f wavesloshing.py -v -D result_folder
