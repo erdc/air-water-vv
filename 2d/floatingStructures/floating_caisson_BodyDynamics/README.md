@@ -8,10 +8,31 @@ This case works with Body Dynamics.
 ![Alt text](floating_caisson.png)
 
 ## Running
+-----
 
-The benchmark can be run using the following command:
+To run the test case type:
+
 ```
 parun --TwoPhaseFlow -f floating_caisson2D.py -v -D result_folder
+```
+
+Wave properties can be modified by the commandline, using for example:
+
+```
+parun --TwoPhaseFlow -f floating_caisson2D.py -v -D result_folder -C "T=10."
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun --TwoPhaseFlow -f floating_caisson2D.py -v -D result_folder -C "T=10."
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
 ```
 
 
