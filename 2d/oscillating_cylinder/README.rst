@@ -27,25 +27,26 @@ fo: the oscillating frequency
 At the same time a steady current is applied in the [x-] boundary with a velocity of magnitude 0.8 m/s in the x-axes in a 2D numerical tank.
 
 The geometry of the experiment is illustrated in the following figure.
+
  
 .. figure:: ./oscillating_cylinder_drawing.png
 
 ## Context Options
 
 
-| Options          | Explanation                                                         | Default value         |
-|------------------|---------------------------------------------------------------------|-----------------------|
-| mwl              | Height of free surface above bottom                                 | 2.0                   |
-| tank_dim         | Dimensions of the tank                                              | (4.75,2.5)            |
-| current          | Enabling generation of steady current                               | True                  |
-| U                | Steady velocity of the current                                      | [0.8,0.,0.]           |
-| rampTime         | Duration in which the velocity of the current is established  (sec) | 10.                   |
-| circle2D         | Switch on/off the extistance of the pipeline in the domain          | True                  |
-| circleBC         | Boundary Conditions in the pipe                                     | NoSlip                |
-| InputMotion      | Forcing Oscillation in the pipe                                     | True                  |
-| At               | Amplitude of imposed sinusoidal translational motion                | [0.0, 0.075, 0.0]     |
-| Tt               | Period of imposed sinusoidal translational motion                   | [0.0, 1.30, 0.0]      |
-| refinement_level | Used to define element size he=radius/refinement_level              | 5.                    |
+| Options          | Explanation                                                  | Default value         |
+|------------------|--------------------------------------------------------------|-----------------------|
+| mwl              | Height of free surface above bottom                          | 2.0                   |
+| tank_dim         | Dimensions of the tank                                       | (4.75,2.5)            |
+| current          | Enabling generation of steady current                        | True                  |
+| U                | Steady velocity of the current                               | [0.8,0.,0.]           |
+| rampTime         | Duration in which the velocity of the current is established | 10.                   |
+| circle2D         | Switch on/off the extistance of the pipeline in the domain   | True                  |
+| circleBC         | Boundary Conditions in the pipe                              | NoSlip                |
+| InputMotion      | Forcing Oscillation in the pipe                              | True                  |
+| At               | Amplitude of imposed sinusoidal translational motion         | [0.0, 0.075, 0.0]     |
+| Tt               | Period of imposed sinusoidal translational motion            | [0.0, 1.30, 0.0]      |
+| refinement_level | Used to define element size he=radius/refinement_level       | 5.                    |
  
 References 
 ----------
