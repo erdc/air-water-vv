@@ -16,9 +16,36 @@ heights from the seabed. The cylinder and the plate were towed with a speed of 0
 oscillatory motion was forced. The scope of the experiment was to explore the interaction of vortex shedding in
 different vertical motion periods that could represent i.e. wave-induced motion.
  
-Proteus is used to simulate this experiment. In the next figure a croquis of the situation is shown.
+Proteus is used to simulate this experimental configuration, by forcing a vertical oscillation in the pipeline in the form:
+y(t)= Yo sin(2πfot) 
+
+Where
+
+Yo: the amplitude of the oscillation
+fo: the oscillating frequency
+
+At the same time a steady current is applied in the [x-] boundary with a velocity of magnitude 0.8 m/s in the x-axes in a 2D numerical tank.
+
+The geometry of the experiment is illustrated in the following figure.
  
 .. figure:: ./oscillating_cylinder_drawing.png
+
+## Context Options
+
+
+| Options          | Explanation                                                         | Default value         |
+|------------------|---------------------------------------------------------------------|-----------------------|
+| mwl              | Height of free surface above bottom                                 | 2.0                   |
+| tank_dim         | Dimensions of the tank                                              | (4.75,2.5)            |
+| current          | Enabling generation of steady current                               | True                  |
+| U                | Steady velocity of the current                                      | [0.8,0.,0.]           |
+| rampTime         | Duration in which the velocity of the current is established  (sec) | 10.                   |
+| circle2D         | Switch on/off the extistance of the pipeline in the domain          | True                  |
+| circleBC         | Boundary Conditions in the pipe                                     | NoSlip                |
+| InputMotion      | Forcing Oscillation in the pipe                                     | True                  |
+| At               | Amplitude of imposed sinusoidal translational motion                | [0.0, 0.075, 0.0]     |
+| Tt               | Period of imposed sinusoidal translational motion                   | [0.0, 1.30, 0.0]      |
+| refinement_level | Used to define element size he=radius/refinement_level              | 5.                    |
  
 References 
 ----------
