@@ -70,6 +70,35 @@ Context Options
 +---------------------+--------------------------------------------------------------+--------------------+
 
 
+
+Running
+-----
+
+To run the test case type:
+
+```
+parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder
+```
+
+Wave properties can be modified by the commandline, using for example:
+
+```
+parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder -C "U=[0.5,0.,0.]"
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder -C "U=[0.5,0.,0.]"
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
+
  
 References 
 ----------
