@@ -66,7 +66,7 @@ Context Options
 +---------------------+--------------------------------------------------------------+--------------------+
 | Tt                  | Period of imposed sinusoidal translational motion            | [0.0, 1.30, 0.0]   |
 +---------------------+--------------------------------------------------------------+--------------------+
-| refinement_level    | Used to define element size he=radius/refinement_level       | 5.                 |
+| refinement_level    | Used to define element size he=radius/refinement_level       | 2.5                |
 +---------------------+--------------------------------------------------------------+--------------------+
 
 
