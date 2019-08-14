@@ -23,7 +23,7 @@ To run the test case type:
 parun --TwoPhaseFlow -f wavesloshing.py -v -D result_folder
 ```
 
-Wave properties can be modified by the commandline, using for example:
+Geometry and set up can be modified by the commandline, using for example:
 
 ```
 parun --TwoPhaseFlow -f wavesloshing.py -v -D result_folder -C "T=10."
