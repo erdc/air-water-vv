@@ -80,7 +80,7 @@ To run the test case type:
 parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder
 ```
 
-Wave properties can be modified by the commandline, using for example:
+Geometry and setup options can be modified by the commandline, using for example:
 
 ```
 parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder -C "U=[0.5,0.,0.]"
