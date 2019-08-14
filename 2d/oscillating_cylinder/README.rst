@@ -26,7 +26,7 @@ Proteus is used to simulate this experimental configuration, by forcing a vertic
 
 -y(t)= Yo sin(2πfot) 
 
-Where
+Where:
 
 -Yo: the amplitude of the oscillation
 -fo: the oscillating frequency
