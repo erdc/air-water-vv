@@ -16,7 +16,7 @@ To run the test case type:
 parun --TwoPhaseFlow -f floating_caisson2D.py -v -D result_folder
 ```
 
-Wave properties can be modified by the commandline, using for example:
+Geometry and set up options can be modified by the commandline, using for example:
 
 ```
 parun --TwoPhaseFlow -f floating_caisson2D.py -v -D result_folder -C "T=10."
