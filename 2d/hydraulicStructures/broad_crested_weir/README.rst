@@ -38,6 +38,35 @@ be compared with the data in the following references.  For more
 details, see runfiles or references.
 
 
+Running
+-----
+
+To run the test case type:
+
+```
+parun --TwoPhaseFlow -f broad_crested_weir.py -v -D result_folder
+```
+
+Geometry and setup options can be modified by the commandline, using for example:
+
+```
+parun --TwoPhaseFlow -f broad_crested_weir.py -v -D result_folder -C "obstacle_dim=(0.5,0.4)"
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun --TwoPhaseFlow -f broad_crested_weir.py -v -D result_folder -C "obstacle_dim=(0.5,0.4)"
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
+
+
 References
 ----------
 
