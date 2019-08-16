@@ -13,7 +13,7 @@ The obstacle can be described as a constant-slope, positive freeboard impermeabl
 The leeward side of the obstacle is designed as a vertical wall, with zero crest width (sharp-crested structure). 
 This case study corresponds to the geometry of one of the tests encountered in the CLASH database (EuroTop 2018) so there are experimental data available for comparison. 
 
-.. figure:: ./new_flume.jpg
+.. figure:: ./Overtopping_numerical_flume.jpg
    :height: 1833px
    :width: 6145 px
    :scale: 50 %
