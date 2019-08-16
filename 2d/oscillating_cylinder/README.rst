@@ -83,13 +83,13 @@ parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder
 Geometry and setup options can be modified by the commandline, using for example:
 
 ```
-parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder -C "U=[0.5,0.,0.]"
+parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder -C "U=np.array([0.5,0.,0.])"
 ```
 
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder -C "U=[0.5,0.,0.]"
+mpirun -np 12 parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder -C "U=np.array([0.5,0.,0.])"
 ```
 
 
