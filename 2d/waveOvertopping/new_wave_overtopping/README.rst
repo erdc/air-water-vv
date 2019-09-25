@@ -3,7 +3,10 @@ Overtopping over constant slope dike using the NewWave Theory
 
 Description
 -----------
-This application has been set up to calibrate and evaluate the ability of proteus to calculate overtopping over a constant slope, impermeable dike 
+This application has been set up to calibrate and evaluate the ability of proteus to calculate overtopping over a constant slope, impermeable dike.
+
+The NewWave Theory originally presented in Tromans et al. (1991) may be used instead of simulating the free surface elevation timeseries of a typical storm. A typical application is the ability to calculate the maximum individual overtopping volume avoiding the time consuming simulation of 500 waves, which is needed in order to capture an extreme ovetopping event. According to this theory, a group of 3-4 waves is simulated, in a form of a focused wave group, reproducing an extreme overtopping event.
+
 The boundary areas [x+] and [y-] are defined as free slip walls, the upper boundary [y+] is left open and the [x-] is the velocity inlet.
 
 The areas of the geometry are the generation and absorption zones, the wave propagation zone before the obstacle, 
@@ -49,6 +52,16 @@ Context Options
 +---------------------+-------------------------------------------------------------------------+-------------------+
 | Tp                  | Peak Wave Period                                                        | 2.326             |
 +---------------------+-------------------------------------------------------------------------+-------------------+
+| Nmax                |Normalisation factor to get the 1/N wave event at the NewWave series     | 1000              |
++---------------------+-------------------------------------------------------------------------+-------------------+
+| tfocus              |Time of focused crest / trough                                           | 10                |
++---------------------+-------------------------------------------------------------------------+-------------------+
+| crestFocus          |Switch to determine if crest focused or trough focused.                  | True              |
++---------------------+-------------------------------------------------------------------------+-------------------+
+| xfocus              |Position of focused crest / trough                                       |([0.,0.,0.])       |
++---------------------+-------------------------------------------------------------------------+-------------------+
+
+  
 
 
 Test case
@@ -69,7 +82,7 @@ parun --TwoPhaseFlow -f new_wave.py -v -D result_folder -C "mwl=0.4"
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f new_wave.py -v -D result_folder -C "mwl=0.3"
+mpirun -np 12 parun --TwoPhaseFlow -f new_wave.py -v -D result_folder -C "mwl=0.4"
 ```
 
 
