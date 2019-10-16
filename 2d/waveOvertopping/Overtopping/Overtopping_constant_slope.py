@@ -17,12 +17,13 @@ opts=Context.Options([
     
     
     # Geometry
+
     ("tank_height",0.8,"Vertical Dimention of the tank"),
     ("Lback",4.0,"Horizontal Dimention of overtopping collection tank"),
-    ("tank_depth", 0.5, "depth of the tank below zero level"),
-    ("obs_depth", 0.4,"depth of the structure/obstacle below zero level"),
-    ("tube", 0.1,"tube dimention"),
-    ("deposit_width",5.0, "width of the tank used to collect the overtopped water"),
+    ("pipe_0", 0.5, "lower level of the drainage pipe"),
+    ("pipe_1", 0.4,"upper level of the drainage pipe"),
+    ("tube", 0.1,"tube dimension"),
+    ("waterline_x", 10000, "used in levelset"),
 
     # Physical Properties
     ("rho_0", 998.2, "Water density"),
@@ -31,6 +32,8 @@ opts=Context.Options([
     ("nu_1",1.5e-5, "Air viscosity"),
     ("sigma_01", 0.,"surface tension"),
     ("g", np.array([0., -9.805, 0.]), "gravity"),
+
+
 
     # Waves
     ("Tstart", 0, "Start time"),
@@ -52,34 +55,39 @@ opts=Context.Options([
     ("Nfreq",32 , "Number of fourier components per window"),
 
     # gauges
-    #("gauge_output", True, "Places Gauges in tank (10 per wavelength)"),
-    ("point_gauge_output", True, "Produce point gauge output"),
-    ("column_gauge_output", True, "Produce column gauge output"),
-    ("gauge_dx", 0.3, "Horizontal spacing of point gauges/column gauges before structure [m]"),
-    ("gauge_dx_2", 0.1,"Horizontal spacing of point/column gauges after structure [m]"),
+   
+    ("dx", 0.01, "vertical spacing in probes [m] "),
+    
+
+
 
    # Numerical Options
-    ("refinement_level", 100.,"he=wavelength/refinement_level"),
+    ("refinement_level", 200.,"he=wavelength/refinement_level"),
     ("cfl", 0.5,"Target cfl"),
     ("ecH", 1.5,"Smoothing Coefficient"),
-    ("Np", 15 ," Output points per period Tp/Np" ),
+    ("Np", 5.," Output points per period Tp/Np" ),
     ("dt_init", 0.001 , "initial time step" ),
-    ("waterLine_x", 10000, "used in defining signed distance functions"),
-   
+    
+    
     # Obstacle Dimensions 
     ("structure_slope", 4, "1/slope"),
     ("structureCrestLevel", 0.5, "elevation of structure crest. Equal to Water depth + Rc (crest freeboard)")
     ])
 
+
+
 # --- DOMAIN
 domain = Domain.PlanarStraightLineGraphDomain()
 
 
-# --- Wave Input
+
+
+################	Random Waves Class	 ################
 
 np.random.seed(opts.seed)
 phi = 2*np.pi*np.random.rand(opts.N)
 Tend=opts.Ntotalwaves*opts.Tp/1.1
+
 wave = wt.RandomWavesFast(Tstart=opts.Tstart,
                          Tend=Tend,
                          x0=opts.x0,
@@ -101,13 +109,18 @@ wave = wt.RandomWavesFast(Tstart=opts.Tstart,
                          fast=True)
 
 
-# --- Script on wave length
+# Wave length calculation
 wave_length=wave.wavelength           
 
-# --- Tank Setup
-tank_dim = (3*wave_length+opts.structureCrestLevel*opts.structure_slope+opts.deposit_width,opts.structureCrestLevel+0.2)
+# Tank Dimensions
 
-# --- Boundary Set up
+tank_dim = (3*wave_length+(opts.structureCrestLevel*opts.structure_slope)+(2*opts.tube)+opts.Lback,opts.tank_height)
+
+
+################	Boundary Declaration	################
+
+
+
 
 boundaryOrientations = {'y-': np.array([0., -1.,0.]),
                         'x+': np.array([+1., 0.,0.]),
@@ -123,15 +136,20 @@ boundaryTags = {'y-' : 1,
                 'y+' : 3,
                 'x-' : 4,
                 'sponge' : 5,
-               }
+
+		}
 
 
-# --- Tank Outline Geometry  
+
+
+################	TANK OUTLINE GEOMETRY	################ 
+
+
                      
 vertices=[[0.0,0.0], #0
             [wave_length,0],#1
-            [wave_length,-opts.tank_depth],#2
-            [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1,-opts.tank_depth], #3
+            [wave_length,-opts.pipe_0],#2
+            [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1,-opts.pipe_0], #3
             [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1,0.0], #4 after that abs zone
             [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1+opts.Lback,0.0], #5
             [3*wave_length+2*opts.tube+opts.structureCrestLevel*opts.structure_slope+1+opts.Lback,opts.tank_height], #6
@@ -173,34 +191,31 @@ segments=[[0,1],
           [4,7],
               ]
 
-segmentFlags=np.array([ 1, #[0,1] floor
-                        1, #[1,2] left hand side of the drainage pipe
+segmentFlags=np.array([ 1, #[0,1] f
+                        1, #[1,2] pipe left side
                         1, #[2,3] tank floor
-                        1, #[3,4] right hand side of the drainage pipe
-                        1, #[4,5] floor
-                        2, #[5,6] impermeable wall after obstacle /tank's right boundary
-                        3, #[6,7] atmosphere
-                        3, #[7,8] atmosphere
-                        3, #[8,9] atmosphere
-                        3, #[9,10] atmosphere
+                        1, #[3,4] pipe right side
+                        1, #[4,5] f
+                        2, #[5,6] wall after obstacle /right boundary
+                        3, #[6,7] atm
+                        3, #[7,8] atm
+                        3, #[8,9] atm
+                        3, #[9,10] atm
                         4, #[10,11]generation inlet
-                        1, #[11,0] floor
-                        5, #[0,9] sponge boundary
-                        5, #[4,7] sponge boundary after obstacle
+                        1, #[11,0] f
+                        5, #[0,9] sponge
+                        5, #[4,7] sponge after obstacle
                       ])
 
 
 
-regions=[[5,0.3],[-0.5*wave_length,0.3],[3*wave_length+0.2+1+opts.structureCrestLevel*opts.structure_slope+2,0.4]]         
-regionFlags =np.array([1,2,3])        
+regions=[[5,0.3],[-0.5*wave_length,0.3],[3*wave_length+0.2+1+opts.structureCrestLevel*opts.structure_slope+2,0.4]] 
+        
+regionFlags =np.array([1,2,3])  
 
 
-tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
-                      segments=segments, segmentFlags=segmentFlags,
-                      regions=regions, regionFlags=regionFlags,
-                      boundaryTags=boundaryTags, boundaryOrientations=boundaryOrientations)
 
-# --- Geometry of the obstacle 
+################# Obstacle's Geometry ##############################
                       
 obs_boundaryOrientations = {'obstacle': None}
 
@@ -208,8 +223,8 @@ obs_boundaryTags = {'obstacle' : 1,}
 
 obs_vertices=[
             [wave_length+opts.tube,0],#0
-            [wave_length+opts.tube,-opts.obs_depth],#1
-            [3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope+1,-opts.obs_depth],#2
+            [wave_length+opts.tube,-opts.pipe_1],#1
+            [3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope+1,-opts.pipe_1],#2
             [3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope+1,0.],#3
             [3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope,0.],#4
             [3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope,opts.structureCrestLevel],#5
@@ -256,12 +271,29 @@ obstacle = st.CustomShape(domain, vertices=obs_vertices, vertexFlags=obs_vertexF
 obstacle.setHoles([[2*wave_length, -0.2]])
 
 
-# --- Mesh Refinement
-he=wave_length/opts.refinement_level
-smoothing=opts.ecH*he
+################	Mesh Refinement		################
 
-               
-# --- Tank/ Boundary Conditions
+#Characteristic Cell size
+he=wave_length/opts.refinement_level
+
+ecH=opts.ecH
+smoothing=ecH*he
+
+
+################	Tank Setup	################      
+
+
+tank = st.CustomShape(domain,
+ 			vertices=vertices,
+ 			vertexFlags=vertexFlags,
+			segments=segments,
+ 			segmentFlags=segmentFlags,
+   			regions=regions, 
+			regionFlags=regionFlags,
+                        boundaryTags=boundaryTags,
+ 			boundaryOrientations=boundaryOrientations)
+
+
 
 tank.BC['y+'].setAtmosphere()
 tank.BC['y-'].setFreeSlip()
@@ -274,18 +306,37 @@ for bc in obstacle.BC_list:
 
 
 
-# --- Generation/ Absorption Zones
+
+
+
+################	Generation and Absorption zones		################
 
 dragAlpha = 5*(2*np.pi/opts.Tp)/1e-6
 
-tank.setGenerationZones(flags=2, epsFact_solid=wave_length/2., center=(-wave_length/2,0.35), orientation=(1.,0.,0.), waves=wave, dragAlpha=dragAlpha)
 
-tank.setAbsorptionZones(flags=3, epsFact_solid=wave_length/2., center=(3*wave_length+0.2+1+opts.structureCrestLevel*opts.structure_slope+2,0.4), orientation=(-1.,0.,0.), dragAlpha=dragAlpha)
+tank.setGenerationZones(flags=2,
+			 epsFact_solid=wave_length/2.,
+			 center=(-wave_length/2,0.35),
+			 orientation=(1.,0.,0.), 
+			 waves=wave,
+			 dragAlpha=dragAlpha)
 
-# --- Initial Conditions
+tank.setAbsorptionZones(flags=3,
+			 epsFact_solid=wave_length/2.,
+			 center=(3*wave_length+0.2+1+opts.structureCrestLevel*opts.structure_slope+2,0.4),
+ 		         orientation=(-1.,0.,0.),
+                         dragAlpha=dragAlpha)
+
+
+
+
+waterLine_x=opts.waterline_x
+waterLine_z = opts.mwl
+
+
 
 def signedDistance(x):
-    phi_x = x[0]- opts.waterLine_x
+    phi_x = x[0]- waterLine_x
     phi_y = x[1] - opts.mwl
     if phi_x < 0.0:
         if phi_y < 0.0:
@@ -328,7 +379,8 @@ initialConditions['ncls'] = LS_IC()
 initialConditions['rdls'] = LS_IC()
 
 
-# --- Numerics & Output Stepping
+
+#################	Two Phase Flow Set up	 ################
 
 Duration= Tend/opts.fract
 dt_output = opts.Tp/opts.Np
@@ -339,8 +391,6 @@ outputStepping = TpFlow.OutputStepping(final_time=Duration,
                                        dt_output=dt_output,
                                        nDTout=None,
                                        dt_fixed=None)
-                                       
-# --- Set up the Two Phase Flow App
 
 myTpFlowProblem = TpFlow.TwoPhaseFlowProblem(ns_model=None,
                                              ls_model=None,
@@ -356,6 +406,9 @@ myTpFlowProblem = TpFlow.TwoPhaseFlowProblem(ns_model=None,
                                              initialConditions=initialConditions,
                                              boundaryConditions=None, # set with SpatialTools,
                                              )
+
+
+################	Numerical Parameters	################
 
 params = myTpFlowProblem.Parameters
 
@@ -377,14 +430,43 @@ m.mcorr.index = 4
 m.rdls.n.maxLineSearches=0
 m.rdls.n.maxNonlinearIts=50
 
-# --- Assemble domain
+################	Gauges		################ 
+
+LG=[((3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope,0.5,0.),
+     (3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope,0.8,0.))]
+
+x1=3*wave_length+opts.tube+opts.structureCrestLevel*opts.structure_slope
+
+
+
+probes=np.linspace(opts.structureCrestLevel,opts.tank_height,opts.dx)
+
+for i in probes:
+	LG.append((x1,i,0.),)
+	
+myTpFlowProblem.Parameters.Models.rans2p.auxiliaryVariables+= [ga.LineGauges(gauges=((('u',), LG),),
+					activeTime=(0.,Duration),
+					sampleRate=0.,
+					fileName='velocity.csv')
+					]
+
+
+myTpFlowProblem.Parameters.Models.vof.auxiliaryVariables+= [ga.LineGauges(gauges=(((('vof'),), LG),),
+			activeTime=(0.,Duration),
+			sampleRate=0.,
+			fileName='vof.csv')
+			]
+
+
+
+#Assemble domain
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 myTpFlowProblem.Parameters.Models.rans2p.auxiliaryVariables += domain.auxiliaryVariables['twp']
 
 
 
-
+##################################################################################
 
 
 
