@@ -12,9 +12,9 @@ from proteus.mprans import SpatialTools as st
 from proteus.Profiling import logEvent
 from proteus.mprans.SpatialTools import Tank2D
 
-
 # predefined options
 opts=Context.Options([
+    ("adaptMesh", False, "Enable dynamic mesh adaption"),
     # water column 
     ("water_level", 0.6, "Height of water column in m"),
     ("water_width", 1.2, "Width of  water column in m"),
@@ -161,7 +161,7 @@ tank = Tank2D(domain, tank_dim)
 
 # ----- GAUGES ----- #
 
-if opts.gauge_output:
+if opts.gauge_output and not opts.adaptMesh:
     tank.attachPointGauges(
         'twp',
         gauges = ((('p',), (opts.gauge_location_p,)),),
@@ -180,9 +180,29 @@ tank.BC['x-'].setFreeSlip()
 
 # ----- MESH CONSTRUCTION ----- #
 
+
+
 he = tank_dim[0] / float(4 * refinement - 1)
-domain.MeshOptions.he = he
+from proteus.MeshAdaptPUMI  import MeshAdaptPUMI 
+hmin = he
+hmax = 10.0*he
+adaptMesh = opts.adaptMesh
+adaptMesh_nSteps = 5
+adaptMesh_numIter = 2
+MeshAdaptMesh=MeshAdaptPUMI.MeshAdaptPUMI(hmax=hmax, hmin=hmin, numIter=adaptMesh_numIter,sfConfig="isotropic",maType="isotropic")
+useModel=False
+
+if opts.adaptMesh:
+    domain.MeshOptions.he = hmax
+    domain.MeshOptions.parallelPartitioningType = mt.MeshParallelPartitioningTypes.element
+    domain.MeshOptions.nLayersOfOverlapForParallel = 0
+else:
+    domain.MeshOptions.he = he
+    domain.MeshOptions.parallelPartitioningType = mt.MeshParallelPartitioningTypes.node
+    domain.MeshOptions.nLayersOfOverlapForParallel = 0
+
 st.assembleDomain(domain)
+
 
 # ----- STRONG DIRICHLET ----- #
 
@@ -197,28 +217,28 @@ if useMetrics:
     ls_shockCapturingFactor = 0.25
     ls_lag_shockCapturing = True
     ls_sc_uref = 1.0
-    ls_sc_beta = 1.0
+    ls_sc_beta = 1.5
     vof_shockCapturingFactor = 0.25
     vof_lag_shockCapturing = True
     vof_sc_uref = 1.0
-    vof_sc_beta = 1.0
+    vof_sc_beta = 1.5
     rd_shockCapturingFactor = 0.25
     rd_lag_shockCapturing = False
     epsFact_density = epsFact_viscosity = epsFact_curvature \
                     = epsFact_vof = ecH \
                     = epsFact_consrv_dirac = epsFact_density \
-                    = 3.0
+                    = 1.5
     epsFact_redistance = 0.33
-    epsFact_consrv_diffusion = 0.1
+    epsFact_consrv_diffusion = 10.0
     redist_Newton = True
     kappa_shockCapturingFactor = 0.25
     kappa_lag_shockCapturing = True  #False
     kappa_sc_uref = 1.0
-    kappa_sc_beta = 1.0
+    kappa_sc_beta = 1.5
     dissipation_shockCapturingFactor = 0.25
     dissipation_lag_shockCapturing = True  #False
     dissipation_sc_uref = 1.0
-    dissipation_sc_beta = 1.0
+    dissipation_sc_beta = 1.5
 else:
     ns_shockCapturingFactor = 0.9
     ns_lag_shockCapturing = True

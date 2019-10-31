@@ -4,6 +4,11 @@ import numpy as np
 from proteus import Context
 
 ct = Context.get()
+rho_0 = ct.rho_0
+rho_1 = ct.rho_1
+nu_0 = ct.nu_0
+nu_1 = ct.nu_1
+g = ct.g
 domain = ct.domain
 nd = domain.nd
 mesh = domain.MeshOptions
