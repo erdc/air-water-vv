@@ -26,7 +26,16 @@ two tests:
 
 * The first test is to check that the run is successfully completed.
 * The second test is to validate the results comparing them to reference values. For this case we will compare the numerical and reference maximum pressure for a given point.
-One can run this test file typing ``py.test --boxed test_dambreak_Colagrossi.py``.
+One can run this test file typing ``py.test --boxed ../../../Tests/1st_set/test_dambreak_Colagrossi.py``.
+
+Execution
+---------
+
+The case is run using the command:
+
+parun dambreak_Colagrossi_so.py -l 5 -O ../../../inputTemplates/petsc.options.superlu_dist
+
+* Executing parun -h in the command line will give a list of all avaliable options as well as a description of the option.
 
 References
 ----------
