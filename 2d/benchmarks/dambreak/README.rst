@@ -4,9 +4,9 @@ Dambreak flow - Collagrosi and Landrini (2003)
 Description
 -----------
 The problem comprises a 2D tank with dimensions  3.22m x 1.8m  (width x height). 
-The boundaries are considered closed, specifically as free slip walls, while the top boundary [y+] is set as atmpospheric.
+The boundaries are considered closed, specifically as free slip walls, while the top boundary [y+] is set as an atmposphere.
 The purpose of this case initially published by Collagrosi and Landrini (2003) is to examine a two phase flow in a 2D tank, where the 2 fluids are separated by sharp interfaces.
-The initial condition of the fluid is a water column with dimensions  1.20m x 0.60m  (width x height), that by the time the simulation starts, collapses under the action of gravity and impacts to a wall.
+The initial condition of the fluid is a water column with dimensions  1.20m x 0.60m  (width x height). By the time the simulation starts, the column collapses under the action of gravity and impacts to a wall.
 
 In the following figure, the geometry of the dambreak case is illustrated.
 
@@ -19,25 +19,25 @@ evolution and forces / pressures on structures, according to data that
 are available in the following references.  For more details, see
 runfiles or references.
 
-Test case
+Running the test case
 -----
 
-The test case comprises a simple rectangular tank with walls at the side and bottom and atmosphere at the top. To run the test case type:
+To run the test case type:
 
 ```
-parun --TwoPhaseFlow -f dambreak.py -v -D result_folder
+parun dambreak.py--TwoPhaseFlow  -v -D result_folder
 ```
 
 Dambreak and tank properties can be modified by the commandline, using for example:
 
 ```
-parun --TwoPhaseFlow -f dambreak.py -v -D result_folder -C "mwl=0.5"
+parun dambreak.py --TwoPhaseFlow  -v -D result_folder -C "mwl=0.5"
 ```
 
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f dambreak.py -v -D result_folder -C "mwl=0.5"
+mpirun -np 12 parun -f dambreak.py --TwoPhaseFlow  -v -D result_folder -C "mwl=0.5"
 ```
 
 
