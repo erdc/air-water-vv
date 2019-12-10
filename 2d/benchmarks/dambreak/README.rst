@@ -14,7 +14,7 @@ In the following figure, the geometry of the dambreak case is illustrated.
    :width: 100%
    :align: center
 
-This case tests the ability of Proteus to simulate the free-surface
+This case demonstrates the ability of Proteus to simulate the free-surface
 evolution and forces / pressures on structures, according to data that
 are available in the following references.  For more details, see
 runfiles or references.
