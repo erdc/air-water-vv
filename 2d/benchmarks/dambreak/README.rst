@@ -25,7 +25,7 @@ Running the test case
 To run the test case type:
 
 ```
-parun dambreak.py--TwoPhaseFlow  -v -D result_folder
+parun dambreak.py --TwoPhaseFlow  -v -D result_folder
 ```
 
 Dambreak and tank properties can be modified by the commandline, using for example:
