@@ -7,14 +7,11 @@ Description
 
 Predicting oscillatory motion in submerged pipelines is a key application in fluid/structure interaction and a
 challenging problem to address with computacional and physical modelling due to the complexity of the processes
-involved in coupling highly turbulent flows with the pipeline motion. The experimental data used are whose found 
-in Fu et al., (2014)
-
+involved in coupling highly turbulent flows with the pipeline motion. 
 ::
  
-According with this experimental configuration, a cylinder with diameter D=0.25 was placed in a 196 m long, 10m wide 
-and 4.2m deep towing tank. In the laboratory tests a 2.5m long, 2.4m wide and 0.003m thick steel plate was placed
-near the bottom of the flume. The plate could be adjusted to different levels in order to mimic different gap 
+A cylinder with diameter D=0.25 was placed in a 196 m long, 10m wide 
+and 4.2m deep towing tank according to the experiment of Fu et al., (2014). In the laboratory tests a 2.5m long, 2.4m wide and 0.003m thick steel plate was placed near the bottom of the flume. The plate could be adjusted to different levels in order to mimic different gap 
 heights from the seabed. The cylinder and the plate were towed with a speed of 0.8m/s and a mechanical vertical
 oscillatory motion was forced. The scope of the experiment was to explore the interaction of vortex shedding in
 different vertical motion periods that could represent i.e. wave-induced motion.
@@ -39,7 +36,33 @@ The geometry of the experiment is illustrated in the following figure.
 .. figure:: ./oscillating_cylinder_drawing.png
 
 
+Running
+-----
 
+To run the test case type:
+
+```
+parun oscillating_cylinder.py --TwoPhaseFlow  -v -D result_folder
+```
+
+Geometry and setup options can be modified by the commandline, using for example:
+
+```
+parun oscillating_cylinder.py --TwoPhaseFlow  -v -D result_folder -C "U=np.array([0.5,0.,0.])"
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun oscillating_cylinder.py --TwoPhaseFlow -v -D result_folder -C "U=np.array([0.5,0.,0.])"
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
 Context Options
 ---------------
 
@@ -68,36 +91,6 @@ Context Options
 +---------------------+--------------------------------------------------------------+--------------------+
 | refinement_level    | Used to define element size he=radius/refinement_level       | 2.5                |
 +---------------------+--------------------------------------------------------------+--------------------+
-
-
-
-Running
------
-
-To run the test case type:
-
-```
-parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder
-```
-
-Geometry and setup options can be modified by the commandline, using for example:
-
-```
-parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder -C "U=np.array([0.5,0.,0.])"
-```
-
-To run in parallel (example with mpirun and 12 processors):
-
-```
-mpirun -np 12 parun --TwoPhaseFlow -f oscillating_cylinder.py -v -D result_folder -C "U=np.array([0.5,0.,0.])"
-```
-
-
-To see guidance on parun options, you can type  
-
-```
-parun -h
-```
 
  
 References 
