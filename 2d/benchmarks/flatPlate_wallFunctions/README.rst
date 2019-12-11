@@ -31,7 +31,7 @@ parun flat_plate.py--TwoPhaseFlow  -v -D result_folder
 Dambreak and tank properties can be modified by the commandline, using for example:
 
 ```
-parun flat_plate.py --TwoPhaseFlow  -v -D result_folder -C "mwl=0.5"
+parun flat_plate.py --TwoPhaseFlow  -v -D result_folder -C "nu=0.0001"
 ```
 
 To run in parallel (example with mpirun and 12 processors):
