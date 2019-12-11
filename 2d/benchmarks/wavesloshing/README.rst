@@ -4,31 +4,43 @@ Wave sloshing
 Description
 -----------
 
-In this case, we use Proteus to model nonlinear free-surface motion due to
-sloshing in a rectangular container. The output of Proteus is compared with the
-analytical solution found in Tadjbakhsh and Keller, 1960. The computational domain is a 2D rectangular box with dimensions
-0.1m x 0.1m and the mean level of the water is in the middle of the
-box. The initail conditions of the simulation are shown in the
-following figure.
+.. class:: center
 
-.. figure:: ./wavesloshing_scheme.png
+In this case, we use Proteus to model nonlinear free-surface motion due to sloshing in a rectangular container. 
+The computational domain is a 2D rectangular box with dimensions 0.1m x 0.1m and the mean water level is in the middle of the
+box. The output of Proteus can be compared with the analytical solution found in Tadjbakhsh and Keller, 1960. The initial conditions of the simulation are shown in the following figure, where "a" is the amplitude of the sloshing wave.
+
+.. figure:: ./wavesloshing.png
    :width: 100%
    :align: center
 
-where, a is the amplitude of the sloshing wave.
+Test case
+-----
 
-This case tests the ability of PROTEUS to simulate the free-surface
-evolution. For more details, see runfiles or references.
+To run the test case type:
 
-Tests
--------
+```
+parun wavesloshing.py --TwoPhaseFlow -v -D result_folder
+```
 
-The python test file named ``test_wavesloshing.py`` is made up of 
-two tests:
+Geometry and set up can be modified by the commandline, using for example:
 
-* The first test is to check that the run is successfully completed.
-* The second test is to validate the results comparing them to the theory. For this case we will compare the numerical and theoretical position of the free surface at the left boundary.
-One can run this test file typing ``py.test --boxed test_wavesloshing.py``.
+```
+parun wavesloshing.py --TwoPhaseFlow -v -D result_folder -C "T=10."
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun wavesloshing.py --TwoPhaseFlow -v -D result_folder -C "T=10."
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
 
 References
 ----------

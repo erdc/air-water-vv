@@ -17,8 +17,35 @@ In CFD models the near-wall sublayer is almost never resolved, as the first disc
 
 This case serves as a benchmark for the wall function used in PROTEUS.
 
-For more details on near wall turbulence, see references.
+For more details on near wall turbulence, see references below.
 
+Running the test case
+-----
+
+To run the test case type:
+
+```
+parun flat_plate.py --TwoPhaseFlow  -v -D result_folder
+```
+
+Dambreak and tank properties can be modified by the commandline, using for example:
+
+```
+parun flat_plate.py --TwoPhaseFlow  -v -D result_folder -C "nu=0.0001"
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun flat_plate.py --TwoPhaseFlow  -v -D result_folder -C "nu=0.0001"
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
 
 References
 ----------
