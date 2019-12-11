@@ -4,7 +4,7 @@ Regular Wave Generation
 Description
 -----------
 
-This class is used for generating regular waves in both linear and nonlinear regimes. 
+This test case is used for generating regular waves in a numerical tank, for both linear and nonlinear regimes. 
 
 Water waves with low steepness are considered linear (:math:`H/L` < 0.1%, where :math:`H` is the wave height and :math:`L` is the wavelength). This means that the form of the waves is sinusoidal and high order terms are negligible. 
 The wavelength, wave period and water depth are interdependent through the linear dispersion relation. 
@@ -28,25 +28,25 @@ In terms of classification, linear waves are in the lower right corner of the di
 This case tests demonstrates the ability of Proteus to simulate the 
 generation, propagation and absorption of regular non-linear waves. 
 
-Test case
+Running the test case
 -----
 
 The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type:
 
 ```
-parun --TwoPhaseFlow -f regular_waves.py -v -D result_folder
+parun regular_waves.py --TwoPhaseFlow -f  -v -D result_folder
 ```
 
 Wave properties can be modified by the commandline, using for example:
 
 ```
-parun --TwoPhaseFlow -f regular_waves.py -v -D result_folder -C "T=2. H=0.05"
+parun regular_waves.py --TwoPhaseFlow -f regular_waves.py -v -D result_folder -C "T=2. H=0.05"
 ```
 
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f regular_waves.py -v -D result_folder -C "Tp=2. Hs=0.2"
+mpirun -np 12 parun regular_waves.py --TwoPhaseFlow -v -D result_folder -C "Tp=2. Hs=0.2"
 ```
 
 
