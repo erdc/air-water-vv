@@ -25,7 +25,7 @@ Running the test case
 To run the test case type:
 
 ```
-parun flat_plate.py--TwoPhaseFlow  -v -D result_folder
+parun flat_plate.py --TwoPhaseFlow  -v -D result_folder
 ```
 
 Dambreak and tank properties can be modified by the commandline, using for example:
@@ -37,7 +37,7 @@ parun flat_plate.py --TwoPhaseFlow  -v -D result_folder -C "nu=0.0001"
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun -f flat_plate.py --TwoPhaseFlow  -v -D result_folder -C "mwl=0.5"
+mpirun -np 12 parun flat_plate.py --TwoPhaseFlow  -v -D result_folder -C "nu=0.0001"
 ```
 
 
