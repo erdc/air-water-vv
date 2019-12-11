@@ -3,7 +3,7 @@
 ## Benchmark Layout
 
 This benchmark consists of testing the roll motion (free or under wave loads) of a floating caisson in 2 dimensions. The computational domain is a rectangular tank with default dimensions of 5m x 1.2m, with default floating caisson dimensions are 0.3m x 0.1m. Initially, water in the tank is at rest and the default water level is 0.9m. The walls of the tank have no slip boundary conditions and the top is left open.
-This case works with Body Dynamics.
+This case works with Body Dynamics module.
 
 ![Alt text](floating_caisson.png)
 
@@ -13,19 +13,19 @@ This case works with Body Dynamics.
 To run the test case type:
 
 ```
-parun --TwoPhaseFlow -f floating_caisson2D.py -v -D result_folder
+parun floating_caisson2D.py --TwoPhaseFlow -v -D result_folder
 ```
 
 Geometry and set up options can be modified by the commandline, using for example:
 
 ```
-parun --TwoPhaseFlow -f floating_caisson2D.py -v -D result_folder -C "T=10."
+parun floating_caisson2D.py --TwoPhaseFlow -v -D result_folder -C "T=10."
 ```
 
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f floating_caisson2D.py -v -D result_folder -C "T=10."
+mpirun -np 12 parun floating_caisson2D.py --TwoPhaseFlow -v -D result_folder -C "T=10."
 ```
 
 
