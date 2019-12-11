@@ -32,31 +32,31 @@ potential head, :math:`hv` is the upstream velocity head, :math:`Ht =
 H + hv` is the upstream total head, :math:`d` is the flow depth over
 the weir.
 
-This case tests the ability of PROTEUS to simulate the free-surface
+This case tests the ability of Proteus to simulate the free-surface
 evolution and the flow separation. The results of the simulations can
 be compared with the data in the following references.  For more
 details, see runfiles or references.
 
 
-Running
+Running the test case
 -----
 
 To run the test case type:
 
 ```
-parun --TwoPhaseFlow -f broad_crested_weir.py -v -D result_folder
+parun broad_crested_weir.py --TwoPhaseFlow -v -D result_folder
 ```
 
 Geometry and setup options can be modified by the commandline, using for example:
 
 ```
-parun --TwoPhaseFlow -f broad_crested_weir.py -v -D result_folder -C "obstacle_dim=(0.5,0.4)"
+parun broad_crested_weir.py --TwoPhaseFlow -v -D result_folder -C "obstacle_dim=(0.5,0.4)"
 ```
 
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f broad_crested_weir.py -v -D result_folder -C "obstacle_dim=(0.5,0.4)"
+mpirun -np 12 parun broad_crested_weir.py --TwoPhaseFlow -v -D result_folder -C "obstacle_dim=(0.5,0.4)"
 ```
 
 
