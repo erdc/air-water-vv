@@ -20,19 +20,19 @@ Test case
 The test case comprises a simple rectangular tank with generation zone at the left side ('x-') and absoprtion zone at the right side ('x+'). To run the test case type:
 
 ```
-parun --TwoPhaseFlow -f random_waves.py -v -D result_folder
+parun random_waves.py --TwoPhaseFlow -v -D result_folder
 ```
 
 Wave properties can be modified by the commandline, using for example:
 
 ```
-parun --TwoPhaseFlow -f random_waves.py -v -D result_folder -C "Tp=2. Hs=0.2"
+parun random_waves.py --TwoPhaseFlow -v -D result_folder -C "Tp=2. Hs=0.2"
 ```
 
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f random_waves.py -v -D result_folder -C "Tp=2. Hs=0.2"
+mpirun -np 12 parun random_waves.py --TwoPhaseFlow -v -D result_folder -C "Tp=2. Hs=0.2"
 ```
 
 
