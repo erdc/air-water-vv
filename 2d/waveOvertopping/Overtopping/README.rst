@@ -20,6 +20,35 @@ This case study corresponds to the geometry of one of the tests encountered in t
    :align: center
 
 
+
+
+Running the test case
+-----
+
+To run the test case type:
+
+```
+parun Overtopping_constant_slope.py --TwoPhaseFlow  -v -D result_folder
+```
+
+Wave properties can be modified by the commandline, using for example:
+
+```
+parun Overtopping_constant_slope.py --TwoPhaseFlow -v -D result_folder -C "mwl=0.3"
+```
+
+To run in parallel (example with mpirun and 12 processors):
+
+```
+mpirun -np 12 parun Overtopping_constant_slope.py --TwoPhaseFlow -v -D result_folder -C "mwl=0.3"
+```
+
+
+To see guidance on parun options, you can type  
+
+```
+parun -h
+```
 Context Options
 ---------------
 +---------------------+-------------------------------------------------------------------------+-------------------+
@@ -56,35 +85,6 @@ Context Options
 +---------------------+-------------------------------------------------------------------------+-------------------+
 | Tp                  | Peak Wave Period                                                        | 3.5               |
 +---------------------+-------------------------------------------------------------------------+-------------------+
-
-
-Test case
------
-
-To run the test case type:
-
-```
-parun --TwoPhaseFlow -f Overtopping_constant_slope.py -v -D result_folder
-```
-
-Wave properties can be modified by the commandline, using for example:
-
-```
-parun --TwoPhaseFlow -f Overtopping_constant_slope.py -v -D result_folder -C "mwl=0.3"
-```
-
-To run in parallel (example with mpirun and 12 processors):
-
-```
-mpirun -np 12 parun --TwoPhaseFlow -f Overtopping_constant_slope.py -v -D result_folder -C "mwl=0.3"
-```
-
-
-To see guidance on parun options, you can type  
-
-```
-parun -h
-```
 
 
 References
