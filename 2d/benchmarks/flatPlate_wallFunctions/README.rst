@@ -17,7 +17,7 @@ In CFD models the near-wall sublayer is almost never resolved, as the first disc
 
 This case serves as a benchmark for the wall function used in PROTEUS.
 
-For more details on near wall turbulence, see references.
+For more details on near wall turbulence, see references below.
 
 
 References
