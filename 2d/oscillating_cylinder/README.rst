@@ -1,4 +1,4 @@
-OSCILLATING CYLINDER 
+Oscillating Cylinder
 ===================
 
 Description
