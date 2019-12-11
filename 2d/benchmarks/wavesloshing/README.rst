@@ -32,7 +32,7 @@ parun wavesloshing.py --TwoPhaseFlow -v -D result_folder -C "T=10."
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun -wavesloshing.py --TwoPhaseFlow -v -D result_folder -C "T=10."
+mpirun -np 12 parun wavesloshing.py --TwoPhaseFlow -v -D result_folder -C "T=10."
 ```
 
 
