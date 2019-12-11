@@ -20,19 +20,19 @@ Test case
 To run the test case type:
 
 ```
-parun --TwoPhaseFlow -f wavesloshing.py -v -D result_folder
+parun wavesloshing.py --TwoPhaseFlow -v -D result_folder
 ```
 
 Geometry and set up can be modified by the commandline, using for example:
 
 ```
-parun --TwoPhaseFlow -f wavesloshing.py -v -D result_folder -C "T=10."
+parun wavesloshing.py --TwoPhaseFlow -v -D result_folder -C "T=10."
 ```
 
 To run in parallel (example with mpirun and 12 processors):
 
 ```
-mpirun -np 12 parun --TwoPhaseFlow -f wavesloshing.py -v -D result_folder -C "T=10."
+mpirun -np 12 parun -wavesloshing.py --TwoPhaseFlow -v -D result_folder -C "T=10."
 ```
 
 
