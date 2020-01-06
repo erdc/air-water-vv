@@ -699,14 +699,14 @@ dragAlpha = 5*(2*np.pi/opts.Tp)/1e-6
 
 tank.setGenerationZones(flags=2,
 			 epsFact_solid=wave_length/2.,
-			 center=(-wave_length/2,0.35),
+			 center=(-wave_length/2,0.75),
 			 orientation=(1.,0.,0.), 
 			 waves=wave,
 			 dragAlpha=dragAlpha)
 
 tank.setAbsorptionZones(flags=3,
 			 epsFact_solid=wave_length/2.,
-			 center=(15.94+wave_length*0.5,0.957),
+			 center=(15.94+wave_length*0.5,0.75),
  		         orientation=(-1.,0.,0.),
                          dragAlpha=dragAlpha)
 
