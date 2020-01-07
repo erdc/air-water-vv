@@ -87,15 +87,15 @@ class TestCrumpWeirTetgen(TestTools.AirWaterVVTest):
             while i < len(all):
                 if i < len(all)-1:
                     if all[i+1][0]!='-':
-                        print "setting ", all[i].strip(), all[i+1]
+                        print("setting ", all[i].strip(), all[i+1])
                         OptDB.setValue(all[i].strip('-'),all[i+1])
                         i=i+2
                     else:
-                        print "setting ", all[i].strip(), "True"
+                        print("setting ", all[i].strip(), "True")
                         OptDB.setValue(all[i].strip('-'),True)
                         i=i+1
                 else:
-                    print "setting ", all[i].strip(), "True"
+                    print("setting ", all[i].strip(), "True")
                     OptDB.setValue(all[i].strip('-'),True)
                     i=i+1
         so.tnList=[0.0,0.001,0.011]            
@@ -116,7 +116,7 @@ class TestCrumpWeirTetgen(TestTools.AirWaterVVTest):
         
 
         if a  == "No convergence":
-            print ("Convergence issue")
+            print("Convergence issue")
             assert False
         else:
             assert True
@@ -137,7 +137,7 @@ class TestCrumpWeirTetgen(TestTools.AirWaterVVTest):
         #b = failed(os.path.join(Profiling.logDir,'proteus.log'),'Step Failed,')
 
         #if b == "No convergence":
-        #    print ("Convergence issue")
+        #    print("Convergence issue")
         #    assert False
         #else:
         #    assert True
