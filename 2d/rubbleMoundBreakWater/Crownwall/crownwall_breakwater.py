@@ -20,8 +20,7 @@ opts=Context.Options([
 ("tank_height",1.5,"Vertical Dimention of the tank"),
 ("waterline_x", 10000, "used in levelset"),
 
-# Physical Propertie
-
+# Physical Properties
  ("rho_0", 998.2, "Water density"),
  ("nu_0", 1.004e-6,"Water viscosity"),
  ("rho_1", 1.205, "Air density"),
@@ -32,8 +31,9 @@ opts=Context.Options([
  ("n_armour", 0.5, "porosity of the armour layer"),
 
 
- # altha  Darcy - porous media
- 
+
+ # alpha  Darcy - porous media
+
 ("alpha_armour",0.03 ,"Darcy Coef by Polidoro et al 2018"),
 ("alpha_filter",0.12 ,"Darcy Coef by Polidoro et al 2018 "),
 ("alpha_core",0.63 ,"Darcy Coef by Polidoro et al 2018 "),
@@ -71,14 +71,14 @@ opts=Context.Options([
 
 
 # Numerical Options
-("refinement_level", 80.,"he=wavelength/refinement_level"),
+("refinement_level", 100.,"he=wavelength/refinement_level"),
 ("cfl", 0.5,"Target cfl"),
 ("ecH", 1.5,"Smoothing Coefficient"),
 ("Np", 20.," Output points per period Tp/Np" ),
-("dt_init", 0.001 , "initial time step" )
+("dt_init", 0.0001 , "initial time step" )
 ])
     
-
+    
 
 
 
@@ -194,7 +194,7 @@ vertexFlags=np.array([1, #0
 			4,#17
 			4,#18
 			
-  ])           
+                        ])           
 
 segments=[[0,1],
           [1,2],
@@ -218,7 +218,7 @@ segments=[[0,1],
       ]
 
 segmentFlags=np.array([ 
-	        1,#[0,1]
+	           1,#[0,1]
           1,#[1,2]
           1,#[2,3]
           1,#[3,4]
@@ -314,6 +314,8 @@ obstacle = st.CustomShape(domain, vertices=obs_vertices, vertexFlags=obs_vertexF
 obstacle.setHoles([[15.4, 0.5]])
 
 
+
+
 ##############################################################
 #################        porous zones        #################
 
@@ -325,6 +327,9 @@ obstacle.setHoles([[15.4, 0.5]])
 layer1_boundaryOrientations = {'layer_1': None, 'solid_wall':None}
 
 
+
+
+
 layer1_boundaryTags = {'layer_1' : 1,'solid_wall':2}
 
 layer1_vertices=np.array([(14.459,0.36),#0
@@ -333,7 +338,9 @@ layer1_vertices=np.array([(14.459,0.36),#0
 			(15.39, 0.763),#3
 			(15.39, 0.835), #4
            		(15.101, 0.835),#5
-                             
+               
+               
+
 ])
 
 
@@ -362,7 +369,8 @@ layer1_segmentFlags=np.array([ 2, #0,1
                             2, #3,4
                             1, #4,5
                             1 #5,0
- ])
+                            
+                            ])
 
 
 
@@ -439,7 +447,6 @@ layer_2 = st.CustomShape(domain,
  boundaryTags=layer2_boundaryTags, 
  boundaryOrientations=layer2_boundaryOrientations)
 
-
 ###########################################
 ####### layer_3 core
 
@@ -454,10 +461,12 @@ layer3_vertices=np.array([  (14.669,0.36),
 			(15.39, 0.454), #extra point when the interface changes
 			(15.39, 0.713),
       (15.144, 0.713),
-	    
+
 ]) 
 
 
+
+ 
 
 layer3_vertexFlags=np.array([
 2, #0 
@@ -558,8 +567,6 @@ base_layer = st.CustomShape(domain,
  boundaryTags=base_layer_boundaryTags, 
  boundaryOrientations=base_layer_boundaryOrientations)
 
-
-
 #################################################
 ##### setting the porous media && drag forces ##
 
@@ -589,12 +596,12 @@ dragBeta_baselayer=float(opts.beta_baselayer*opts.g[1]*n_mound**3/opts.nu_0)
 
 layer_1.setPorousZones(flags=1, dragAlpha=dragAlpha_accropodes, dragBeta=dragBeta_accropodes, porosity=np.array([n_armour]))
 
-#layer_2.setPorousZones(flags=1, dragAlpha=dragAlpha_filter, dragBeta=dragBeta_filter, porosity=np.array([n_armour]))
+layer_2.setPorousZones(flags=1, dragAlpha=dragAlpha_filter, dragBeta=dragBeta_filter, porosity=np.array([n_armour]))
 
-#layer_3.setPorousZones(flags=1, dragAlpha=dragAlpha_core, dragBeta=dragBeta_core, porosity=np.array([n_mound]))
+layer_3.setPorousZones(flags=1, dragAlpha=dragAlpha_core, dragBeta=dragBeta_core, porosity=np.array([n_mound]))
 
 
-#base_layer.setPorousZones(flags=1, dragAlpha=dragAlpha_baselayer,dragBeta=dragBeta_baselayer, porosity=np.array([n_mound]))
+base_layer.setPorousZones(flags=1, dragAlpha=dragAlpha_baselayer,dragBeta=dragBeta_baselayer, porosity=np.array([n_mound]))
 
 
 
@@ -699,16 +706,18 @@ dragAlpha = 5*(2*np.pi/opts.Tp)/1e-6
 
 tank.setGenerationZones(flags=2,
 			 epsFact_solid=wave_length/2.,
-			 center=(-wave_length/2,0.75),
+			 center=(-wave_length/2,0.35),
 			 orientation=(1.,0.,0.), 
 			 waves=wave,
 			 dragAlpha=dragAlpha)
 
 tank.setAbsorptionZones(flags=3,
 			 epsFact_solid=wave_length/2.,
-			 center=(15.94+wave_length*0.5,0.75),
+			 center=(15.94+wave_length*0.5,0.957),
  		         orientation=(-1.,0.,0.),
                          dragAlpha=dragAlpha)
+
+
 
 
 waterLine_x=opts.waterline_x
@@ -805,15 +814,17 @@ m = params.Models
 m.rans2p.n.conservativeFlux = {0:'pwl-bdm-opt'}
 m.rans2p.p.CoefficientsOptions.useVF=0.
 m.rans2p.p.CoefficientsOptions.weak_bc_penalty_constant=10.
+myTpFlowProblem.movingDomain = True
 
-# index in order of
 
+m.rans2p.n.maxNonlinearIts=100
 m.rdls.p.CoefficientsOptions.epsFact=0.75
-m.rans2p.index = 0
-m.vof.index = 1
-m.ncls.index = 2
-m.rdls.index = 3
-m.mcorr.index = 4
+m.moveMeshElastic.index = 0
+m.rans2p.index = 1
+m.vof.index = 2
+m.ncls.index = 3
+m.rdls.index = 4
+m.mcorr.index = 5
 
 
 myTpFlowProblem.movingDomain = True
@@ -872,6 +883,8 @@ myTpFlowProblem.Parameters.Models.vof.auxiliaryVariables+=[ga.LineIntegralGauges
 domain.MeshOptions.he = he
 st.assembleDomain(domain)
 myTpFlowProblem.Parameters.Models.rans2p.auxiliaryVariables += domain.auxiliaryVariables['twp']
+
+
 
 
 
