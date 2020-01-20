@@ -18,11 +18,11 @@ opts=Context.Options([
     
     # Geometry
 
-    ("tank_height",0.8,"Vertical Dimention of the tank"),
-    ("Lback",4.0,"Horizontal Dimention of overtopping collection tank"),
-    ("pipe_0", 0.5, "lower level of the drainage pipe"),
-    ("pipe_1", 0.4,"upper level of the drainage pipe"),
-    ("tube", 0.1,"tube dimension"),
+    ("tank_height",7.0,"Vertical Dimention of the tank"),
+    ("Lback",10.0,"Horizontal Dimention of overtopping collection tank"),#4.0
+    ("pipe_0", 1.5, "lower level of the drainage pipe"),#0.5
+    ("pipe_1", 1,"upper level of the drainage pipe"),#0.4
+    ("tube", 0.5,"tube dimension"),
     ("waterline_x", 10000, "used in levelset"),
 
     # Physical Properties
@@ -40,15 +40,15 @@ opts=Context.Options([
     ("fract", 1, "fraction of duration"),
     ("Ntotalwaves",500,"totalnumber of waves"),
     ("x0", np.array([0.,0.,0.]), "Position vector for the tinme series"),
-    ("Tp", 3.5, "Peak wave period"),
-    ("Hs", 0.096, "Significant wave height"),
-    ("mwl", 0.4, "Mean Water level"),
-    ("depth", 0.4 , "Water depth"),
+    ("Tp", 6.1, "Peak wave period"),#3.5
+    ("Hs", 0.64008, "Significant wave height"),#0.096
+    ("mwl", 2.83464, "Mean Water level"),#0.4
+    ("depth", 2.83464 , "Water depth"),#0.4
     ("waveDir", np.array([1.,0.,0.]),"Direction of the waves"),
     ("N", 2000, "Number of frequency components"),
     ("bandFactor", 2.0 ,"Spectal Band Factor"),
     ("spectName", "JONSWAP","Name of Spectral Distribution"),
-    ("spectral_params",{"gamma": 3.3, "TMA":False,"depth": 0.4} ,"Spectral Distribution Characteristics"),
+    ("spectral_params",{"gamma": 3.3, "TMA":False,"depth": 2.83464} ,"Spectral Distribution Characteristics"),#"depth": 0.4
     ("seed", 420,"Seed for random phases"),
     ("Lgen",None , "Length of the generation zone"),
     ("Nwaves", 15, "Number of waves per window"),
@@ -71,7 +71,7 @@ opts=Context.Options([
     
     # Obstacle Dimensions 
     ("structure_slope", 4, "1/slope"),
-    ("structureCrestLevel", 0.5, "elevation of structure crest. Equal to Water depth + Rc (crest freeboard)")
+    ("structureCrestLevel", 4.4196, "elevation of structure crest. Equal to Water depth + Rc (crest freeboard)")#0.5
     ])
 
 
@@ -443,7 +443,8 @@ probes=np.linspace(opts.structureCrestLevel,opts.tank_height,opts.dx)
 
 for i in probes:
 	LG.append((x1,i,0.),)
-	
+print(probes)
+print(LG)
 myTpFlowProblem.Parameters.Models.rans2p.auxiliaryVariables+= [ga.LineGauges(gauges=((('u',), LG),),
 					activeTime=(0.,Duration),
 					sampleRate=0.,
