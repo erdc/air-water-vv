@@ -34,17 +34,17 @@ opts=Context.Options([
 
  # alpha  Darcy - porous media
 
-("alpha_armour",0.03 ,"Darcy Coef by Polidoro et al 2018"),
-("alpha_filter",0.12 ,"Darcy Coef by Polidoro et al 2018 "),
+("alpha_armour",0.1 ,"Darcy Coef Ergun 1952"),
+("alpha_filter",0.9 ,"Darcy Coef Ergun 1952"),
 ("alpha_core",0.63 ,"Darcy Coef by Polidoro et al 2018 "),
-("alpha_baselayer",0.63 ,"Darcy Coef by Polidoro et al 2018"),
+("alpha_baselayer",0.62 ,"Darcy Coef by Polidoro et al 2018"),
 
  # beta  Forchheimer - porous media
 
-("beta_armour",30.40 ,"Darcy Coef by Polidoro et al 2018"),
-("beta_filter",65 ,"Darcy Coef by Polidoro et al 2018 "),
-("beta_core", 59.69,"Darcy Coef by Polidoro et al 2018 "),
-("beta_baselayer",59.69 ,"Darcy Coef by Polidoro et al 2018"),
+("beta_armour",105.8 ,"Forchheimer Coef Ergun 1952 "),
+("beta_filter", 705.3, "Forchheimer Coef Ergun 1952 "),
+("beta_core", 59.63, "Forchheimer Coef  by Polidoro et al 2018 "),
+("beta_baselayer",59.49, "Forchheimer Coef  by Polidoro et al 2018"),
 
 
 # Waves
@@ -575,19 +575,19 @@ n_mound=opts.n_mound
 n_armour=opts.n_armour
 
 
-dragAlpha_accropodes=float(opts.alpha_armour*opts.g[1]*n_armour**2/opts.nu_0)
-dragBeta_accropodes=float(opts.beta_armour*opts.g[1]*n_armour**3/opts.nu_0)
+dragAlpha_accropodes=float(opts.alpha_armour*n_armour**2/opts.nu_0)
+dragBeta_accropodes=float(opts.beta_armour*n_armour**3/opts.nu_0)
 
 
-dragAlpha_filter=float(opts.alpha_filter*opts.g[1]*n_mound**2/opts.nu_0)
-dragBeta_filter=float(opts.beta_filter*opts.g[1]*n_mound**3/opts.nu_0)
+dragAlpha_filter=float(opts.alpha_filter*n_mound**2/opts.nu_0)
+dragBeta_filter=float(opts.beta_filter*n_mound**3/opts.nu_0)
 
 
-dragAlpha_core=float(opts.alpha_core*opts.g[1]*n_mound**2/opts.nu_0)
-dragBeta_core=float(opts.beta_core*opts.g[1]*n_mound**3/opts.nu_0)
+dragAlpha_core=float(opts.alpha_core*n_mound**2/opts.nu_0)
+dragBeta_core=float(opts.beta_core*n_mound**3/opts.nu_0)
 
-dragAlpha_baselayer=float(opts.alpha_baselayer*opts.g[1]*n_mound**2/opts.nu_0)
-dragBeta_baselayer=float(opts.beta_baselayer*opts.g[1]*n_mound**3/opts.nu_0)
+dragAlpha_baselayer=float(opts.alpha_baselayer*n_mound**2/opts.nu_0)
+dragBeta_baselayer=float(opts.beta_baselayer*n_mound**3/opts.nu_0)
 
 
 ########################################
