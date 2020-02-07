@@ -49,8 +49,8 @@ opts=Context.Options([
 
 # Waves
 ("Tstart", 0, "Start time"),
-("fract", 1., "fraction of duration"),
 ("Ntotalwaves", 200.,"totalnumber of waves"),
+("fract", 4000., "fraction of duration (Tend = Ntotalwaves*Tp/1.1./fract"),
 ("x0", np.array([0.,0.,0.]), "Position vector for the tinme series"),
 ("Tp", 3.5, "Peak wave period"),
 ("Hs", 0.096, "Significant wave height"),
@@ -74,7 +74,7 @@ opts=Context.Options([
 ("refinement_level", 100.,"he=wavelength/refinement_level"),
 ("cfl", 0.5,"Target cfl"),
 ("ecH", 1.5,"Smoothing Coefficient"),
-("Np", 20.," Output points per period Tp/Np" ),
+("Np", 200.," Output points per period Tp/Np" ),
 ("dt_init", 0.0001 , "initial time step" )
 ])
     
@@ -812,13 +812,13 @@ params.physical.surf_tension_coeff = opts.sigma_01
 m = params.Models
 
 m.rans2p.n.conservativeFlux = {0:'pwl-bdm-opt'}
-m.rans2p.p.CoefficientsOptions.useVF=0.
-m.rans2p.p.CoefficientsOptions.weak_bc_penalty_constant=10.
+m.rans2p.p.coefficients.useVF=0.
+m.rans2p.p.coefficients.weak_bc_penalty_constant=10.
 myTpFlowProblem.movingDomain = True
 
 
 m.rans2p.n.maxNonlinearIts=100
-m.rdls.p.CoefficientsOptions.epsFact=0.75
+m.rdls.p.coefficients.epsFact=0.75
 m.moveMeshElastic.index = 0
 m.rans2p.index = 1
 m.vof.index = 2
