@@ -812,13 +812,13 @@ params.physical.surf_tension_coeff = opts.sigma_01
 m = params.Models
 
 m.rans2p.n.conservativeFlux = {0:'pwl-bdm-opt'}
-m.rans2p.p.CoefficientsOptions.useVF=0.
-m.rans2p.p.CoefficientsOptions.weak_bc_penalty_constant=10.
+m.rans2p.p.coefficients.useVF=0.
+m.rans2p.p.coefficients.weak_bc_penalty_constant=10.
 myTpFlowProblem.movingDomain = True
 
 
 m.rans2p.n.maxNonlinearIts=100
-m.rdls.p.CoefficientsOptions.epsFact=0.75
+m.rdls.p.oefficients.epsFact=0.75
 m.moveMeshElastic.index = 0
 m.rans2p.index = 1
 m.vof.index = 2
