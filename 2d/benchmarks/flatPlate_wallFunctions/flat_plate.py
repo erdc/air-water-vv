@@ -48,7 +48,7 @@ Ut = opts.U[0]*np.sqrt(cf/2.)
 kappaP = (Ut**2)/np.sqrt(opts.Cmu)
 Y_ = opts.he 
 Yplus = Y_*Ut/opts.nu
-dissipationP = (Ut**3)/(0.41*Y_)
+dissipationP = (Ut**3)/(opts.K*Y_)
 
 # ke or kw
 useRANS = opts.useRANS  # 0 -- None
@@ -83,18 +83,18 @@ boundaryTags = {'y-': 1,
 
 
 # Attached to 'kappa' in auxiliary variables
-kWallTop = bc.kWall(Y=Y_, Yplus=Yplus, b_or=boundaryOrientations['y+'], nu=opts.nu)
-kWallBottom = bc.kWall(Y=Y_, Yplus=Yplus, b_or=boundaryOrientations['y-'], nu=opts.nu)
+kWallTop = bc.kWall(Y=Y_, Yplus=Yplus, nu=opts.nu)
+kWallBottom = bc.kWall(Y=Y_, Yplus=Yplus,  nu=opts.nu)
 kWalls = [kWallTop, kWallBottom]
 # Attached to 'twp' in auxiliary variables
-wallTop = bc.WallFunctions(turbModel=model, kWall=kWallTop, b_or=boundaryOrientations['y+'], Y=Y_, Yplus=Yplus, U0=opts.U, nu=opts.nu, Cmu=opts.Cmu, K=opts.K, B=opts.B)
-wallBottom = bc.WallFunctions(turbModel=model, kWall=kWallBottom, b_or=boundaryOrientations['y-'], Y=Y_, Yplus=Yplus, U0=opts.U, nu=opts.nu, Cmu=opts.Cmu, K=opts.K, B=opts.B)
+wallTop = bc.WallFunctions(turbModel=model, kWall=kWallTop,  Y=Y_, Yplus=Yplus, U0=opts.U, nu=opts.nu, Cmu=opts.Cmu, K=opts.K, B=opts.B)
+wallBottom = bc.WallFunctions(turbModel=model, kWall=kWallBottom, Y=Y_, Yplus=Yplus, U0=opts.U, nu=opts.nu, Cmu=opts.Cmu, K=opts.K, B=opts.B)
 walls = [wallTop, wallBottom]
 
 
-tank.BC['x-'].setConstantInletVelocity(U=opts.U,ramp= opts.ramp,kk= kInflow, dd=dissipationP ,b_or=boundaryOrientations['y+'] )
+tank.BC['x-'].setConstantInletVelocity(U=opts.U,ramp= opts.ramp,kk= kInflow, dd=dissipationP ,b_or=boundaryOrientations['x-'] )
 
-tank.BC['x+'].setConstantOutletPressure(p = 0, g = opts.g, rho=opts.rho, kk=kInflow, dd= dissipationP ,b_or=boundaryOrientations['y+'])
+tank.BC['x+'].setConstantOutletPressure(p = 0, g = opts.g, rho=opts.rho, kk=kInflow, dd= dissipationP ,b_or=boundaryOrientations['x+'])
 
 tank.setTurbulentWall(walls)
 tank.setTurbulentKWall(kWalls)
