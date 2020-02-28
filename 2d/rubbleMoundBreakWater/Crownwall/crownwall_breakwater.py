@@ -52,10 +52,10 @@ opts=Context.Options([
 ("Ntotalwaves", 200.,"totalnumber of waves"),
 ("fract", 4000., "fraction of duration (Tend = Ntotalwaves*Tp/1.1./fract"),
 ("x0", np.array([0.,0.,0.]), "Position vector for the tinme series"),
-("Tp", 3.5, "Peak wave period"),
-("Hs", 0.096, "Significant wave height"),
-("mwl", 0.4, "Mean Water level"),
-("depth", 0.3 , "Water depth"),
+("Tp", 1.855, "Peak wave period"),
+("Hs", 0.158, "Significant wave height"),
+("mwl", 0.671, "Mean Water level"),
+("depth", 0.671 , "Water depth"),
 ("waveDir", np.array([1.,0.,0.]),"Direction of the waves"),
 ("N", 2000, "Number of frequency components"),
 ("bandFactor", 2.0 ,"Spectal Band Factor"),
@@ -100,7 +100,7 @@ wave = wt.RandomWavesFast(Tstart=opts.Tstart,
                          Tp=opts.Tp,
                          Hs=opts.Hs,
                          mwl=opts.mwl,
-                         depth=opts.depth,
+                         depth=opts.mwl,
                          waveDir=opts.waveDir,
                          g=opts.g,
                          N=opts.N,
@@ -180,20 +180,20 @@ vertexFlags=np.array([1, #0
                         1, #2
                         1, #3
                         1, #4 
+                        1, #5 
                         1, #6 
                         1, #7 
-                        1, #8 
-                        1, #9
-                        1, #10 
-                        1,#11
+                        1, #8
+                        1, #9 
+                        1,#10
+			1,#11
 			1,#12
-			1,#13
-			3,#14
+			2,#13
+			2,#14
 			3,#15
 			3,#16
 			4,#17
-			4,#18
-			
+			4 #18
                         ])           
 
 segments=[[0,1],
@@ -214,7 +214,9 @@ segments=[[0,1],
 	        [15,16],
 	        [16,17],
           [17,18],
-          [18,0]
+          [18,0],
+          [0,16],
+          [12,15]
       ]
 
 segmentFlags=np.array([ 
@@ -246,10 +248,9 @@ segmentFlags=np.array([
 
 
 
-regions=[
-[5,1.],
+regions=[[5,1.],
 [-0.5*wave_length,0.3],
-[15.94+0.5*wave_length,0.4]
+[15.94+0.5*wave_length,1.]
 ] 
         
 regionFlags =np.array([1,2,3])  
@@ -605,6 +606,9 @@ base_layer.setPorousZones(flags=1, dragAlpha=dragAlpha_baselayer,dragBeta=dragBe
 
 
 
+
+
+
 ################	Mesh Refinement		################
 
 #Characteristic Cell size
@@ -772,7 +776,7 @@ initialConditions['rdls'] = LS_IC()
 #################################################################
 #################	Two Phase Flow Set up	 ################
 
-Duration= Tend/opts.fract
+Duration= 50.
 dt_output = opts.Tp/opts.Np
 
 outputStepping = TpFlow.OutputStepping(final_time=Duration,
