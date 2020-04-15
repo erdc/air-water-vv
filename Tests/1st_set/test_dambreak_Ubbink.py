@@ -10,12 +10,13 @@ import numpy as np
 import collections as cll
 import csv
 from proteus.test_utils import TestTools
+import subprocess
 
 from proteus.defaults import (load_physics as load_p,
                               load_numerics as load_n,
                               load_system as load_so)
 
-modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../2d/benchmarks/dambreak_Ubbink')
+modulepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),'../../2d/benchmarks/dambreak_with_obstacle')
 petsc_options = os.path.join(os.path.dirname(os.path.abspath(__file__)),"../../inputTemplates/petsc.options.asm")
 
 
@@ -64,48 +65,50 @@ class TestDambreakUbbinkTetgen(TestTools.AirWaterVVTest):
 
             
     def test_run(self):
-        from petsc4py import PETSc
-        pList = []
-        nList = []
-        so = load_so('dambreak_Ubbink_so',modulepath)
-        for (p,n) in so.pnList:
-            pList.append(load_p(p,modulepath))
-            nList.append(load_n(n,modulepath))
-            if pList[-1].name == None:
-                pList[-1].name = p
-        #so = dambreak_Ubbink_so
-        so.name = "dambreak_Ubbink"
-        if so.sList == []:
-            for i in range(len(so.pnList)):
-                s = default_s
-                so.sList.append(s)
-        Profiling.logLevel=7
-        Profiling.verbose=True
-        # PETSc solver configuration
-        OptDB = PETSc.Options()
-        with open(petsc_options) as f:
-            all = f.read().split()
-            i=0
-            while i < len(all):
-                if i < len(all)-1:
-                    if all[i+1][0]!='-':
-                        print "setting ", all[i].strip(), all[i+1]
-                        OptDB.setValue(all[i].strip('-'),all[i+1])
-                        i=i+2
-                    else:
-                        print "setting ", all[i].strip(), "True"
-                        OptDB.setValue(all[i].strip('-'),True)
-                        i=i+1
-                else:
-                    print "setting ", all[i].strip(), "True"
-                    OptDB.setValue(all[i].strip('-'),True)
-                    i=i+1
-        so.tnList=[0.0,0.001,0.011]            
-        #so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
-        ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
-        ns.calculateSolution('dambreak_Ubbink')
+        #from petsc4py import PETSc
+        #pList = []
+        #nList = []
+        #so = load_so('dambreak_Ubbink_so',modulepath)
+        #for (p,n) in so.pnList:
+        #    pList.append(load_p(p,modulepath))
+        #    nList.append(load_n(n,modulepath))
+        #    if pList[-1].name == None:
+        #        pList[-1].name = p
+        ##so = dambreak_Ubbink_so
+        #so.name = "dambreak_Ubbink"
+        #if so.sList == []:
+        #    for i in range(len(so.pnList)):
+        #        s = default_s
+        #        so.sList.append(s)
+        #Profiling.logLevel=7
+        #Profiling.verbose=True
+        ## PETSc solver configuration
+        #OptDB = PETSc.Options()
+        #with open(petsc_options) as f:
+        #    all = f.read().split()
+        #    i=0
+        #    while i < len(all):
+        #        if i < len(all)-1:
+        #            if all[i+1][0]!='-':
+        #                print ("setting ", all[i].strip(), all[i+1])
+        #                OptDB.setValue(all[i].strip('-'),all[i+1])
+        #                i=i+2
+        #            else:
+        #                print ("setting ", all[i].strip(), "True")
+        #                OptDB.setValue(all[i].strip('-'),True)
+        #                i=i+1
+        #        else:
+        #            print ("setting ", all[i].strip(), "True")
+        #            OptDB.setValue(all[i].strip('-'),True)
+        #            i=i+1
+        #so.tnList=[0.0,0.001,0.011]            
+        ##so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
+        #ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
+        #ns.calculateSolution('dambreak_Ubbink')
 
-        
+        runCommand = "parun --TwoPhaseFlow --path " +modulepath+" -C \"duration=0.011\" dambreak_with_obstacle.py"
+        subprocess.check_call(runCommand,shell=True)
+
         ubbink_log = NumericResults.create_log('proteus.log')
 
         text = ubbink_log.read()
