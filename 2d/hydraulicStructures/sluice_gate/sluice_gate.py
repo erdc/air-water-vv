@@ -33,7 +33,8 @@ opts = Context.Options([
     ("gauge_dx", 0.1, "Horizontal spacing of gauges/gauge columns in m"),
     ("point_gauge_y", 0.09, "Height of point gauge placement in m"),
     # refinement
-    ("refinement", 25, "Refinement level he = tank_dim[0]/(4*refinement-1)"),
+    # use for later testing ("refinement", 25, "Refinement level he = tank_dim[0]/(4*refinement-1)"), 
+    ("refinement", 5, "Refinement level he = tank_dim[0]/(4*refinement-1)"), 
     ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                       "refinement regions (include 0 and "
@@ -101,13 +102,13 @@ timeDiscretization='be'  #'vbdf'#'be','flcbdf'
 applyCorrection = True
 # ----- INPUT CHECKS ----- #
 if spaceOrder not in [1,2]:
-    raise ValueError("INVALID: spaceOrder(" + str(spaceOrder) + ")")
+    raise(ValueError("INVALID: spaceOrder(" + str(spaceOrder) + ")"))
 
 if useRBLES not in [0.0, 1.0]:
-    raise ValueError("INVALID: useRBLES(" + str(useRBLES) + ")")
+    raise(ValueError("INVALID: useRBLES(" + str(useRBLES) + ")"))
 
 if useMetrics not in [0.0, 1.0]:
-    raise ValueError("INVALID: useMetrics(" + str(useMetrics) + ")")
+    raise(ValueError("INVALID: useMetrics(" + str(useMetrics) + ")"))
 
 # ----- DISCRETIZATION ----- #
 
