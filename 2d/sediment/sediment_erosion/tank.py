@@ -118,23 +118,23 @@ kappaP = (Ut**2)/sqrt(opts.Cmu)
 dissipationP = (Ut**3)/(opts.K*Y_)
 # ----- Sediment stress ----- #
 
-sedClosure = HsuSedStress(aDarcy =  opts.alphaSed,
-                          betaForch =  opts.betaSed,
-                          grain =  opts.grain,
-                          packFraction =  opts.packFraction,
-                          packMargin =  opts.packMargin,
-                          maxFraction =  opts.maxFraction,
-                          frFraction =  opts.frFraction,
-                          sigmaC =  opts.sigmaC,
-                          C3e =  opts.C3e,
-                          C4e =  opts.C4e,
-                          eR =  opts.eR,
-                          fContact =  opts.fContact,
-                          mContact =  opts.mContact,
-                          nContact =  opts.nContact,
-                          angFriction =  opts.angFriction,
-                          vos_limiter = opts.vos_limiter,
-                          mu_fr_limiter = opts.mu_fr_limiter,
+sedClosure = HsuSedStress(opts.alphaSed,
+                          opts.betaSed,
+                          opts.grain,
+                          opts.packFraction,
+                          opts.packMargin,
+                          opts.maxFraction,
+                          opts.frFraction,
+                          opts.sigmaC,
+                          opts.C3e,
+                          opts.C4e,
+                          opts.eR,
+                          opts.fContact,
+                          opts.mContact,
+                          opts.nContact,
+                          opts.angFriction,
+                          opts.vos_limiter,
+                          opts.mu_fr_limiter,
                           )
 
 # ----- DOMAIN ----- #
@@ -310,9 +310,18 @@ tank = st.CustomShape(domain, vertices=vertices, vertexFlags=vertexFlags,
                       regions=regions, regionFlags=regionFlags,
                       boundaryTags=boundaryTags, boundaryOrientations=boundaryOrientations)
 
-kWallWall = bc.kWall(Y=Y_, Yplus=Yplus, b_or=boundaryOrientations['y-'], nu=nu_0)
+kWallWall = bc.kWall(Y_, Yplus, boundaryOrientations['y-'], nu_0)
 kWalls = [kWallWall]
-wallWall = bc.WallFunctions(turbModel='ke', kWall=kWallWall, b_or=boundaryOrientations['y-'], Y=Y_, Yplus=Yplus, U0=[opts.inflow_vel, 0. , 0.], nu=nu_0, Cmu=opts.Cmu, K=opts.K, B=opts.B)
+wallWall = bc.WallFunctions('ke',
+                            kWallWall,
+#                            boundaryOrientations['y-'],
+                            Y_,
+                            Yplus,
+                            [opts.inflow_vel, 0. , 0.],
+                            nu_0,
+                            opts.Cmu,
+                            opts.K,
+                            opts.B)
 walls = [wallWall]
 
 
