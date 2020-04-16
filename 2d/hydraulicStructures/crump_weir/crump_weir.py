@@ -31,6 +31,7 @@ opts = Context.Options([
     ("gauge_dx", 0.25, "Horizontal spacing of gauges/gauge columns in m"),
     # refinement
     ("refinement", 10, "Refinement level he = tank_dim[0] / float(4 * refinement - 1)"),
+    #for use when longer testing times are available ("refinement", 40, "Refinement level he = tank_dim[0] / float(4 * refinement - 1)"), 
     ("cfl", 0.75, "Target cfl"),
     ("variable_refine_borders", None, "List of vertical borders between "
                                     "refinement regions (include 0 and "
