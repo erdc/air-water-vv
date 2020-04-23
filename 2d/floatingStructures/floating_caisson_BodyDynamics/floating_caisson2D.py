@@ -305,7 +305,7 @@ params.physical.surf_tension_coeff = opts.sigma_01
 
 # ---  index in order of
 m = params.Models
-m.rdls.p.CoefficientsOptions.epsFact=0.75
+m.rdls.p.coefficients.epsFact=0.75
 
 m.moveMeshElastic.index=0
 m.rans2p.index = 1
