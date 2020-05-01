@@ -81,14 +81,13 @@ boundaryTags = {'y-': 1,
                 'x-': 4,
 }
 
-
 # Attached to 'kappa' in auxiliary variables
-kWallTop = bc.kWall(Y=Y_, Yplus=Yplus, b_or=boundaryOrientations['y+'], nu=opts.nu)
-kWallBottom = bc.kWall(Y=Y_, Yplus=Yplus, b_or=boundaryOrientations['y-'], nu=opts.nu)
+kWallTop = bc.kWall(Y=Y_, Yplus=Yplus, nu=opts.nu)
+kWallBottom = bc.kWall(Y=Y_, Yplus=Yplus, nu=opts.nu)
 kWalls = [kWallTop, kWallBottom]
 # Attached to 'twp' in auxiliary variables
-wallTop = bc.WallFunctions(turbModel=model, kWall=kWallTop, b_or=boundaryOrientations['y+'], Y=Y_, Yplus=Yplus, U0=opts.U, nu=opts.nu, Cmu=opts.Cmu, K=opts.K, B=opts.B)
-wallBottom = bc.WallFunctions(turbModel=model, kWall=kWallBottom, b_or=boundaryOrientations['y-'], Y=Y_, Yplus=Yplus, U0=opts.U, nu=opts.nu, Cmu=opts.Cmu, K=opts.K, B=opts.B)
+wallTop = bc.WallFunctions(turbModel=model, kWall=kWallTop, Y=Y_, Yplus=Yplus, U0=opts.U, nu=opts.nu, Cmu=opts.Cmu, K=opts.K, B=opts.B)
+wallBottom = bc.WallFunctions(turbModel=model, kWall=kWallBottom, Y=Y_, Yplus=Yplus, U0=opts.U, nu=opts.nu, Cmu=opts.Cmu, K=opts.K, B=opts.B)
 walls = [wallTop, wallBottom]
 
 
