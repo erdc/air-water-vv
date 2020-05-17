@@ -91,8 +91,9 @@ tank.BC['x+'].setFreeSlip()
 tank.BC['x-'].setFreeSlip()
 
 # Gauges
+import math
 gauge_dx = opts.tank_dim[0]/100.
-probes=np.linspace(0., opts.tank_dim[0], opts.tank_dim[0]/gauge_dx+1)
+probes=np.linspace(0., opts.tank_dim[0], math.ceil(opts.tank_dim[0]/gauge_dx+1))
 PG=[]
 PG2=[]
 zProbes=water_depth*0.5

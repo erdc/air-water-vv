@@ -249,8 +249,8 @@ point_gauge_locations = []
 column_gauge_locations = []
 
 if opts.point_gauge_output or opts.column_gauge_output:
-
-    number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
+    import math
+    number_of_gauges = math.ceil(tank_dim[0] / opts.gauge_dx + 1)
 
     for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):
         if gauge_x < obstacle_x_start or gauge_x > obstacle_x_end:
