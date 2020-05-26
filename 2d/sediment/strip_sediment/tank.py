@@ -27,7 +27,7 @@ opts=Context.Options([
     ('g',np.array([0.0, -9.8, 0.0]),'Gravitational acceleration'),    
     # sediment parameters
     ('cSed', 0.55,'Initial sediment concentration'),
-    ('rho_s',2600 ,'sediment material density'),
+    ('rho_s',2600.0,'sediment material density'),
     ('alphaSed', 150.,'laminar drag coefficient'),
     ('betaSed', 1.72,'turbulent drag coefficient'),
     ('grain',0.0025, 'Grain size'),
@@ -49,7 +49,7 @@ opts=Context.Options([
     ("refinement", 25.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("cfl", 0.25 ,"Target cfl"),
-    ("duration", 10.0 ,"Duration of the simulation"),
+    ("duration", 0.5 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-8, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
@@ -126,7 +126,7 @@ nu_1 = opts.nu_1
 # Sediment
 
 rho_s = opts.rho_s
-nu_s = 1000000
+nu_s = 1000000.0
 dragAlpha = 0.0
 
 # Surface tension
