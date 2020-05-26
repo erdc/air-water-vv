@@ -167,7 +167,7 @@ m.vof.index = 1
 m.ncls.index = 2
 m.rdls.index = 3
 m.mcorr.index = 4
-m.rdls.p.CoefficientsOptions.epsFact=0.75
+m.rdls.p.coefficients.epsFact=0.75
 #m.rans2p.p.CoefficientsOptions.useVF=0.
 
 #Assemble domain

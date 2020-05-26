@@ -16,6 +16,7 @@ from proteus.test_utils import TestTools
 import math
 #import importlib
 from proteus import defaults
+import subprocess
 
 from proteus.defaults import (load_physics as load_p,
                               load_numerics as load_n,
@@ -71,47 +72,49 @@ class TestOscillatingCylinderTetgen(TestTools.AirWaterVVTest):
 
             
     def test_run(self):
-        from petsc4py import PETSc
-        pList = []
-        nList = []
-        so = load_so('tank_so',modulepath)
-        for (p,n) in so.pnList:
-            pList.append(load_p(p,modulepath))
-            nList.append(load_n(n,modulepath))
-            if pList[-1].name == None:
-                pList[-1].name = p
-        #so = tank_so
-        so.name = "tank"
-        if so.sList == []:
-            for i in range(len(so.pnList)):
-                s = default_s
-                so.sList.append(s)
-        Profiling.logLevel=7
-        Profiling.verbose=True
-        # PETSc solver configuration
-        OptDB = PETSc.Options()
-        with open(petsc_options) as f:
-            all = f.read().split()
-            i = 0
-            while i < len(all):
-                if i < len(all)-1:
-                    if all[i+1][0]!='-':
-                        print "setting", all[i].strip(),all[i+1]
-                        OptDB.setValue(all[i].strip('-'),all[i+1])
-                        i = i+2
-                    else:
-                        print "setting", all[i].strip(), "True"
-                        OptDB.setValue(all[i].strip('-'),True)
-                        i = i+1
-                else:
-                    print "setting", all[i].strip(), "True"
-                    OptDB.setValue(all[i].strip('-'),True)
-                    i= i+1
-        so.tnList=[0.0,0.001,0.011]            
-        #so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
-        ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
-        ns.calculateSolution('tank')
+        #from petsc4py import PETSc
+        #pList = []
+        #nList = []
+        #so = load_so('tank_so',modulepath)
+        #for (p,n) in so.pnList:
+        #    pList.append(load_p(p,modulepath))
+        #    nList.append(load_n(n,modulepath))
+        #    if pList[-1].name == None:
+        #        pList[-1].name = p
+        ##so = tank_so
+        #so.name = "tank"
+        #if so.sList == []:
+        #    for i in range(len(so.pnList)):
+        #        s = default_s
+        #        so.sList.append(s)
+        #Profiling.logLevel=7
+        #Profiling.verbose=True
+        ## PETSc solver configuration
+        #OptDB = PETSc.Options()
+        #with open(petsc_options) as f:
+        #    all = f.read().split()
+        #    i = 0
+        #    while i < len(all):
+        #        if i < len(all)-1:
+        #            if all[i+1][0]!='-':
+        #                print("setting", all[i].strip(),all[i+1])
+        #                OptDB.setValue(all[i].strip('-'),all[i+1])
+        #                i = i+2
+        #            else:
+        #                print("setting", all[i].strip(), "True")
+        #                OptDB.setValue(all[i].strip('-'),True)
+        #                i = i+1
+        #        else:
+        #            print("setting", all[i].strip(), "True")
+        #            OptDB.setValue(all[i].strip('-'),True)
+        #            i= i+1
+        #so.tnList=[0.0,0.001,0.011]            
+        ##so.tnList=[0.0,0.001]+[0.001 + i*0.01 for i in range(1,int(round(0.03/0.01))+1)]            
+        #ns = NumericalSolution.NS_base(so,pList,nList,so.sList,opts)
+        #ns.calculateSolution('tank')
 
+        runCommand = "parun --TwoPhaseFlow --path " +modulepath+" -C \"Tend=0.011\" oscillating_cylinder.py"
+        subprocess.check_call(runCommand,shell=True)
         
         oscillating_log = NumericResults.create_log('proteus.log')
 
