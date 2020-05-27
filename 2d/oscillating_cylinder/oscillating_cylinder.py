@@ -274,10 +274,20 @@ class AtRest:
     def uOfXT(self, x, t):
         return 0.0
 
+class kIn:
+    def uOfXT(self, x, t):
+        return 0.0
+
+class dIn:
+    def uOfXT(self, x, t):
+        return 0.0
+
 initialConditions = {'pressure': P_IC(),
                      'vel_u': AtRest(),
                      'vel_v': AtRest(),
-                     'vel_w': AtRest()}
+                     'vel_w': AtRest(),
+                     'k': kIn(),
+                     'dissipation':dIn()}
 class VOF_IC:
     def uOfXT(self,x,t):
         return smoothedHeaviside(opts.ecH * he, signedDistance(x))
@@ -352,6 +362,8 @@ m.vof.index = 2
 m.ncls.index = 3
 m.rdls.index = 4
 m.mcorr.index = 5
+m.kappa.index = 6
+m.dissipation.index = 7
 
 # Assemble domain
 domain.MeshOptions.he = he
