@@ -3,6 +3,7 @@ from proteus.default_p import *
 from tank import *
 from proteus.mprans import Dissipation
 from proteus import Context
+import sheetflowBC as sfbc
 
 ct = Context.get()
 
@@ -35,15 +36,20 @@ kInflow=ct.dissipationInflow
 dissipationInflow=ct.dissipationInflow
 
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].dissipation_dirichlet.init_cython()}
+manualbc = ct.manualbc
+if manualbc == True:
+	parallelPeriodic=sfbc.diss_parallelPeriodic
+	periodicDirichletConditions 	= sfbc.diss_periodic
+	dirichletConditions 			= sfbc.diss_dirichlet
+	advectiveFluxBoundaryConditions = sfbc.diss_advective
+	diffusiveFluxBoundaryConditions = sfbc.diss_diffusive
+else:
+	dirichletConditions = {0: lambda x, flag: domain.bc[flag].dissipation_dirichlet.init_cython()}
+	advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].dissipation_advective.init_cython()}
+	diffusiveFluxBoundaryConditions = {0: {},
+	                                   1: {1: lambda x, flag: domain.bc[flag].dissipation_diffusive.init_cython()}}
 
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].dissipation_advective.init_cython()}
 
-diffusiveFluxBoundaryConditions = {0: {},
-                                   1: {1: lambda x, flag: domain.bc[flag].dissipation_diffusive.init_cython()},
-                                  }
-
- 
 class ConstantIC:
     def __init__(self,cval=0.0):
         self.cval=cval

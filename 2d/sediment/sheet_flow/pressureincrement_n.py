@@ -10,6 +10,7 @@ femSpaces = {0:pbasis}
 
 stepController=FixedStep
 
+#numericalFluxType = None
 #numericalFluxType = PresInc.NumericalFlux
 numericalFluxType = NumericalFlux.ConstantAdvection_exterior
 matrix = LinearAlgebraTools.SparseMatrix
@@ -50,7 +51,6 @@ nonlinearSolverConvergenceTest = 'r'
 levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest             = 'r-true'
 maxLineSearches=0
-periodicDirichletConditions=None
 
 conservativeFlux = {0:'point-eval'} #'point-eval','pwl-bdm-opt'
 #conservativeFlux=None

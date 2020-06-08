@@ -4,6 +4,7 @@ from proteus.default_p import *
 from proteus.mprans import Pres
 from proteus import Context
 from tank import *
+import sheetflowBC as sfbc
 
 ct = Context.get()
 name = "pressure"
@@ -14,6 +15,16 @@ coefficients=Pres.Coefficients(modelIndex=ct.P_model,
                                fluidModelIndex=ct.V_model,
                                pressureIncrementModelIndex=ct.DP_model,
                                useRotationalForm=True)
+
+manualbc = ct.manualbc
+if manualbc == True:
+	parallelPeriodic = sfbc.pres_parallelPeriodic
+	periodicDirichletConditions 	= sfbc.pres_periodic
+	dirichletConditions 			= sfbc.pres_dirichlet
+	advectiveFluxBoundaryConditions = sfbc.pres_advective
+else:
+	dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython() } # pressure bc are explicitly set
+	advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pInit_advective.init_cython()}
 
 
 class getIBC_p:
@@ -29,6 +40,3 @@ class getIBC_p:
             return -(L[1] - x[1])*self.rho_a*g[1]
 
 initialConditions = {0:getIBC_p(waterLine_z)}
-
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].p_dirichlet.init_cython() } # pressure bc are explicitly set
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pInit_advective.init_cython()}

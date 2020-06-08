@@ -48,6 +48,4 @@ nonlinearSolverConvergenceTest      = 'r'
 levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest         = 'r-true'
 
-periodicDirichletConditions=None
-
 conservativeFlux=None

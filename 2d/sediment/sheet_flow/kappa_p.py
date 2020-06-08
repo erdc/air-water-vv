@@ -3,6 +3,7 @@ from proteus.default_p import *
 from tank import *
 from proteus.mprans import Kappa
 from proteus import Context
+import sheetflowBC as sfbc
 
 ct = Context.get()
 
@@ -31,14 +32,18 @@ coefficients = Kappa.Coefficients(V_model=ct.V_model,
 
 kInflow=ct.kInflow
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].k_dirichlet.init_cython()}
-
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].k_advective.init_cython()}
-
-diffusiveFluxBoundaryConditions = {0: {},
-                                   1: {1: lambda x, flag: domain.bc[flag].k_diffusive.init_cython()},
-                                  }
-
+manualbc = ct.manualbc
+if manualbc == True:
+	parallelPeriodic=sfbc.kapp_parallelPeriodic
+	periodicDirichletConditions 	= sfbc.kapp_periodic
+	dirichletConditions 			= sfbc.kapp_dirichlet
+	advectiveFluxBoundaryConditions = sfbc.kapp_advective
+	diffusiveFluxBoundaryConditions = sfbc.kapp_diffusive
+else:
+	dirichletConditions = {0: lambda x, flag: domain.bc[flag].k_dirichlet.init_cython()}
+	advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].k_advective.init_cython()}
+	diffusiveFluxBoundaryConditions = {0: {},
+    	                               1: {1: lambda x, flag: domain.bc[flag].k_diffusive.init_cython()}}
 
 class ConstantIC:
     def __init__(self,cval=0.0):

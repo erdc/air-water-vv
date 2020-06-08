@@ -5,7 +5,7 @@ from proteus import (StepControl,
                      NonlinearSolvers,
                      LinearSolvers,
                      LinearAlgebraTools)
-import vof_p as physics
+import vos_p as physics
 from proteus import Context
 from proteus.mprans import VOS3P
 
@@ -14,6 +14,20 @@ domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
 
+## Additions for periodic
+#def zero(x, t):
+#    return 0.0
+#
+#dirichletConditions = {0: lambda x, flag: None}
+#
+#advectiveFluxBoundaryConditions = {0: lambda x, flag: zero}
+#
+#diffusiveFluxBoundaryConditions = {0: {}}
+#
+#periodicDirichletConditions = {0:ct.getPDBC}
+##periodicDirichletConditions = physics.periodicDirichletConditions
+##parallelPeriodic=True
+##
 
 # time stepping
 runCFL = ct.runCFL

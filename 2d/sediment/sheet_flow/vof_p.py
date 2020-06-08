@@ -2,12 +2,12 @@ from proteus.default_p import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.mprans import VOF3P
 from proteus import Context
+import sheetflowBC as sfbc
 
 ct = Context.get()
 domain = ct.domain
 nd = domain.nd
 mesh = domain.MeshOptions
-
 
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
@@ -26,11 +26,20 @@ coefficients = VOF3P.Coefficients(LS_model=ct.LS_model,
                                   sc_beta=ct.vof_sc_beta,
                                   movingDomain=ct.movingDomain)
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].vof_dirichlet.init_cython()}
 
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].vof_advective.init_cython()}
 
-diffusiveFluxBoundaryConditions = {0: {}}
+manualbc = ct.manualbc
+if manualbc == True:
+	parallelPeriodic=sfbc.vof_parallelPeriodic
+	periodicDirichletConditions 	= sfbc.vof_periodic
+	dirichletConditions 			= sfbc.vof_dirichlet
+	advectiveFluxBoundaryConditions = sfbc.vof_advective
+	diffusiveFluxBoundaryConditions = sfbc.vof_diffusive
+else:
+	dirichletConditions = {0: lambda x, flag: domain.bc[flag].vof_dirichlet.init_cython()}
+	advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].vof_advective.init_cython()}
+	diffusiveFluxBoundaryConditions = {0: {}}
+
 
 class VF_IC:
     def uOfXT(self, x, t):

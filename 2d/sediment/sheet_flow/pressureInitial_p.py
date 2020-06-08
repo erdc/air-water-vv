@@ -4,6 +4,7 @@ from proteus.default_p import *
 from proteus.mprans import PresInit
 from proteus import Context
 from tank import *
+import sheetflowBC as sfbc
 
 ct = Context.get()
 name = "pressureInitial"
@@ -14,8 +15,19 @@ coefficients=PresInit.Coefficients(nd=nd,
                                    pressureModelIndex=ct.P_model)
 
 #pressure increment should be zero on any pressure dirichlet boundaries
-
 #the advectiveFlux should be zero on any no-flow  boundaries
+manualbc = ct.manualbc
+if manualbc == True:
+	parallelPeriodic = sfbc.pInt_parallelPeriodic
+	periodicDirichletConditions 	= sfbc.pInt_periodic
+	dirichletConditions 			= sfbc.pInt_dirichlet
+	advectiveFluxBoundaryConditions = sfbc.pInt_advective
+	diffusiveFluxBoundaryConditions = sfbc.pInt_diffusive
+else:
+	periodicDirichletConditions=None
+	dirichletConditions = {0: lambda x, flag: domain.bc[flag].pInit_dirichlet.init_cython()}
+	advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pInit_advective.init_cython()}
+	diffusiveFluxBoundaryConditions = {0:{0: lambda x, flag: domain.bc[flag].pInit_diffusive.init_cython()}}
 
 
 class getIBC_pInit:
@@ -38,6 +50,3 @@ class PerturbedSurface_p:
 
 initialConditions = {0:PerturbedSurface_p(waterLine_z)} #getIBC_pInit()}
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].pInit_dirichlet.init_cython()}
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pInit_advective.init_cython()}
-diffusiveFluxBoundaryConditions = {0:{0: lambda x, flag: domain.bc[flag].pInit_diffusive.init_cython()}}

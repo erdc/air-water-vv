@@ -49,7 +49,7 @@ opts=Context.Options([
     ("refinement", 25.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("cfl", 0.25 ,"Target cfl"),
-    ("duration", 0.5 ,"Duration of the simulation"),
+    ("duration", 0.25 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-8, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
@@ -60,6 +60,7 @@ opts=Context.Options([
     ("sigma_k", 1.0, "sigma_k coefficient for the turbulence model"),
     ("sigma_e", 1.0, "sigma_e coefficient for the turbulence model"),
     ("Cmu", 0.09, "Cmu coefficient for the turbulence model"),
+    ("nd",2.,"Dimensions")
     ])
 
 # SO Models
@@ -169,11 +170,94 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 #################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #################################################################################
+"""
+#def getPDBC(x,tag):
+#    if x[0] < eps or x[0] > tank_dim[0] - eps:
+#        return np.array([0.0,round(x[1],5),0.0])
 
-tank.BC['y-'].setFreeSlip()
-tank.BC['y+'].setAtmosphere(orientation=np.array([0., +1.,0.]))
-tank.BC['x-'].setFreeSlip()
-tank.BC['x+'].setFreeSlip()
+def getPDBC(x,tag):
+    if (x[0] < eps or x[0] > L[0] - eps) and (x[1] < eps or x[1] > L[1] - eps):
+        return np.array([0.0,0.0,0.0])
+    elif x[0] < eps or x[0] > L[0] - eps:
+        return np.array([0.0,round(x[1],5),0.0])
+"""
+manualbc = True
+
+if manualbc == False:
+	tank.BC['y-'].setNoSlip()
+	#tank.BC['y+'].setNoSlip()
+	tank.BC['y+'].setAtmosphere(orientation=np.array([0., +1.,0.]))
+	tank.BC['x-'].setNoSlip()
+	tank.BC['x+'].setNoSlip()
+
+"""
+def getDBC_pressure_duct(x,flag):
+    pass
+
+def getDBC_u_duct(x,flag):
+    if onTop(x) or onBottom(x):
+        return lambda x,t: 0.0
+
+def getDBC_v_duct(x,flag):
+    if onTop(x) or onBottom(x):
+        return lambda x,t: 0.0
+
+def getDBC_w_duct(x,flag):
+    if onTop(x) or onBottom(x):
+        return lambda x,t: 0.0
+
+dirichletConditions = {0:getDBC_pressure_duct,
+                         1:getDBC_u_duct,
+                         2:getDBC_v_duct}
+if opts.nd==3:
+    dirichletConditions[3] = getDBC_w_duct
+   
+
+def getAFBC_p(x,flag):
+    if onTop(x) or onBottom(x):
+        return lambda x,t: 0.0
+    else:
+        return lambda x,t: 0.0
+
+def getAFBC_u(x,flag):
+    if onTop(x) or onBottom(x):
+       return lambda x,t: 0.0
+    else:
+       return lambda x,t: 0.0
+
+def getAFBC_v(x,flag):
+    if onTop(x) or onBottom(x):
+        return lambda x,t: 0.0
+    else:
+        return lambda x,t: 0.0
+
+    def getAFBC_w(x,flag):
+        if onTop(x) or onBottom(x):
+            return lambda x,t: 0.0
+        else:
+            return lambda x,t: 0.0
+
+advectiveFluxBoundaryConditions =  {0:getAFBC_p,
+                                    1:getAFBC_u,
+                                    2:getAFBC_v}
+
+if opts.nd==3:
+    advectiveFluxBoundaryConditions[3] = getAFBC_w_duct
+
+def getDFBC_duct(x,flag):
+    if onTop(x) or onBottom(x):
+        return None
+    else:
+        return lambda x,t: 0.0
+
+diffusiveFluxBoundaryConditions = {0:{},
+                                   1:{1:getDFBC_duct},
+                                   2:{2:getDFBC_duct}}
+
+if opts.nd==3:
+    diffusiveFluxBoundaryConditions[3] = {3:getDFBC_duct}
+
+"""
 
 #################################################################################
 # Turbulence
@@ -326,7 +410,7 @@ elif pspaceOrder == 2:
         pbasis = C0_AffineQuadraticOnSimplexWithNodalBasis
 
 
-####################################################################################################################
+######################################################################################
 # Numerical parameters
 ######################################################################################
 
@@ -417,9 +501,9 @@ phi_nl_atol_res = max(opts.res, 0.001 * he ** 2)
 pressure_nl_atol_res = max(opts.res, 0.001 * he ** 2)
 
 
-####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+############################################################
 # Turbulence
-####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+############################################################
 
 ns_closure = 0  #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
 ns_sed_closure = 0  #1-classic smagorinsky, 2-dynamic smagorinsky, 3 -- k-epsilon, 4 -- k-omega
@@ -429,9 +513,9 @@ elif useRANS == 2:
     ns_closure == 4
 
 
-####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+############################################################
 # Functions for model variables - Initial conditions
-####################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################################
+############################################################
 
 def signedDistance(x):
     phi_z = x[1] - waterLine_z

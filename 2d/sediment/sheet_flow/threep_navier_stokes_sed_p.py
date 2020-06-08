@@ -3,6 +3,7 @@ from proteus.default_p import *
 from tank import *
 from proteus.mprans import RANS3PSed
 from proteus import Context
+import sheetflowBC as sfbc
 
 ct = Context.get()
 
@@ -57,19 +58,25 @@ coefficients = RANS3PSed.Coefficients(epsFact=epsFact_viscosity,
                                     vos_limiter = ct.sedClosure.vos_limiter,
                                     mu_fr_limiter = ct.sedClosure.mu_fr_limiter)
 
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].us_dirichlet.init_cython(),
-                       1: lambda x, flag: domain.bc[flag].vs_dirichlet.init_cython()}
 
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].us_advective.init_cython(),
-                                   1: lambda x, flag: domain.bc[flag].vs_advective.init_cython()}
-
-diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].us_diffusive.init_cython()},
-                                   1: {1: lambda x, flag: domain.bc[flag].vs_diffusive.init_cython()}}
-
-if nd == 3:
-    dirichletConditions[2] = lambda x, flag: domain.bc[flag].ws_dirichlet.init_cython()
-    advectiveFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].ws_advective.init_cython()
-    diffusiveFluxBoundaryConditions[2] = {2: lambda x, flag: domain.bc[flag].ws_diffusive.init_cython()}
+manualbc = ct.manualbc
+if manualbc == True:
+	parallelPeriodic=sfbc.ns3P_parallelPeriodic
+	periodicDirichletConditions 	= sfbc.ns3P_periodic
+	dirichletConditions 			= sfbc.ns3P_dirichlet
+	advectiveFluxBoundaryConditions = sfbc.ns3P_advective
+	diffusiveFluxBoundaryConditions = sfbc.ns3P_diffusive
+else:
+	dirichletConditions = {0: lambda x, flag: domain.bc[flag].us_dirichlet.init_cython(),
+	                       1: lambda x, flag: domain.bc[flag].vs_dirichlet.init_cython()}
+	advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].us_advective.init_cython(),
+	                                   1: lambda x, flag: domain.bc[flag].vs_advective.init_cython()}
+	diffusiveFluxBoundaryConditions = {0: {0: lambda x, flag: domain.bc[flag].us_diffusive.init_cython()},
+	                                   1: {1: lambda x, flag: domain.bc[flag].vs_diffusive.init_cython()}}
+	if nd == 3:
+	    dirichletConditions[2] = lambda x, flag: domain.bc[flag].ws_dirichlet.init_cython()
+	    advectiveFluxBoundaryConditions[2] = lambda x, flag: domain.bc[flag].ws_advective.init_cython()
+	    diffusiveFluxBoundaryConditions[2] = {2: lambda x, flag: domain.bc[flag].ws_diffusive.init_cython()}
 
 class AtRest:
     def __init__(self):

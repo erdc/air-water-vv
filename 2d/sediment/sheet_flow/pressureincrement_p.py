@@ -3,6 +3,7 @@ from proteus import *
 from proteus.default_p import *
 from tank import *
 import tank_so
+import sheetflowBC as sfbc
 from proteus.mprans import PresInc
 from proteus import Context
 
@@ -37,14 +38,24 @@ coefficients=PresInc.Coefficients(rho_f_min = (1.0-1.0e-8)*rho_1,
 
 #the advectiveFlux should be zero on any no-flow  boundaries
 
+manualbc = ct.manualbc
+if manualbc == True:
+	parallelPeriodic = sfbc.pInc_parallelPeriodic
+	periodicDirichletConditions 	= sfbc.pInc_periodic
+	dirichletConditions 			= sfbc.pInc_dirichlet
+	advectiveFluxBoundaryConditions = sfbc.pInc_advective
+	diffusiveFluxBoundaryConditions = sfbc.pInc_diffusive
+else:
+	periodicDirichletConditions=None
+	dirichletConditions = {0: lambda x, flag: domain.bc[flag].pInc_dirichlet.init_cython()}
+	advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pInc_advective.init_cython()}
+	diffusiveFluxBoundaryConditions = {0:{0: lambda x, flag: domain.bc[flag].pInc_diffusive.init_cython()}}
+
 class getIBC_phi:
     def __init__(self):
         pass
     def uOfXT(self,x,t):
         return 0.0
 
+    
 initialConditions = {0:getIBC_phi()}
-
-dirichletConditions = {0: lambda x, flag: domain.bc[flag].pInc_dirichlet.init_cython()}
-advectiveFluxBoundaryConditions = {0: lambda x, flag: domain.bc[flag].pInc_advective.init_cython()}
-diffusiveFluxBoundaryConditions = {0:{0: lambda x, flag: domain.bc[flag].pInc_diffusive.init_cython()}}

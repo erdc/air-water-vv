@@ -7,6 +7,8 @@ from proteus import (StepControl,
 from threep_navier_stokes_sed_p import *
 from tank import *
 
+#parallelPeriodic=True
+
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
     timeOrder=2

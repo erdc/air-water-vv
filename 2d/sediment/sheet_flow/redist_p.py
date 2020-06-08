@@ -14,14 +14,11 @@ domain = ct.domain
 nd = domain.nd
 mesh = domain.MeshOptions
 
-
 genMesh = mesh.genMesh
 movingDomain = ct.movingDomain
 T = ct.T
 
 LevelModelType = RDLS.LevelModel
-
-
 
 coefficients = RDLS.Coefficients(applyRedistancing=ct.applyRedistancing,
                                    epsFact=ct.epsFact_redistance,

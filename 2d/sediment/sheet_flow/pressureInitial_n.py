@@ -49,6 +49,5 @@ nonlinearSolverConvergenceTest = 'r'
 levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest             = 'r-true'
 maxLineSearches=0
-periodicDirichletConditions=None
 
 conservativeFlux=None
