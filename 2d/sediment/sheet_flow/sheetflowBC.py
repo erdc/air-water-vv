@@ -19,11 +19,29 @@ def onBottom(x):
 def onTop(x):
     return x[1] > tank_dim[1] - eps
 
+##### Periodic Boundary Condition
+# If a corner point,
+#    return a single corner point
+# Elif on the left or right
+#    return the left boundary coordinate
+# Else on top or bottom
+#    (pass and set with no slip condition
+
 def getPDBC(x,flag):
     if (onLeft(x) or onRight(x)) and (onTop(x) or onBottom(x)):
         return np.array([0.0,0.0,0.0])
     elif onLeft(x) or onRight(x):
         return np.array([0.0,round(x[1],5),0.0])
+
+##### Set zero on top or bottom
+def setZero(x,flag):
+    if onTop(x) or onBottom(x):
+        return 0.0
+
+##### For no slip conditions, set the following zero
+# Dirichlet: u, v, us, vs
+# Advective Flux: p, pInit, pInc, vof, vos
+# Diffusive Flux: pInc
     
 def zero(x, t):
     return 0.0
@@ -34,27 +52,10 @@ def small(x, t):
 def smaller(x, t):
     return 1.0e-20
 
-def setZero(x,flag):
-    if onTop(x) or onBottom(x):
-        return 0.0
-
-def noneTop(x, t):
-	if onLeft(x) or onRight(x) or onBottom(x):
-		return zero(x, t)
-	
-def zeroTop(x, t):
-	if onTop(x):
-		return zero(x, t)
-#	else:
-#		return None
-	
-def oneTop(x, t):
-	if onTop(x):
-		return one(x, t)
-#	else:
-#		return None
 
 isPer = False
+
+### Not using a turbulence model anyhow
 
 # Dissipation
 diss_parallelPeriodic = isPer
@@ -109,7 +110,8 @@ pInc_diffusive = {0:{0:setZero}}
     
 ns3P_parallelPeriodic = True
 
-ns3P_periodic = {0:getPDBC}
+ns3P_periodic = {0:getPDBC,
+                  1:getPDBC}
 ns3P_dirichlet = {0: setZero,
                   1: setZero}
 ns3P_advective = {0: lambda x, flag: None,
@@ -124,7 +126,8 @@ ns3P_diffusive = {0: {0: lambda x, flag: None},
 
 ns2P_parallelPeriodic = True
 
-ns2P_periodic = {0:getPDBC}
+ns2P_periodic = {0:getPDBC,
+                  1:getPDBC}
 ns2P_dirichlet = {0: setZero,
                   1: setZero}
 ns2P_advective = {0: lambda x, flag: None,
