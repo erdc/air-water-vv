@@ -23,6 +23,11 @@ matrix = LinearAlgebraTools.SparseMatrix
 numericalFluxType = NumericalFlux.ConstantAdvection_exterior
 #numericalFluxType = NumericalFlux
 
+#numericalFluxType = None
+#matrix = SparseMatrix
+conservativeFlux=None
+
+
 linear_solver_options_prefix = 'pinit_'
 
 if ct.useSuperlu:
@@ -49,5 +54,3 @@ nonlinearSolverConvergenceTest = 'r'
 levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest             = 'r-true'
 maxLineSearches=0
-
-conservativeFlux=None

@@ -10,19 +10,14 @@ femSpaces = {0:pbasis}
 
 stepController=FixedStep
 
-#numericalFluxType = None
 #numericalFluxType = PresInc.NumericalFlux
 numericalFluxType = NumericalFlux.ConstantAdvection_exterior
 matrix = LinearAlgebraTools.SparseMatrix
+conservativeFlux = {0:'point-eval'} #'point-eval','pwl-bdm-opt'
 
-#if openTop:
-#    linearSmoother    = None
-#    multilevelLinearSolver = LinearSolvers.LU
-#    levelLinearSolver      = LinearSolvers.LU
-#else:
-#    linearSmoother         = LinearSolvers.NavierStokesPressureCorrection # pure neumann laplacian solver
-#    multilevelLinearSolver = LinearSolvers.KSP_petsc4py
-#    levelLinearSolver      = LinearSolvers.KSP_petsc4py
+#numericalFluxType = None
+#matrix = SparseMatrix
+#conservativeFlux=None
 
 linear_solver_options_prefix = 'phi_'
 
@@ -51,6 +46,3 @@ nonlinearSolverConvergenceTest = 'r'
 levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest             = 'r-true'
 maxLineSearches=0
-
-conservativeFlux = {0:'point-eval'} #'point-eval','pwl-bdm-opt'
-#conservativeFlux=None

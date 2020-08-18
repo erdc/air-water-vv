@@ -32,7 +32,7 @@ manualbc = ct.manualbc
 if manualbc == True:
 	parallelPeriodic=sfbc.vof_parallelPeriodic
 	periodicDirichletConditions 	= sfbc.vof_periodic
-	dirichletConditions 			= sfbc.vof_dirichlet
+	dirichletConditions		= sfbc.vof_dirichlet
 	advectiveFluxBoundaryConditions = sfbc.vof_advective
 	diffusiveFluxBoundaryConditions = sfbc.vof_diffusive
 else:

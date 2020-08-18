@@ -9,17 +9,17 @@ nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
 
 femSpaces = {0:ct.pbasis}
 
-
-# stepController  = StepControl.Min_dt_cfl_controller
-# runCFL= 0.99
-# runCFL= 0.5
-
 stepController=FixedStep
 
 #matrix type
 numericalFluxType = NumericalFlux.ConstantAdvection_exterior
 #numericalFluxType = NumericalFlux
-matrix = LinearAlgebraTools.SparseMatrix
+
+#numericalFluxType = None
+#matrix = LinearAlgebraTools.SparseMatrix
+matrix = SparseMatrix
+conservativeFlux=None
+
 
 linear_solver_options_prefix = 'pressure_'
 
@@ -47,5 +47,3 @@ maxLineSearches = 0
 nonlinearSolverConvergenceTest      = 'r'
 levelNonlinearSolverConvergenceTest = 'r'
 linearSolverConvergenceTest         = 'r-true'
-
-conservativeFlux=None
