@@ -24,7 +24,7 @@ opts=Context.Options([
     ("rho_1", 1.205, "air density"),
     ("nu_0", 1.0e-6, "water kin viscosity"),
     ("nu_1", 1.5e-5, "air kin viscosity"),
-    ('g',np.array([0.0, -9.8, 0.0]),'Gravitational acceleration'),    
+    ('g',np.array([3.0, -4.8, 0.0]),'Gravitational acceleration'),    
     # sediment parameters
     ('cSed', 0.55,'Initial sediment concentration'),
     ('rho_s',2600.,'sediment material density'),
@@ -49,7 +49,7 @@ opts=Context.Options([
     ("refinement", 25.,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("cfl", 0.25 ,"Target cfl"),
-    ("duration", 0.25 ,"Duration of the simulation"),
+    ("duration", .25 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-8, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
