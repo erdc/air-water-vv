@@ -9,10 +9,8 @@ tank_dim = ct.L
 
 eps=1.0e-8
 def onLeft(x):
-#    return x[0] < eps and x[1] > eps and x[1] < tank_dim[1] - eps
     return x[0] < eps
 def onRight(x):
-#    return x[0] > tank_dim[0] - eps and x[1] > eps and x[1] < tank_dim[1] - eps
     return x[0] > tank_dim[0] - eps
 def onBottom(x):
     return x[1] < eps
@@ -36,7 +34,7 @@ def getPDBC(x,flag):
 ##### Set zero on top or bottom
 def setZero(x,flag):
     if onTop(x) or onBottom(x):
-        return 0.0
+        return zero(x,t)
 
 ##### For no slip conditions, set the following zero
 # Dirichlet: u, v, us, vs
