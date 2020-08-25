@@ -34,14 +34,14 @@ def getPDBC(x,flag):
 ##### Set zero on top or bottom
 def setZero(x,flag):
     if onTop(x) or onBottom(x):
-        return zero(x,t)
+        return lambda x,t: 0.0
 
 ##### For no slip conditions, set the following zero
 # Dirichlet: u, v, us, vs
 # Advective Flux: p, pInit, pInc, vof, vos
 # Diffusive Flux: pInc
     
-def zero(x, t):
+def zero(x):
     return 0.0
 def one(x, t):
     return 1.0
