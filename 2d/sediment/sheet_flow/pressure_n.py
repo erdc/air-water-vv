@@ -12,8 +12,8 @@ femSpaces = {0:ct.pbasis}
 stepController=FixedStep
 
 #matrix type
-numericalFluxType = NumericalFlux.ConstantAdvection_exterior
-#numericalFluxType = NumericalFlux
+#numericalFluxType = NumericalFlux.ConstantAdvection_exterior
+numericalFluxType = NumericalFlux
 
 #numericalFluxType = None
 #matrix = LinearAlgebraTools.SparseMatrix

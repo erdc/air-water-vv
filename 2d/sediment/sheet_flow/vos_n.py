@@ -14,21 +14,6 @@ domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
 
-## Additions for periodic
-#def zero(x, t):
-#    return 0.0
-#
-#dirichletConditions = {0: lambda x, flag: None}
-#
-#advectiveFluxBoundaryConditions = {0: lambda x, flag: zero}
-#
-#diffusiveFluxBoundaryConditions = {0: {}}
-#
-#periodicDirichletConditions = {0:ct.getPDBC}
-##periodicDirichletConditions = physics.periodicDirichletConditions
-##parallelPeriodic=True
-##
-
 # time stepping
 runCFL = ct.runCFL
 timeIntegration = VOS3P.RKEV#BackwardEuler_cfl

@@ -20,8 +20,8 @@ matrix = LinearAlgebraTools.SparseMatrix
 #linearSmoother    = None
 #multilevelLinearSolver = LinearSolvers.LU
 #levelLinearSolver      = LinearSolvers.LU
-numericalFluxType = NumericalFlux.ConstantAdvection_exterior
-#numericalFluxType = NumericalFlux
+#numericalFluxType = NumericalFlux.ConstantAdvection_exterior
+numericalFluxType = NumericalFlux
 
 #numericalFluxType = None
 #matrix = SparseMatrix

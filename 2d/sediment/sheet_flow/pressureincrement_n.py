@@ -10,8 +10,8 @@ femSpaces = {0:pbasis}
 
 stepController=FixedStep
 
-#numericalFluxType = PresInc.NumericalFlux
-numericalFluxType = NumericalFlux.ConstantAdvection_exterior
+numericalFluxType = PresInc.NumericalFlux
+#numericalFluxType = NumericalFlux.ConstantAdvection_exterior
 matrix = LinearAlgebraTools.SparseMatrix
 conservativeFlux = {0:'point-eval'} #'point-eval','pwl-bdm-opt'
 
