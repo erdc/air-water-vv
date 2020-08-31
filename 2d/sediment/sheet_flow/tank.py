@@ -170,17 +170,6 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 #################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #################################################################################
-"""
-#def getPDBC(x,tag):
-#    if x[0] < eps or x[0] > tank_dim[0] - eps:
-#        return np.array([0.0,round(x[1],5),0.0])
-
-def getPDBC(x,tag):
-    if (x[0] < eps or x[0] > L[0] - eps) and (x[1] < eps or x[1] > L[1] - eps):
-        return np.array([0.0,0.0,0.0])
-    elif x[0] < eps or x[0] > L[0] - eps:
-        return np.array([0.0,round(x[1],5),0.0])
-"""
 manualbc = True
 
 if manualbc == False:
@@ -189,75 +178,6 @@ if manualbc == False:
 	tank.BC['y+'].setAtmosphere(orientation=np.array([0., +1.,0.]))
 	tank.BC['x-'].setNoSlip()
 	tank.BC['x+'].setNoSlip()
-
-"""
-def getDBC_pressure_duct(x,flag):
-    pass
-
-def getDBC_u_duct(x,flag):
-    if onTop(x) or onBottom(x):
-        return lambda x,t: 0.0
-
-def getDBC_v_duct(x,flag):
-    if onTop(x) or onBottom(x):
-        return lambda x,t: 0.0
-
-def getDBC_w_duct(x,flag):
-    if onTop(x) or onBottom(x):
-        return lambda x,t: 0.0
-
-dirichletConditions = {0:getDBC_pressure_duct,
-                         1:getDBC_u_duct,
-                         2:getDBC_v_duct}
-if opts.nd==3:
-    dirichletConditions[3] = getDBC_w_duct
-   
-
-def getAFBC_p(x,flag):
-    if onTop(x) or onBottom(x):
-        return lambda x,t: 0.0
-    else:
-        return lambda x,t: 0.0
-
-def getAFBC_u(x,flag):
-    if onTop(x) or onBottom(x):
-       return lambda x,t: 0.0
-    else:
-       return lambda x,t: 0.0
-
-def getAFBC_v(x,flag):
-    if onTop(x) or onBottom(x):
-        return lambda x,t: 0.0
-    else:
-        return lambda x,t: 0.0
-
-    def getAFBC_w(x,flag):
-        if onTop(x) or onBottom(x):
-            return lambda x,t: 0.0
-        else:
-            return lambda x,t: 0.0
-
-advectiveFluxBoundaryConditions =  {0:getAFBC_p,
-                                    1:getAFBC_u,
-                                    2:getAFBC_v}
-
-if opts.nd==3:
-    advectiveFluxBoundaryConditions[3] = getAFBC_w_duct
-
-def getDFBC_duct(x,flag):
-    if onTop(x) or onBottom(x):
-        return None
-    else:
-        return lambda x,t: 0.0
-
-diffusiveFluxBoundaryConditions = {0:{},
-                                   1:{1:getDFBC_duct},
-                                   2:{2:getDFBC_duct}}
-
-if opts.nd==3:
-    diffusiveFluxBoundaryConditions[3] = {3:getDFBC_duct}
-
-"""
 
 #################################################################################
 # Turbulence
