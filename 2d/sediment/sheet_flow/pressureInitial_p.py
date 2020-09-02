@@ -18,8 +18,8 @@ coefficients=PresInit.Coefficients(nd=nd,
 #the advectiveFlux should be zero on any no-flow  boundaries
 manualbc = ct.manualbc
 if manualbc == True:
-	parallelPeriodic = sfbc.pInt_parallelPeriodic
-	periodicDirichletConditions 	= sfbc.pInt_periodic
+	parallelPeriodic = False#sfbc.pInt_parallelPeriodic
+	periodicDirichletConditions 	= None#sfbc.pInt_periodic
 	dirichletConditions 			= sfbc.pInt_dirichlet
 	advectiveFluxBoundaryConditions = sfbc.pInt_advective
 	diffusiveFluxBoundaryConditions = sfbc.pInt_diffusive

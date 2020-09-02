@@ -18,8 +18,8 @@ coefficients=Pres.Coefficients(modelIndex=ct.P_model,
 
 manualbc = ct.manualbc
 if manualbc == True:
-	parallelPeriodic = sfbc.pres_parallelPeriodic
-	periodicDirichletConditions 	= sfbc.pres_periodic
+	parallelPeriodic = True#sfbc.pres_parallelPeriodic
+	periodicDirichletConditions 	= None#sfbc.pres_periodic
 	dirichletConditions 			= sfbc.pres_dirichlet
 	advectiveFluxBoundaryConditions = sfbc.pres_advective
 else:

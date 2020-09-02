@@ -13,7 +13,7 @@ stepController=FixedStep
 
 #matrix type
 #numericalFluxType = NumericalFlux.ConstantAdvection_exterior
-numericalFluxType = NumericalFlux
+numericalFluxType = Pres.NumericalFlux
 
 #numericalFluxType = None
 #matrix = LinearAlgebraTools.SparseMatrix

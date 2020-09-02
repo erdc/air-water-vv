@@ -35,6 +35,11 @@ def getPDBC(x,flag):
 def setZero(x,flag):
     if onTop(x) or onBottom(x):
         return lambda x,t: 0.0
+def setZeroFluxOnPeriodic(x,flag):
+    if not (onTop(x) or onBottom(x)):
+        return lambda x,t: 0.0
+def setAllZero(x,flag):
+    return lambda x,t: 0.0
 
 ##### For no slip conditions, set the following zero
 # Dirichlet: u, v, us, vs
@@ -95,11 +100,11 @@ pInt_diffusive = {0:{0: lambda x, flag: None}}
 # Pressure Increment
 ##########################################################################
 
-pInc_parallelPeriodic = True
-pInc_periodic = {0:getPDBC}
+pInc_parallelPeriodic = False
+pInc_periodic = None#{0:getPDBC}
 pInc_dirichlet = {0: lambda x, flag: None}
-pInc_advective = {0: setZero}
-pInc_diffusive = {0:{0:setZero}}
+pInc_advective = {0: setAllZero}
+pInc_diffusive = {0:{0:setAllZero}}
 
 ##########################################################################
 # 3P Navier Stokes Sed
@@ -112,10 +117,10 @@ ns3P_periodic = {0:getPDBC,
                   1:getPDBC}
 ns3P_dirichlet = {0: setZero,
                   1: setZero}
-ns3P_advective = {0: lambda x, flag: None,
-                  1: lambda x, flag: None}
-ns3P_diffusive = {0: {0: lambda x, flag: None},
-                  1: {1: lambda x, flag: None}}
+ns3P_advective = {0: setZeroFluxOnPeriodic,
+                  1: setZeroFluxOnPeriodic}
+ns3P_diffusive = {0: {0: setZeroFluxOnPeriodic},
+                  1: {1: setZeroFluxOnPeriodic}}
 
 ##########################################################################
 # 2P Navier Stokes
@@ -128,10 +133,10 @@ ns2P_periodic = {0:getPDBC,
                   1:getPDBC}
 ns2P_dirichlet = {0: setZero,
                   1: setZero}
-ns2P_advective = {0: lambda x, flag: None,
-                  1: lambda x, flag: None}
-ns2P_diffusive = {0: {0: lambda x, flag: None},
-                  1: {1: lambda x, flag: None}}
+ns2P_advective = {0: setZeroFluxOnPeriodic,
+                  1: setZeroFluxOnPeriodic}
+ns2P_diffusive = {0: {0: setZeroFluxOnPeriodic},
+                  1: {1: setZeroFluxOnPeriodic}}
 
 ##########################################################################
 # Volume of Fluid

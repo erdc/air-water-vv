@@ -11,8 +11,8 @@ femSpaces = {0:ct.pbasis}
 
 stepController=FixedStep
 
-#numericalFluxType = NumericalFlux.ConstantAdvection_Diffusion_SIPG_exterior #weak boundary conditions (upwind ?)
-matrix = LinearAlgebraTools.SparseMatrix
+numericalFluxType = NumericalFlux.ConstantAdvection_Diffusion_SIPG_exterior #weak boundary conditions (upwind ?)
+#matrix = LinearAlgebraTools.SparseMatrix
 
 #linearSmoother    = LinearSolvers.NavierStokesPressureCorrection # pure neumann laplacian solver
 #multilevelLinearSolver = LinearSolvers.KSP_petsc4py
@@ -21,7 +21,7 @@ matrix = LinearAlgebraTools.SparseMatrix
 #multilevelLinearSolver = LinearSolvers.LU
 #levelLinearSolver      = LinearSolvers.LU
 #numericalFluxType = NumericalFlux.ConstantAdvection_exterior
-numericalFluxType = NumericalFlux
+#numericalFluxType = PresInit.NumericalFlux
 
 #numericalFluxType = None
 #matrix = SparseMatrix
