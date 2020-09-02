@@ -221,7 +221,8 @@ column_gauge_locations = []
 
 #if opts.point_gauge_output or opts.column_gauge_output:
 gauge_y = opts.mwl - 0.5 * opts.depth
-number_of_gauges = tank_dim[0] / opts.gauge_dx + 1
+import math
+number_of_gauges = math.ceil(tank_dim[0] / opts.gauge_dx + 1)
 for gauge_x in np.linspace(0, tank_dim[0], number_of_gauges):column_gauge_locations.append(((gauge_x, 0., 0.),
                                        								(gauge_x, tank_dim[1], 0.)))
 tank.attachLineIntegralGauges('vof',
