@@ -45,4 +45,20 @@ class VF_IC:
     def uOfXT(self, x, t):
         return smoothedHeaviside(ct.epsFact_consrv_heaviside*mesh.he,x[nd-1]-ct.waterLevel)
 
-initialConditions = {0: VF_IC()}
+VF = VF_IC()
+initialConditions = {0: VF}
+
+def dbc(x,flag):
+    if sfbc.onLeft(x) or sfbc.onRight(x):
+        return VF.uOfXT
+
+dirichletConditions = {0: dbc}
+
+def abc(x,flag):
+    if sfbc.onLeft(x) or sfbc.onRight(x):
+        return None
+    else:
+        return lambda x,t: 0.0
+
+advectiveFluxBoundaryConditions = {0: abc}
+diffusiveFluxBoundaryConditions ={0: {}}

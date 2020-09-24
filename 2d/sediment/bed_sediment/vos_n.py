@@ -5,7 +5,7 @@ from proteus import (StepControl,
                      NonlinearSolvers,
                      LinearSolvers,
                      LinearAlgebraTools)
-import vof_p as physics
+import vos_p as physics
 from proteus import Context
 from proteus.mprans import VOS3P
 

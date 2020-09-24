@@ -10,6 +10,8 @@ from proteus import Context
 from proteus.mprans import Dissipation
 
 ct = Context.get()
+nnx=ct.opts.nnx
+nny=ct.opts.nny
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions

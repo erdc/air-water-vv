@@ -10,6 +10,8 @@ from proteus import Context
 from proteus.mprans import Kappa
 
 ct = Context.get()
+nnx=ct.opts.nnx
+nny=ct.opts.nny
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
@@ -57,5 +59,5 @@ useEisenstatWalker = False
 maxNonlinearIts = 10
 maxLineSearches = 0
 
-auxiliaryVariables = ct.domain.auxiliaryVariables['kappa']
+#auxiliaryVariables = ct.domain.auxiliaryVariables['kappa']
 

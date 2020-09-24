@@ -57,6 +57,7 @@ coefficients = RANS3PF.Coefficients(epsFact=epsFact_viscosity,
                                     )
 
 manualbc = ct.manualbc
+
 if manualbc == True:
 	parallelPeriodic=sfbc.ns2P_parallelPeriodic
 	periodicDirichletConditions 	= sfbc.ns2P_periodic

@@ -3,6 +3,7 @@ from proteus import *
 from proteus.default_p import *
 from proteus.mprans import NCLS3P
 from proteus import Context
+import sheetflowBC as sfbc
 
 ct = Context.get()
 domain = ct.domain
@@ -27,9 +28,9 @@ coefficients = NCLS3P.Coefficients(V_model=ct.V_model,
                                    movingDomain=ct.movingDomain)
 
 dirichletConditions = {0: lambda x, flag: None}
-
+parallelPeriodic=sfbc.vof_parallelPeriodic#cek hack
+periodicDirichletConditions 	= sfbc.vof_periodic#cek hack
 advectiveFluxBoundaryConditions = {}
-
 diffusiveFluxBoundaryConditions = {0: {}}
 
 class PHI_IC:

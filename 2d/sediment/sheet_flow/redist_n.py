@@ -11,6 +11,8 @@ import redist_p as physics
 from proteus import Context
 
 ct = Context.get()
+nnx=ct.opts.nnx
+nny=ct.opts.nny
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions

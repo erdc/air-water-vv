@@ -5,9 +5,9 @@ from proteus import (StepControl,
                      LinearSolvers,
                      LinearAlgebraTools)
 from threep_navier_stokes_sed_p import *
+import threep_navier_stokes_sed_p as physics
 from tank import *
 
-#parallelPeriodic=True
 
 if timeDiscretization=='vbdf':
     timeIntegration = VBDF
@@ -32,6 +32,8 @@ numericalFluxType = None
 conservativeFlux  = None
 
 numericalFluxType = RANS3PSed.NumericalFlux
+periodicDirichletConditions = physics.periodicDirichletConditions
+parallelPeriodic = physics.parallelPeriodic
 subgridError = RANS3PSed.SubgridError(coefficients,nd,lag=ns_sed_lag_subgridError,hFactor=hFactor)
 shockCapturing = RANS3PSed.ShockCapturing(coefficients,nd,ns_sed_shockCapturingFactor,lag=ns_sed_lag_shockCapturing)
 
@@ -71,4 +73,4 @@ maxLineSearches = 0
 conservativeFlux = {0:'point-eval'}
 #conservativeFlux = {0:'pwl-bdm-opt'}
 #auxiliaryVariables=[pointGauges,lineGauges]
-auxiliaryVariables = ct.domain.auxiliaryVariables['thp']+[ct.vs_output]
+#auxiliaryVariables = ct.domain.auxiliaryVariables['thp']+[ct.vs_output]

@@ -10,6 +10,8 @@ from proteus.mprans import NCLS3P
 from proteus import Context
 
 ct = Context.get()
+nnx=ct.opts.nnx
+nny=ct.opts.nny
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
@@ -37,6 +39,8 @@ femSpaces = {0: ct.basis}
 massLumping       = False
 conservativeFlux  = None
 numericalFluxType = NCLS3P.NumericalFlux
+parallelPeriodic=physics.parallelPeriodic
+periodicDirichletConditions 	= physics.periodicDirichletConditions
 subgridError      = NCLS3P.SubgridError(coefficients,nd)
 shockCapturing    = NCLS3P.ShockCapturing(coefficients,nd,shockCapturingFactor=ct.ls_shockCapturingFactor,lag=ct.ls_lag_shockCapturing)
 
@@ -75,4 +79,4 @@ useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
 
-auxiliaryVariables = ct.domain.auxiliaryVariables['ls']
+#auxiliaryVariables = ct.domain.auxiliaryVariables['ls']

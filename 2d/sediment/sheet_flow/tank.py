@@ -21,9 +21,9 @@ opts=Context.Options([
     ("dtout", 0.05, "Time interval for output"),
     #fluid parameters
     ("rho_0", 998.2, "water density"),
-    ("rho_1", 1.205, "air density"),
+    ("rho_1", 998.2, "water density"),#1.205, "air density"),
     ("nu_0", 1.0e-6, "water kin viscosity"),
-    ("nu_1", 1.5e-5, "air kin viscosity"),
+    ("nu_1", 1.0e-7, "water kin viscosity"),#1.5e-5, "air kin viscosity"),
     ('g',np.array([3.0, -4.8, 0.0]),'Gravitational acceleration'),    
     # sediment parameters
     ('cSed', 0.55,'Initial sediment concentration'),
@@ -47,9 +47,11 @@ opts=Context.Options([
     ('mu_fr_limiter', 1.0e-3,'Hard limiter for contact stress friction coeff'),
      # numerical options
     ("refinement", 25.,"L[0]/refinement"),
+    ("nnx", 11,"L[0]/refinement"),
+    ("nny", 41,"L[0]/refinement"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("cfl", 0.25 ,"Target cfl"),
-    ("duration", .25 ,"Duration of the simulation"),
+    ("duration", 25.0 ,"Duration of the simulation"),
     ("PSTAB", 1.0, "Affects subgrid error"),
     ("res", 1.0e-8, "Residual tolerance"),
     ("epsFact_density", 3.0, "Control width of water/air transition zone"),
@@ -148,7 +150,7 @@ waterLevel = waterLine_z
 # Domain and mesh
 ##################################################################################
 L = (opts.Lx, opts.Ly)
-he = L[0]/opts.refinement
+he = 1.50/opts.refinement
 dim = dimx, dimy = L
 coords = [ dimx/2., dimy/2. ]
 
@@ -165,8 +167,11 @@ boundaryTags = {'y-': 1,
                     'sponge': 5,
                        }
 
-tank = st.Rectangle(domain, dim=dim, coords=coords)
+#tank = st.Rectangle(domain, dim=dim, coords=coords)
+domain = Domain.RectangularDomain(L=dim)
 
+nnx=opts.nnx
+nny=opts.nny
 #################################################################################
 # ----- BOUNDARY CONDITIONS ----- #
 #################################################################################
@@ -236,7 +241,7 @@ from proteus.default_n import *
 from proteus.ctransportCoefficients import smoothedHeaviside
 from proteus.ctransportCoefficients import smoothedHeaviside_integral
 
-st.assembleDomain(domain)
+#st.assembleDomain(domain)
 
 
 #----------------------------------------------------
@@ -260,7 +265,7 @@ genMesh = True
 movingDomain = False
 applyRedistancing = True
 useOldPETSc = False
-useSuperlu = True#False
+useSuperlu = False
 timeDiscretization = 'be'#'vbdf'#'vbdf'  # 'vbdf', 'be', 'flcbdf'
 spaceOrder = 1
 pspaceOrder = 1
@@ -295,7 +300,7 @@ if useMetrics not in [0.0, 1.0]:
     sys.exit()
 
 #  Discretization
-nd = tank.nd
+nd = 2#tank.nd
 
 if spaceOrder == 1:
     hFactor = 1.0
@@ -442,8 +447,14 @@ def signedDistance(x):
     return phi_z
 
 def vos_signedDistance(x):
+    phi_x1 = 0.25*dimx - x[0]
+    phi_x2 = x[0] - 0.75*dimx
     phi_z1 = x[1] - sediment_level
     phi_z2 = sediment_bottom - x[1]
+    if phi_z1 < 0.0 and phi_x1 > 0.0:
+        return phi_x1
+    if phi_z1 < 0.0 and phi_x2 > 0.0:
+        return phi_x2
     if abs(phi_z1) < abs(phi_z2):
         phi_z = phi_z1
     else:

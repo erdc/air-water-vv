@@ -3,6 +3,8 @@ from proteus.default_n import *
 from pressureInitial_p import *
 
 
+nnx=ct.opts.nnx
+nny=ct.opts.nny
 mesh = domain.MeshOptions
 triangleOptions = triangleOptions
 nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
