@@ -9,6 +9,8 @@ from proteus.mprans import VOF3P
 from proteus import Context
 
 ct = Context.get()
+nnx=ct.opts.nnx
+nny=ct.opts.nny
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
@@ -32,6 +34,8 @@ femSpaces = {0:ct.basis}
 
 massLumping       = False
 numericalFluxType = VOF3P.NumericalFlux
+parallelPeriodic=physics.parallelPeriodic
+periodicDirichletConditions 	= physics.periodicDirichletConditions
 conservativeFlux  = None
 subgridError      = VOF3P.SubgridError(coefficients=physics.coefficients,nd=nd)
 shockCapturing    = VOF3P.ShockCapturing(physics.coefficients,nd,shockCapturingFactor=ct.vof_shockCapturingFactor,lag=ct.vof_lag_shockCapturing)
@@ -72,4 +76,4 @@ useEisenstatWalker = False
 maxNonlinearIts = 50
 maxLineSearches = 0
 
-auxiliaryVariables = ct.domain.auxiliaryVariables['vof']
+#auxiliaryVariables = ct.domain.auxiliaryVariables['vof']

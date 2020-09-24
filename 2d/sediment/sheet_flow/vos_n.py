@@ -8,8 +8,9 @@ from proteus import (StepControl,
 import vos_p as physics
 from proteus import Context
 from proteus.mprans import VOS3P
-
 ct = Context.get()
+nnx=ct.opts.nnx
+nny=ct.opts.nny
 domain = ct.domain
 nd = ct.domain.nd
 mesh = domain.MeshOptions
@@ -65,6 +66,9 @@ nonlinearSolverConvergenceTest = 'rits'
 levelNonlinearSolverConvergenceTest = 'rits'
 linearSolverConvergenceTest         = 'r-true'
 
+parallelPeriodic=physics.parallelPeriodic
+periodicDirichletConditions 	= physics.periodicDirichletConditions
+
 tolFac      = 0.0
 nl_atol_res = ct.vos_nl_atol_res
 
@@ -77,4 +81,4 @@ maxNonlinearIts = 50
 maxLineSearches = 0
 
 #auxiliaryVariables = ct.domain.auxiliaryVariables['vos']
-auxiliaryVariables = ct.domain.auxiliaryVariables['vos']+[ct.vos_output]
+#auxiliaryVariables = ct.domain.auxiliaryVariables['vos']+[ct.vos_output]

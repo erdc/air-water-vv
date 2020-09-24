@@ -1,7 +1,10 @@
 from proteus import *
 from proteus.default_n import *
 from pressureincrement_p import *
+import pressureincrement_p as physics
 
+nnx=ct.opts.nnx
+nny=ct.opts.nny
 mesh = domain.MeshOptions
 triangleOptions = triangleOptions
 nLayersOfOverlapForParallel = mesh.nLayersOfOverlapForParallel
@@ -11,6 +14,8 @@ femSpaces = {0:pbasis}
 stepController=FixedStep
 
 numericalFluxType = PresInc.NumericalFlux
+periodicDirichletConditions = physics.periodicDirichletConditions
+parallelPeriodic = physics.parallelPeriodic
 #numericalFluxType = NumericalFlux.ConstantAdvection_exterior
 matrix = LinearAlgebraTools.SparseMatrix
 conservativeFlux = {0:'point-eval'} #'point-eval','pwl-bdm-opt'

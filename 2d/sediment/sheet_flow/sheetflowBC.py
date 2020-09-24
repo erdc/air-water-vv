@@ -17,18 +17,8 @@ def onBottom(x):
 def onTop(x):
     return x[1] > tank_dim[1] - eps
 
-##### Periodic Boundary Condition
-# If a corner point,
-#    return a single corner point
-# Elif on the left or right
-#    return the left boundary coordinate
-# Else on top or bottom
-#    (pass and set with no slip condition
-
 def getPDBC(x,flag):
-    if (onLeft(x) or onRight(x)) and (onTop(x) or onBottom(x)):
-        return np.array([0.0,0.0,0.0])
-    elif onLeft(x) or onRight(x):
+    if onLeft(x) or onRight(x):
         return np.array([0.0,round(x[1],5),0.0])
 
 ##### Set zero on top or bottom
@@ -80,8 +70,8 @@ kapp_diffusive = {0: {},
 # Pressure
 ##########################################################################
 
-pres_parallelPeriodic = True
-pres_periodic = {0:getPDBC}
+pres_parallelPeriodic = False
+pres_periodic = None
 pres_dirichlet = {0: lambda x, flag: None}
 pres_advective = {0: setZero}
 pres_diffusive = {0:{0: lambda x, flag: None}}
@@ -90,8 +80,8 @@ pres_diffusive = {0:{0: lambda x, flag: None}}
 # Pressure Init
 ##########################################################################
 
-pInt_parallelPeriodic = True
-pInt_periodic = {0:getPDBC}
+pInt_parallelPeriodic = False
+pInt_periodic = None
 pInt_dirichlet = {0: lambda x, flag: None}
 pInt_advective = {0: setZero}
 pInt_diffusive = {0:{0: lambda x, flag: None}}
@@ -102,49 +92,88 @@ pInt_diffusive = {0:{0: lambda x, flag: None}}
 
 pInc_parallelPeriodic = False
 pInc_periodic = None#{0:getPDBC}
-pInc_dirichlet = {0: lambda x, flag: None}
+def pIncDirichlet(x,flag):
+    if onRight(x):
+        return lambda x,t: 0.0
+pInc_dirichlet = {0: pIncDirichlet}
+
 pInc_advective = {0: setAllZero}
-pInc_diffusive = {0:{0:setAllZero}}
+def pIncFlux(x,flag):
+    if onLeft(x):
+        return lambda x,t: -1.0
+    elif onRight(x):
+        return None
+    else:
+        return lambda x,t: 0.0
+
+pInc_diffusive = {0:{0:pIncFlux}}
 
 ##########################################################################
 # 3P Navier Stokes Sed
 # 0: u_s -- 1: v_s
 ##########################################################################
     
-ns3P_parallelPeriodic = True
+ns3P_parallelPeriodic = False
 
-ns3P_periodic = {0:getPDBC,
+ns3P_periodic = None; dummy = {0:getPDBC,
                   1:getPDBC}
-ns3P_dirichlet = {0: setZero,
-                  1: setZero}
-ns3P_advective = {0: setZeroFluxOnPeriodic,
-                  1: setZeroFluxOnPeriodic}
-ns3P_diffusive = {0: {0: setZeroFluxOnPeriodic},
-                  1: {1: setZeroFluxOnPeriodic}}
+def u_dirichlet(x,flag):
+    if onLeft(x) or onRight(x):
+        return lambda x,t: 1.0
+    else:
+        return lambda x,t: 0.0
+
+def v_dirichlet(x,flag):
+    return lambda x,t: 0.0
+
+ns3P_dirichlet = {0: u_dirichlet,
+                  1: v_dirichlet}
+
+def mom_flux(x,flag):
+    return None
+
+def mom_dflux(x,flag):
+    if onRight(x):
+        return lambda x,t: 0.0
+
+ns3P_advective = {0: mom_flux,
+                  1: mom_flux}
+ns3P_diffusive = {0: {0: mom_dflux},
+                  1: {1: mom_dflux}}
 
 ##########################################################################
 # 2P Navier Stokes
 # 0: u_f -- 1: v_f
 ##########################################################################
 
-ns2P_parallelPeriodic = True
+ns2P_parallelPeriodic = False
 
-ns2P_periodic = {0:getPDBC,
+ns2P_periodic = None; dummy = {0:getPDBC,
                   1:getPDBC}
-ns2P_dirichlet = {0: setZero,
-                  1: setZero}
-ns2P_advective = {0: setZeroFluxOnPeriodic,
-                  1: setZeroFluxOnPeriodic}
-ns2P_diffusive = {0: {0: setZeroFluxOnPeriodic},
-                  1: {1: setZeroFluxOnPeriodic}}
+def us_dirichlet(x,flag):
+    if onLeft(x) or onRight(x):
+        return lambda x,t: 0.0
+    else:
+        return lambda x,t: 0.0
+
+def vs_dirichlet(x,flag):
+    return lambda x,t: 0.0
+
+ns2P_dirichlet = {0: us_dirichlet,
+                  1: vs_dirichlet}
+
+ns2P_advective = {0: mom_flux,
+                  1: mom_flux}
+ns2P_diffusive = {0: {0: mom_dflux},
+                  1: {1: mom_dflux}}
 
 ##########################################################################
 # Volume of Fluid
 ##########################################################################
 
-vof_parallelPeriodic = True
+vof_parallelPeriodic = False#True
 
-vof_periodic = {0:getPDBC}
+vof_periodic = None#{0:getPDBC}
 vof_dirichlet = {0: lambda x, flag: None}
 vof_advective = {0:setZero}
 vof_diffusive = {0: {}}
@@ -153,9 +182,9 @@ vof_diffusive = {0: {}}
 # Volume of Solid
 ##########################################################################
 
-vos_parallelPeriodic = True
+vos_parallelPeriodic = False#
 
-vos_periodic = {0:getPDBC}
+vos_periodic = None#{0:getPDBC}
 vos_dirichlet = {0: lambda x, flag :None}
-vos_advective = {0:setZero}
+vos_advective = {0:setAllZero}
 vos_diffusive = {0: {}}

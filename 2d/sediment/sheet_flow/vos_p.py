@@ -32,6 +32,7 @@ coefficients = VOS3P.Coefficients(V_model=ct.V_model,
                                   )
 
 manualbc = ct.manualbc
+
 if manualbc == True:
 	parallelPeriodic=sfbc.vos_parallelPeriodic
 	periodicDirichletConditions 	= sfbc.vos_periodic
@@ -44,3 +45,18 @@ else:
 	diffusiveFluxBoundaryConditions = {0: {}}
 
 initialConditions  = {0:ct.Suspension}
+
+def dbc(x,flag):
+	if sfbc.onLeft(x) or sfbc.onRight(x):
+		return ct.Suspension.uOfXT
+
+dirichletConditions		= {0:dbc}
+
+def abc(x,flag):
+	if sfbc.onLeft(x) or sfbc.onRight(x):
+		return None
+	else:
+		return lambda x,t: 0.0
+
+advectiveFluxBoundaryConditions = {0: abc}
+diffusiveFluxBoundaryConditions = {0: {}}
