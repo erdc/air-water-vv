@@ -13,7 +13,7 @@ from proteus.mprans.SedClosure import  HsuSedStress
 opts=Context.Options([
     # Geometry and sed parameters
     ("waterLine_x", 10.00, "Width of free surface from left to right"),
-    ("waterLine_z", 2., "Heigth of free surface above bottom"),
+    ("waterLine_z", 0.5, "Heigth of free surface above bottom"),
     ("sediment_level", 1., "Height of the sediment column"),
     ("sediment_bottom", -20., "Height of the sediment column"),
     ("Lx", 1.50, "Length of the numerical domain"),
