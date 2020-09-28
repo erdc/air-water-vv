@@ -22,7 +22,7 @@ opts=Context.Options([
     ("rho_1", 1.06, "'air' density (g/cm^3)"),
     ("nu_0", 3.019, "water kin viscosity (cm^2/s)"),
     ("nu_1", 3.019, "air kin viscosity (cm^2/s)"),
-    ('g',np.array([0.0, -980, 0.0]),'Gravitational acceleration (cm/s^2)'),
+    ('g',np.array([0.0, -980.0, 0.0]),'Gravitational acceleration (cm/s^2)'),
     ('waterLevel', 6.25, 'Water level (cm)'),
     # current
     ("current",not True, "yes or no"),
@@ -186,6 +186,34 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 # ----- BOUNDARY CONDITIONS ----- #
 ###################################
 
+################################################
+
+he = opts.he
+L = (opts.Lx, opts.Ly)
+dim = dimx, dimy = L
+coords = [ dimx/2., dimy/2. ]
+
+boundaryOrientations = {'y-': np.array([0., -1.,0.]),
+                        'x+': np.array([+1, 0.,0.]),
+                        'y+': np.array([0., +1.,0.]),
+                        'x-': np.array([-1., 0.,0.]),
+                        'sponge': None,
+                           }
+
+boundaryTags = {'y-': 1,
+                    'x+': 2,
+                    'y+': 3,
+                    'x-': 4,
+                    'sponge': 5,
+                       }
+
+tank = st.Rectangle(domain, dim=dim, coords=coords)
+
+###################################
+# ----- BOUNDARY CONDITIONS ----- #
+###################################
+L = (opts.Lx, opts.Ly)
+
 # Free slip sides with open top test (bed sediment BCs)
 tank.BC['y-'].setNoSlip()
 tank.BC['y+'].setNoSlip()
@@ -194,7 +222,7 @@ steady_current = wt.SteadyCurrent(U=np.array([opts.inflow_vel,0.0,0.0]),
                                  mwl=opts.waterLevel,
                                  rampTime=0.8)
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current,
-                                               smoothing = 3*he,
+                                               smoothing = 3.0*he,
                                                vert_axis=1)
 tank.BC['x-'].pInit_advective.setConstantBC(0.0)
 tank.BC['x-'].pInit_diffusive.setConstantBC(0.0)
@@ -207,7 +235,7 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLevel,
                                                     rhoDown = rho_0,
                                                     g=g,
                                                     refLevel= L[1],
-                                                    smoothing = 3*he)
+                                                    smoothing = 3.0*he)
     
 tank.BC['x+'].u_dirichlet.uOfXT = None
 tank.BC['x+'].v_dirichlet.uOfXT = None
@@ -215,7 +243,7 @@ tank.BC['x+'].u_advective.setConstantBC(0.0)
 tank.BC['x+'].v_advective.setConstantBC(0.0)
 tank.BC['x+'].u_diffusive.setConstantBC(0.0)
 tank.BC['x+'].v_diffusive.setConstantBC(0.0)
-tank.BC['x+'].pInc_dirichlet.setConstantBC(0.0) 
+tank.BC['x+'].pInc_dirichlet.setConstantBC(0.0)
 
 ###############################################
 # Turbulence
@@ -473,13 +501,29 @@ elif useRANS == 2:
 # Functions for model variables - Initial conditions
 #####################################################################
 hf=opts.hf
+x0=6.0
+l=opts.Lx/2-x0
+x1=x0+2*l
+vcut = opts.Ly-hf
 
 def signedDistance(x):
     phi_z = x[1] - 6.0
     return phi_z
 
 def vos_signedDistance(x):
-    phi_z = x[1] - (6.5-hf)
+    if abs(x[0]-50)<l and x[1]<vcut:
+        phi_z = -min(x[0]-x0,x1-x[0],vcut-x[1])
+    elif abs(x[0]-50)<l:
+        phi_z = x[1]-vcut
+    elif x[1] < vcut:
+        if x[0]<x0:
+            phi_z = x0-x[0]
+        else:
+            phi_z = x[0]-x1
+    elif x[0]<x0:
+        phi_z = sqrt((x[0]-x0)**2 + (x[1]-vcut)**2)
+    else:
+        phi_z = sqrt((x[0]-x1)**2 + (x[1]-vcut)**2)
     return phi_z
 
 class Suspension_class:
