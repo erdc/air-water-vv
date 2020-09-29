@@ -14,7 +14,7 @@ from proteus.mprans import BodyDynamics as bd
 
 opts=Context.Options([
 	# TANK PARAMETERS
-    ("Lx", 100, "Length of x dim (cm)"),
+    ("Lx", 100.0, "Length of x dim (cm)"),
     ("Ly", 6.5, "Length of y dim (cm)"),
     ("dtout", 0.05, "Time interval for output"),
     #fluid parameters
@@ -23,9 +23,9 @@ opts=Context.Options([
     ("nu_0", 3.019, "water kin viscosity (cm^2/s)"),
     ("nu_1", 3.019, "air kin viscosity (cm^2/s)"),
     ('g',np.array([0.0, -980.0, 0.0]),'Gravitational acceleration (cm/s^2)'),
-    ('waterLevel', 6.25, 'Water level (cm)'),
+    ('waterLevel', 3.0, 'Water level (cm)'),
     # current
-    ("current",not True, "yes or no"),
+#    ("current",not True, "yes or no"),
     ("inflow_vel", 0.25, "inflow velocity (cm/s)"),
     ("GenZone", not True, "on/off"),
     ("AbsZone", not True, "on/off"),
@@ -95,7 +95,7 @@ else:
 
 nd = 2
 
-#he = opts.he #opts.tank_dim_y/opts.refinement
+he = opts.he #opts.tank_dim_y/opts.refinement
 #Re = opts.inflow_vel*opts.Ly/opts.nu_0
 #Y_ = he
 #cf = 0.045*(Re**(-1./4.))
@@ -236,7 +236,6 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLevel,
                                                     g=g,
                                                     refLevel= L[1],
                                                     smoothing = 3.0*he)
-    
 tank.BC['x+'].u_dirichlet.uOfXT = None
 tank.BC['x+'].v_dirichlet.uOfXT = None
 tank.BC['x+'].u_advective.setConstantBC(0.0)
