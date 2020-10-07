@@ -31,9 +31,9 @@ opts=Context.Options([
     ("AbsZone", not True, "on/off"),
     # sediment parameters
     ('cSed', 0.6,'Sediment concentration'),
-    ('hf',0.5871,'Distance between height of sediment and top of tank (cm)'),
+    ('hf',0.5871,'Initial distance between height of sediment and top of tank (cm)'),
     ('rho_s',2.230 ,'sediment material density (g/cm^3)'),
-    ('alphaSed', 150.,'laminar drag coefficient'),
+    ('alphaSed', 150.0,'laminar drag coefficient'),
     ('betaSed', 0.0,'turbulent drag coefficient'),
     ('grain',0.11, 'Grain size (cm)'),
     ('packFraction',0.2,'threshold for loose / packed sediment'),
@@ -51,7 +51,7 @@ opts=Context.Options([
     ('vos_limiter', 0.62, 'Weak limiter for vos'),
     ('mu_fr_limiter', 1e-3,'Hard limiter for contact stress friction coeff'),
     # numerical options
-    ("he", 0.1,"he"),
+    ("he", 0.5,"he"),
     ("sedimentDynamics", True, "Enable sediment dynamics module"),
     ("openTop",  True, "Enable open atmosphere for air phase on the top"),
     ("cfl", 0.25 ,"Target cfl"),
@@ -81,7 +81,6 @@ V_model =6
 DP_model = 7
 P_model = 8
 
-
 if opts.useRANS:
     K_model = 9
     EPS_model = 10
@@ -91,18 +90,6 @@ else:
     EPS_model = None   
     PI_model = 9
     
-# Domain dimensions
-
-nd = 2
-
-he = opts.he #opts.tank_dim_y/opts.refinement
-#Re = opts.inflow_vel*opts.Ly/opts.nu_0
-#Y_ = he
-#cf = 0.045*(Re**(-1./4.))
-#Ut = opts.inflow_vel*sqrt(cf/2.)
-#Yplus = Y_*Ut/opts.nu_0
-#kappaP = (Ut**2)/sqrt(opts.Cmu)
-#dissipationP = (Ut**3)/(opts.K*Y_)
 # ----- Sediment stress ----- #
 
 sedClosure = HsuSedStress(opts.alphaSed,
@@ -124,11 +111,6 @@ sedClosure = HsuSedStress(opts.alphaSed,
                           opts.mu_fr_limiter,
                           )
 
-# ----- DOMAIN ----- #
-
-domain = Domain.PlanarStraightLineGraphDomain()
-
-
 # ----- Phisical constants ----- #
   
 # Water
@@ -140,9 +122,8 @@ rho_1 = opts.rho_1
 nu_1 = opts.nu_1
 
 # Sediment
-
 rho_s = opts.rho_s
-nu_s = 1000000.
+nu_s = 1000000.0
 dragAlpha = 0.0
 
 # Surface tension
@@ -161,13 +142,18 @@ sediment_level = opts.Ly-opts.hf
 # Domain and mesh
 ################################################
 
+# ----- DOMAIN ----- #
+
+domain = Domain.PlanarStraightLineGraphDomain()
+nd = 2
+
 he = opts.he
 L = (opts.Lx, opts.Ly)
 dim = dimx, dimy = L
 coords = [ dimx/2., dimy/2. ]
 
 boundaryOrientations = {'y-': np.array([0., -1.,0.]),
-                        'x+': np.array([+1, 0.,0.]),
+                        'x+': np.array([+1., 0.,0.]),
                         'y+': np.array([0., +1.,0.]),
                         'x-': np.array([-1., 0.,0.]),
                         'sponge': None,
@@ -186,36 +172,7 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 # ----- BOUNDARY CONDITIONS ----- #
 ###################################
 
-################################################
-
-he = opts.he
-L = (opts.Lx, opts.Ly)
-dim = dimx, dimy = L
-coords = [ dimx/2., dimy/2. ]
-
-boundaryOrientations = {'y-': np.array([0., -1.,0.]),
-                        'x+': np.array([+1, 0.,0.]),
-                        'y+': np.array([0., +1.,0.]),
-                        'x-': np.array([-1., 0.,0.]),
-                        'sponge': None,
-                           }
-
-boundaryTags = {'y-': 1,
-                    'x+': 2,
-                    'y+': 3,
-                    'x-': 4,
-                    'sponge': 5,
-                       }
-
-tank = st.Rectangle(domain, dim=dim, coords=coords)
-
-###################################
-# ----- BOUNDARY CONDITIONS ----- #
-###################################
-L = (opts.Lx, opts.Ly)
-
-# Free slip sides with open top test (bed sediment BCs)
-tank.BC['y-'].setNoSlip()
+tank.BC['y-'].setFreeSlip()
 tank.BC['y+'].setNoSlip()
 
 steady_current = wt.SteadyCurrent(U=np.array([opts.inflow_vel,0.0,0.0]),
@@ -224,25 +181,26 @@ steady_current = wt.SteadyCurrent(U=np.array([opts.inflow_vel,0.0,0.0]),
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current,
                                                smoothing = 3.0*he,
                                                vert_axis=1)
-tank.BC['x-'].pInit_advective.setConstantBC(0.0)
-tank.BC['x-'].pInit_diffusive.setConstantBC(0.0)
-tank.BC['x-'].pInc_diffusive.setConstantBC(0.0)
-tank.BC['x-'].pInc_advective.uOfXT = lambda x,t: -opts.inflow_vel
-tank.BC['x-'].p_advective.setConstantBC(0.0)
+#tank.BC['x-'].pInit_advective.setConstantBC(0.0)
+#tank.BC['x-'].pInit_diffusive.setConstantBC(0.0)
+#tank.BC['x-'].pInc_diffusive.setConstantBC(0.0)
+#tank.BC['x-'].pInc_advective.uOfXT = lambda x,t: -opts.inflow_vel
+#tank.BC['x-'].p_advective.setConstantBC(0.0)
 
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLevel,
                                                     rhoUp=rho_1,
                                                     rhoDown = rho_0,
                                                     g=g,
-                                                    refLevel= L[1],
-                                                    smoothing = 3.0*he)
-tank.BC['x+'].u_dirichlet.uOfXT = None
-tank.BC['x+'].v_dirichlet.uOfXT = None
-tank.BC['x+'].u_advective.setConstantBC(0.0)
-tank.BC['x+'].v_advective.setConstantBC(0.0)
-tank.BC['x+'].u_diffusive.setConstantBC(0.0)
-tank.BC['x+'].v_diffusive.setConstantBC(0.0)
-tank.BC['x+'].pInc_dirichlet.setConstantBC(0.0)
+                                                    refLevel= opts.Ly,
+                                                    smoothing = 3.0*he,
+                                                    orientation=np.array([1.0,0.0,0.0]))
+#tank.BC['x+'].u_dirichlet.uOfXT = None
+#tank.BC['x+'].v_dirichlet.uOfXT = None
+#tank.BC['x+'].u_advective.setConstantBC(0.0)
+#tank.BC['x+'].v_advective.setConstantBC(0.0)
+#tank.BC['x+'].u_diffusive.setConstantBC(0.0)
+#tank.BC['x+'].v_diffusive.setConstantBC(0.0)
+#tank.BC['x+'].pInc_dirichlet.setConstantBC(0.0)
 
 ###############################################
 # Turbulence
