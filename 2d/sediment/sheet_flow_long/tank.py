@@ -175,18 +175,38 @@ tank = st.Rectangle(domain, dim=dim, coords=coords)
 tank.BC['y-'].setFreeSlip()
 tank.BC['y+'].setNoSlip()
 
+## ---- LEFT HAND BOUNDARY CONDITION ---- ##
+tank.BC['x-'].setConstantInletVelocity(U=np.array([opts.inflow_vel,0.0,0.0]),
+                                       ramp=0.8,
+                                       kk=0.0,
+                                       dd=0.0,
+                                       b_or=np.array([-1.0,0.0,0.0]))
+tank.BC['x-'].vof_advective.setConstantBC(0.0)
+tank.BC['x-'].vos_advective.setConstantBC(0.0)
+"""
 steady_current = wt.SteadyCurrent(U=np.array([opts.inflow_vel,0.0,0.0]),
                                  mwl=opts.waterLevel,
                                  rampTime=0.8)
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave=steady_current,
                                                smoothing = 3.0*he,
                                                vert_axis=1)
-#tank.BC['x-'].pInit_advective.setConstantBC(0.0)
-#tank.BC['x-'].pInit_diffusive.setConstantBC(0.0)
-#tank.BC['x-'].pInc_diffusive.setConstantBC(0.0)
-#tank.BC['x-'].pInc_advective.uOfXT = lambda x,t: -opts.inflow_vel
-#tank.BC['x-'].p_advective.setConstantBC(0.0)
+"""
+tank.BC['x-'].pInit_advective.setConstantBC(0.0)
+tank.BC['x-'].pInit_diffusive.setConstantBC(0.0)
+tank.BC['x-'].pInc_diffusive.setConstantBC(0.0)
+tank.BC['x-'].pInc_advective.uOfXT = lambda x,t: -opts.inflow_vel
+tank.BC['x-'].p_advective.setConstantBC(0.0)
 
+## ---- RIGHT HAND BOUNDARY CONDITION ---- ##
+tank.BC['x+'].setConstantOutletPressure(p=0.0,
+                                        rho=rho_0,
+                                        g=g,
+                                        kk=0.0,
+                                        dd=0.0,
+                                        b_or=np.array([1.0,0.0,0.0]))
+tank.BC['x+'].vof_advective.setConstantBC(0.0)
+tank.BC['x+'].vos_advective.setConstantBC(0.0)
+"""
 tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLevel,
                                                     rhoUp=rho_1,
                                                     rhoDown = rho_0,
@@ -194,13 +214,14 @@ tank.BC['x+'].setHydrostaticPressureOutletWithDepth(seaLevel=opts.waterLevel,
                                                     refLevel= opts.Ly,
                                                     smoothing = 3.0*he,
                                                     orientation=np.array([1.0,0.0,0.0]))
-#tank.BC['x+'].u_dirichlet.uOfXT = None
-#tank.BC['x+'].v_dirichlet.uOfXT = None
-#tank.BC['x+'].u_advective.setConstantBC(0.0)
-#tank.BC['x+'].v_advective.setConstantBC(0.0)
-#tank.BC['x+'].u_diffusive.setConstantBC(0.0)
-#tank.BC['x+'].v_diffusive.setConstantBC(0.0)
-#tank.BC['x+'].pInc_dirichlet.setConstantBC(0.0)
+"""
+tank.BC['x+'].u_dirichlet.uOfXT = None
+tank.BC['x+'].v_dirichlet.uOfXT = None
+tank.BC['x+'].u_advective.setConstantBC(0.0)
+tank.BC['x+'].v_advective.setConstantBC(0.0)
+tank.BC['x+'].u_diffusive.setConstantBC(0.0)
+tank.BC['x+'].v_diffusive.setConstantBC(0.0)
+tank.BC['x+'].pInc_dirichlet.setConstantBC(0.0)
 
 ###############################################
 # Turbulence
