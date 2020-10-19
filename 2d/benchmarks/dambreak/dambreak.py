@@ -70,6 +70,8 @@ tank.BC['x-'].setFreeSlip()
 # Mesh 
 domain.MeshOptions.he = opts.he
 
+#Assemble domain
+st.assembleDomain(domain)
 
 # Initial conditions
 def signedDistance(x):
@@ -106,55 +108,38 @@ class LS_IC:
     def uOfXT(self,x,t):
         return signedDistance(x)
 
-initialConditions = {'pressure': P_IC(),
-                     'vel_u': AtRest(),
-                     'vel_v': AtRest(),
-                     'vel_w': AtRest()}
+myTpFlowProblem = TpFlow.TwoPhaseFlowProblem()
+myTpFlowProblem.domain=domain
 
-initialConditions['vof'] = VOF_IC()
-initialConditions['ncls'] = LS_IC()
-initialConditions['rdls'] = LS_IC()
+myTpFlowProblem.outputStepping.final_time = opts.duration
+myTpFlowProblem.outputStepping.dt_output = opts.dt_output
+myTpFlowProblem.outputStepping.dt_init = opts.dt_init
+
+myTpFlowProblem.SystemNumerics.cfl=opts.cfl
+myTpFlowProblem.SystemNumerics.useSuperlu=False
+
+myTpFlowProblem.SystemPhysics.setDefaults()
+myTpFlowProblem.SystemPhysics.useDefaultModels(flowModel=0,interfaceModel=0)
+
+myTpFlowProblem.SystemPhysics.modelDict['flow'].p.initialConditions['p']=P_IC()
+myTpFlowProblem.SystemPhysics.modelDict['flow'].p.initialConditions['u']=AtRest()
+myTpFlowProblem.SystemPhysics.modelDict['flow'].p.initialConditions['v']=AtRest()
+myTpFlowProblem.SystemPhysics.modelDict['vof'].p.initialConditions['vof'] = VOF_IC()
+myTpFlowProblem.SystemPhysics.modelDict['ncls'].p.initialConditions['phi'] = LS_IC()
+myTpFlowProblem.SystemPhysics.modelDict['rdls'].p.initialConditions['phid'] = LS_IC()
+myTpFlowProblem.SystemPhysics.modelDict['mcorr'].p.initialConditions['phiCorr'] = AtRest()
+
+params = myTpFlowProblem.SystemPhysics
+
+params['rho_0'] = opts.rho_0  # water
+params['rho_1'] = opts.rho_1  # air
+params['nu_0'] = opts.nu_0  # water
+params['nu_1'] = opts.nu_1  # air
+params['surf_tension_coeff'] = opts.sigma
+
+m = params.modelDict
+m['rdls'].p.coefficients.epsFact=0.75
+#m.rans2p.p.CoefficientsOptions.useVF=0.
 
 
-outputStepping = TpFlow.OutputStepping(final_time=opts.duration,
-                                       dt_init=opts.dt_init,
-                                       # cfl=cfl,
-                                       dt_output=opts.dt_output,
-                                       nDTout=None,
-                                       dt_fixed=None)
-
-myTpFlowProblem = TpFlow.TwoPhaseFlowProblem(ns_model=None,
-                                             ls_model=None,
-                                             nd=domain.nd,
-                                             cfl=opts.cfl,
-                                             outputStepping=outputStepping,
-                                             structured=False,
-                                             he=opts.he,
-                                             nnx=None,
-                                             nny=None,
-                                             nnz=None,
-                                             domain=domain,
-                                             initialConditions=initialConditions,
-                                             boundaryConditions=None, # set with SpatialTools,
-                                             )
-
-params = myTpFlowProblem.Parameters
-
-myTpFlowProblem.useSuperLu=False#True
-params.physical.densityA = opts.rho_0  # water
-params.physical.densityB = opts.rho_1  # air
-params.physical.kinematicViscosityA = opts.nu_0  # water
-params.physical.kinematicViscosityB = opts.nu_1  # air
-params.physical.surf_tension_coeff = opts.sigma
-
-# index in order of
-m = params.Models
-m.rans2p.index = 0
-m.vof.index = 1
-m.ncls.index = 2
-m.rdls.index = 3
-m.mcorr.index = 4
-
-#Assemble domain
-st.assembleDomain(domain)
-myTpFlowProblem.Parameters.Models.rans2p.auxiliaryVariables += domain.auxiliaryVariables['twp']
+m['flow'].auxiliaryVariables += domain.auxiliaryVariables['twp']
