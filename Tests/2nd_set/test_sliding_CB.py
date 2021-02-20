@@ -66,8 +66,7 @@ class TestSlidingCaissonTetgen(TestTools.AirWaterVVTest):
             else:
                 pass
 
-
-
+    @pytest.mark.skipif(os.getenv('TEST_PROFILE')=="proteus-conda-osx", reason="need to fix locally on osx")
     def test_run(self):
         from petsc4py import PETSc
         pList = []
