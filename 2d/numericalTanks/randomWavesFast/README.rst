@@ -3,7 +3,7 @@ Fast Random wave  generation
 
 Description
 ----------
-The test case setup is described in https://github.com/erdc-cm/air-water-vv/tree/adimako/merge/2d/numericalTanks/randomWaves.
+The test case setup is described in https://github.com/erdc/air-water-vv/tree/adimako/merge/2d/numericalTanks/randomWaves.
 In this particular case, the generation methodology is optimised to allow fast generation of long non repeating random waves sequences using processing with spectral windows. More details on the methodology can be found in Dimakopoulos et al. (2017).
 
 Tests (to be added)

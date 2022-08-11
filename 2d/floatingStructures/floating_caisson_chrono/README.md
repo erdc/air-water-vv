@@ -26,7 +26,7 @@ where:
 * `output_folder` is the name of the folder for the output files
 * `context_options` are options for running the benchmark (see section below)
 
-The benchmark works only using the [mbd/chrono](https://github.com/erdc-cm/proteus/tree/mbd/chrono) proteus branch.
+The benchmark works only using the [mbd/chrono](https://github.com/erdc/proteus/tree/mbd/chrono) proteus branch.
 
 ## Context Options
 
