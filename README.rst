@@ -2,7 +2,7 @@
 Verification and validation for air/water flow models
 =====================================================
 
-https://github.com/erdc-cm/air-water-vv
+https://github.com/erdc/air-water-vv
 
 Organization of the test set
 ----------------------------
@@ -16,7 +16,7 @@ test consists of a single directory including
 - All data files describing the geometry and physical parameters of
   the problem
 - A set of input files for a code
-  (e.g. https://github.com/erdc-cm/proteus)
+  (e.g. https://github.com/erdc/proteus)
 - A script for results postprocessing (Optional)
 - A script for running regression tests
 
