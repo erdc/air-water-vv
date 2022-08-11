@@ -29,7 +29,7 @@ before_install:
 install:
 - git lfs fetch
 - git lfs checkout
-- git clone https://github.com/erdc-cm/proteus
+- git clone https://github.com/erdc/proteus
 - cd proteus
 - make hashdist
 - make stack
