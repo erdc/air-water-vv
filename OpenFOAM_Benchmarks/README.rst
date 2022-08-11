@@ -2,18 +2,18 @@
 OpenFOAM Benchmarks
 =====================================================
 
-https://github.com/erdc-cm/air-water-vv/OpenFOAM_Benchmarks/
+https://github.com/erdc/air-water-vv/OpenFOAM_Benchmarks/
 
 Case descritpion
 ----------------------------
 
-- dambreakColagrossi, see  https://github.com/erdc-cm/air-water-vv/2d/dambreak_Colagrossi/README.rst
+- dambreakColagrossi, see  https://github.com/erdc/air-water-vv/2d/dambreak_Colagrossi/README.rst
 
-- dambreakWithObstacle, see http://foam.sourceforge.net/docs/Guides-a4/UserGuide.pdf (section 2.3) and https://github.com/erdc-cm/air-water-vv/2d/dambreak_Ubbink/README.rst
+- dambreakWithObstacle, see http://foam.sourceforge.net/docs/Guides-a4/UserGuide.pdf (section 2.3) and https://github.com/erdc/air-water-vv/2d/dambreak_Ubbink/README.rst
 
 - lidDrivenCavity, see http://foam.sourceforge.net/docs/Guides-a4/UserGuide.pdf (Section 2.1)
 
-- dambreakGomez, see https://github.com/erdc-cm/air-water-vv/blob/master/3d/dambreak_Gomez/README.rst
+- dambreakGomez, see https://github.com/erdc/air-water-vv/blob/master/3d/dambreak_Gomez/README.rst
 
 How to set up and run OpenFOAM cases
 ------------------------
