@@ -14,7 +14,7 @@ test consists of a single directory including
 - All data files describing the geometry and physical parameters of
   the problem
 - A set of input files for a code
-  (e.g. https://github.com/erdc-cm/proteus)
+  (e.g. https://github.com/erdc/proteus)
 
 # Adding new test problems
 
