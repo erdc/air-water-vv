@@ -6,7 +6,7 @@ from proteus import (StepControl,
                      LinearSolvers,
                      LinearAlgebraTools,
                      NumericalFlux)
-from proteus.mprans import RDLS3P
+from proteus.mprans import RDLS
 import redist_p as physics
 from proteus import Context
 
@@ -37,8 +37,8 @@ elementBoundaryQuadrature = ct.elementBoundaryQuadrature
 massLumping       = False
 numericalFluxType = NumericalFlux.DoNothing
 conservativeFlux  = None
-subgridError      = RDLS3P.SubgridError(physics.coefficients,nd)
-shockCapturing    = RDLS3P.ShockCapturing(physics.coefficients,nd,shockCapturingFactor=ct.rd_shockCapturingFactor,lag=ct.rd_lag_shockCapturing)
+subgridError      = RDLS.SubgridError(physics.coefficients,nd)
+shockCapturing    = RDLS.ShockCapturing(physics.coefficients,nd,shockCapturingFactor=ct.rd_shockCapturingFactor,lag=ct.rd_lag_shockCapturing)
 
 fullNewtonFlag = True
 multilevelNonlinearSolver  = NonlinearSolvers.Newton
