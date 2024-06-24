@@ -91,12 +91,14 @@ tank.BC['x+'].setFreeSlip()
 tank.BC['x-'].setUnsteadyTwoPhaseVelocityInlet(wave, smoothing=smoothing, vert_axis=1)
 tank.BC['sponge'].setNonMaterial()
 
-
 # ABSORPTION ZONE BEHIND PADDLE  
 dragAlpha = 5*(2*np.pi/opts.T)/1e-6
 
 tank.setGenerationZones(x_n=True, waves=wave, dragAlpha=dragAlpha, smoothing = smoothing)
 
+# Assemble domain
+domain.MeshOptions.he = he
+st.assembleDomain(domain)
 
 waterLine_x=10000
 waterLine_z = opts.mwl
@@ -128,10 +130,6 @@ class AtRest:
     def uOfXT(self, x, t):
         return 0.0
 
-initialConditions = {'pressure': P_IC(),
-                     'vel_u': AtRest(),
-                     'vel_v': AtRest(),
-                     'vel_w': AtRest()}
 class VOF_IC:
     def uOfXT(self,x,t):
         return smoothedHeaviside(opts.ecH * he, signedDistance(x))
@@ -140,52 +138,45 @@ class LS_IC:
     def uOfXT(self,x,t):
         return signedDistance(x)
 
-initialConditions['vof'] = VOF_IC()
-initialConditions['ncls'] = LS_IC()
-initialConditions['rdls'] = LS_IC()
 # Numerics
 
 Duration= opts.Tend/opts.fract
 dt_output = opts.T/opts.Np
 
-outputStepping = TpFlow.OutputStepping(final_time=Duration,
-                                       dt_init=opts.dt_init,
-                                       # cfl=cfl,
-                                       dt_output=dt_output,
-                                       nDTout=None,
-                                       dt_fixed=None)
+myTpFlowProblem = TpFlow.TwoPhaseFlowProblem()
+myTpFlowProblem.domain=domain
 
-myTpFlowProblem = TpFlow.TwoPhaseFlowProblem(ns_model=None,
-                                             ls_model=None,
-                                             nd=domain.nd,
-                                             cfl=opts.cfl,
-                                             outputStepping=outputStepping,
-                                             structured=False,
-                                             he=he,
-                                             nnx=None,
-                                             nny=None,
-                                             nnz=None,
-                                             domain=domain,
-                                             initialConditions=initialConditions,
-                                             boundaryConditions=None, # set with SpatialTools,
-                                             )
+# --- Timestepping for output
+myTpFlowProblem.outputStepping.final_time = Duration
+myTpFlowProblem.outputStepping.dt_output = dt_output
+myTpFlowProblem.outputStepping.dt_init = opts.dt_init
 
-params = myTpFlowProblem.Parameters
+myTpFlowProblem.SystemNumerics.cfl=opts.cfl
+myTpFlowProblem.SystemNumerics.useSuperlu=False
 
-myTpFlowProblem.useSuperLu=False#True
-params.physical.densityA = opts.rho_0  # water
-params.physical.densityB = opts.rho_1  # air
-params.physical.kinematicViscosityA = opts.nu_0  # water
-params.physical.kinematicViscosityB = opts.nu_1  # air
-params.physical.surf_tension_coeff = opts.sigma_01
+myTpFlowProblem.SystemPhysics.setDefaults()
 
-# index in order of
-m = params.Models
-m.rans2p.index = 0
-m.vof.index = 1
-m.ncls.index = 2
-m.rdls.index = 3
-m.mcorr.index = 4
+myTpFlowProblem.SystemPhysics.useDefaultModels(flowModel=0,interfaceModel=0)
+
+myTpFlowProblem.SystemPhysics.modelDict['flow'].p.initialConditions['p']=P_IC()
+myTpFlowProblem.SystemPhysics.modelDict['flow'].p.initialConditions['u']=AtRest()
+myTpFlowProblem.SystemPhysics.modelDict['flow'].p.initialConditions['v']=AtRest()
+myTpFlowProblem.SystemPhysics.modelDict['vof'].p.initialConditions['vof'] = VOF_IC()
+myTpFlowProblem.SystemPhysics.modelDict['ncls'].p.initialConditions['phi'] = LS_IC()
+myTpFlowProblem.SystemPhysics.modelDict['rdls'].p.initialConditions['phid'] = LS_IC()
+myTpFlowProblem.SystemPhysics.modelDict['mcorr'].p.initialConditions['phiCorr'] = AtRest()
+
+params = myTpFlowProblem.SystemPhysics
+
+params['rho_0'] = opts.rho_0  # water
+params['rho_1'] = opts.rho_1  # air
+params['nu_0'] = opts.nu_0  # water
+params['nu_1'] = opts.nu_1  # air
+params['surf_tension_coeff'] = opts.sigma_01
+
+m = params.modelDict
+
+m['flow'].auxiliaryVariables += domain.auxiliaryVariables['twp']
 
 """
 
@@ -221,7 +212,4 @@ def twpflowPressure_init(x, t):
     - smoothedHeaviside_integral(ecH * domain.MeshOptions.he, phi)))
 
 
-# Assemble domain
-domain.MeshOptions.he = he
-st.assembleDomain(domain)
-myTpFlowProblem.Parameters.Models.rans2p.auxiliaryVariables += domain.auxiliaryVariables['twp']
+
